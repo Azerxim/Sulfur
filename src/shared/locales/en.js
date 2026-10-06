@@ -3,7 +3,10 @@ export default {
   app: {
     tagline: 'Modular simulator',
     modules: 'Modules',
-    noModule: 'No module loaded'
+    noModule: 'No module loaded',
+    moduleError: 'This page could not be displayed.',
+    resetModuleConfig: 'Restore the module default configuration',
+    retry: 'Retry'
   },
   ui: {
     expand: 'Expand',
@@ -62,7 +65,14 @@ export default {
     minPeriod: 'Minimum period: {min} ms',
     unknownStore: 'Unknown certificate store: {name}',
     certNotFound: 'Certificate not found',
-    emptyPassword: 'The password is empty'
+    emptyPassword: 'The password is empty',
+    config: {
+      notJson: 'The file is not valid JSON',
+      notSulfur: 'The file is not a Sulfur configuration',
+      unsupportedVersion: 'Configuration format version {version} is not supported by this version of Sulfur',
+      noModule: 'The file contains no configuration for the modules of this version of Sulfur',
+      busy: 'Stop the servers and disconnect the clients before importing a configuration'
+    }
   },
   simulations: {
     none: 'Static',
@@ -104,7 +114,7 @@ export default {
   },
   settings: {
     name: 'Settings',
-    description: 'Application language and appearance',
+    description: 'Language, appearance and configurations',
     language: 'Language',
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',
@@ -118,6 +128,17 @@ export default {
       dark: 'Dark interface (default)',
       light: 'Light interface',
       system: 'Follows the operating system setting'
+    },
+    configurations: {
+      title: 'Configurations',
+      hint: 'Module settings are saved automatically. Export them to a JSON file to share a test setup, or import one (servers stopped and clients disconnected).',
+      export: 'Export…',
+      import: 'Import…',
+      exportTitle: 'Export the Sulfur configuration',
+      importTitle: 'Import a Sulfur configuration',
+      exported: 'Configuration exported to {path}',
+      imported: 'Configuration imported from {path}',
+      ignored: 'Ignored modules (not available in this version): {modules}'
     }
   }
 }

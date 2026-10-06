@@ -1,6 +1,8 @@
-import { Check, Monitor, Moon, Sun } from 'lucide-react'
+import { useState } from 'react'
+import { Check, Download, Monitor, Moon, Sun, Upload } from 'lucide-react'
 import { LANGUAGES } from '@shared/languages'
-import { Card } from '../components/ui'
+import { Button, Card, ErrorBanner } from '../components/ui'
+import { exportConfigurations, importConfigurations } from '../module-config'
 import { THEMES, useI18n, usePreferences } from '../preferences'
 
 const THEME_ICONS = { dark: Moon, light: Sun, system: Monitor }
@@ -24,7 +26,59 @@ function Choice({ selected, onClick, icon: Icon, title, subtitle }) {
   )
 }
 
-/** Paramètres de l'application : langue et thème. */
+/** Export / import de la configuration de tous les modules (banc de test). */
+function ConfigurationsCard() {
+  const { t } = useI18n()
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState(null)
+  const [error, setError] = useState(null)
+
+  async function run(action, describe) {
+    setBusy(true)
+    setMessage(null)
+    setError(null)
+    try {
+      const result = await action()
+      if (result) setMessage(describe(result))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const exportAll = () =>
+    run(exportConfigurations, ({ filePath }) => [t('settings.configurations.exported', { path: filePath })])
+  const importAll = () =>
+    run(importConfigurations, ({ filePath, ignored }) => [
+      t('settings.configurations.imported', { path: filePath }),
+      ignored.length > 0 && t('settings.configurations.ignored', { modules: ignored.join(', ') })
+    ])
+
+  return (
+    <Card id="settings.configurations" title={t('settings.configurations.title')}>
+      <p className="mb-3 text-xs text-slate-500">{t('settings.configurations.hint')}</p>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap gap-2">
+          <Button disabled={busy} onClick={exportAll}>
+            <Download className="size-4" /> {t('settings.configurations.export')}
+          </Button>
+          <Button disabled={busy} onClick={importAll}>
+            <Upload className="size-4" /> {t('settings.configurations.import')}
+          </Button>
+        </div>
+        {message?.filter(Boolean).map((line) => (
+          <p key={line} className="text-sm break-all text-emerald-300">
+            {line}
+          </p>
+        ))}
+        <ErrorBanner error={error} onClose={() => setError(null)} />
+      </div>
+    </Card>
+  )
+}
+
+/** Paramètres de l'application : langue, thème et configurations. */
 export default function SettingsPage() {
   const { t } = useI18n()
   const { prefs, update } = usePreferences()
@@ -61,6 +115,8 @@ export default function SettingsPage() {
           ))}
         </div>
       </Card>
+
+      <ConfigurationsCard />
     </div>
   )
 }

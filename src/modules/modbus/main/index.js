@@ -67,6 +67,11 @@ export const modbusMainModule = {
     })
   },
 
+  /** Serveur démarré ou client connecté. */
+  busy() {
+    return !!(server?.status().running || client?.status().connected)
+  },
+
   async deactivate() {
     await client?.disconnect().catch(() => {})
     await server?.stop().catch(() => {})

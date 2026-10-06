@@ -10,7 +10,9 @@ import { ConfigStore } from './config-store'
  *  - ctx.log(...args)
  *
  * Chaque module dispose aussi d'une configuration enregistrée (`<dataDir>/config.json`), lue et écrite
- * par l'interface via les canaux `<moduleId>:config:load` et `<moduleId>:config:save`.
+ * par l'interface via les canaux `<moduleId>:config:load`, `<moduleId>:config:save` et
+ * `<moduleId>:config:reset`. Un module peut exporter `busy()` (serveur démarré, client connecté) :
+ * l'import d'une configuration est alors refusé.
  */
 export class ModuleHost {
   modules = []
@@ -24,6 +26,7 @@ export class ModuleHost {
       this.configs.set(mod.manifest.id, config)
       ctx.handle('config:load', () => config.get())
       ctx.handle('config:save', (section, value) => config.set(section, value))
+      ctx.handle('config:reset', () => config.replace({}))
       await mod.activate(ctx)
       this.modules.push(mod)
       console.log(`[sulfur] module "${mod.manifest.id}" chargé`)

@@ -3,7 +3,10 @@ export default {
   app: {
     tagline: 'Simulateur modulaire',
     modules: 'Modules',
-    noModule: 'Aucun module chargé'
+    noModule: 'Aucun module chargé',
+    moduleError: 'Cette page n\'a pas pu être affichée.',
+    resetModuleConfig: 'Rétablir la configuration par défaut du module',
+    retry: 'Réessayer'
   },
   ui: {
     expand: 'Déplier',
@@ -62,7 +65,14 @@ export default {
     minPeriod: 'Période minimale : {min} ms',
     unknownStore: 'Magasin de certificats inconnu : {name}',
     certNotFound: 'Certificat introuvable',
-    emptyPassword: 'Le mot de passe est vide'
+    emptyPassword: 'Le mot de passe est vide',
+    config: {
+      notJson: 'Le fichier n\'est pas un JSON valide',
+      notSulfur: 'Le fichier n\'est pas une configuration Sulfur',
+      unsupportedVersion: 'La version {version} du format de configuration n\'est pas prise en charge par cette version de Sulfur',
+      noModule: 'Le fichier ne contient aucune configuration pour les modules de cette version de Sulfur',
+      busy: 'Arrêtez les serveurs et déconnectez les clients avant d\'importer une configuration'
+    }
   },
   simulations: {
     none: 'Statique',
@@ -104,7 +114,7 @@ export default {
   },
   settings: {
     name: 'Paramètres',
-    description: 'Langue et apparence de l\'application',
+    description: 'Langue, apparence et configurations',
     language: 'Langue',
     languageHint: 'S\'applique à toute l\'interface ainsi qu\'aux messages des serveurs et clients.',
     theme: 'Thème',
@@ -118,6 +128,17 @@ export default {
       dark: 'Interface sombre (par défaut)',
       light: 'Interface claire',
       system: 'Suit le réglage du système d\'exploitation'
+    },
+    configurations: {
+      title: 'Configurations',
+      hint: 'Les réglages des modules sont enregistrés automatiquement. Exportez-les dans un fichier JSON pour partager un banc de test, ou importez-en un (serveurs arrêtés et clients déconnectés).',
+      export: 'Exporter…',
+      import: 'Importer…',
+      exportTitle: 'Exporter la configuration de Sulfur',
+      importTitle: 'Importer une configuration Sulfur',
+      exported: 'Configuration exportée dans {path}',
+      imported: 'Configuration importée depuis {path}',
+      ignored: 'Modules ignorés (absents de cette version) : {modules}'
     }
   }
 }

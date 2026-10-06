@@ -3,6 +3,7 @@ import path from 'path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { withDefaults } from '@shared/config'
 import { ConfigStore } from '../src/main/config-store'
+import { BUNDLE_FORMAT, createBundle, parseBundle } from '../src/main/config-bundle'
 import { DEFAULT_SERVER_CONFIG } from '@modules/modbus/shared/constants'
 import { tempDir } from './helpers'
 
@@ -66,5 +67,29 @@ describe('ConfigStore', () => {
 
   it('refuse un nom de section invalide', () => {
     expect(() => new ConfigStore(file).set('', 1)).toThrow()
+  })
+})
+
+describe('Fichier d\'échange (import / export)', () => {
+  const known = ['opcua', 'modbus']
+  const modules = { opcua: { server: { port: 4841 } }, modbus: { client: { host: '10.0.0.5' } } }
+
+  it('relit un fichier exporté', () => {
+    const bundle = createBundle(modules, '0.1.0')
+    expect(bundle).toMatchObject({ format: BUNDLE_FORMAT, version: 1, appVersion: '0.1.0', modules })
+    expect(parseBundle(JSON.stringify(bundle), known)).toEqual({ modules, ignored: [] })
+  })
+
+  it('ignore les modules inconnus de cette version', () => {
+    const text = JSON.stringify(createBundle({ ...modules, mqtt: { broker: {} } }))
+    expect(parseBundle(text, known)).toEqual({ modules, ignored: ['mqtt'] })
+  })
+
+  it('refuse les fichiers invalides', () => {
+    expect(() => parseBundle('{ pas du json', known)).toThrow('not valid JSON')
+    expect(() => parseBundle(JSON.stringify({ modules }), known)).toThrow('not a Sulfur configuration')
+    expect(() => parseBundle(JSON.stringify({ ...createBundle(modules), version: 2 }), known)).toThrow('version 2')
+    expect(() => parseBundle(JSON.stringify(createBundle({ mqtt: {} })), known)).toThrow('no configuration')
+    expect(() => parseBundle(JSON.stringify(createBundle({ opcua: [] })), known)).toThrow('no configuration')
   })
 })

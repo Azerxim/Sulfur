@@ -36,6 +36,7 @@ src/
 │   ├── index.js          # Window + lifecycle
 │   ├── module-host.js    # Module loading, IPC
 │   ├── config-store.js   # Saved module configurations (config.json)
+│   ├── config-transfer.js # Configuration import / export (config:* channels)
 │   ├── system-info.js    # PC information (IP, system) — system:info channel
 │   └── modules.js        # ← list of "main" modules
 ├── preload/index.js      # Secure bridge: window.sulfur.invoke / on
@@ -94,10 +95,23 @@ Servers are not started automatically. The OPC UA client password is never saved
 In a module interface, `usePersistentState('<id>', '<section>', defaults)` replaces `useState`: the saved
 value is completed with the defaults, so settings added in a later version keep their default value.
 
+**Import / export** (Settings → Configurations): all module configurations are exported to a single JSON
+file to share a test setup:
+
+```json
+{ "format": "sulfur-config", "version": 1, "appVersion": "0.1.0", "exportedAt": "…",
+  "modules": { "opcua": { "server": { … } }, "modbus": { "client": { … } } } }
+```
+
+Importing replaces the configuration of the modules present in the file (modules unknown to this version
+are ignored and listed). It is refused while a server is running or a client is connected (a module
+reports this through an optional `busy()` in its main part). If a module interface fails to display (e.g.
+inconsistent configuration), a button restores its default configuration.
+
 ### Adding a module
 
 1. Create `src/modules/<id>/` with `main/index.js`, `renderer/index.js` and `shared/`.
-2. **Main**: export `{ manifest, activate(ctx), deactivate() }`.
+2. **Main**: export `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` optional).
    - `ctx.handle('action', fn)` exposes the IPC channel `<id>:action`
    - `ctx.emit('event', payload)` broadcasts `<id>:event` to the interface
 3. **Renderer**: export `{ manifest, icon, Component }` (`lucide-react` icon).

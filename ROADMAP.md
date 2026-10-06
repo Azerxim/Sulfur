@@ -23,7 +23,7 @@ Make what exists reliable before adding features.
 
 - [x] **Save configurations**: today, server and client settings are lost when the app closes. Save them
   per module and restore them on start.
-- [ ] **Import / export** configurations as JSON files, to share a test setup.
+- [x] **Import / export** configurations as JSON files, to share a test setup.
 - [X] **Automated tests in the repository**: OPC UA, Modbus and translation tests with Vitest
   (`npm test`).
 - [ ] **Continuous integration** (GitHub Actions): build, tests and lint on every push.

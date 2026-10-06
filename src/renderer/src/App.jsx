@@ -3,6 +3,7 @@ import { rendererModules } from './modules'
 import { appPages } from './pages'
 import { useI18n, useManifestText } from './preferences'
 import Sidebar from './components/Sidebar'
+import ModuleErrorBoundary from './components/ModuleErrorBoundary'
 
 const allPages = [...rendererModules, ...appPages]
 
@@ -26,7 +27,12 @@ export default function App() {
               </div>
             </header>
             <div className="min-h-0 flex-1 overflow-auto">
-              <active.Component />
+              <ModuleErrorBoundary
+                key={active.manifest.id}
+                moduleId={rendererModules.includes(active) ? active.manifest.id : null}
+              >
+                <active.Component />
+              </ModuleErrorBoundary>
             </div>
           </>
         ) : (

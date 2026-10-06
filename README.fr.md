@@ -37,6 +37,7 @@ src/
 │   ├── index.js          # Fenêtre + cycle de vie
 │   ├── module-host.js    # Chargement des modules, IPC
 │   ├── config-store.js   # Configurations enregistrées des modules (config.json)
+│   ├── config-transfer.js # Import / export des configurations (canaux config:*)
 │   ├── system-info.js    # Infos PC (IP, système) — canal system:info
 │   └── modules.js        # ← liste des modules "main"
 ├── preload/index.js      # Pont sécurisé : window.sulfur.invoke / on
@@ -96,10 +97,24 @@ Dans l'interface d'un module, `usePersistentState('<id>', '<section>', défauts)
 valeur enregistrée est complétée par les valeurs par défaut, si bien qu'un réglage ajouté dans une
 version ultérieure garde sa valeur par défaut.
 
+**Import / export** (Paramètres → Configurations) : la configuration de tous les modules est exportée dans
+un seul fichier JSON, pour partager un banc de test :
+
+```json
+{ "format": "sulfur-config", "version": 1, "appVersion": "0.1.0", "exportedAt": "…",
+  "modules": { "opcua": { "server": { … } }, "modbus": { "client": { … } } } }
+```
+
+L'import remplace la configuration des modules présents dans le fichier (les modules inconnus de cette
+version sont ignorés et signalés). Il est refusé tant qu'un serveur tourne ou qu'un client est connecté
+(un module le signale par une fonction `busy()` facultative dans sa partie main). Si l'interface d'un
+module ne peut pas s'afficher (configuration incohérente par exemple), un bouton rétablit sa
+configuration par défaut.
+
 ### Ajouter un module
 
 1. Créer `src/modules/<id>/` avec `main/index.js`, `renderer/index.js` et `shared/`.
-2. **Main** : exporter `{ manifest, activate(ctx), deactivate() }`.
+2. **Main** : exporter `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` facultatif).
    - `ctx.handle('action', fn)` expose le canal IPC `<id>:action`
    - `ctx.emit('event', payload)` diffuse `<id>:event` vers l'interface
 3. **Renderer** : exporter `{ manifest, icon, Component }` (icône `lucide-react`).
