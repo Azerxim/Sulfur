@@ -18,12 +18,14 @@ src/
 ├── main/                 # Process principal Electron
 │   ├── index.js          # Fenêtre + cycle de vie
 │   ├── module-host.js    # Chargement des modules, IPC
+│   ├── system-info.js    # Infos PC (IP, système) — canal system:info
 │   └── modules.js        # ← liste des modules "main"
 ├── preload/index.js      # Pont sécurisé : window.sulfur.invoke / on
 ├── renderer/             # Interface React
 │   └── src/
 │       ├── App.jsx       # Shell (sidebar + module actif)
 │       ├── components/   # Composants UI partagés
+│       ├── pages/        # Pages de l'application (Informations…)
 │       └── modules.js    # ← liste des modules "renderer"
 ├── shared/               # Code commun main/renderer
 └── modules/              # Modules de simulation

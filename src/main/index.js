@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { ModuleHost } from './module-host'
 import { mainModules } from './modules'
+import { systemMainModule } from './system-info'
 
 const host = new ModuleHost()
 
@@ -41,7 +42,7 @@ app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.azerxim.sulfur')
   app.on('browser-window-created', (_, window) => optimizer.watchWindowShortcuts(window))
 
-  await host.load(mainModules)
+  await host.load([systemMainModule, ...mainModules])
   createWindow()
 
   app.on('activate', () => {

@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { rendererModules } from './modules'
+import { appPages } from './pages'
 import Sidebar from './components/Sidebar'
 
+const allPages = [...rendererModules, ...appPages]
+
 export default function App() {
-  const [activeId, setActiveId] = useState(rendererModules[0]?.manifest.id)
-  const active = rendererModules.find((m) => m.manifest.id === activeId)
+  const [activeId, setActiveId] = useState(allPages[0]?.manifest.id)
+  const active = allPages.find((m) => m.manifest.id === activeId)
 
   return (
     <div className="flex h-full">
-      <Sidebar modules={rendererModules} activeId={activeId} onSelect={setActiveId} />
+      <Sidebar modules={rendererModules} pages={appPages} activeId={activeId} onSelect={setActiveId} />
       <main className="flex min-w-0 flex-1 flex-col">
         {active ? (
           <>
