@@ -7,15 +7,15 @@ dates. Items further down are less certain and may change.
 
 ## Initialization
 
-- [ ] Modular Electron + React + TailwindCSS shell: modules with a main part (IPC) and a renderer part
-- [ ] **OPC UA** module: simulated server (variables editable while running) and client (browse,
+- [X] Modular Electron + React + TailwindCSS shell: modules with a main part (IPC) and a renderer part
+- [X] **OPC UA** module: simulated server (variables editable while running) and client (browse,
   read / write, subscriptions); security modes and policies, users with hashed passwords,
   certificate stores with approval
-- [ ] **Modbus TCP** module: server (four tables, typed simulated points) and client (decoding, polling);
+- [X] **Modbus TCP** module: server (four tables, typed simulated points) and client (decoding, polling);
   Modbus/TCP Security (mutual TLS, role-based authorization), IP allow list, rate limiting,
   read-only mode, security log
-- [ ] Information page (IP addresses, system), Settings page
-- [ ] English (default) and French, light and dark themes, collapsible sections
+- [X] Information page (IP addresses, system), Settings page
+- [X] English (default) and French, light and dark themes, collapsible sections
 
 ## Stabilization
 
@@ -24,8 +24,8 @@ Make what exists reliable before adding features.
 - [ ] **Save configurations**: today, server and client settings are lost when the app closes. Save them
   per module and restore them on start.
 - [ ] **Import / export** configurations as JSON files, to share a test setup.
-- [ ] **Automated tests in the repository**: the OPC UA and Modbus integration tests written during
-  development (≈ 75 scenarios) live outside the repo. Move them in (Vitest) with an `npm test` script.
+- [X] **Automated tests in the repository**: OPC UA, Modbus and translation tests with Vitest
+  (`npm test`).
 - [ ] **Continuous integration** (GitHub Actions): build, tests and lint on every push.
 - [ ] **Lint and formatting**: ESLint + Prettier with a shared configuration.
 - [ ] **Packaging**: application icon, Windows (NSIS) and Linux (AppImage) installers produced by the CI.

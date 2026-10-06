@@ -13,6 +13,20 @@ npm install
 npm run dev        # lancement en développement (HMR)
 npm run build      # build de production dans out/
 npm run dist       # packaging (electron-builder) dans dist/
+npm test           # tests automatisés (Vitest)
+```
+
+## Tests
+
+Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
+(sockets, TLS, certificats) et des tests unitaires : sécurité et modification à chaud OPC UA, Modbus TCP
+et Modbus/TCP Security, protocole et encodage des valeurs, traductions (mêmes clés et paramètres dans
+chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
+de certificats temporaire.
+
+```bash
+npm test             # exécution unique
+npm run test:watch   # relance à chaque modification
 ```
 
 ## Architecture

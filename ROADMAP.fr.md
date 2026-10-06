@@ -25,9 +25,8 @@ Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 - [ ] **Sauvegarde des configurations** : aujourd'hui, les réglages des serveurs et des clients sont
   perdus à la fermeture. Les enregistrer par module et les restaurer au démarrage.
 - [ ] **Import / export** des configurations en JSON, pour partager un banc de test.
-- [ ] **Tests automatisés dans le dépôt** : les tests d'intégration OPC UA et Modbus écrits pendant le
-  développement (≈ 75 scénarios) sont restés hors du dépôt. Les y intégrer (Vitest) avec un script
-  `npm test`.
+- [x] **Tests automatisés dans le dépôt** : tests OPC UA, Modbus et traductions avec Vitest
+  (`npm test`).
 - [ ] **Intégration continue** (GitHub Actions) : build, tests et lint à chaque push.
 - [ ] **Lint et formatage** : ESLint + Prettier avec une configuration commune.
 - [ ] **Packaging** : icône de l'application, installeurs Windows (NSIS) et Linux (AppImage) produits

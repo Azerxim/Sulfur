@@ -13,6 +13,19 @@ npm install
 npm run dev        # development mode (HMR)
 npm run build      # production build in out/
 npm run dist       # packaging (electron-builder) in dist/
+npm test           # automated tests (Vitest)
+```
+
+## Tests
+
+The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
+certificates) plus unit tests: OPC UA security and live editing, Modbus TCP and Modbus/TCP Security,
+protocol and value encoding, translations (same keys and parameters in every language, every key used
+in the code exists). Each test uses a free port and a temporary certificate store.
+
+```bash
+npm test             # run once
+npm run test:watch   # re-run on change
 ```
 
 ## Architecture

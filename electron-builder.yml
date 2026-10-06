@@ -6,6 +6,8 @@ files:
   - '!**/.vscode/*'
   - '!src/*'
   - '!electron.vite.config.*'
+  - '!vitest.config.*'
+  - '!tests/*'
   - '!jsconfig.json'
   - '!{README.md,README.fr.md,ROADMAP.md,ROADMAP.fr.md,CLAUDE.md}'
 asarUnpack:
