@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { KeyRound, Plus, ShieldCheck, Trash2 } from 'lucide-react'
 import { Button, Card, Checkbox, Input } from '@renderer/components/ui'
 import { DEFAULT_SERVER_SECURITY, SECURITY_MODES, SECURITY_POLICIES } from '../shared/constants'
-import CertificatesDialog from './CertificatesDialog'
-import { opcuaApi } from './api'
+import CertificatesDialog from '@renderer/components/CertificatesDialog'
+import { certStore, opcuaApi } from './api'
 
+const serverCerts = certStore('server')
 const toggle = (list, item, on) => (on ? [...new Set([...list, item])] : list.filter((x) => x !== item))
 
 /**
@@ -169,7 +170,7 @@ export default function ServerSecurity({ value, onChange, locked, onError }) {
       {problems.length > 0 && (
         <p className="mt-3 text-xs text-amber-300">Configuration incomplète : {problems.join(' · ')}.</p>
       )}
-      {certsOpen && <CertificatesDialog which="server" onClose={() => setCertsOpen(false)} />}
+      {certsOpen && <CertificatesDialog title="Certificats du serveur OPC UA" api={serverCerts} onClose={() => setCertsOpen(false)} />}
     </Card>
   )
 }

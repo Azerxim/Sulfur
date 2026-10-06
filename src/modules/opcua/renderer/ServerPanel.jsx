@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Copy, Play, Plus, Square, Trash2 } from 'lucide-react'
-import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
+import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, SIMULATIONS } from '../shared/constants'
 import { opcuaApi } from './api'
 import ServerSecurity, { isSecurityValid } from './ServerSecurity'
@@ -31,34 +31,6 @@ const formatValue = (v) => {
   if (v === null || v === undefined) return '—'
   if (typeof v === 'number' && !Number.isInteger(v)) return v.toFixed(3)
   return String(v)
-}
-
-/** Champ texte qui ne valide qu'à la sortie du champ ou sur Entrée (Échap annule). */
-function CommitInput({ value, onCommit, className = '', ...props }) {
-  const [draft, setDraft] = useState(String(value))
-  const [editing, setEditing] = useState(false)
-  // Ne pas écraser la saisie en cours quand la valeur change (ex : valeur en direct).
-  useEffect(() => {
-    if (!editing) setDraft(String(value))
-  }, [value, editing])
-  const commit = () => {
-    setEditing(false)
-    if (draft !== String(value)) onCommit(draft)
-  }
-  return (
-    <Input
-      {...props}
-      className={className}
-      value={draft}
-      onFocus={() => setEditing(true)}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur()
-        if (e.key === 'Escape') setDraft(String(value))
-      }}
-    />
-  )
 }
 
 /** Valeur courante d'une variable, affichée en direct et modifiable pendant que le serveur tourne. */

@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Radar, ShieldCheck } from 'lucide-react'
 import { Button, Checkbox, Field, Input, Select } from '@renderer/components/ui'
 import { DEFAULT_CLIENT_SECURITY, SECURITY_MODES, SECURITY_POLICIES } from '../shared/constants'
-import { opcuaApi } from './api'
-import CertificatesDialog from './CertificatesDialog'
+import { certStore, opcuaApi } from './api'
+import CertificatesDialog from '@renderer/components/CertificatesDialog'
 
+const clientCerts = certStore('client')
 const policyLabel = (p) => SECURITY_POLICIES[p] ?? p
 
 /** Paramètres de sécurité de la connexion client + découverte des endpoints du serveur. */
@@ -132,7 +133,7 @@ export default function ClientSecurity({ value, onChange, endpoint, locked, onEr
         </div>
       )}
 
-      {certsOpen && <CertificatesDialog which="client" onClose={() => setCertsOpen(false)} />}
+      {certsOpen && <CertificatesDialog title="Certificats du client OPC UA" api={clientCerts} onClose={() => setCertsOpen(false)} />}
     </div>
   )
 }

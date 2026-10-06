@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FolderOpen, RefreshCw, ShieldCheck, ShieldX, Trash2 } from 'lucide-react'
-import { Button, ErrorBanner, Modal } from '@renderer/components/ui'
-import { opcuaApi } from './api'
+import { Button, ErrorBanner, Modal } from './ui'
 
 const STORES = [
   { id: 'rejected', title: 'Rejetés', hint: 'Certificats inconnus reçus et refusés. Approuvez-les pour autoriser la connexion.' },
@@ -21,7 +20,7 @@ function CertRow({ cert, store, onAction }) {
           {cert.error && <span className="rounded bg-red-500/15 px-1.5 text-[11px] text-red-300">{cert.error}</span>}
         </div>
         <div className="truncate font-mono text-[11px] text-slate-500 select-text">
-          {cert.applicationUri ?? cert.file} · SHA1 {cert.thumbprint.slice(0, 16)}…
+          {cert.description ?? cert.applicationUri ?? cert.file} · empreinte {cert.thumbprint.slice(0, 16)}…
           {cert.notAfter && ` · valide jusqu'au ${formatDate(cert.notAfter)}`}
         </div>
       </div>
@@ -44,8 +43,11 @@ function CertRow({ cert, store, onAction }) {
   )
 }
 
-/** Gestion du magasin de certificats du serveur (`which="server"`) ou du client (`which="client"`). */
-export default function CertificatesDialog({ which, onClose }) {
+/**
+ * Gestion d'un magasin de certificats (rejetés / approuvés / propre).
+ * `api` = { list(), trust(thumbprint), reject(thumbprint), remove(thumbprint), openFolder() }
+ */
+export default function CertificatesDialog({ title, api, onClose }) {
   const [certs, setCerts] = useState(null)
   const [error, setError] = useState(null)
 
@@ -57,23 +59,23 @@ export default function CertificatesDialog({ which, onClose }) {
       })
       .catch((err) => setError(err.message))
 
-  const load = () => call(opcuaApi.certs.list(which))
+  const load = () => call(api.list())
   useEffect(() => {
     load()
-  }, [which])
+  }, [api])
 
   const onAction = (action, cert) => {
     if (action === 'remove' && !confirm(`Supprimer le certificat « ${cert.commonName} » ?`)) return
-    call(opcuaApi.certs[action](which, cert.thumbprint))
+    call(api[action](cert.thumbprint))
   }
 
   return (
     <Modal
-      title={`Certificats du ${which === 'server' ? 'serveur' : 'client'}`}
+      title={title}
       onClose={onClose}
       actions={
         <>
-          <Button size="sm" variant="ghost" onClick={() => call(opcuaApi.certs.openFolder(which))}>
+          <Button size="sm" variant="ghost" onClick={() => call(api.openFolder())}>
             <FolderOpen className="size-3.5" /> Ouvrir le dossier
           </Button>
           <Button size="sm" variant="ghost" onClick={load}>

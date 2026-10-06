@@ -1,4 +1,8 @@
-/** Calcule la valeur simulée d'une variable à l'instant `t` (ms). */
+/**
+ * Générateurs de valeurs partagés par les modules de simulation.
+ * Calcule la valeur simulée d'une variable à l'instant `t` (ms).
+ * variable = { simulation, period, min, max, dataType }
+ */
 export function simulate(variable, current, t, dt) {
   const { simulation, period = 1000, min = 0, max = 1, dataType } = variable
   const span = max - min

@@ -1,6 +1,6 @@
 /** Composants d'interface partagés par tous les modules. */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 const buttonVariants = {
@@ -97,6 +97,34 @@ const inputClass =
 
 export function Input({ className = '', ...props }) {
   return <input className={`${inputClass} ${className}`} {...props} />
+}
+
+/** Champ texte qui ne valide qu'à la sortie du champ ou sur Entrée (Échap annule). */
+export function CommitInput({ value, onCommit, className = '', ...props }) {
+  const [draft, setDraft] = useState(String(value))
+  const [editing, setEditing] = useState(false)
+  // Ne pas écraser la saisie en cours quand la valeur change (ex : valeur en direct).
+  useEffect(() => {
+    if (!editing) setDraft(String(value))
+  }, [value, editing])
+  const commit = () => {
+    setEditing(false)
+    if (draft !== String(value)) onCommit(draft)
+  }
+  return (
+    <Input
+      {...props}
+      className={className}
+      value={draft}
+      onFocus={() => setEditing(true)}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+        if (e.key === 'Escape') setDraft(String(value))
+      }}
+    />
+  )
 }
 
 export function Select({ className = '', children, ...props }) {

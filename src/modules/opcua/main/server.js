@@ -13,7 +13,7 @@ import { randomUUID } from 'crypto'
 import { DEFAULT_SERVER_SECURITY } from '../shared/constants'
 import { coerce, toPlain } from './serialize'
 import { hashPassword, isPasswordHash, verifyPassword } from './passwords'
-import { simulate } from './simulator'
+import { simulate } from '@shared/simulator'
 
 const VALUES_EMIT_INTERVAL = 250
 

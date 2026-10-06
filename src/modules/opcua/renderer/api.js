@@ -40,3 +40,12 @@ export const opcuaApi = {
     openFolder: (which) => invoke('certs:openFolder', which)
   }
 }
+
+/** Interface attendue par le dialogue de certificats partagé, pour le magasin `which`. */
+export const certStore = (which) => ({
+  list: () => opcuaApi.certs.list(which),
+  trust: (thumbprint) => opcuaApi.certs.trust(which, thumbprint),
+  reject: (thumbprint) => opcuaApi.certs.reject(which, thumbprint),
+  remove: (thumbprint) => opcuaApi.certs.remove(which, thumbprint),
+  openFolder: () => opcuaApi.certs.openFolder(which)
+})
