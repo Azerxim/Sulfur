@@ -28,7 +28,7 @@ Make what exists reliable before adding features.
   (`npm test`).
 - [x] **Continuous integration** (GitHub Actions): build, tests and lint on every push.
 - [x] **Lint and formatting**: ESLint + Prettier with a shared configuration.
-- [ ] **Packaging**: application icon, Windows (NSIS) and Linux (AppImage) installers produced by the CI.
+- [x] **Packaging**: application icon, Windows (NSIS) and Linux (AppImage) installers produced by the CI.
 
 ## Simulation features
 

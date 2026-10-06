@@ -29,7 +29,7 @@ Fiabiliser l'existant avant d'ajouter des fonctionnalités.
   (`npm test`).
 - [x] **Intégration continue** (GitHub Actions) : build, tests et lint à chaque push.
 - [x] **Lint et formatage** : ESLint + Prettier avec une configuration commune.
-- [ ] **Packaging** : icône de l'application, installeurs Windows (NSIS) et Linux (AppImage) produits
+- [x] **Packaging** : icône de l'application, installeurs Windows (NSIS) et Linux (AppImage) produits
   par la CI.
 
 ## Fonctions de simulation

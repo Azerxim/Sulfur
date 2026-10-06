@@ -8,6 +8,7 @@ import { registerConfigTransfer } from './config-transfer'
 import { mainModules } from './modules'
 import { WINDOW_BACKGROUNDS, applyNativeTheme, loadPreferences } from './preferences'
 import { systemMainModule } from './system-info'
+import icon from '../../resources/icon.png?asset'
 
 const host = new ModuleHost()
 
@@ -24,6 +25,8 @@ function createWindow() {
     title: 'Sulfur',
     backgroundColor: WINDOW_BACKGROUNDS[theme],
     autoHideMenuBar: true,
+    // Windows prend l'icône de l'exécutable ; sous Linux, la fenêtre a besoin de la sienne.
+    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,

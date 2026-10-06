@@ -14,7 +14,7 @@ See the [roadmap](ROADMAP.md) for what comes next.
 npm install
 npm run dev        # development mode (HMR)
 npm run build      # production build in out/
-npm run dist       # packaging (electron-builder) in dist/
+npm run dist       # installers (electron-builder) in dist/
 npm test           # automated tests (Vitest)
 npm run lint       # static analysis (ESLint)
 npm run format     # formatting (Prettier)
@@ -54,6 +54,27 @@ formatting check, tests and build, on Ubuntu with Node 24. Run the same checks l
 
 ```bash
 npm run lint && npm run format:check && npm test && npm run build
+```
+
+## Packaging
+
+```bash
+npm run dist:linux   # AppImage → dist/Sulfur-<version>-x86_64.AppImage
+npm run dist:win     # NSIS installer → dist/Sulfur-Setup-<version>.exe (on Windows)
+```
+
+- Configuration in `electron-builder.yml`. Application icon: `resources/icon.png` (1024 px, Linux and
+  window icon) and `resources/icon.ico` (Windows). `resources/` is packaged with the application;
+  `build/` is reserved for packaging-only resources.
+- The Windows installer lets the user choose the installation folder and creates a desktop shortcut.
+  Installers are not code-signed.
+- The CI builds both installers on `main`, on `v*` tags and on manual runs (*Actions → CI → Run
+  workflow*); they are downloadable as artifacts of the run. On a `v*` tag, a draft GitHub release is
+  created with the installers attached:
+
+```bash
+npm version patch          # bumps package.json and creates the vX.Y.Z tag
+git push --follow-tags
 ```
 
 ## Architecture

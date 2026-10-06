@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Sulfur - application de simulation modulaire (Electron + React + TailwindCSS)",
   "main": "./out/main/index.js",
+  "desktopName": "sulfur.desktop",
   "author": "Azerxim",
   "license": "UNLICENSED",
   "private": true,
@@ -15,9 +16,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "dist": "npm run build && electron-builder",
-    "dist:linux": "npm run build && electron-builder --linux",
-    "dist:win": "npm run build && electron-builder --win"
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --publish never",
+    "dist:win": "npm run build && electron-builder --win --publish never"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
@@ -44,5 +45,6 @@
     "tailwindcss": "^4.3.3",
     "vite": "^7.3.7",
     "vitest": "^5.0.3"
-  }
+  },
+  "homepage": "https://github.com/Azerxim/Sulfur"
 }

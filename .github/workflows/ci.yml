@@ -37,3 +37,56 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+
+  # Installeurs Windows (NSIS) et Linux (AppImage) : sur main, sur les tags v* et à la demande.
+  package:
+    name: Installeur ${{ matrix.name }}
+    needs: check
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+            script: dist:linux
+            files: dist/*.AppImage
+          - name: Windows
+            os: windows-latest
+            script: dist:win
+            files: dist/*.exe
+    runs-on: ${{ matrix.os }}
+    env:
+      # Pas de certificat de signature de code : installeurs non signés.
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run ${{ matrix.script }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sulfur-${{ matrix.name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+
+  # Tag v* : les installeurs sont joints à une release GitHub (brouillon, à relire avant publication).
+  release:
+    name: Release GitHub
+    needs: package
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: installers/*
