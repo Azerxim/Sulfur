@@ -1,11 +1,22 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Copy, Play, Plus, Square, Trash2 } from 'lucide-react'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, SIMULATIONS } from '../shared/constants'
 import { opcuaApi } from './api'
 
-const newVariable = (index) => ({
-  name: `Variable${index}`,
+/** Délai avant d'envoyer au serveur les paramètres modifiés pendant qu'il tourne. */
+const LIVE_DEBOUNCE = 300
+
+function uniqueName(variables) {
+  const names = new Set(variables.map((v) => v.name))
+  let i = variables.length + 1
+  while (names.has(`Variable${i}`)) i++
+  return `Variable${i}`
+}
+
+const newVariable = (variables) => ({
+  id: crypto.randomUUID(),
+  name: uniqueName(variables),
   dataType: 'Double',
   initialValue: 0,
   simulation: 'none',
@@ -15,24 +26,83 @@ const newVariable = (index) => ({
   writable: true
 })
 
+const formatValue = (v) => {
+  if (v === null || v === undefined) return '—'
+  if (typeof v === 'number' && !Number.isInteger(v)) return v.toFixed(3)
+  return String(v)
+}
+
+/** Champ texte qui ne valide qu'à la sortie du champ ou sur Entrée (Échap annule). */
+function CommitInput({ value, onCommit, className = '', ...props }) {
+  const [draft, setDraft] = useState(String(value))
+  const [editing, setEditing] = useState(false)
+  // Ne pas écraser la saisie en cours quand la valeur change (ex : valeur en direct).
+  useEffect(() => {
+    if (!editing) setDraft(String(value))
+  }, [value, editing])
+  const commit = () => {
+    setEditing(false)
+    if (draft !== String(value)) onCommit(draft)
+  }
+  return (
+    <Input
+      {...props}
+      className={className}
+      value={draft}
+      onFocus={() => setEditing(true)}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+        if (e.key === 'Escape') setDraft(String(value))
+      }}
+    />
+  )
+}
+
+/** Valeur courante d'une variable, affichée en direct et modifiable pendant que le serveur tourne. */
+function LiveValue({ variable, value, onSet }) {
+  if (variable.dataType === 'Boolean') {
+    return (
+      <button
+        onClick={() => onSet(!value)}
+        title="Basculer"
+        className={`h-9 w-full rounded-md border font-mono text-sm transition-colors ${
+          value ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-ink-700 bg-ink-950 text-slate-400'
+        }`}
+      >
+        {formatValue(value)}
+      </button>
+    )
+  }
+  return <CommitInput className="font-mono text-sulfur-300" value={formatValue(value)} onCommit={onSet} />
+}
+
 export default function ServerPanel({ status }) {
   const [config, setConfig] = useState(status.config ?? DEFAULT_SERVER_CONFIG)
+  const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  const timers = useRef({})
   const running = status.running
-  const locked = running || busy
 
-  const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
-  const updateVar = (i, patch) =>
-    setConfig((c) => ({ ...c, variables: c.variables.map((v, j) => (j === i ? { ...v, ...patch } : v)) }))
-  const removeVar = (i) => setConfig((c) => ({ ...c, variables: c.variables.filter((_, j) => j !== i) }))
-  const addVar = () => setConfig((c) => ({ ...c, variables: [...c.variables, newVariable(c.variables.length + 1)] }))
+  // Le serveur est la source de vérité quand il tourne : on reprend sa configuration au démarrage.
+  useEffect(() => {
+    if (running && status.config) setConfig(status.config)
+    if (!running) setValues({})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running])
+
+  useEffect(() => {
+    opcuaApi.server.values().then(setValues)
+    return opcuaApi.server.onValues(setValues)
+  }, [])
 
   async function run(action) {
     setBusy(true)
     setError(null)
     try {
-      await action()
+      return await action()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -40,8 +110,50 @@ export default function ServerPanel({ status }) {
     }
   }
 
+  const live = (action) => action().catch((err) => setError(err.message))
+
+  /** Modification structurelle : en cas de refus, on se recale sur l'état réel du serveur. */
+  const liveSync = (action) =>
+    action().catch(async (err) => {
+      setError(err.message)
+      const current = await opcuaApi.server.status()
+      if (current.config) setConfig(current.config)
+    })
+
+  /** Envoie la variable au serveur (immédiatement ou après un court délai). */
+  function push(variable, immediate) {
+    clearTimeout(timers.current[variable.id])
+    const send = () => liveSync(() => opcuaApi.server.upsertVariable(variable))
+    if (immediate) send()
+    else timers.current[variable.id] = setTimeout(send, LIVE_DEBOUNCE)
+  }
+
+  const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
+
+  function updateVar(id, patch, { immediate = false } = {}) {
+    const next = { ...config.variables.find((v) => v.id === id), ...patch }
+    setConfig((c) => ({ ...c, variables: c.variables.map((v) => (v.id === id ? next : v)) }))
+    if (running) push(next, immediate)
+  }
+
+  function addVar() {
+    const v = newVariable(config.variables)
+    setConfig((c) => ({ ...c, variables: [...c.variables, v] }))
+    if (running) push(v, true)
+  }
+
+  function removeVar(id) {
+    clearTimeout(timers.current[id])
+    setConfig((c) => ({ ...c, variables: c.variables.filter((v) => v.id !== id) }))
+    if (running) liveSync(() => opcuaApi.server.removeVariable(id))
+  }
+
+  const setValue = (id, raw) => live(() => opcuaApi.server.setValue(id, raw))
+
   const duplicates = config.variables.map((v) => v.name).filter((n, i, all) => all.indexOf(n) !== i)
   const invalid = duplicates.length > 0 || config.variables.some((v) => !v.name.trim())
+
+  const headers = ['Nom', 'Type', running ? 'Valeur courante' : 'Valeur initiale', 'Simulation', 'Période (ms)', 'Min', 'Max', 'Écriture', '']
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -73,23 +185,34 @@ export default function ServerPanel({ status }) {
               <Input
                 type="number"
                 value={config.port}
-                disabled={locked}
+                disabled={running || busy}
                 onChange={(e) => update({ port: Number(e.target.value) })}
               />
             </Field>
             <Field label="Chemin de ressource">
-              <Input value={config.resourcePath} disabled={locked} onChange={(e) => update({ resourcePath: e.target.value })} />
+              <Input
+                value={config.resourcePath}
+                disabled={running || busy}
+                onChange={(e) => update({ resourcePath: e.target.value })}
+              />
             </Field>
             <Field label="Dossier racine">
-              <Input value={config.rootFolder} disabled={locked} onChange={(e) => update({ rootFolder: e.target.value })} />
+              <Input
+                value={config.rootFolder}
+                disabled={running || busy}
+                onChange={(e) => update({ rootFolder: e.target.value })}
+              />
             </Field>
             <Field label="Période de simulation (ms)">
-              <Input
+              <CommitInput
                 type="number"
                 min={10}
                 value={config.updateRate}
-                disabled={locked}
-                onChange={(e) => update({ updateRate: Number(e.target.value) })}
+                disabled={busy}
+                onCommit={(raw) => {
+                  update({ updateRate: Number(raw) })
+                  if (running) live(() => opcuaApi.server.setUpdateRate(Number(raw)))
+                }}
               />
             </Field>
           </div>
@@ -116,16 +239,19 @@ export default function ServerPanel({ status }) {
         title={`Variables simulées (${config.variables.length})`}
         className="flex-1"
         actions={
-          <Button size="sm" disabled={locked} onClick={addVar}>
-            <Plus className="size-3.5" /> Ajouter
-          </Button>
+          <>
+            {running && <span className="text-xs text-slate-500">Modifications appliquées en direct</span>}
+            <Button size="sm" disabled={busy} onClick={addVar}>
+              <Plus className="size-3.5" /> Ajouter
+            </Button>
+          </>
         }
       >
         <div className="overflow-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-slate-500">
               <tr>
-                {['Nom', 'Type', 'Valeur initiale', 'Simulation', 'Période (ms)', 'Min', 'Max', 'Écriture', ''].map((h) => (
+                {headers.map((h) => (
                   <th key={h} className="px-1.5 pb-2 font-medium">
                     {h}
                   </th>
@@ -133,32 +259,46 @@ export default function ServerPanel({ status }) {
               </tr>
             </thead>
             <tbody>
-              {config.variables.map((v, i) => (
-                <tr key={i} className="align-middle">
+              {config.variables.map((v) => (
+                <tr key={v.id} className="align-middle">
                   <td className="p-1.5">
-                    <Input
+                    <CommitInput
                       value={v.name}
-                      disabled={locked}
+                      disabled={busy}
+                      title={running ? 'Renommer recrée le nœud (son NodeId change)' : undefined}
                       className={duplicates.includes(v.name) || !v.name.trim() ? 'border-red-500/60' : ''}
-                      onChange={(e) => updateVar(i, { name: e.target.value })}
+                      onCommit={(name) => updateVar(v.id, { name: name.trim() }, { immediate: true })}
                     />
                   </td>
                   <td className="p-1.5">
-                    <Select value={v.dataType} disabled={locked} onChange={(e) => updateVar(i, { dataType: e.target.value })}>
+                    <Select
+                      value={v.dataType}
+                      disabled={busy}
+                      title={running ? 'Changer le type recrée le nœud' : undefined}
+                      onChange={(e) => updateVar(v.id, { dataType: e.target.value }, { immediate: true })}
+                    >
                       {DATA_TYPES.map((t) => (
                         <option key={t}>{t}</option>
                       ))}
                     </Select>
                   </td>
-                  <td className="p-1.5">
-                    <Input
-                      value={String(v.initialValue)}
-                      disabled={locked}
-                      onChange={(e) => updateVar(i, { initialValue: e.target.value })}
-                    />
+                  <td className="w-36 p-1.5">
+                    {running ? (
+                      <LiveValue variable={v} value={values[v.id]} onSet={(raw) => setValue(v.id, raw)} />
+                    ) : (
+                      <Input
+                        value={String(v.initialValue)}
+                        disabled={busy}
+                        onChange={(e) => updateVar(v.id, { initialValue: e.target.value })}
+                      />
+                    )}
                   </td>
                   <td className="p-1.5">
-                    <Select value={v.simulation} disabled={locked} onChange={(e) => updateVar(i, { simulation: e.target.value })}>
+                    <Select
+                      value={v.simulation}
+                      disabled={busy}
+                      onChange={(e) => updateVar(v.id, { simulation: e.target.value }, { immediate: true })}
+                    >
                       {Object.entries(SIMULATIONS).map(([k, label]) => (
                         <option key={k} value={k}>
                           {label}
@@ -171,8 +311,8 @@ export default function ServerPanel({ status }) {
                       <Input
                         type="number"
                         value={v[key]}
-                        disabled={locked || v.simulation === 'none'}
-                        onChange={(e) => updateVar(i, { [key]: Number(e.target.value) })}
+                        disabled={busy || v.simulation === 'none'}
+                        onChange={(e) => updateVar(v.id, { [key]: Number(e.target.value) })}
                       />
                     </td>
                   ))}
@@ -181,12 +321,12 @@ export default function ServerPanel({ status }) {
                       type="checkbox"
                       className="size-4 accent-sulfur-400"
                       checked={v.writable}
-                      disabled={locked}
-                      onChange={(e) => updateVar(i, { writable: e.target.checked })}
+                      disabled={busy}
+                      onChange={(e) => updateVar(v.id, { writable: e.target.checked }, { immediate: true })}
                     />
                   </td>
                   <td className="p-1.5">
-                    <Button variant="ghost" size="icon" disabled={locked} onClick={() => removeVar(i)} title="Supprimer">
+                    <Button variant="ghost" size="icon" disabled={busy} onClick={() => removeVar(v.id)} title="Supprimer">
                       <Trash2 className="size-3.5" />
                     </Button>
                   </td>

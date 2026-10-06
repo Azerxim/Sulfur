@@ -21,11 +21,11 @@ export const DEFAULT_SERVER_CONFIG = {
   rootFolder: 'Simulation',
   updateRate: 100,
   variables: [
-    { name: 'Temperature', dataType: 'Double', initialValue: 20, simulation: 'sine', period: 10000, min: 15, max: 25, writable: true },
-    { name: 'Pressure', dataType: 'Double', initialValue: 1, simulation: 'random', period: 1000, min: 0.9, max: 1.1, writable: true },
-    { name: 'Counter', dataType: 'Int32', initialValue: 0, simulation: 'ramp', period: 10000, min: 0, max: 100, writable: true },
-    { name: 'Running', dataType: 'Boolean', initialValue: true, simulation: 'toggle', period: 5000, min: 0, max: 1, writable: true },
-    { name: 'Label', dataType: 'String', initialValue: 'Sulfur', simulation: 'none', period: 1000, min: 0, max: 0, writable: true }
+    { id: 'var-1', name: 'Temperature', dataType: 'Double', initialValue: 20, simulation: 'sine', period: 10000, min: 15, max: 25, writable: true },
+    { id: 'var-2', name: 'Pressure', dataType: 'Double', initialValue: 1, simulation: 'random', period: 1000, min: 0.9, max: 1.1, writable: true },
+    { id: 'var-3', name: 'Counter', dataType: 'Int32', initialValue: 0, simulation: 'ramp', period: 10000, min: 0, max: 100, writable: true },
+    { id: 'var-4', name: 'Running', dataType: 'Boolean', initialValue: true, simulation: 'toggle', period: 5000, min: 0, max: 1, writable: true },
+    { id: 'var-5', name: 'Label', dataType: 'String', initialValue: 'Sulfur', simulation: 'none', period: 1000, min: 0, max: 0, writable: true }
   ]
 }
 

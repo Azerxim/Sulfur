@@ -7,7 +7,13 @@ export const opcuaApi = {
     status: () => invoke('server:status'),
     start: (config) => invoke('server:start', config),
     stop: () => invoke('server:stop'),
-    onStatus: (fn) => on('server:status', fn)
+    values: () => invoke('server:values'),
+    upsertVariable: (def) => invoke('server:upsertVariable', def),
+    removeVariable: (id) => invoke('server:removeVariable', id),
+    setValue: (id, value) => invoke('server:setValue', id, value),
+    setUpdateRate: (rate) => invoke('server:setUpdateRate', rate),
+    onStatus: (fn) => on('server:status', fn),
+    onValues: (fn) => on('server:values', fn)
   },
   client: {
     status: () => invoke('client:status'),

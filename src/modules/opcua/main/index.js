@@ -10,7 +10,10 @@ export const opcuaMainModule = {
   manifest: OPCUA_MODULE,
 
   activate(ctx) {
-    server = new SimulationServer((status) => ctx.emit('server:status', status))
+    server = new SimulationServer(
+      (status) => ctx.emit('server:status', status),
+      (values) => ctx.emit('server:values', values)
+    )
     client = new SimulationClient(
       (status) => ctx.emit('client:status', status),
       (change) => ctx.emit('client:data', change)
@@ -19,6 +22,11 @@ export const opcuaMainModule = {
     ctx.handle('server:status', () => server.status())
     ctx.handle('server:start', (config) => server.start(config))
     ctx.handle('server:stop', () => server.stop())
+    ctx.handle('server:values', () => server.values())
+    ctx.handle('server:upsertVariable', (def) => server.upsertVariable(def))
+    ctx.handle('server:removeVariable', (id) => server.removeVariable(id))
+    ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
+    ctx.handle('server:setUpdateRate', (rate) => server.setUpdateRate(rate))
 
     ctx.handle('client:status', () => client.status())
     ctx.handle('client:connect', (url) => client.connect(url))
