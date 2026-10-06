@@ -26,7 +26,7 @@ Make what exists reliable before adding features.
 - [x] **Import / export** configurations as JSON files, to share a test setup.
 - [X] **Automated tests in the repository**: OPC UA, Modbus and translation tests with Vitest
   (`npm test`).
-- [ ] **Continuous integration** (GitHub Actions): build, tests and lint on every push.
+- [x] **Continuous integration** (GitHub Actions): build, tests and lint on every push.
 - [x] **Lint and formatting**: ESLint + Prettier with a shared configuration.
 - [ ] **Packaging**: application icon, Windows (NSIS) and Linux (AppImage) installers produced by the CI.
 

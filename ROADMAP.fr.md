@@ -27,7 +27,7 @@ Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 - [x] **Import / export** des configurations en JSON, pour partager un banc de test.
 - [x] **Tests automatisés dans le dépôt** : tests OPC UA, Modbus et traductions avec Vitest
   (`npm test`).
-- [ ] **Intégration continue** (GitHub Actions) : build, tests et lint à chaque push.
+- [x] **Intégration continue** (GitHub Actions) : build, tests et lint à chaque push.
 - [x] **Lint et formatage** : ESLint + Prettier avec une configuration commune.
 - [ ] **Packaging** : icône de l'application, installeurs Windows (NSIS) et Linux (AppImage) produits
   par la CI.

@@ -1,5 +1,7 @@
 # Sulfur
 
+[![CI](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml/badge.svg)](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml)
+
 [English](README.md) · **Français**
 
 Application de simulateur modulaire — Electron + React (JavaScript) + TailwindCSS v4.
@@ -46,6 +48,16 @@ npm run format:check   # vérifie la mise en forme sans modifier (CI)
 ```
 
 VS Code : les extensions recommandées (ESLint, Prettier) sont listées dans `.vscode/extensions.json`.
+
+## Intégration continue
+
+GitHub Actions (`.github/workflows/ci.yml`) s'exécute à chaque push et pull request : `npm ci`, lint,
+vérification de la mise en forme, tests et build, sous Ubuntu avec Node 24. Mêmes vérifications en local
+avant de pousser :
+
+```bash
+npm run lint && npm run format:check && npm test && npm run build
+```
 
 ## Architecture
 
