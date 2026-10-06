@@ -1,9 +1,11 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
+import { join } from 'path'
 
 /**
  * Charge les modules côté process principal et leur fournit un contexte :
  *  - ctx.handle(action, fn) : enregistre un handler `<moduleId>:<action>` appelable depuis le renderer
  *  - ctx.emit(event, payload) : diffuse un événement `<moduleId>:<event>` à toutes les fenêtres
+ *  - ctx.dataDir : dossier de données persistant propre au module
  *  - ctx.log(...args)
  */
 export class ModuleHost {
@@ -30,6 +32,7 @@ export class ModuleHost {
 
   createContext(id) {
     return {
+      dataDir: join(app.getPath('userData'), 'modules', id),
       handle(action, fn) {
         ipcMain.handle(`${id}:${action}`, async (_e, ...args) => {
           try {

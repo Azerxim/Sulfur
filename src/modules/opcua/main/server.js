@@ -1,9 +1,43 @@
-import { OPCUAServer, Variant, DataType, StatusCodes, makeAccessLevelFlag } from 'node-opcua'
+import {
+  OPCUAServer,
+  Variant,
+  DataType,
+  StatusCodes,
+  MessageSecurityMode,
+  SecurityPolicy,
+  makeAccessLevelFlag
+} from 'node-opcua'
 import { randomUUID } from 'crypto'
+import { DEFAULT_SERVER_SECURITY } from '../shared/constants'
 import { coerce, toPlain } from './serialize'
 import { simulate } from './simulator'
 
 const VALUES_EMIT_INTERVAL = 250
+
+/** Traduit la configuration de sécurité en options OPCUAServer. */
+export function securityOptions(security = DEFAULT_SERVER_SECURITY) {
+  const modes = security.modes ?? []
+  const secure = modes.filter((m) => m !== 'None')
+  if (!modes.length) throw new Error('Sélectionnez au moins un mode de sécurité')
+  if (secure.length && !security.policies?.length) {
+    throw new Error('Sélectionnez au moins une politique de sécurité pour les modes Signature / Chiffrement')
+  }
+  if (!security.allowAnonymous && !security.users?.length) {
+    throw new Error('Aucune authentification possible : autorisez l\'accès anonyme ou ajoutez un utilisateur')
+  }
+  const users = security.users ?? []
+  return {
+    securityModes: modes.map((m) => MessageSecurityMode[m]),
+    securityPolicies: [
+      ...(modes.includes('None') ? [SecurityPolicy.None] : []),
+      ...(secure.length ? security.policies.map((p) => SecurityPolicy[p]) : [])
+    ],
+    allowAnonymous: !!security.allowAnonymous,
+    userManager: {
+      isValidUser: (username, password) => users.some((u) => u.username === username && u.password === password)
+    }
+  }
+}
 
 const accessLevel = (writable) => makeAccessLevelFlag(writable ? 'CurrentRead | CurrentWrite' : 'CurrentRead')
 
@@ -21,7 +55,10 @@ export class SimulationServer {
   /** id -> { def, node, value } */
   vars = new Map()
 
-  constructor(onStatus, onValues) {
+  certificateManager = null
+
+  constructor(pki, onStatus, onValues) {
+    this.pki = pki
     this.onStatus = onStatus
     this.onValues = onValues
   }
@@ -40,11 +77,15 @@ export class SimulationServer {
     const names = config.variables.map((v) => v.name)
     if (new Set(names).size !== names.length) throw new Error('Noms de variables en double')
 
+    const security = { ...DEFAULT_SERVER_SECURITY, ...config.security }
+    const options = securityOptions(security)
+    this.certificateManager = await this.pki.createManager(!!security.autoAcceptCertificates)
 
     const server = new OPCUAServer({
       port: Number(config.port),
       resourcePath: config.resourcePath,
-      allowAnonymous: true,
+      ...options,
+      serverCertificateManager: this.certificateManager,
       buildInfo: {
         productName: 'Sulfur OPC UA Simulator',
         manufacturerName: 'Sulfur',
@@ -57,7 +98,7 @@ export class SimulationServer {
       await server.initialize()
       const addressSpace = server.engine.addressSpace
       this.server = server
-      this.config = { ...config, variables: [] }
+      this.config = { ...config, security, variables: [] }
       this.folder = addressSpace.getOwnNamespace().addFolder(addressSpace.rootFolder.objects, {
         browseName: config.rootFolder
       })
@@ -66,6 +107,7 @@ export class SimulationServer {
     } catch (err) {
       this.reset()
       await server.shutdown(0).catch(() => {})
+      await this.disposeCertificateManager()
       throw err
     }
 
@@ -82,6 +124,7 @@ export class SimulationServer {
     const server = this.server
     this.reset()
     if (server) await server.shutdown(500)
+    await this.disposeCertificateManager()
     this.onStatus(this.status())
     return this.status()
   }
@@ -93,6 +136,12 @@ export class SimulationServer {
     this.server = null
     this.folder = null
     this.vars.clear()
+  }
+
+  async disposeCertificateManager() {
+    const cm = this.certificateManager
+    this.certificateManager = null
+    await cm?.dispose().catch(() => {})
   }
 
   requireRunning() {

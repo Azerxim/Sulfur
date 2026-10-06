@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Eye, EyeOff, Plug, PlugZap, RefreshCw, Send, X } from 'lucide-react'
 import { Button, Card, ErrorBanner, Field, Input, StatusDot } from '@renderer/components/ui'
-import { ROOT_NODES } from '../shared/constants'
+import { DEFAULT_CLIENT_SECURITY, ROOT_NODES } from '../shared/constants'
 import { opcuaApi } from './api'
 import NodeTree from './NodeTree'
+import ClientSecurity from './ClientSecurity'
 
 const formatValue = (v) => (v === null || v === undefined ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v))
 const formatTime = (iso) => (iso ? new Date(iso).toLocaleTimeString('fr-FR', { hour12: false }) + '.' + iso.slice(20, 23) : '—')
 
 export default function ClientPanel({ status, serverEndpoint }) {
   const [endpoint, setEndpoint] = useState('opc.tcp://localhost:4840/UA/Sulfur')
+  const [security, setSecurity] = useState(DEFAULT_CLIENT_SECURITY)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [selected, setSelected] = useState(null)
@@ -84,8 +86,23 @@ export default function ClientPanel({ status, serverEndpoint }) {
     })
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <Card title="Connexion" actions={<StatusDot on={connected} label={connected ? 'Connecté' : 'Déconnecté'} />}>
+    <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
+      <Card
+        title="Connexion"
+        className="shrink-0"
+        actions={
+          <StatusDot
+            on={connected}
+            label={
+              connected && status.security
+                ? `Connecté · ${status.security.mode}${status.security.mode !== 'None' ? ` / ${status.security.policy}` : ''}`
+                : connected
+                  ? 'Connecté'
+                  : 'Déconnecté'
+            }
+          />
+        }
+      >
         <div className="flex flex-col gap-3">
           <div className="flex items-end gap-3">
             <Field label="Endpoint" className="flex-1">
@@ -94,7 +111,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
                 value={endpoint}
                 disabled={connected || busy}
                 onChange={(e) => setEndpoint(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !connected && run(() => opcuaApi.client.connect(endpoint))}
+                onKeyDown={(e) => e.key === 'Enter' && !connected && run(() => opcuaApi.client.connect(endpoint, security))}
               />
             </Field>
             {connected ? (
@@ -102,16 +119,23 @@ export default function ClientPanel({ status, serverEndpoint }) {
                 <Plug className="size-4" /> Déconnecter
               </Button>
             ) : (
-              <Button variant="primary" disabled={busy || !endpoint} onClick={() => run(() => opcuaApi.client.connect(endpoint))}>
+              <Button variant="primary" disabled={busy || !endpoint} onClick={() => run(() => opcuaApi.client.connect(endpoint, security))}>
                 <PlugZap className="size-4" /> {busy ? 'Connexion…' : 'Connecter'}
               </Button>
             )}
           </div>
+          <ClientSecurity
+            value={security}
+            onChange={setSecurity}
+            endpoint={endpoint}
+            locked={connected || busy}
+            onError={setError}
+          />
           <ErrorBanner error={error} onClose={() => setError(null)} />
         </div>
       </Card>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(260px,1fr)_2fr] gap-4">
+      <div className="grid min-h-96 flex-1 grid-cols-[minmax(260px,1fr)_2fr] gap-4">
         <Card
           title="Espace d'adressage"
           actions={

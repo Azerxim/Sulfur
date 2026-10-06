@@ -17,7 +17,8 @@ export const opcuaApi = {
   },
   client: {
     status: () => invoke('client:status'),
-    connect: (url) => invoke('client:connect', url),
+    connect: (url, security) => invoke('client:connect', url, security),
+    discover: (url) => invoke('client:discover', url),
     disconnect: () => invoke('client:disconnect'),
     browse: (nodeId) => invoke('client:browse', nodeId),
     read: (nodeId) => invoke('client:read', nodeId),
@@ -26,5 +27,13 @@ export const opcuaApi = {
     unsubscribe: (nodeId) => invoke('client:unsubscribe', nodeId),
     onStatus: (fn) => on('client:status', fn),
     onData: (fn) => on('client:data', fn)
+  },
+  /** Magasins de certificats : which = 'server' | 'client' */
+  certs: {
+    list: (which) => invoke('certs:list', which),
+    trust: (which, thumbprint) => invoke('certs:trust', which, thumbprint),
+    reject: (which, thumbprint) => invoke('certs:reject', which, thumbprint),
+    remove: (which, thumbprint) => invoke('certs:remove', which, thumbprint),
+    openFolder: (which) => invoke('certs:openFolder', which)
   }
 }

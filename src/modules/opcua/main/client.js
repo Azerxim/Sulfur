@@ -9,8 +9,10 @@ import {
   NodeClass,
   SecurityPolicy,
   TimestampsToReturn,
+  UserTokenType,
   Variant
 } from 'node-opcua'
+import { DEFAULT_CLIENT_SECURITY } from '../shared/constants'
 import { coerce, dataValueToPlain, toPlain } from './serialize'
 
 /** Client OPC UA : connexion, navigation, lecture/écriture et abonnements. */
@@ -20,8 +22,11 @@ export class SimulationClient {
   subscription = null
   monitored = new Map()
   endpointUrl = null
+  security = null
+  certificateManager = null
 
-  constructor(onStatus, onDataChange) {
+  constructor(pki, onStatus, onDataChange) {
+    this.pki = pki
     this.onStatus = onStatus
     this.onDataChange = onDataChange
   }
@@ -30,30 +35,70 @@ export class SimulationClient {
     return {
       connected: !!this.session,
       endpointUrl: this.endpointUrl,
+      security: this.security && { mode: this.security.mode, policy: this.security.policy, auth: this.security.auth },
       monitored: [...this.monitored.keys()]
     }
   }
 
-  async connect(endpointUrl) {
-    if (this.session) await this.disconnect()
-
-    const client = OPCUAClient.create({
+  createClient(security, certificateManager) {
+    const secure = security.mode !== 'None'
+    return OPCUAClient.create({
       applicationName: 'Sulfur OPC UA Client',
       endpointMustExist: false,
-      securityMode: MessageSecurityMode.None,
-      securityPolicy: SecurityPolicy.None,
+      securityMode: MessageSecurityMode[security.mode],
+      securityPolicy: secure ? SecurityPolicy[security.policy] : SecurityPolicy.None,
+      clientCertificateManager: certificateManager,
       connectionStrategy: { maxRetry: 1, initialDelay: 500, maxDelay: 2000 }
     })
+  }
+
+  /** Liste les endpoints (mode / politique / authentifications) proposés par un serveur. */
+  async discover(endpointUrl) {
+    const cm = await this.pki.createManager(true)
+    const client = this.createClient(DEFAULT_CLIENT_SECURITY, cm)
+    try {
+      await client.connect(endpointUrl)
+      const endpoints = await client.getEndpoints()
+      return endpoints.map((e) => ({
+        endpointUrl: e.endpointUrl,
+        mode: MessageSecurityMode[e.securityMode],
+        policy: e.securityPolicyUri.split('#')[1] ?? 'None',
+        securityLevel: e.securityLevel,
+        userTokens: [...new Set((e.userIdentityTokens ?? []).map((t) => UserTokenType[t.tokenType]))]
+      }))
+    } finally {
+      await client.disconnect().catch(() => {})
+      await cm.dispose().catch(() => {})
+    }
+  }
+
+  async connect(endpointUrl, options = {}) {
+    if (this.session) await this.disconnect()
+    const security = { ...DEFAULT_CLIENT_SECURITY, ...options }
+    if (security.mode !== 'None' && !SecurityPolicy[security.policy]) {
+      throw new Error('Choisissez une politique de sécurité pour ce mode')
+    }
+
+    const cm = await this.pki.createManager(!!security.autoAcceptCertificates)
+    const client = this.createClient(security, cm)
     client.on('connection_lost', () => this.onStatus({ ...this.status(), connected: false, lost: true }))
     client.on('connection_reestablished', () => this.onStatus(this.status()))
 
+    const identity =
+      security.auth === 'username'
+        ? { type: UserTokenType.UserName, userName: security.username, password: security.password }
+        : { type: UserTokenType.Anonymous }
+
     try {
       await client.connect(endpointUrl)
-      this.session = await client.createSession()
+      this.session = await client.createSession(identity)
     } catch (err) {
       await client.disconnect().catch(() => {})
-      throw err
+      await cm.dispose().catch(() => {})
+      throw new Error(explain(err))
     }
+    this.certificateManager = cm
+    this.security = security
     this.client = client
     this.endpointUrl = endpointUrl
 
@@ -80,6 +125,9 @@ export class SimulationClient {
       this.subscription = null
       this.session = null
       this.client = null
+      this.security = null
+      await this.certificateManager?.dispose().catch(() => {})
+      this.certificateManager = null
       this.onStatus(this.status())
     }
     return this.status()
@@ -161,4 +209,25 @@ export class SimulationClient {
     this.onStatus(this.status())
     return this.status()
   }
+}
+
+/** Rend les erreurs de sécurité les plus courantes compréhensibles. */
+function explain(err) {
+  const msg = err?.message ?? String(err)
+  if (/BadIdentityTokenRejected|BadUserAccessDenied|BadIdentityTokenInvalid/.test(msg)) {
+    return `Authentification refusée (identifiant ou mot de passe incorrect, ou mode non autorisé). ${msg}`
+  }
+  if (/BadSecurityChecksFailed|BadCertificateUntrusted|BadCertificate/.test(msg)) {
+    return `Certificat refusé : approuvez le certificat dans le magasin du serveur et/ou du client. ${msg}`
+  }
+  if (/ANONYMOUS user token policy/i.test(msg)) {
+    return 'Le serveur n\'autorise pas l\'accès anonyme : utilisez un identifiant / mot de passe.'
+  }
+  if (/USERNAME user token policy/i.test(msg)) {
+    return 'Le serveur n\'accepte pas l\'authentification par identifiant / mot de passe sur cet endpoint.'
+  }
+  if (/End point must exist|cannot find endpoint|BadSecurityPolicyRejected|BadSecurityModeRejected/i.test(msg)) {
+    return 'Le serveur ne propose pas ce couple mode / politique de sécurité (utilisez « Découvrir » pour voir les endpoints disponibles).'
+  }
+  return msg
 }

@@ -3,6 +3,7 @@ import { Copy, Play, Plus, Square, Trash2 } from 'lucide-react'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, SIMULATIONS } from '../shared/constants'
 import { opcuaApi } from './api'
+import ServerSecurity, { isSecurityValid } from './ServerSecurity'
 
 /** Délai avant d'envoyer au serveur les paramètres modifiés pendant qu'il tourne. */
 const LIVE_DEBOUNCE = 300
@@ -151,14 +152,16 @@ export default function ServerPanel({ status }) {
   const setValue = (id, raw) => live(() => opcuaApi.server.setValue(id, raw))
 
   const duplicates = config.variables.map((v) => v.name).filter((n, i, all) => all.indexOf(n) !== i)
-  const invalid = duplicates.length > 0 || config.variables.some((v) => !v.name.trim())
+  const invalid =
+    duplicates.length > 0 || config.variables.some((v) => !v.name.trim()) || !isSecurityValid(config.security)
 
   const headers = ['Nom', 'Type', running ? 'Valeur courante' : 'Valeur initiale', 'Simulation', 'Période (ms)', 'Min', 'Max', 'Écriture', '']
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
       <Card
         title="Configuration du serveur"
+        className="shrink-0"
         actions={
           <>
             <StatusDot on={running} label={running ? `En marche · ${status.sessions ?? 0} session(s)` : 'Arrêté'} />
@@ -235,9 +238,11 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
+      <ServerSecurity value={config.security} locked={running || busy} onChange={(security) => update({ security })} />
+
       <Card
         title={`Variables simulées (${config.variables.length})`}
-        className="flex-1"
+        className="min-h-72 flex-1"
         actions={
           <>
             {running && <span className="text-xs text-slate-500">Modifications appliquées en direct</span>}

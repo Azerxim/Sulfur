@@ -97,3 +97,36 @@ export function Tabs({ tabs, value, onChange }) {
     </div>
   )
 }
+
+export function Checkbox({ label, className = '', ...props }) {
+  return (
+    <label className={`inline-flex items-center gap-2 text-sm text-slate-300 has-disabled:opacity-50 ${className}`}>
+      <input type="checkbox" className="size-4 accent-sulfur-400" {...props} />
+      {label}
+    </label>
+  )
+}
+
+/** Fenêtre modale simple (fermeture par Échap ou clic sur le fond). */
+export function Modal({ title, onClose, actions, children, className = 'max-w-4xl' }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-6"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    >
+      <div className={`flex max-h-full w-full flex-col rounded-lg border border-ink-700 bg-ink-900 shadow-2xl ${className}`}>
+        <div className="flex items-center justify-between gap-2 border-b border-ink-800 px-4 py-3">
+          <h2 className="text-sm font-medium text-slate-100">{title}</h2>
+          <div className="flex items-center gap-2">
+            {actions}
+            <button onClick={onClose} className="text-slate-500 hover:text-slate-200" autoFocus>
+              ✕
+            </button>
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto p-4">{children}</div>
+      </div>
+    </div>
+  )
+}

@@ -15,11 +15,44 @@ export const SIMULATIONS = {
   toggle: 'Bascule'
 }
 
+export const SECURITY_MODES = {
+  None: 'Aucune',
+  Sign: 'Signature',
+  SignAndEncrypt: 'Signature et chiffrement'
+}
+
+/** Politiques de sécurité (hors None, implicite avec le mode "None"). */
+export const SECURITY_POLICIES = {
+  Basic256Sha256: 'Basic256Sha256',
+  Aes128_Sha256_RsaOaep: 'Aes128-Sha256-RsaOaep',
+  Aes256_Sha256_RsaPss: 'Aes256-Sha256-RsaPss',
+  Basic256: 'Basic256 (obsolète)',
+  Basic128Rsa15: 'Basic128Rsa15 (obsolète)'
+}
+
+export const DEFAULT_SERVER_SECURITY = {
+  modes: ['None', 'Sign', 'SignAndEncrypt'],
+  policies: ['Basic256Sha256', 'Aes128_Sha256_RsaOaep', 'Aes256_Sha256_RsaPss'],
+  allowAnonymous: true,
+  users: [{ username: 'admin', password: 'admin' }],
+  autoAcceptCertificates: true
+}
+
+export const DEFAULT_CLIENT_SECURITY = {
+  mode: 'None',
+  policy: 'None',
+  auth: 'anonymous',
+  username: '',
+  password: '',
+  autoAcceptCertificates: true
+}
+
 export const DEFAULT_SERVER_CONFIG = {
   port: 4840,
   resourcePath: '/UA/Sulfur',
   rootFolder: 'Simulation',
   updateRate: 100,
+  security: DEFAULT_SERVER_SECURITY,
   variables: [
     { id: 'var-1', name: 'Temperature', dataType: 'Double', initialValue: 20, simulation: 'sine', period: 10000, min: 15, max: 25, writable: true },
     { id: 'var-2', name: 'Pressure', dataType: 'Double', initialValue: 1, simulation: 'random', period: 1000, min: 0.9, max: 1.1, writable: true },

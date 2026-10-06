@@ -52,3 +52,11 @@ src/
   `opc.tcp://localhost:4840/UA/Sulfur`.
 - **Client** : connexion à n'importe quel serveur OPC UA, navigation dans l'espace d'adressage,
   lecture/écriture et surveillance temps réel (abonnements).
+- **Sécurité** (serveur et client) :
+  - modes `None`, `Sign`, `SignAndEncrypt` et politiques Basic256Sha256, Aes128-Sha256-RsaOaep,
+    Aes256-Sha256-RsaPss (+ Basic256 / Basic128Rsa15 obsolètes) ;
+  - authentification anonyme et/ou par identifiant / mot de passe (utilisateurs définis côté serveur) ;
+  - magasins de certificats séparés serveur / client, avec approbation des certificats rejetés depuis
+    l'interface. Emplacement : `<userData>/modules/opcua/pki/{server,client}`
+    (Linux : `~/.config/sulfur/…`, Windows : `%APPDATA%\sulfur\…`).
+  - côté client, « Découvrir les endpoints » liste les couples mode / politique proposés par le serveur.
