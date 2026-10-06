@@ -28,6 +28,9 @@ export const opcuaApi = {
     onStatus: (fn) => on('client:status', fn),
     onData: (fn) => on('client:data', fn)
   },
+  security: {
+    hashPassword: (password) => invoke('security:hashPassword', password)
+  },
   /** Magasins de certificats : which = 'server' | 'client' */
   certs: {
     list: (which) => invoke('certs:list', which),

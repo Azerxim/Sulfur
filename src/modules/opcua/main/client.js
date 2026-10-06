@@ -98,7 +98,8 @@ export class SimulationClient {
       throw new Error(explain(err))
     }
     this.certificateManager = cm
-    this.security = security
+    // Le mot de passe n'est pas conservé une fois la session ouverte.
+    this.security = { ...security, password: undefined }
     this.client = client
     this.endpointUrl = endpointUrl
 

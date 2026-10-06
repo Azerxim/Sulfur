@@ -2,6 +2,7 @@ import { join } from 'path'
 import { shell } from 'electron'
 import { OPCUA_MODULE } from '../shared/constants'
 import { PkiStore } from './pki'
+import { hashPassword } from './passwords'
 import { SimulationServer } from './server'
 import { SimulationClient } from './client'
 
@@ -51,6 +52,9 @@ export const opcuaMainModule = {
     ctx.handle('client:write', (nodeId, value) => client.write(nodeId, value))
     ctx.handle('client:subscribe', (nodeId) => client.subscribe(nodeId))
     ctx.handle('client:unsubscribe', (nodeId) => client.unsubscribe(nodeId))
+
+    // Le renderer ne conserve que l'empreinte des mots de passe des utilisateurs du serveur.
+    ctx.handle('security:hashPassword', (password) => hashPassword(password))
 
     // Certificats : which = 'server' | 'client'
     ctx.handle('certs:list', (which) => store(which).list())

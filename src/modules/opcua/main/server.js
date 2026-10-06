@@ -12,6 +12,7 @@ import os from 'os'
 import { randomUUID } from 'crypto'
 import { DEFAULT_SERVER_SECURITY } from '../shared/constants'
 import { coerce, toPlain } from './serialize'
+import { hashPassword, isPasswordHash, verifyPassword } from './passwords'
 import { simulate } from './simulator'
 
 const VALUES_EMIT_INTERVAL = 250
@@ -21,6 +22,21 @@ export const SERVER_IDENTITY = {
   commonName: 'OPCUA@Sulfur',
   applicationName: 'Sulfur OPC UA Server',
   applicationUri: makeApplicationUrn(os.hostname(), 'Sulfur:OPCUA-Server')
+}
+
+/**
+ * Remplace les éventuels mots de passe en clair par leur empreinte scrypt.
+ * Le résultat ne contient plus que { username, passwordHash }.
+ */
+export async function hashUsers(users = []) {
+  return Promise.all(
+    users.map(async (u) => {
+      if (!u.username?.trim()) throw new Error('Un utilisateur n\'a pas d\'identifiant')
+      const passwordHash = isPasswordHash(u.passwordHash) ? u.passwordHash : u.password ? await hashPassword(u.password) : null
+      if (!passwordHash) throw new Error(`Mot de passe manquant pour l'utilisateur "${u.username}"`)
+      return { username: u.username.trim(), passwordHash }
+    })
+  )
 }
 
 /** Traduit la configuration de sécurité en options OPCUAServer. */
@@ -43,7 +59,13 @@ export function securityOptions(security = DEFAULT_SERVER_SECURITY) {
     ],
     allowAnonymous: !!security.allowAnonymous,
     userManager: {
-      isValidUser: (username, password) => users.some((u) => u.username === username && u.password === password)
+      isValidUserAsync: (username, password, callback) => {
+        const user = users.find((u) => u.username === username)
+        verifyPassword(password, user?.passwordHash).then(
+          (ok) => callback(null, !!user && ok),
+          (err) => callback(err)
+        )
+      }
     }
   }
 }
@@ -87,6 +109,7 @@ export class SimulationServer {
     if (new Set(names).size !== names.length) throw new Error('Noms de variables en double')
 
     const security = { ...DEFAULT_SERVER_SECURITY, ...config.security }
+    security.users = await hashUsers(security.users)
     const options = securityOptions(security)
     this.certificateManager = await this.pki.createManager(!!security.autoAcceptCertificates)
     await this.pki.ensureOwnCertificate(this.certificateManager, SERVER_IDENTITY)

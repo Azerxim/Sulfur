@@ -34,7 +34,8 @@ export const DEFAULT_SERVER_SECURITY = {
   modes: ['None', 'Sign', 'SignAndEncrypt'],
   policies: ['Basic256Sha256', 'Aes128_Sha256_RsaOaep', 'Aes256_Sha256_RsaPss'],
   allowAnonymous: true,
-  users: [{ username: 'admin', password: 'admin' }],
+  // Utilisateur par défaut admin / admin (seule l'empreinte scrypt est conservée)
+  users: [{ username: 'admin', passwordHash: 'scrypt$mbUEZRBI1M8Kevl1/G39dg==$lMVG0wqpSC7IQcuJl1Kw1Xi3bKVvt7wrE59pCNfA4ww=' }],
   autoAcceptCertificates: true
 }
 

@@ -1,10 +1,52 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Plus, ShieldCheck, Trash2 } from 'lucide-react'
+import { KeyRound, Plus, ShieldCheck, Trash2 } from 'lucide-react'
 import { Button, Card, Checkbox, Input } from '@renderer/components/ui'
 import { DEFAULT_SERVER_SECURITY, SECURITY_MODES, SECURITY_POLICIES } from '../shared/constants'
 import CertificatesDialog from './CertificatesDialog'
+import { opcuaApi } from './api'
 
 const toggle = (list, item, on) => (on ? [...new Set([...list, item])] : list.filter((x) => x !== item))
+
+/**
+ * Saisie d'un mot de passe : à la sortie du champ (ou Entrée), il est haché par le process principal
+ * et seule l'empreinte est conservée — le champ est ensuite vidé.
+ */
+function PasswordField({ hasPassword, disabled, onHash, onError }) {
+  const [draft, setDraft] = useState('')
+  const [hashing, setHashing] = useState(false)
+
+  async function commit() {
+    if (!draft) return
+    setHashing(true)
+    try {
+      onHash(await opcuaApi.security.hashPassword(draft))
+      setDraft('')
+    } catch (err) {
+      onError(err.message)
+    } finally {
+      setHashing(false)
+    }
+  }
+
+  return (
+    <div className="relative flex-1">
+      <Input
+        type="password"
+        autoComplete="new-password"
+        placeholder={hasPassword ? '•••••• (défini, saisir pour changer)' : 'Mot de passe requis'}
+        className={`pr-8 ${!hasPassword && !draft ? 'border-amber-500/60' : ''}`}
+        value={draft}
+        disabled={disabled || hashing}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+      />
+      {hasPassword && !draft && (
+        <KeyRound className="pointer-events-none absolute top-2.5 right-2.5 size-4 text-emerald-400/70" />
+      )}
+    </div>
+  )
+}
 
 function Section({ title, children }) {
   return (
@@ -16,9 +58,8 @@ function Section({ title, children }) {
 }
 
 /** Paramétrage de la sécurité du serveur (appliqué au démarrage). */
-export default function ServerSecurity({ value, onChange, locked }) {
+export default function ServerSecurity({ value, onChange, locked, onError }) {
   const security = { ...DEFAULT_SERVER_SECURITY, ...value }
-  const [showPasswords, setShowPasswords] = useState(false)
   const [certsOpen, setCertsOpen] = useState(false)
   const set = (patch) => onChange({ ...security, ...patch })
   const setUser = (i, patch) => set({ users: security.users.map((u, j) => (j === i ? { ...u, ...patch } : u)) })
@@ -27,7 +68,8 @@ export default function ServerSecurity({ value, onChange, locked }) {
   const problems = [
     !security.modes.length && 'au moins un mode de sécurité est requis',
     secureModes && !security.policies.length && 'les modes signés nécessitent au moins une politique',
-    !security.allowAnonymous && !security.users.length && 'autorisez l\'accès anonyme ou ajoutez un utilisateur'
+    !security.allowAnonymous && !security.users.length && 'autorisez l\'accès anonyme ou ajoutez un utilisateur',
+    security.users.some((u) => !u.username.trim() || !u.passwordHash) && 'chaque utilisateur doit avoir un identifiant et un mot de passe'
   ].filter(Boolean)
 
   return (
@@ -84,38 +126,28 @@ export default function ServerSecurity({ value, onChange, locked }) {
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400">Utilisateurs ({security.users.length})</span>
-            <div className="flex gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                title={showPasswords ? 'Masquer les mots de passe' : 'Afficher les mots de passe'}
-                onClick={() => setShowPasswords((s) => !s)}
-              >
-                {showPasswords ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-              </Button>
-              <Button
-                size="sm"
-                disabled={locked}
-                onClick={() => set({ users: [...security.users, { username: `user${security.users.length + 1}`, password: '' }] })}
-              >
-                <Plus className="size-3.5" /> Utilisateur
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              disabled={locked}
+              onClick={() => set({ users: [...security.users, { username: `user${security.users.length + 1}`, passwordHash: null }] })}
+            >
+              <Plus className="size-3.5" /> Utilisateur
+            </Button>
           </div>
           {security.users.map((u, i) => (
             <div key={i} className="flex gap-2">
               <Input
                 placeholder="Identifiant"
+                className="flex-1"
                 value={u.username}
                 disabled={locked}
                 onChange={(e) => setUser(i, { username: e.target.value })}
               />
-              <Input
-                placeholder="Mot de passe"
-                type={showPasswords ? 'text' : 'password'}
-                value={u.password}
+              <PasswordField
+                hasPassword={!!u.passwordHash}
                 disabled={locked}
-                onChange={(e) => setUser(i, { password: e.target.value })}
+                onHash={(passwordHash) => setUser(i, { passwordHash })}
+                onError={onError}
               />
               <Button
                 variant="ghost"
@@ -129,6 +161,7 @@ export default function ServerSecurity({ value, onChange, locked }) {
               </Button>
             </div>
           ))}
+          <p className="text-[11px] text-slate-500">Les mots de passe sont hachés (scrypt) : seule leur empreinte est conservée.</p>
         </Section>
       </div>
 
@@ -144,5 +177,10 @@ export default function ServerSecurity({ value, onChange, locked }) {
 export function isSecurityValid(value) {
   const s = { ...DEFAULT_SERVER_SECURITY, ...value }
   const secureModes = s.modes.some((m) => m !== 'None')
-  return s.modes.length > 0 && (!secureModes || s.policies.length > 0) && (s.allowAnonymous || s.users.length > 0)
+  return (
+    s.modes.length > 0 &&
+    (!secureModes || s.policies.length > 0) &&
+    (s.allowAnonymous || s.users.length > 0) &&
+    s.users.every((u) => u.username.trim() && u.passwordHash)
+  )
 }

@@ -238,7 +238,12 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <ServerSecurity value={config.security} locked={running || busy} onChange={(security) => update({ security })} />
+      <ServerSecurity
+        value={config.security}
+        locked={running || busy}
+        onChange={(security) => update({ security })}
+        onError={setError}
+      />
 
       <Card
         title={`Variables simulées (${config.variables.length})`}
