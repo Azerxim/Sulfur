@@ -2,6 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@shared/locales'
 import { PreferencesProvider, applyLanguage, applyTheme, loadPreferences } from './preferences'
+import { loadModuleConfigs } from './module-config'
+import { rendererModules } from './modules'
 import App from './App'
 import './index.css'
 
@@ -10,10 +12,13 @@ const preferences = loadPreferences()
 preferences.language = applyLanguage(preferences.language)
 applyTheme(preferences.theme)
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <PreferencesProvider initial={preferences}>
-      <App />
-    </PreferencesProvider>
-  </StrictMode>
+// Configurations enregistrées des modules chargées avant le premier rendu (panneaux restaurés d'emblée).
+loadModuleConfigs(rendererModules.map((m) => m.manifest.id)).then(() =>
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <PreferencesProvider initial={preferences}>
+        <App />
+      </PreferencesProvider>
+    </StrictMode>
+  )
 )

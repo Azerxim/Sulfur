@@ -21,7 +21,7 @@ dates. Items further down are less certain and may change.
 
 Make what exists reliable before adding features.
 
-- [ ] **Save configurations**: today, server and client settings are lost when the app closes. Save them
+- [x] **Save configurations**: today, server and client settings are lost when the app closes. Save them
   per module and restore them on start.
 - [ ] **Import / export** configurations as JSON files, to share a test setup.
 - [X] **Automated tests in the repository**: OPC UA, Modbus and translation tests with Vitest
@@ -85,7 +85,6 @@ The order within each version will be set according to needs.
 
 ## Known limitations
 
-- Configurations are not saved between launches (see v0.2).
 - Applying a numeric simulation (sine, ramp…) to an OPC UA `String` variable fails.
 - Number fields use the operating system's decimal separator, whatever the interface language.
 - On the very first launch after choosing the light theme in an older version, the window may open

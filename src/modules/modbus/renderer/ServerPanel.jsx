@@ -3,6 +3,7 @@ import { Copy, Lock, Play, Plus, Square, Trash2 } from 'lucide-react'
 import { Button, Card, Checkbox, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, REGISTER_TYPES, SIMULATIONS, TABLES, WORD_ORDERS } from '../shared/constants'
 import { pointSize } from '../shared/codec'
+import { usePersistentState } from '@renderer/module-config'
 import { modbusApi } from './api'
 import ServerSecurity, { securityProblems } from './ServerSecurity'
 import ServerActivity from './ServerActivity'
@@ -65,7 +66,7 @@ function LiveValue({ point, value, onSet }) {
 }
 
 export default function ServerPanel({ status }) {
-  const [config, setConfig] = useState(status.config ?? DEFAULT_SERVER_CONFIG)
+  const [config, setConfig] = usePersistentState('modbus', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)

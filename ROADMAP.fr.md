@@ -22,7 +22,7 @@ sans date fixée. Plus un élément est bas dans la liste, moins il est certain 
 
 Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 
-- [ ] **Sauvegarde des configurations** : aujourd'hui, les réglages des serveurs et des clients sont
+- [x] **Sauvegarde des configurations** : aujourd'hui, les réglages des serveurs et des clients sont
   perdus à la fermeture. Les enregistrer par module et les restaurer au démarrage.
 - [ ] **Import / export** des configurations en JSON, pour partager un banc de test.
 - [x] **Tests automatisés dans le dépôt** : tests OPC UA, Modbus et traductions avec Vitest
@@ -89,7 +89,6 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 
 ## Limites connues
 
-- Les configurations ne sont pas conservées entre deux lancements (voir v0.2).
 - Appliquer une simulation numérique (sinus, rampe…) à une variable OPC UA de type `String` échoue.
 - Les champs numériques utilisent le séparateur décimal du système, quelle que soit la langue de
   l'interface.

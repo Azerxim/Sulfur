@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Copy, Play, Plus, Square, Trash2 } from 'lucide-react'
 import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, SIMULATIONS } from '../shared/constants'
+import { usePersistentState } from '@renderer/module-config'
 import { opcuaApi } from './api'
 import ServerSecurity, { isSecurityValid } from './ServerSecurity'
 import { t } from '../shared/i18n'
@@ -53,7 +54,7 @@ function LiveValue({ variable, value, onSet }) {
 }
 
 export default function ServerPanel({ status }) {
-  const [config, setConfig] = useState(status.config ?? DEFAULT_SERVER_CONFIG)
+  const [config, setConfig] = usePersistentState('opcua', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)

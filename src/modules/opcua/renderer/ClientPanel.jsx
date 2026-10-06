@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Eye, EyeOff, Plug, PlugZap, RefreshCw, Send, X } from 'lucide-react'
 import { Button, Card, ErrorBanner, Field, Input, StatusDot } from '@renderer/components/ui'
 import { DEFAULT_CLIENT_SECURITY, ROOT_NODES } from '../shared/constants'
+import { usePersistentState } from '@renderer/module-config'
 import { opcuaApi } from './api'
 import NodeTree from './NodeTree'
 import ClientSecurity from './ClientSecurity'
@@ -12,8 +13,11 @@ const formatValue = (v) => (v === null || v === undefined ? '—' : typeof v ===
 const formatTime = (iso) => (iso ? new Date(iso).toLocaleTimeString(getLocale(), { hour12: false }) + '.' + iso.slice(20, 23) : '—')
 
 export default function ClientPanel({ status, serverEndpoint }) {
-  const [endpoint, setEndpoint] = useState('opc.tcp://localhost:4840/UA/Sulfur')
-  const [security, setSecurity] = useState(DEFAULT_CLIENT_SECURITY)
+  const [endpoint, setEndpoint] = usePersistentState('opcua', 'clientEndpoint', 'opc.tcp://localhost:4840/UA/Sulfur')
+  // Le mot de passe n'est jamais enregistré.
+  const [security, setSecurity] = usePersistentState('opcua', 'clientSecurity', DEFAULT_CLIENT_SECURITY, {
+    persist: (s) => ({ ...s, password: '' })
+  })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [selected, setSelected] = useState(null)

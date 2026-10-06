@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
+import { ConfigStore } from './config-store'
 
 /**
  * Charge les modules côté process principal et leur fournit un contexte :
@@ -7,13 +8,23 @@ import { join } from 'path'
  *  - ctx.emit(event, payload) : diffuse un événement `<moduleId>:<event>` à toutes les fenêtres
  *  - ctx.dataDir : dossier de données persistant propre au module
  *  - ctx.log(...args)
+ *
+ * Chaque module dispose aussi d'une configuration enregistrée (`<dataDir>/config.json`), lue et écrite
+ * par l'interface via les canaux `<moduleId>:config:load` et `<moduleId>:config:save`.
  */
 export class ModuleHost {
   modules = []
+  /** Configurations enregistrées, par identifiant de module. */
+  configs = new Map()
 
   async load(modules) {
     for (const mod of modules) {
-      await mod.activate(this.createContext(mod.manifest.id))
+      const ctx = this.createContext(mod.manifest.id)
+      const config = new ConfigStore(join(ctx.dataDir, 'config.json'))
+      this.configs.set(mod.manifest.id, config)
+      ctx.handle('config:load', () => config.get())
+      ctx.handle('config:save', (section, value) => config.set(section, value))
+      await mod.activate(ctx)
       this.modules.push(mod)
       console.log(`[sulfur] module "${mod.manifest.id}" chargé`)
     }

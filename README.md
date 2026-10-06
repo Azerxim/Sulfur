@@ -35,6 +35,7 @@ src/
 ├── main/                 # Electron main process
 │   ├── index.js          # Window + lifecycle
 │   ├── module-host.js    # Module loading, IPC
+│   ├── config-store.js   # Saved module configurations (config.json)
 │   ├── system-info.js    # PC information (IP, system) — system:info channel
 │   └── modules.js        # ← list of "main" modules
 ├── preload/index.js      # Secure bridge: window.sulfur.invoke / on
@@ -44,6 +45,7 @@ src/
 │       ├── components/   # Shared UI components (Card, CertificatesDialog…)
 │       ├── pages/        # Application pages (Information, Settings)
 │       ├── preferences.jsx # Language and theme (useI18n, usePreferences)
+│       ├── module-config.js # Saved module settings (usePersistentState)
 │       └── modules.js    # ← list of "renderer" modules
 ├── shared/               # Code shared by main/renderer (i18n, languages, simulator…)
 │   └── locales/          # Common strings (en.js, fr.js)
@@ -81,6 +83,16 @@ by the main process (errors, server logs). Defaults: English, dark theme.
 The **light theme** redefines the Tailwind color variables (`ink`, `slate`, accents) under
 `:root[data-theme='light']` in `src/renderer/src/index.css`: components have no theme-specific classes.
 Text placed on the accent color uses `text-on-accent`.
+
+## Saved configurations
+
+Server and client settings of each module (port, security, variables / points, endpoint, prepared
+request…) are saved as they are edited and restored on the next start, in
+`<userData>/modules/<id>/config.json` (Linux: `~/.config/sulfur/…`, Windows: `%APPDATA%\sulfur\…`).
+Servers are not started automatically. The OPC UA client password is never saved.
+
+In a module interface, `usePersistentState('<id>', '<section>', defaults)` replaces `useState`: the saved
+value is completed with the defaults, so settings added in a later version keep their default value.
 
 ### Adding a module
 

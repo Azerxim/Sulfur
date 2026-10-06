@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { BookOpen, Eye, Lock, Plug, PlugZap, ShieldCheck, Send, X } from 'lucide-react'
 import { Button, Card, Checkbox, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
 import CertificatesDialog from '@renderer/components/CertificatesDialog'
-import { DATA_TYPES, DEFAULT_CLIENT_CONFIG, TABLES, WORD_ORDERS } from '../shared/constants'
+import { DATA_TYPES, DEFAULT_CLIENT_CONFIG, DEFAULT_CLIENT_REQUEST, TABLES, WORD_ORDERS } from '../shared/constants'
 import { decodeValue, encodeValue } from '../shared/codec'
 import { getLocale } from '@shared/i18n'
 import { t } from '../shared/i18n'
+import { usePersistentState } from '@renderer/module-config'
 import { certStore, modbusApi } from './api'
 
 const clientCerts = certStore('client')
@@ -46,11 +47,11 @@ function parseWrite(raw, format, wordOrder) {
 }
 
 export default function ClientPanel({ status, serverPort, serverMode }) {
-  const [config, setConfig] = useState(DEFAULT_CLIENT_CONFIG)
+  const [config, setConfig] = usePersistentState('modbus', 'client', DEFAULT_CLIENT_CONFIG)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [certsOpen, setCertsOpen] = useState(false)
-  const [op, setOp] = useState({ table: 'holdingRegisters', address: 0, quantity: 10, format: 'UInt16', wordOrder: 'ABCD' })
+  const [op, setOp] = usePersistentState('modbus', 'clientRequest', DEFAULT_CLIENT_REQUEST)
   const [result, setResult] = useState(null)
   const [writeValue, setWriteValue] = useState('')
   const [live, setLive] = useState({})

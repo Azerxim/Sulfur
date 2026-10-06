@@ -85,3 +85,12 @@ export const DEFAULT_CLIENT_CONFIG = {
     autoAcceptCertificates: true
   }
 }
+
+/** Requête préparée du client (table, adresse, quantité, format d'affichage). */
+export const DEFAULT_CLIENT_REQUEST = {
+  table: 'holdingRegisters',
+  address: 0,
+  quantity: 10,
+  format: 'UInt16',
+  wordOrder: 'ABCD'
+}

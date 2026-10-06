@@ -36,6 +36,7 @@ src/
 ├── main/                 # Process principal Electron
 │   ├── index.js          # Fenêtre + cycle de vie
 │   ├── module-host.js    # Chargement des modules, IPC
+│   ├── config-store.js   # Configurations enregistrées des modules (config.json)
 │   ├── system-info.js    # Infos PC (IP, système) — canal system:info
 │   └── modules.js        # ← liste des modules "main"
 ├── preload/index.js      # Pont sécurisé : window.sulfur.invoke / on
@@ -45,6 +46,7 @@ src/
 │       ├── components/   # Composants UI partagés (Card, CertificatesDialog…)
 │       ├── pages/        # Pages de l'application (Informations, Paramètres)
 │       ├── preferences.jsx # Langue et thème (useI18n, usePreferences)
+│       ├── module-config.js # Réglages enregistrés des modules (usePersistentState)
 │       └── modules.js    # ← liste des modules "renderer"
 ├── shared/               # Code commun main/renderer (i18n, langues, simulateur…)
 │   └── locales/          # Textes communs (fr.js, en.js)
@@ -82,6 +84,17 @@ produits par le process principal (erreurs, journaux des serveurs). Par défaut 
 Le **thème clair** redéfinit les variables de couleurs Tailwind (`ink`, `slate`, accents) sous
 `:root[data-theme='light']` dans `src/renderer/src/index.css` : les composants n'ont pas de classes
 spécifiques au thème. Le texte posé sur la couleur d'accent utilise `text-on-accent`.
+
+## Configurations enregistrées
+
+Les réglages des serveurs et clients de chaque module (port, sécurité, variables / points, endpoint,
+requête préparée…) sont enregistrés au fil des modifications et restaurés au lancement suivant, dans
+`<userData>/modules/<id>/config.json` (Linux : `~/.config/sulfur/…`, Windows : `%APPDATA%\sulfur\…`).
+Les serveurs ne sont pas démarrés automatiquement. Le mot de passe du client OPC UA n'est jamais enregistré.
+
+Dans l'interface d'un module, `usePersistentState('<id>', '<section>', défauts)` remplace `useState` : la
+valeur enregistrée est complétée par les valeurs par défaut, si bien qu'un réglage ajouté dans une
+version ultérieure garde sa valeur par défaut.
 
 ### Ajouter un module
 
