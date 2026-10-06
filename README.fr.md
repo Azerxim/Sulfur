@@ -4,6 +4,7 @@
 
 Application de simulateur modulaire — Electron + React (JavaScript) + TailwindCSS v4.
 Interface en anglais (par défaut) et en français, thème sombre (par défaut) ou clair.
+Voir la [roadmap](ROADMAP.fr.md) pour la suite.
 
 ## Démarrage
 
