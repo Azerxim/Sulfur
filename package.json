@@ -16,8 +16,10 @@
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
+    "@peculiar/x509": "^2.1.0",
     "node-opcua": "^2.186.17",
-    "node-opcua-crypto": "^6.1.4"
+    "node-opcua-crypto": "^6.1.4",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

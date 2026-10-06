@@ -24,15 +24,19 @@ src/
 ├── renderer/             # Interface React
 │   └── src/
 │       ├── App.jsx       # Shell (sidebar + module actif)
-│       ├── components/   # Composants UI partagés
+│       ├── components/   # Composants UI partagés (Card, CertificatesDialog…)
 │       ├── pages/        # Pages de l'application (Informations…)
 │       └── modules.js    # ← liste des modules "renderer"
-├── shared/               # Code commun main/renderer
+├── shared/               # Code commun main/renderer (simulateur de valeurs…)
 └── modules/              # Modules de simulation
-    └── opcua/
-        ├── main/         # Serveur + client node-opcua
+    ├── opcua/
+    │   ├── main/         # Serveur + client node-opcua
+    │   ├── renderer/     # Interface React du module
+    │   └── shared/       # Constantes partagées
+    └── modbus/
+        ├── main/         # Protocole, serveur, client, PKI, sécurité
         ├── renderer/     # Interface React du module
-        └── shared/       # Constantes partagées
+        └── shared/       # Constantes + encodage des valeurs (codec)
 ```
 
 ### Ajouter un module
@@ -62,3 +66,24 @@ src/
     l'interface. Emplacement : `<userData>/modules/opcua/pki/{server,client}`
     (Linux : `~/.config/sulfur/…`, Windows : `%APPDATA%\sulfur\…`).
   - côté client, « Découvrir les endpoints » liste les couples mode / politique proposés par le serveur.
+
+## Module Modbus TCP
+
+- **Serveur** : les quatre tables (coils, discrete inputs, input registers, holding registers),
+  fonctions 1 à 6, 15 et 16. Points simulés typés (Boolean, UInt16/Int16, UInt32/Int32,
+  Float32, Float64, ordre des mots ABCD / CDAB / BADC / DCBA), modifiables serveur démarré.
+  Liste des clients connectés et journal des événements de sécurité.
+- **Client** : lecture / écriture de toutes les tables avec décodage (UInt16 → Float64, hexadécimal,
+  binaire) et surveillance périodique.
+- **Sécurité** :
+  - **Modbus/TCP Security** (TLS ≥ 1.2, port standard 802) avec authentification mutuelle par
+    certificats X.509 épinglés (magasins approuvés / rejetés, approbation depuis l'interface) ;
+  - **autorisation par rôle** : rôle lu dans le certificat client (extension
+    `1.3.6.1.4.1.50316.802.1`), droits lecture / écriture par rôle, rôle par défaut ou refus ;
+  - liste blanche d'adresses IP (CIDR), nombre maximal de connexions, limite de requêtes par
+    seconde (exception 06), mode lecture seule, points protégés en écriture, filtrage du Unit ID
+    (exception 11), fermeture des connexions envoyant des trames invalides ;
+  - certificat serveur `MODBUS@Sulfur`, certificat client régénéré avec le rôle choisi ;
+    emplacement : `<userData>/modules/modbus/pki/{server,client}`.
+- Ports par défaut 5020 (TCP) / 8020 (TLS) : les ports standards 502 / 802 nécessitent des droits
+  administrateur sous Linux.
