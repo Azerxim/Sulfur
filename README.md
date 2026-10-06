@@ -1,119 +1,121 @@
 # Sulfur
 
-Application de simulation modulaire — Electron + React (JavaScript) + TailwindCSS v4.
-Interface en anglais (par défaut) et en français, thème sombre (par défaut) ou clair.
+**English** · [Français](README.fr.md)
 
-## Démarrage
+Modular simulator application — Electron + React (JavaScript) + TailwindCSS v4.
+English (default) and French interface, dark (default) or light theme.
+
+## Getting started
 
 ```bash
 npm install
-npm run dev        # lancement en développement (HMR)
-npm run build      # build de production dans out/
-npm run dist       # packaging (electron-builder) dans dist/
+npm run dev        # development mode (HMR)
+npm run build      # production build in out/
+npm run dist       # packaging (electron-builder) in dist/
 ```
 
 ## Architecture
 
 ```
 src/
-├── main/                 # Process principal Electron
-│   ├── index.js          # Fenêtre + cycle de vie
-│   ├── module-host.js    # Chargement des modules, IPC
-│   ├── system-info.js    # Infos PC (IP, système) — canal system:info
-│   └── modules.js        # ← liste des modules "main"
-├── preload/index.js      # Pont sécurisé : window.sulfur.invoke / on
-├── renderer/             # Interface React
+├── main/                 # Electron main process
+│   ├── index.js          # Window + lifecycle
+│   ├── module-host.js    # Module loading, IPC
+│   ├── system-info.js    # PC information (IP, system) — system:info channel
+│   └── modules.js        # ← list of "main" modules
+├── preload/index.js      # Secure bridge: window.sulfur.invoke / on
+├── renderer/             # React interface
 │   └── src/
-│       ├── App.jsx       # Shell (sidebar + module actif)
-│       ├── components/   # Composants UI partagés (Card, CertificatesDialog…)
-│       ├── pages/        # Pages de l'application (Informations, Paramètres)
-│       ├── preferences.jsx # Langue et thème (useI18n, usePreferences)
-│       └── modules.js    # ← liste des modules "renderer"
-├── shared/               # Code commun main/renderer (i18n, langues, simulateur…)
-│   └── locales/          # Textes communs (fr.js, en.js)
-└── modules/              # Modules de simulation
+│       ├── App.jsx       # Shell (sidebar + active module)
+│       ├── components/   # Shared UI components (Card, CertificatesDialog…)
+│       ├── pages/        # Application pages (Information, Settings)
+│       ├── preferences.jsx # Language and theme (useI18n, usePreferences)
+│       └── modules.js    # ← list of "renderer" modules
+├── shared/               # Code shared by main/renderer (i18n, languages, simulator…)
+│   └── locales/          # Common strings (en.js, fr.js)
+└── modules/              # Simulation modules
     ├── opcua/
-    │   ├── main/         # Serveur + client node-opcua
-    │   ├── renderer/     # Interface React du module
-    │   └── shared/       # Constantes partagées
+    │   ├── main/         # node-opcua server + client
+    │   ├── renderer/     # Module React interface
+    │   └── shared/       # Shared constants
     └── modbus/
-        ├── main/         # Protocole, serveur, client, PKI, sécurité
-        ├── renderer/     # Interface React du module
-        └── shared/       # Constantes + encodage des valeurs (codec)
+        ├── main/         # Protocol, server, client, PKI, security
+        ├── renderer/     # Module React interface
+        └── shared/       # Constants + value encoding (codec)
 ```
 
-## Langues et thème
+## Languages and theme
 
-La langue et le thème se choisissent dans **Paramètres** (mémorisés, y compris par le process principal
-pour ouvrir la fenêtre directement dans le bon thème). La langue s'applique à l'interface et aux messages
-produits par le process principal (erreurs, journaux des serveurs). Par défaut : anglais, thème sombre.
+Language and theme are chosen in **Settings** (remembered, including by the main process so the window
+opens directly in the right theme). The language applies to the interface and to the messages produced
+by the main process (errors, server logs). Defaults: English, dark theme.
 
-- Les textes sont rangés par dictionnaire : `src/shared/locales/` (application) et
-  `src/modules/<id>/shared/locales/` (chaque module, clés préfixées par l'identifiant du module).
-- Dans le code : `t('ui.monitoring', { count: 3 })`. Côté React, `const { t } = useI18n()`.
-  Dans un module, utiliser le `t` de `src/modules/<id>/shared/i18n.js`.
-- Une clé absente d'une langue est affichée en anglais.
-- Un module qui ne fournit pas la langue choisie est affiché **entièrement en anglais** (textes communs
-  compris), sans mélange de langues.
+- Strings are stored per dictionary: `src/shared/locales/` (application) and
+  `src/modules/<id>/shared/locales/` (each module, keys prefixed with the module identifier).
+- In code: `t('ui.monitoring', { count: 3 })`. In React: `const { t } = useI18n()`.
+  Inside a module, use the `t` from `src/modules/<id>/shared/i18n.js`.
+- A key missing from a language is displayed in English.
+- A module that does not provide the selected language is displayed **entirely in English** (common
+  strings included), without mixing languages.
 
-**Ajouter une langue** (ex. allemand) :
+**Adding a language** (e.g. German):
 
-1. déclarer `de: { label: 'Deutsch', locale: 'de-DE' }` dans `src/shared/languages.js` ;
-2. créer `de.js` à côté de chaque `fr.js` (`src/shared/locales/` et `src/modules/*/shared/locales/`) ;
-3. l'enregistrer dans le `index.js` voisin : `registerMessages({ fr, en, de })`.
+1. declare `de: { label: 'Deutsch', locale: 'de-DE' }` in `src/shared/languages.js`;
+2. create `de.js` next to each `en.js` (`src/shared/locales/` and `src/modules/*/shared/locales/`);
+3. register it in the neighbouring `index.js`: `registerMessages({ fr, en, de })`.
 
-Le **thème clair** redéfinit les variables de couleurs Tailwind (`ink`, `slate`, accents) sous
-`:root[data-theme='light']` dans `src/renderer/src/index.css` : les composants n'ont pas de classes
-spécifiques au thème. Le texte posé sur la couleur d'accent utilise `text-on-accent`.
+The **light theme** redefines the Tailwind color variables (`ink`, `slate`, accents) under
+`:root[data-theme='light']` in `src/renderer/src/index.css`: components have no theme-specific classes.
+Text placed on the accent color uses `text-on-accent`.
 
-### Ajouter un module
+### Adding a module
 
-1. Créer `src/modules/<id>/` avec `main/index.js`, `renderer/index.js` et `shared/`.
-2. **Main** : exporter `{ manifest, activate(ctx), deactivate() }`.
-   - `ctx.handle('action', fn)` expose le canal IPC `<id>:action`
-   - `ctx.emit('event', payload)` diffuse `<id>:event` vers l'interface
-3. **Renderer** : exporter `{ manifest, icon, Component }` (icône `lucide-react`).
+1. Create `src/modules/<id>/` with `main/index.js`, `renderer/index.js` and `shared/`.
+2. **Main**: export `{ manifest, activate(ctx), deactivate() }`.
+   - `ctx.handle('action', fn)` exposes the IPC channel `<id>:action`
+   - `ctx.emit('event', payload)` broadcasts `<id>:event` to the interface
+3. **Renderer**: export `{ manifest, icon, Component }` (`lucide-react` icon).
    - `window.sulfur.invoke('<id>:action', ...args)` / `window.sulfur.on('<id>:event', fn)`
-4. Enregistrer le module dans `src/main/modules.js` et `src/renderer/src/modules.js`.
-5. Fournir ses textes dans `shared/locales/` (au minimum `en.js`, puis `index.js` :
-   `registerMessages({ en, fr }, '<id>')`) et un `shared/i18n.js` exportant `t = moduleT('<id>')`.
-   Le nom et la description affichés viennent des clés `<id>.name` / `<id>.description`.
+4. Register the module in `src/main/modules.js` and `src/renderer/src/modules.js`.
+5. Provide its strings in `shared/locales/` (at least `en.js`, then `index.js`:
+   `registerMessages({ en, fr }, '<id>')`) and a `shared/i18n.js` exporting `t = moduleT('<id>')`.
+   The displayed name and description come from the `<id>.name` / `<id>.description` keys.
 
-## Module OPC UA
+## OPC UA module
 
-- **Serveur** : variables simulées (sinus, rampe, aléatoire, bascule, statique) exposées sous
-  `Objects/<dossier racine>` avec des NodeId `ns=1;s=<dossier>.<variable>`. Endpoint par défaut :
+- **Server**: simulated variables (sine, ramp, random, toggle, static) exposed under
+  `Objects/<root folder>` with NodeIds `ns=1;s=<folder>.<variable>`. Default endpoint:
   `opc.tcp://localhost:4840/UA/Sulfur`.
-- **Client** : connexion à n'importe quel serveur OPC UA, navigation dans l'espace d'adressage,
-  lecture/écriture et surveillance temps réel (abonnements).
-- **Sécurité** (serveur et client) :
-  - modes `None`, `Sign`, `SignAndEncrypt` et politiques Basic256Sha256, Aes128-Sha256-RsaOaep,
-    Aes256-Sha256-RsaPss (+ Basic256 / Basic128Rsa15 obsolètes) ;
-  - authentification anonyme et/ou par identifiant / mot de passe (utilisateurs définis côté serveur) ;
-    les mots de passe sont hachés (scrypt + sel) dès la saisie, seule l'empreinte est conservée ;
-  - certificat du serveur `OPCUA@Sulfur` (généré au premier démarrage) ;
-  - magasins de certificats séparés serveur / client, avec approbation des certificats rejetés depuis
-    l'interface. Emplacement : `<userData>/modules/opcua/pki/{server,client}`
-    (Linux : `~/.config/sulfur/…`, Windows : `%APPDATA%\sulfur\…`).
-  - côté client, « Découvrir les endpoints » liste les couples mode / politique proposés par le serveur.
+- **Client**: connects to any OPC UA server, browses the address space, reads/writes and monitors
+  values in real time (subscriptions).
+- **Security** (server and client):
+  - `None`, `Sign`, `SignAndEncrypt` modes and Basic256Sha256, Aes128-Sha256-RsaOaep,
+    Aes256-Sha256-RsaPss policies (+ deprecated Basic256 / Basic128Rsa15);
+  - anonymous and/or username / password authentication (users defined on the server);
+    passwords are hashed (scrypt + salt) as soon as they are entered, only the digest is kept;
+  - server certificate `OPCUA@Sulfur` (generated on first start);
+  - separate server / client certificate stores, with approval of rejected certificates from the
+    interface. Location: `<userData>/modules/opcua/pki/{server,client}`
+    (Linux: `~/.config/sulfur/…`, Windows: `%APPDATA%\sulfur\…`);
+  - on the client side, “Discover endpoints” lists the mode / policy pairs offered by the server.
 
-## Module Modbus TCP
+## Modbus TCP module
 
-- **Serveur** : les quatre tables (coils, discrete inputs, input registers, holding registers),
-  fonctions 1 à 6, 15 et 16. Points simulés typés (Boolean, UInt16/Int16, UInt32/Int32,
-  Float32, Float64, ordre des mots ABCD / CDAB / BADC / DCBA), modifiables serveur démarré.
-  Liste des clients connectés et journal des événements de sécurité.
-- **Client** : lecture / écriture de toutes les tables avec décodage (UInt16 → Float64, hexadécimal,
-  binaire) et surveillance périodique.
-- **Sécurité** :
-  - **Modbus/TCP Security** (TLS ≥ 1.2, port standard 802) avec authentification mutuelle par
-    certificats X.509 épinglés (magasins approuvés / rejetés, approbation depuis l'interface) ;
-  - **autorisation par rôle** : rôle lu dans le certificat client (extension
-    `1.3.6.1.4.1.50316.802.1`), droits lecture / écriture par rôle, rôle par défaut ou refus ;
-  - liste blanche d'adresses IP (CIDR), nombre maximal de connexions, limite de requêtes par
-    seconde (exception 06), mode lecture seule, points protégés en écriture, filtrage du Unit ID
-    (exception 11), fermeture des connexions envoyant des trames invalides ;
-  - certificat serveur `MODBUS@Sulfur`, certificat client régénéré avec le rôle choisi ;
-    emplacement : `<userData>/modules/modbus/pki/{server,client}`.
-- Ports par défaut 5020 (TCP) / 8020 (TLS) : les ports standards 502 / 802 nécessitent des droits
-  administrateur sous Linux.
+- **Server**: the four tables (coils, discrete inputs, input registers, holding registers),
+  functions 1 to 6, 15 and 16. Typed simulated points (Boolean, UInt16/Int16, UInt32/Int32,
+  Float32, Float64, word order ABCD / CDAB / BADC / DCBA), editable while the server is running.
+  List of connected clients and security event log.
+- **Client**: read / write on every table with decoding (UInt16 → Float64, hexadecimal, binary)
+  and periodic monitoring.
+- **Security**:
+  - **Modbus/TCP Security** (TLS ≥ 1.2, standard port 802) with mutual authentication using pinned
+    X.509 certificates (trusted / rejected stores, approval from the interface);
+  - **role-based authorization**: role read from the client certificate (extension
+    `1.3.6.1.4.1.50316.802.1`), read / write permissions per role, default role or refusal;
+  - IP allow list (CIDR), maximum number of connections, requests-per-second limit (exception 06),
+    read-only mode, write-protected points, Unit ID filtering (exception 11), connections sending
+    invalid frames are closed;
+  - server certificate `MODBUS@Sulfur`, client certificate regenerated with the selected role;
+    location: `<userData>/modules/modbus/pki/{server,client}`.
+- Default ports 5020 (TCP) / 8020 (TLS): the standard ports 502 / 802 require administrator rights
+  on Linux.

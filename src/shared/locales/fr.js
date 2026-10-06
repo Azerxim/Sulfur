@@ -1,7 +1,7 @@
 /** Textes communs de l'application (français, langue de référence). */
 export default {
   app: {
-    tagline: 'Simulation modulaire',
+    tagline: 'Simulateur modulaire',
     modules: 'Modules',
     noModule: 'Aucun module chargé'
   },

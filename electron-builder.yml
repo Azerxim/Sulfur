@@ -7,7 +7,7 @@ files:
   - '!src/*'
   - '!electron.vite.config.*'
   - '!jsconfig.json'
-  - '!{README.md,CLAUDE.md}'
+  - '!{README.md,README.fr.md,CLAUDE.md}'
 asarUnpack:
   - resources/**
 win:

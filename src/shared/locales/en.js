@@ -1,7 +1,7 @@
 /** Common application strings (English). */
 export default {
   app: {
-    tagline: 'Modular simulation',
+    tagline: 'Modular simulator',
     modules: 'Modules',
     noModule: 'No module loaded'
   },
