@@ -5,67 +5,67 @@
 Planned direction for Sulfur, ordered by priority. Versions group work by theme; there are no fixed
 dates. Items further down are less certain and may change.
 
-## Delivered — v0.1
+## Initialization
 
-- Modular Electron + React + TailwindCSS shell: modules with a main part (IPC) and a renderer part
-- **OPC UA** module: simulated server (variables editable while running) and client (browse,
+- [ ] Modular Electron + React + TailwindCSS shell: modules with a main part (IPC) and a renderer part
+- [ ] **OPC UA** module: simulated server (variables editable while running) and client (browse,
   read / write, subscriptions); security modes and policies, users with hashed passwords,
   certificate stores with approval
-- **Modbus TCP** module: server (four tables, typed simulated points) and client (decoding, polling);
+- [ ] **Modbus TCP** module: server (four tables, typed simulated points) and client (decoding, polling);
   Modbus/TCP Security (mutual TLS, role-based authorization), IP allow list, rate limiting,
   read-only mode, security log
-- Information page (IP addresses, system), Settings page
-- English (default) and French, light and dark themes, collapsible sections
+- [ ] Information page (IP addresses, system), Settings page
+- [ ] English (default) and French, light and dark themes, collapsible sections
 
-## v0.2 — Stabilization
+## Stabilization
 
 Make what exists reliable before adding features.
 
-- **Save configurations**: today, server and client settings are lost when the app closes. Save them
+- [ ] **Save configurations**: today, server and client settings are lost when the app closes. Save them
   per module and restore them on start.
-- **Import / export** configurations as JSON files, to share a test setup.
-- **Automated tests in the repository**: the OPC UA and Modbus integration tests written during
+- [ ] **Import / export** configurations as JSON files, to share a test setup.
+- [ ] **Automated tests in the repository**: the OPC UA and Modbus integration tests written during
   development (≈ 75 scenarios) live outside the repo. Move them in (Vitest) with an `npm test` script.
-- **Continuous integration** (GitHub Actions): build, tests and lint on every push.
-- **Lint and formatting**: ESLint + Prettier with a shared configuration.
-- **Packaging**: application icon, Windows (NSIS) and Linux (AppImage) installers produced by the CI.
+- [ ] **Continuous integration** (GitHub Actions): build, tests and lint on every push.
+- [ ] **Lint and formatting**: ESLint + Prettier with a shared configuration.
+- [ ] **Packaging**: application icon, Windows (NSIS) and Linux (AppImage) installers produced by the CI.
 
-## v0.3 — Simulation features
+## Simulation features
 
 Make the simulators more useful for testing real equipment and software.
 
-- **Fault injection**: response delays, dropped connections, forced exceptions (Modbus) or bad
+- [ ] **Fault injection**: response delays, dropped connections, forced exceptions (Modbus) or bad
   status codes (OPC UA), to test how clients behave when things go wrong.
-- **Scenarios**: chain value changes over time (scripted or recorded) and replay them.
-- **Trends and data logging**: charts of monitored values, CSV export.
-- **OPC UA**: arrays and structured types, methods, events and alarms, history read, address space
+- [ ] **Scenarios**: chain value changes over time (scripted or recorded) and replay them.
+- [ ] **Trends and data logging**: charts of monitored values, CSV export.
+- [ ] **OPC UA**: arrays and structured types, methods, events and alarms, history read, address space
   import (NodeSet2 XML).
-- **Modbus**: register explorer on the server side, several Unit IDs on one server (gateway
+- [ ] **Modbus**: register explorer on the server side, several Unit IDs on one server (gateway
   simulation), device identification (function 43 / 14), read/write multiple registers (function 23).
 
-## v0.4 — New modules: IT and supervision
+## New modules: IT and supervision
 
 Simpler protocols, quick to deliver, useful to supervise and integrate equipment.
 
-- **MQTT**: broker and client, TLS, topic simulation; **Sparkplug B** on top of MQTT
-- **SNMP**: agent and manager, v1 / v2c / v3 (USM authentication and encryption), simulated MIB
+- [ ] **MQTT**: broker and client, TLS, topic simulation; **Sparkplug B** on top of MQTT
+- [ ] **SNMP**: agent and manager, v1 / v2c / v3 (USM authentication and encryption), simulated MIB
   and traps
-- **Syslog**: server and sender, UDP / TCP / TLS
-- **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
-- **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
+- [ ] **Syslog**: server and sender, UDP / TCP / TLS
+- [ ] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
+- [ ] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
   certificate validity on equipment
 
-## v0.5 — New modules: industrial automation
+## New modules: industrial automation
 
-- **Siemens S7** (S7comm)
-- **EtherNet/IP (CIP)**: Rockwell / Allen-Bradley controllers
-- **BACnet/IP**: building automation (HVAC, lighting)
-- **OPC UA PubSub**: publish / subscribe mode of OPC UA, as an extension of the OPC UA module
+- [ ] **Siemens S7** (S7comm)
+- [ ] **EtherNet/IP (CIP)**: Rockwell / Allen-Bradley controllers
+- [ ] **BACnet/IP**: building automation (HVAC, lighting)
+- [ ] **OPC UA PubSub**: publish / subscribe mode of OPC UA, as an extension of the OPC UA module
 
-## v0.6 — New modules: energy and transport
+## New modules: energy and transport
 
-- **IEC 60870-5-104** and **DNP3**: telecontrol
-- **IEC 61850** (MMS, GOOSE): electrical substations; requires a native library (libiec61850)
+- [ ] **IEC 60870-5-104** and **DNP3**: telecontrol
+- [ ] **IEC 61850** (MMS, GOOSE): electrical substations; requires a native library (libiec61850)
 
 Each new module follows the existing module contract (main / renderer / shared, its own translations).
 The order within each version will be set according to needs.

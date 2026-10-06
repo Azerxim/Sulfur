@@ -5,72 +5,72 @@
 Orientation prévue pour Sulfur, par ordre de priorité. Les versions regroupent le travail par thème,
 sans date fixée. Plus un élément est bas dans la liste, moins il est certain et plus il peut changer.
 
-## Livré — v0.1
+## Initialisation
 
-- Socle modulaire Electron + React + TailwindCSS : modules en deux parties, process principal (IPC)
+- [X] Socle modulaire Electron + React + TailwindCSS : modules en deux parties, process principal (IPC)
   et interface
-- Module **OPC UA** : serveur simulé (variables modifiables en marche) et client (navigation,
+- [X] Module **OPC UA** : serveur simulé (variables modifiables en marche) et client (navigation,
   lecture / écriture, abonnements) ; modes et politiques de sécurité, utilisateurs avec mots de
   passe hachés, magasins de certificats avec approbation
-- Module **Modbus TCP** : serveur (quatre tables, points simulés typés) et client (décodage,
+- [X] Module **Modbus TCP** : serveur (quatre tables, points simulés typés) et client (décodage,
   scrutation) ; Modbus/TCP Security (TLS mutuel, autorisation par rôle), liste blanche d'adresses IP,
   limitation de débit, mode lecture seule, journal de sécurité
-- Page Informations (adresses IP, système), page Paramètres
-- Anglais (par défaut) et français, thèmes clair et sombre, sections réductibles
+- [X] Page Informations (adresses IP, système), page Paramètres
+- [X] Anglais (par défaut) et français, thèmes clair et sombre, sections réductibles
 
-## v0.2 — Stabilisation
+## Stabilisation
 
 Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 
-- **Sauvegarde des configurations** : aujourd'hui, les réglages des serveurs et des clients sont
+- [ ] **Sauvegarde des configurations** : aujourd'hui, les réglages des serveurs et des clients sont
   perdus à la fermeture. Les enregistrer par module et les restaurer au démarrage.
-- **Import / export** des configurations en JSON, pour partager un banc de test.
-- **Tests automatisés dans le dépôt** : les tests d'intégration OPC UA et Modbus écrits pendant le
+- [ ] **Import / export** des configurations en JSON, pour partager un banc de test.
+- [ ] **Tests automatisés dans le dépôt** : les tests d'intégration OPC UA et Modbus écrits pendant le
   développement (≈ 75 scénarios) sont restés hors du dépôt. Les y intégrer (Vitest) avec un script
   `npm test`.
-- **Intégration continue** (GitHub Actions) : build, tests et lint à chaque push.
-- **Lint et formatage** : ESLint + Prettier avec une configuration commune.
-- **Packaging** : icône de l'application, installeurs Windows (NSIS) et Linux (AppImage) produits
+- [ ] **Intégration continue** (GitHub Actions) : build, tests et lint à chaque push.
+- [ ] **Lint et formatage** : ESLint + Prettier avec une configuration commune.
+- [ ] **Packaging** : icône de l'application, installeurs Windows (NSIS) et Linux (AppImage) produits
   par la CI.
 
-## v0.3 — Fonctions de simulation
+## Fonctions de simulation
 
 Rendre les simulateurs plus utiles pour tester des équipements et logiciels réels.
 
-- **Injection de défauts** : délais de réponse, coupures de connexion, exceptions forcées (Modbus) ou
+- [ ] **Injection de défauts** : délais de réponse, coupures de connexion, exceptions forcées (Modbus) ou
   codes d'état d'erreur (OPC UA), pour tester le comportement des clients en cas de problème.
-- **Scénarios** : enchaîner des évolutions de valeurs dans le temps (scriptées ou enregistrées) et
+- [ ] **Scénarios** : enchaîner des évolutions de valeurs dans le temps (scriptées ou enregistrées) et
   les rejouer.
-- **Courbes et enregistrement** : graphiques des valeurs surveillées, export CSV.
-- **OPC UA** : tableaux et types structurés, méthodes, événements et alarmes, lecture d'historique,
+- [ ] **Courbes et enregistrement** : graphiques des valeurs surveillées, export CSV.
+- [ ] **OPC UA** : tableaux et types structurés, méthodes, événements et alarmes, lecture d'historique,
   import d'espace d'adressage (NodeSet2 XML).
-- **Modbus** : explorateur de registres côté serveur, plusieurs Unit ID sur un même serveur
+- [ ] **Modbus** : explorateur de registres côté serveur, plusieurs Unit ID sur un même serveur
   (simulation de passerelle), identification de l'équipement (fonction 43 / 14), lecture/écriture
   multiple (fonction 23).
 
-## v0.4 — Nouveaux modules : informatique et supervision
+## Nouveaux modules : informatique et supervision
 
 Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer des équipements.
 
-- **MQTT** : broker et client, TLS, simulation de topics ; **Sparkplug B** au-dessus de MQTT
-- **SNMP** : agent et manager, v1 / v2c / v3 (authentification et chiffrement USM), MIB simulée
+- [ ] **MQTT** : broker et client, TLS, simulation de topics ; **Sparkplug B** au-dessus de MQTT
+- [ ] **SNMP** : agent et manager, v1 / v2c / v3 (authentification et chiffrement USM), MIB simulée
   et traps
-- **Syslog** : serveur et émetteur, UDP / TCP / TLS
-- **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
-- **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
+- [ ] **Syslog** : serveur et émetteur, UDP / TCP / TLS
+- [ ] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
+- [ ] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
   l'horodatage et la validité des certificats sur les équipements
 
-## v0.5 — Nouveaux modules : automatismes industriels
+## Nouveaux modules : automatismes industriels
 
-- **Siemens S7** (S7comm)
-- **EtherNet/IP (CIP)** : automates Rockwell / Allen-Bradley
-- **BACnet/IP** : gestion technique du bâtiment (CVC, éclairage)
-- **OPC UA PubSub** : mode publication / abonnement d'OPC UA, en extension du module OPC UA
+- [ ] **Siemens S7** (S7comm)
+- [ ] **EtherNet/IP (CIP)** : automates Rockwell / Allen-Bradley
+- [ ] **BACnet/IP** : gestion technique du bâtiment (CVC, éclairage)
+- [ ] **OPC UA PubSub** : mode publication / abonnement d'OPC UA, en extension du module OPC UA
 
-## v0.6 — Nouveaux modules : énergie et transport
+## Nouveaux modules : énergie et transport
 
-- **IEC 60870-5-104** et **DNP3** : téléconduite
-- **IEC 61850** (MMS, GOOSE) : postes électriques ; nécessite une bibliothèque native (libiec61850)
+- [ ] **IEC 60870-5-104** et **DNP3** : téléconduite
+- [ ] **IEC 61850** (MMS, GOOSE) : postes électriques ; nécessite une bibliothèque native (libiec61850)
 
 Chaque nouveau module suit le contrat existant (main / renderer / shared, ses propres traductions).
 L'ordre au sein de chaque version sera fixé selon les besoins.
