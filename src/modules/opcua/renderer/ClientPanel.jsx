@@ -88,6 +88,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
   return (
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
       <Card
+        id="opcua.client.connection"
         title="Connexion"
         className="shrink-0"
         actions={
@@ -137,6 +138,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
 
       <div className="grid min-h-96 flex-1 grid-cols-[minmax(260px,1fr)_2fr] gap-4">
         <Card
+          id="opcua.client.tree"
           title="Espace d'adressage"
           actions={
             <Button variant="ghost" size="icon" disabled={!connected} title="Recharger" onClick={() => setTreeKey((k) => k + 1)}>
@@ -155,6 +157,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
 
         <div className="flex min-h-0 flex-col gap-4">
           <Card
+            id="opcua.client.node"
             title="Nœud sélectionné"
             actions={
               details && (
@@ -213,7 +216,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
             )}
           </Card>
 
-          <Card title={`Surveillance (${status.monitored?.length ?? 0})`} className="flex-1">
+          <Card id="opcua.client.monitoring" title={`Surveillance (${status.monitored?.length ?? 0})`} className="flex-1">
             <div className="h-full overflow-auto">
               {!status.monitored?.length ? (
                 <p className="text-sm text-slate-500">Aucune variable surveillée.</p>

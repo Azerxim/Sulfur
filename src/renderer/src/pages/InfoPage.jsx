@@ -48,6 +48,7 @@ export default function InfoPage() {
       <ErrorBanner error={error} onClose={() => setError(null)} />
 
       <Card
+        id="info.ips"
         title="Adresses IP du PC"
         actions={
           <Button variant="ghost" size="sm" onClick={load}>
@@ -70,6 +71,7 @@ export default function InfoPage() {
       </Card>
 
       <Card
+        id="info.interfaces"
         title="Interfaces réseau"
         actions={
           <label className="flex items-center gap-2 text-xs text-slate-400">
@@ -112,7 +114,7 @@ export default function InfoPage() {
       </Card>
 
       {info && (
-        <Card title="Système">
+        <Card id="info.system" title="Système">
           <dl className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-1.5 text-sm">
             <dt className="text-slate-500">Nom du PC</dt>
             <dd className="font-mono text-slate-200 select-text">{info.hostname}</dd>

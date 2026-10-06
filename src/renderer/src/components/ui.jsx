@@ -1,5 +1,8 @@
 /** Composants d'interface partagés par tous les modules. */
 
+import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+
 const buttonVariants = {
   primary: 'bg-sulfur-400 text-ink-950 hover:bg-sulfur-300 disabled:bg-ink-700 disabled:text-slate-500',
   secondary: 'bg-ink-800 text-slate-200 hover:bg-ink-700 disabled:text-slate-600',
@@ -17,16 +20,74 @@ export function Button({ variant = 'secondary', size = 'md', className = '', ...
   )
 }
 
-export function Card({ title, actions, className = '', children }) {
+/** État replié d'une section, mémorisé localement par identifiant (sans effet si le stockage est indisponible). */
+function useCollapsed(id, initial) {
+  const key = id && `sulfur:collapsed:${id}`
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      const saved = key && localStorage.getItem(key)
+      return saved === null || saved === undefined ? initial : saved === '1'
+    } catch {
+      return initial
+    }
+  })
+  const toggle = () =>
+    setCollapsed((c) => {
+      try {
+        if (key) localStorage.setItem(key, c ? '0' : '1')
+      } catch {
+        // stockage indisponible : l'état n'est simplement pas mémorisé
+      }
+      return !c
+    })
+  return [collapsed, toggle]
+}
+
+/**
+ * Section à en-tête. Elle peut être repliée par un clic sur l'en-tête (`collapsible`, actif par défaut) ;
+ * `id` permet de mémoriser cet état entre deux lancements.
+ */
+export function Card({ id, title, actions, className = '', collapsible = true, defaultCollapsed = false, children }) {
+  const [collapsed, toggle] = useCollapsed(id, defaultCollapsed)
+  const canCollapse = collapsible && !!title
+  const isCollapsed = canCollapse && collapsed
+
   return (
-    <section className={`flex min-h-0 flex-col rounded-lg border border-ink-800 bg-ink-900 ${className}`}>
+    <section
+      className={`flex min-h-0 flex-col rounded-lg border border-ink-800 bg-ink-900 ${className} ${
+        isCollapsed ? 'h-fit min-h-0! flex-none!' : ''
+      }`}
+    >
       {(title || actions) && (
-        <div className="flex items-center justify-between gap-2 border-b border-ink-800 px-4 py-2.5">
-          <h2 className="text-sm font-medium text-slate-200">{title}</h2>
-          <div className="flex items-center gap-2">{actions}</div>
+        <div
+          className={`flex items-center justify-between gap-2 px-4 py-2.5 ${isCollapsed ? '' : 'border-b border-ink-800'} ${
+            canCollapse ? 'cursor-pointer select-none' : ''
+          }`}
+          onClick={canCollapse ? toggle : undefined}
+        >
+          <h2 className="flex items-center gap-1.5 text-sm font-medium text-slate-200">
+            {canCollapse && (
+              <button
+                type="button"
+                aria-expanded={!isCollapsed}
+                title={isCollapsed ? 'Déplier' : 'Réduire'}
+                className="-ml-1 grid size-5 place-items-center rounded text-slate-500 hover:bg-ink-800 hover:text-slate-200"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggle()
+                }}
+              >
+                <ChevronDown className={`size-4 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+              </button>
+            )}
+            {title}
+          </h2>
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {actions}
+          </div>
         </div>
       )}
-      <div className="min-h-0 flex-1 p-4">{children}</div>
+      {!isCollapsed && <div className="min-h-0 flex-1 p-4">{children}</div>}
     </section>
   )
 }

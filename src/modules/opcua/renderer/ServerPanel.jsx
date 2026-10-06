@@ -160,6 +160,7 @@ export default function ServerPanel({ status }) {
   return (
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
       <Card
+        id="opcua.server.config"
         title="Configuration du serveur"
         className="shrink-0"
         actions={
@@ -246,6 +247,7 @@ export default function ServerPanel({ status }) {
       />
 
       <Card
+        id="opcua.server.variables"
         title={`Variables simulées (${config.variables.length})`}
         className="min-h-72 flex-1"
         actions={

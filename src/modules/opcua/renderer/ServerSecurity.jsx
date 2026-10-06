@@ -74,6 +74,7 @@ export default function ServerSecurity({ value, onChange, locked, onError }) {
 
   return (
     <Card
+      id="opcua.server.security"
       title="Sécurité"
       className="shrink-0"
       actions={
