@@ -47,6 +47,25 @@ export default function InfoPage() {
     <div className="flex flex-col gap-4 p-6">
       <ErrorBanner error={error} onClose={() => setError(null)} />
 
+      {info && (
+        <Card id="info.system" title="Système">
+          <dl className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-1.5 text-sm">
+            <dt className="text-slate-500">Nom du PC</dt>
+            <dd className="font-mono text-slate-200 select-text">{info.hostname}</dd>
+            <dt className="text-slate-500">Système</dt>
+            <dd className="text-slate-200">
+              {info.platform} ({info.arch})
+            </dd>
+            <dt className="text-slate-500">Version de Sulfur</dt>
+            <dd className="text-slate-200">{info.appVersion}</dd>
+            <dt className="text-slate-500">Electron / Node</dt>
+            <dd className="text-slate-200">
+              {info.versions.electron} / {info.versions.node}
+            </dd>
+          </dl>
+        </Card>
+      )}
+
       <Card
         id="info.ips"
         title="Adresses IP du PC"
@@ -112,25 +131,6 @@ export default function InfoPage() {
           ))}
         </div>
       </Card>
-
-      {info && (
-        <Card id="info.system" title="Système">
-          <dl className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-1.5 text-sm">
-            <dt className="text-slate-500">Nom du PC</dt>
-            <dd className="font-mono text-slate-200 select-text">{info.hostname}</dd>
-            <dt className="text-slate-500">Système</dt>
-            <dd className="text-slate-200">
-              {info.platform} ({info.arch})
-            </dd>
-            <dt className="text-slate-500">Version de Sulfur</dt>
-            <dd className="text-slate-200">{info.appVersion}</dd>
-            <dt className="text-slate-500">Electron / Node</dt>
-            <dd className="text-slate-200">
-              {info.versions.electron} / {info.versions.node}
-            </dd>
-          </dl>
-        </Card>
-      )}
     </div>
   )
 }
