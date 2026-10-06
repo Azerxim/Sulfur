@@ -1,0 +1,41 @@
+import { useEffect, useState } from 'react'
+import { MonitorSmartphone, Server } from 'lucide-react'
+import { Tabs } from '@renderer/components/ui'
+import { opcuaApi } from './api'
+import ServerPanel from './ServerPanel'
+import ClientPanel from './ClientPanel'
+
+const dot = (on) => <span className={`size-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+
+export default function OpcuaView() {
+  const [tab, setTab] = useState('server')
+  const [serverStatus, setServerStatus] = useState({ running: false })
+  const [clientStatus, setClientStatus] = useState({ connected: false, monitored: [] })
+
+  useEffect(() => {
+    opcuaApi.server.status().then(setServerStatus)
+    opcuaApi.client.status().then(setClientStatus)
+    const offs = [opcuaApi.server.onStatus(setServerStatus), opcuaApi.client.onStatus(setClientStatus)]
+    return () => offs.forEach((off) => off())
+  }, [])
+
+  return (
+    <div className="flex h-full flex-col gap-4 p-6">
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'server', label: 'Serveur', icon: Server, badge: dot(serverStatus.running) },
+          { id: 'client', label: 'Client', icon: MonitorSmartphone, badge: dot(clientStatus.connected) }
+        ]}
+      />
+      {/* Les deux panneaux restent montés pour conserver leur état local. */}
+      <div className={tab === 'server' ? 'contents' : 'hidden'}>
+        <ServerPanel status={serverStatus} />
+      </div>
+      <div className={tab === 'client' ? 'contents' : 'hidden'}>
+        <ClientPanel status={clientStatus} serverEndpoint={serverStatus.endpointUrl} />
+      </div>
+    </div>
+  )
+}

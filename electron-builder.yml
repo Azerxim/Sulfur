@@ -1,0 +1,17 @@
+appId: com.azerxim.sulfur
+productName: Sulfur
+directories:
+  buildResources: resources
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.*'
+  - '!jsconfig.json'
+  - '!{README.md,CLAUDE.md}'
+asarUnpack:
+  - resources/**
+win:
+  target: nsis
+linux:
+  target: AppImage
+  category: Development
