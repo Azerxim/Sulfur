@@ -148,7 +148,9 @@ export function Field({ label, children, className = '' }) {
 export function StatusDot({ on, label }) {
   return (
     <span className="inline-flex items-center gap-2 text-xs text-slate-400">
-      <span className={`size-2 rounded-full ${on ? 'bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60' : 'bg-slate-600'}`} />
+      <span
+        className={`size-2 rounded-full ${on ? 'bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60' : 'bg-slate-600'}`}
+      />
       {label}
     </span>
   )
@@ -205,7 +207,9 @@ export function Modal({ title, onClose, actions, children, className = 'max-w-4x
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
-      <div className={`flex max-h-full w-full flex-col rounded-lg border border-ink-700 bg-ink-900 shadow-2xl ${className}`}>
+      <div
+        className={`flex max-h-full w-full flex-col rounded-lg border border-ink-700 bg-ink-900 shadow-2xl ${className}`}
+      >
         <div className="flex items-center justify-between gap-2 border-b border-ink-800 px-4 py-3">
           <h2 className="text-sm font-medium text-slate-100">{title}</h2>
           <div className="flex items-center gap-2">

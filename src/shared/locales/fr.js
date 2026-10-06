@@ -4,7 +4,7 @@ export default {
     tagline: 'Simulateur modulaire',
     modules: 'Modules',
     noModule: 'Aucun module chargé',
-    moduleError: 'Cette page n\'a pas pu être affichée.',
+    moduleError: "Cette page n'a pas pu être affichée.",
     resetModuleConfig: 'Rétablir la configuration par défaut du module',
     retry: 'Réessayer'
   },
@@ -60,18 +60,19 @@ export default {
     invalidNumber: 'Valeur numérique invalide : {value}',
     invalidInteger: 'Valeur entière invalide : {value}',
     alreadyStarted: 'Le serveur est déjà démarré',
-    notStarted: 'Le serveur n\'est pas démarré',
+    notStarted: "Le serveur n'est pas démarré",
     notConnected: 'Client non connecté',
     minPeriod: 'Période minimale : {min} ms',
     unknownStore: 'Magasin de certificats inconnu : {name}',
     certNotFound: 'Certificat introuvable',
     emptyPassword: 'Le mot de passe est vide',
     config: {
-      notJson: 'Le fichier n\'est pas un JSON valide',
-      notSulfur: 'Le fichier n\'est pas une configuration Sulfur',
-      unsupportedVersion: 'La version {version} du format de configuration n\'est pas prise en charge par cette version de Sulfur',
+      notJson: "Le fichier n'est pas un JSON valide",
+      notSulfur: "Le fichier n'est pas une configuration Sulfur",
+      unsupportedVersion:
+        "La version {version} du format de configuration n'est pas prise en charge par cette version de Sulfur",
       noModule: 'Le fichier ne contient aucune configuration pour les modules de cette version de Sulfur',
-      busy: 'Arrêtez les serveurs et déconnectez les clients avant d\'importer une configuration'
+      busy: "Arrêtez les serveurs et déconnectez les clients avant d'importer une configuration"
     }
   },
   simulations: {
@@ -86,7 +87,7 @@ export default {
     rejectedHint: 'Certificats inconnus reçus et refusés. Approuvez-les pour autoriser la connexion.',
     trusted: 'Approuvés',
     trustedHint: 'Certificats des pairs autorisés à se connecter.',
-    own: 'Certificat de l\'application',
+    own: "Certificat de l'application",
     ownHint: 'Généré automatiquement au premier démarrage.',
     none: 'Aucun certificat',
     expired: 'expiré',
@@ -95,7 +96,7 @@ export default {
     reject: 'Rejeter',
     openFolder: 'Ouvrir le dossier',
     thumbprint: 'empreinte',
-    validUntil: 'valide jusqu\'au {date}',
+    validUntil: "valide jusqu'au {date}",
     confirmRemove: 'Supprimer le certificat « {name} » ?'
   },
   info: {
@@ -103,7 +104,7 @@ export default {
     description: 'Adresses IP et informations système du PC',
     system: 'Système',
     hostname: 'Nom du PC',
-    os: 'Système d\'exploitation',
+    os: "Système d'exploitation",
     appVersion: 'Version de Sulfur',
     runtime: 'Electron / Node',
     ips: 'Adresses IP du PC',
@@ -116,7 +117,7 @@ export default {
     name: 'Paramètres',
     description: 'Langue, apparence et configurations',
     language: 'Langue',
-    languageHint: 'S\'applique à toute l\'interface ainsi qu\'aux messages des serveurs et clients.',
+    languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",
     theme: 'Thème',
     themeHint: 'Le thème sombre est utilisé par défaut.',
     themes: {
@@ -127,7 +128,7 @@ export default {
     themeDescriptions: {
       dark: 'Interface sombre (par défaut)',
       light: 'Interface claire',
-      system: 'Suit le réglage du système d\'exploitation'
+      system: "Suit le réglage du système d'exploitation"
     },
     configurations: {
       title: 'Configurations',

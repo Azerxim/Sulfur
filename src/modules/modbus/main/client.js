@@ -53,7 +53,11 @@ export class ModbusClient {
 
   async connect(options) {
     if (this.socket) await this.disconnect()
-    const config = { ...DEFAULT_CLIENT_CONFIG, ...options, security: { ...DEFAULT_CLIENT_CONFIG.security, ...options?.security } }
+    const config = {
+      ...DEFAULT_CLIENT_CONFIG,
+      ...options,
+      security: { ...DEFAULT_CLIENT_CONFIG.security, ...options?.security }
+    }
     const port = Number(config.port)
     const unitId = Number(config.unitId)
     if (!config.host?.trim()) throw new Error(t('modbus.errors.missingHost'))
@@ -238,7 +242,8 @@ export class ModbusClient {
     const info = TABLES[table]
     if (!info) throw new Error(t('modbus.errors.unknownTable', { table }))
     if (!Number.isInteger(address) || address < 0 || address > 65535) throw new Error(t('modbus.errors.invalidAddress'))
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > info.max) throw new Error(t('modbus.errors.invalidQuantityRange', { max: info.max }))
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > info.max)
+      throw new Error(t('modbus.errors.invalidQuantityRange', { max: info.max }))
     if (address + quantity > 65536) throw new Error(t('modbus.errors.rangeOverflow'))
   }
 
@@ -250,7 +255,7 @@ export class ModbusClient {
     try {
       return await this.request(readRequest(table, address, quantity), quantity)
     } catch (err) {
-      throw new Error(describeError(err))
+      throw new Error(describeError(err), { cause: err })
     }
   }
 
@@ -262,15 +267,19 @@ export class ModbusClient {
     const max = table === 'coils' ? 1968 : 123
     if (values.length > max) throw new Error(t('modbus.errors.tooManyValues', { max }))
     this.checkRange(table, address, 1)
-    const clean = table === 'coils' ? values.map(toBoolean) : values.map((v) => {
-      const n = Number(v)
-      if (!Number.isInteger(n) || n < 0 || n > 0xffff) throw new Error(t('modbus.errors.invalidRegister', { value: v }))
-      return n
-    })
+    const clean =
+      table === 'coils'
+        ? values.map(toBoolean)
+        : values.map((v) => {
+            const n = Number(v)
+            if (!Number.isInteger(n) || n < 0 || n > 0xffff)
+              throw new Error(t('modbus.errors.invalidRegister', { value: v }))
+            return n
+          })
     try {
       await this.request(writeRequest(table, address, clean, options))
     } catch (err) {
-      throw new Error(describeError(err))
+      throw new Error(describeError(err), { cause: err })
     }
     return { address, count: clean.length }
   }

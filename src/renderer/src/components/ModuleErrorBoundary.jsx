@@ -17,7 +17,7 @@ export default class ModuleErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('[sulfur] erreur d\'affichage', this.props.moduleId ?? '', error, info.componentStack)
+    console.error("[sulfur] erreur d'affichage", this.props.moduleId ?? '', error, info.componentStack)
   }
 
   reset = async () => {

@@ -53,7 +53,10 @@ app.whenReady().then(async () => {
   // Langue des messages du process principal dès le démarrage (avant le chargement de l'interface).
   setLanguage(loadPreferences().language)
   await host.load([systemMainModule, ...mainModules])
-  registerConfigTransfer(host, mainModules.map((mod) => mod.manifest.id))
+  registerConfigTransfer(
+    host,
+    mainModules.map((mod) => mod.manifest.id)
+  )
   createWindow()
 
   app.on('activate', () => {

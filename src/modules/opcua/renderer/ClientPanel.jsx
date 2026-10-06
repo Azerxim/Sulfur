@@ -10,7 +10,8 @@ import { getLocale } from '@shared/i18n'
 import { t } from '../shared/i18n'
 
 const formatValue = (v) => (v === null || v === undefined ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v))
-const formatTime = (iso) => (iso ? new Date(iso).toLocaleTimeString(getLocale(), { hour12: false }) + '.' + iso.slice(20, 23) : '—')
+const formatTime = (iso) =>
+  iso ? new Date(iso).toLocaleTimeString(getLocale(), { hour12: false }) + '.' + iso.slice(20, 23) : '—'
 
 export default function ClientPanel({ status, serverEndpoint }) {
   const [endpoint, setEndpoint] = usePersistentState('opcua', 'clientEndpoint', 'opc.tcp://localhost:4840/UA/Sulfur')
@@ -30,7 +31,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
   // Pré-remplit l'endpoint avec celui du serveur local lorsqu'il démarre.
   useEffect(() => {
     if (serverEndpoint && !connected) setEndpoint(serverEndpoint)
-  }, [serverEndpoint, connected])
+  }, [serverEndpoint, connected, setEndpoint])
 
   useEffect(
     () =>
@@ -120,7 +121,9 @@ export default function ClientPanel({ status, serverEndpoint }) {
                 value={endpoint}
                 disabled={connected || busy}
                 onChange={(e) => setEndpoint(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !connected && run(() => opcuaApi.client.connect(endpoint, security))}
+                onKeyDown={(e) =>
+                  e.key === 'Enter' && !connected && run(() => opcuaApi.client.connect(endpoint, security))
+                }
               />
             </Field>
             {connected ? (
@@ -128,7 +131,11 @@ export default function ClientPanel({ status, serverEndpoint }) {
                 <Plug className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
-              <Button variant="primary" disabled={busy || !endpoint} onClick={() => run(() => opcuaApi.client.connect(endpoint, security))}>
+              <Button
+                variant="primary"
+                disabled={busy || !endpoint}
+                onClick={() => run(() => opcuaApi.client.connect(endpoint, security))}
+              >
                 <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
@@ -149,7 +156,13 @@ export default function ClientPanel({ status, serverEndpoint }) {
           id="opcua.client.tree"
           title={t('opcua.client.addressSpace')}
           actions={
-            <Button variant="ghost" size="icon" disabled={!connected} title={t('opcua.client.reload')} onClick={() => setTreeKey((k) => k + 1)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={!connected}
+              title={t('opcua.client.reload')}
+              onClick={() => setTreeKey((k) => k + 1)}
+            >
               <RefreshCw className="size-3.5" />
             </Button>
           }
@@ -224,7 +237,11 @@ export default function ClientPanel({ status, serverEndpoint }) {
             )}
           </Card>
 
-          <Card id="opcua.client.monitoring" title={t('ui.monitoring', { count: status.monitored?.length ?? 0 })} className="flex-1">
+          <Card
+            id="opcua.client.monitoring"
+            title={t('ui.monitoring', { count: status.monitored?.length ?? 0 })}
+            className="flex-1"
+          >
             <div className="h-full overflow-auto">
               {!status.monitored?.length ? (
                 <p className="text-sm text-slate-500">{t('opcua.client.noMonitored')}</p>
@@ -253,7 +270,9 @@ export default function ClientPanel({ status, serverEndpoint }) {
                               variant="ghost"
                               size="icon"
                               title={t('ui.remove2')}
-                              onClick={() => run(() => opcuaApi.client.unsubscribe(nodeId).then(() => dropLive(nodeId)))}
+                              onClick={() =>
+                                run(() => opcuaApi.client.unsubscribe(nodeId).then(() => dropLive(nodeId)))
+                              }
                             >
                               <X className="size-3.5" />
                             </Button>

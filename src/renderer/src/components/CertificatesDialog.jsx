@@ -11,11 +11,14 @@ function CertRow({ cert, store, onAction, t }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 text-sm text-slate-200">
           <span className="truncate">{cert.commonName}</span>
-          {cert.expired && <span className="rounded bg-red-500/15 px-1.5 text-[11px] text-red-300">{t('certs.expired')}</span>}
+          {cert.expired && (
+            <span className="rounded bg-red-500/15 px-1.5 text-[11px] text-red-300">{t('certs.expired')}</span>
+          )}
           {cert.error && <span className="rounded bg-red-500/15 px-1.5 text-[11px] text-red-300">{cert.error}</span>}
         </div>
         <div className="truncate font-mono text-[11px] text-slate-500 select-text">
-          {cert.description ?? cert.applicationUri ?? cert.file} · {t('certs.thumbprint')} {cert.thumbprint.slice(0, 16)}…
+          {cert.description ?? cert.applicationUri ?? cert.file} · {t('certs.thumbprint')}{' '}
+          {cert.thumbprint.slice(0, 16)}…
           {cert.notAfter && ` · ${t('certs.validUntil', { date: formatDate(cert.notAfter) })}`}
         </div>
       </div>
@@ -57,7 +60,13 @@ export default function CertificatesDialog({ title, api, onClose, t = appT }) {
 
   const load = () => call(api.list())
   useEffect(() => {
-    load()
+    api
+      .list()
+      .then((list) => {
+        setCerts(list)
+        setError(null)
+      })
+      .catch((err) => setError(err.message))
   }, [api])
 
   const onAction = (action, cert) => {

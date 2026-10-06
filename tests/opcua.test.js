@@ -35,8 +35,16 @@ beforeAll(async () => {
   tmp = await tempDir('opcua')
   serverPki = new PkiStore(`${tmp.dir}/server`)
   clientPki = new PkiStore(`${tmp.dir}/client`)
-  server = new SimulationServer(serverPki, () => {}, () => {})
-  client = new SimulationClient(clientPki, () => {}, () => {})
+  server = new SimulationServer(
+    serverPki,
+    () => {},
+    () => {}
+  )
+  client = new SimulationClient(
+    clientPki,
+    () => {},
+    () => {}
+  )
 })
 
 afterEach(async () => {
@@ -57,7 +65,7 @@ describe('Serveur OPC UA : certificat et mots de passe', () => {
     expect((await serverPki.list()).own[0].thumbprint).toBe(own[0].thumbprint)
   })
 
-  it('ne conserve que l\'empreinte scrypt des mots de passe', async () => {
+  it("ne conserve que l'empreinte scrypt des mots de passe", async () => {
     await start({ users: [{ username: 'bob', password: 'secret' }] })
     const status = JSON.stringify(server.status())
     expect(server.status().config.security.users[0].passwordHash).toMatch(/^scrypt\$/)
@@ -93,7 +101,9 @@ describe('Sécurité OPC UA', () => {
   it('authentifie par identifiant / mot de passe', async () => {
     await start({ users: [{ username: 'bob', password: 'secret' }] })
     const user = { auth: 'username', username: 'bob' }
-    expect(await tryConnect({ mode: 'SignAndEncrypt', policy: 'Basic256Sha256', ...user, password: 'secret' })).toBe('OK')
+    expect(await tryConnect({ mode: 'SignAndEncrypt', policy: 'Basic256Sha256', ...user, password: 'secret' })).toBe(
+      'OK'
+    )
     expect(await tryConnect({ mode: 'None', ...user, password: 'secret' })).toBe('OK')
     const wrong = await tryConnect({ mode: 'None', ...user, password: 'Secret' })
     expect(wrong.startsWith(prefix('opcua.errors.authRefused'))).toBe(true)
@@ -107,7 +117,7 @@ describe('Sécurité OPC UA', () => {
     expect(await tryConnect({ mode: 'SignAndEncrypt', policy: 'Basic256Sha256', ...admin })).toBe('OK')
   })
 
-  it('refuse un certificat client inconnu puis l\'accepte après approbation', async () => {
+  it("refuse un certificat client inconnu puis l'accepte après approbation", async () => {
     for (const cert of (await serverPki.list()).trusted) await serverPki.remove(cert.thumbprint)
     await start({ autoAcceptCertificates: false })
     const refused = await tryConnect({ mode: 'Sign', policy: 'Basic256Sha256' })
@@ -140,7 +150,17 @@ describe('Modification à chaud des variables', () => {
     await sleep(400)
     expect((await client.read(nodeId('Temperature'))).value).toBe(frozen)
 
-    const added = { id: 'new', name: 'Flow', dataType: 'Int32', initialValue: 7, simulation: 'none', period: 1000, min: 0, max: 1, writable: true }
+    const added = {
+      id: 'new',
+      name: 'Flow',
+      dataType: 'Int32',
+      initialValue: 7,
+      simulation: 'none',
+      period: 1000,
+      min: 0,
+      max: 1,
+      writable: true
+    }
     server.upsertVariable(added)
     expect((await client.read(nodeId('Flow'))).value).toBe(7)
 

@@ -43,7 +43,9 @@ function LiveValue({ variable, value, onSet }) {
         onClick={() => onSet(!value)}
         title={t('ui.toggle')}
         className={`h-9 w-full rounded-md border font-mono text-sm transition-colors ${
-          value ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-ink-700 bg-ink-950 text-slate-400'
+          value
+            ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+            : 'border-ink-700 bg-ink-950 text-slate-400'
         }`}
       >
         {formatValue(value)}
@@ -149,7 +151,10 @@ export default function ServerPanel({ status }) {
         className="shrink-0"
         actions={
           <>
-            <StatusDot on={running} label={running ? t('opcua.server.running', { count: status.sessions ?? 0 }) : t('ui.stopped')} />
+            <StatusDot
+              on={running}
+              label={running ? t('opcua.server.running', { count: status.sessions ?? 0 }) : t('ui.stopped')}
+            />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(opcuaApi.server.stop)}>
                 <Square className="size-3.5" /> {t('ui.stop')}
@@ -322,7 +327,13 @@ export default function ServerPanel({ status }) {
                     />
                   </td>
                   <td className="p-1.5">
-                    <Button variant="ghost" size="icon" disabled={busy} onClick={() => removeVar(v.id)} title={t('ui.remove')}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={busy}
+                      onClick={() => removeVar(v.id)}
+                      title={t('ui.remove')}
+                    >
                       <Trash2 className="size-3.5" />
                     </Button>
                   </td>

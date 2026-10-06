@@ -63,7 +63,8 @@ export default {
       maxConnections: 'Max. connections (0 = ∞)',
       maxRate: 'Requests/s per client (0 = ∞)',
       readOnly: 'Read only (every write refused)',
-      plainWarning: 'With unencrypted Modbus TCP no client is authenticated: only access control and read-only mode apply.',
+      plainWarning:
+        'With unencrypted Modbus TCP no client is authenticated: only access control and read-only mode apply.',
       problems: {
         noRole: 'define at least one role',
         unnamedRole: 'a role has no name',
@@ -101,7 +102,8 @@ export default {
       transport: 'Transport',
       role: 'Client certificate role',
       rolePlaceholder: 'none',
-      roleHint: 'The client certificate is (re)generated automatically with this role; the server decides which rights the role grants.',
+      roleHint:
+        'The client certificate is (re)generated automatically with this role; the server decides which rights the role grants.',
       io: 'Read / write',
       table: 'Table',
       address: 'Address',
@@ -197,7 +199,8 @@ export default {
       notDecodable: 'Type cannot be decoded from registers: {type}',
       needsRegisters: '{type} requires {count} register(s)',
       missingHost: 'Server address missing',
-      closedTls: 'Connection closed by the server: certificate not trusted, role not allowed or IP address refused (see the server log)',
+      closedTls:
+        'Connection closed by the server: certificate not trusted, role not allowed or IP address refused (see the server log)',
       closedPlain: 'Connection closed by the server: IP address refused or maximum number of connections reached',
       closed: 'Connection closed by the server',
       connectTimeout: 'Connection timeout exceeded ({timeout} ms)',

@@ -86,7 +86,8 @@ export class ModbusPki {
     try {
       const [cert, key] = await Promise.all([fs.readFile(certFile, 'utf8'), fs.readFile(keyFile, 'utf8')])
       const info = describe(cert, certFile)
-      if (info.commonName === commonName && (info.role ?? null) === (role || null) && !info.expired) return { cert, key }
+      if (info.commonName === commonName && (info.role ?? null) === (role || null) && !info.expired)
+        return { cert, key }
     } catch {
       // absent ou illisible : génération
     }
@@ -109,7 +110,9 @@ export class ModbusPki {
     if (role) extensions.push(roleExtension(role))
 
     const cert = await x509.X509CertificateGenerator.createSelfSigned({
-      serialNumber: Buffer.from(webcrypto.getRandomValues(new Uint8Array(16))).toString('hex').replace(/^[89a-f]/, '1'),
+      serialNumber: Buffer.from(webcrypto.getRandomValues(new Uint8Array(16)))
+        .toString('hex')
+        .replace(/^[89a-f]/, '1'),
       name: `CN=${commonName}, O=Sulfur`,
       notBefore: new Date(Date.now() - 60_000),
       notAfter: new Date(Date.now() + 365 * 10 * 86_400_000),
@@ -126,7 +129,7 @@ export class ModbusPki {
   }
 
   async readFolder(dir) {
-    let files = []
+    let files
     try {
       files = (await fs.readdir(dir)).filter((f) => /\.(pem|der|crt|cer)$/i.test(f) && f !== 'private_key.pem')
     } catch {
@@ -164,13 +167,18 @@ export class ModbusPki {
     if (!rejected.some((c) => c.thumbprint === info.thumbprint) || autoAccept) {
       const dir = this.folders()[target]
       await fs.mkdir(dir, { recursive: true })
-      await fs.writeFile(path.join(dir, `${safeName(info.commonName)}_${info.thumbprint.slice(0, 16)}.pem`), peer.toString())
+      await fs.writeFile(
+        path.join(dir, `${safeName(info.commonName)}_${info.thumbprint.slice(0, 16)}.pem`),
+        peer.toString()
+      )
       if (autoAccept) {
         const old = rejected.find((c) => c.thumbprint === info.thumbprint)
         if (old) await fs.unlink(old.path).catch(() => {})
       }
     }
-    return autoAccept ? { ok: true, info, accepted: true } : { ok: false, info, reason: t('modbus.errors.certNotTrusted') }
+    return autoAccept
+      ? { ok: true, info, accepted: true }
+      : { ok: false, info, reason: t('modbus.errors.certNotTrusted') }
   }
 
   async find(thumbprint, stores = ['trusted', 'rejected']) {

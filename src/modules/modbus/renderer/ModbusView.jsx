@@ -35,7 +35,11 @@ export default function ModbusView() {
         <ServerPanel status={serverStatus} />
       </div>
       <div className={tab === 'client' ? 'contents' : 'hidden'}>
-        <ClientPanel status={clientStatus} serverPort={serverStatus.running ? serverStatus.config?.port : null} serverMode={serverStatus.config?.security?.mode} />
+        <ClientPanel
+          status={clientStatus}
+          serverPort={serverStatus.running ? serverStatus.config?.port : null}
+          serverMode={serverStatus.config?.security?.mode}
+        />
       </div>
     </div>
   )

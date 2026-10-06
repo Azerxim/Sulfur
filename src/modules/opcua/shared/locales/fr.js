@@ -31,7 +31,7 @@ export default {
       problems: {
         noMode: 'au moins un mode de sécurité est requis',
         noPolicy: 'les modes signés nécessitent au moins une politique',
-        noAuth: 'autorisez l\'accès anonyme ou ajoutez un utilisateur',
+        noAuth: "autorisez l'accès anonyme ou ajoutez un utilisateur",
         incompleteUser: 'chaque utilisateur doit avoir un identifiant et un mot de passe'
       }
     },
@@ -52,11 +52,11 @@ export default {
       selected: 'Sélectionné',
       use: 'Utiliser',
       certsTitle: 'Certificats du client OPC UA',
-      addressSpace: 'Espace d\'adressage',
+      addressSpace: "Espace d'adressage",
       reload: 'Recharger',
       connectToBrowse: 'Connectez-vous pour parcourir les nœuds.',
       selectedNode: 'Nœud sélectionné',
-      selectNode: 'Sélectionnez un nœud dans l\'arborescence.',
+      selectNode: "Sélectionnez un nœud dans l'arborescence.",
       read: 'Lire',
       monitor: 'Surveiller',
       unmonitor: 'Ne plus surveiller',
@@ -66,11 +66,11 @@ export default {
       noMonitored: 'Aucune variable surveillée.'
     },
     errors: {
-      userNoName: 'Un utilisateur n\'a pas d\'identifiant',
-      userNoPassword: 'Mot de passe manquant pour l\'utilisateur « {name} »',
+      userNoName: "Un utilisateur n'a pas d'identifiant",
+      userNoPassword: "Mot de passe manquant pour l'utilisateur « {name} »",
       noMode: 'Sélectionnez au moins un mode de sécurité',
       noPolicy: 'Sélectionnez au moins une politique de sécurité pour les modes Signature / Chiffrement',
-      noAuth: 'Aucune authentification possible : autorisez l\'accès anonyme ou ajoutez un utilisateur',
+      noAuth: "Aucune authentification possible : autorisez l'accès anonyme ou ajoutez un utilisateur",
       duplicateNames: 'Noms de variables en double',
       emptyName: 'Le nom de la variable est vide',
       exists: 'La variable « {name} » existe déjà',
@@ -81,9 +81,10 @@ export default {
       writeRefused: 'Écriture refusée : {status}',
       authRefused: 'Authentification refusée (identifiant ou mot de passe incorrect, ou mode non autorisé). {details}',
       certRefused: 'Certificat refusé : approuvez le certificat dans le magasin du serveur et/ou du client. {details}',
-      noAnonymous: 'Le serveur n\'autorise pas l\'accès anonyme : utilisez un identifiant / mot de passe.',
-      noUsername: 'Le serveur n\'accepte pas l\'authentification par identifiant / mot de passe sur cet endpoint.',
-      noEndpoint: 'Le serveur ne propose pas ce couple mode / politique de sécurité (utilisez « Découvrir » pour voir les endpoints disponibles).'
+      noAnonymous: "Le serveur n'autorise pas l'accès anonyme : utilisez un identifiant / mot de passe.",
+      noUsername: "Le serveur n'accepte pas l'authentification par identifiant / mot de passe sur cet endpoint.",
+      noEndpoint:
+        'Le serveur ne propose pas ce couple mode / politique de sécurité (utilisez « Découvrir » pour voir les endpoints disponibles).'
     }
   }
 }

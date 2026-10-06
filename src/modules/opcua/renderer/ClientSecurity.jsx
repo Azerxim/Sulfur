@@ -38,7 +38,10 @@ export default function ClientSecurity({ value, onChange, endpoint, locked, onEr
             disabled={locked}
             onChange={(e) => {
               const mode = e.target.value
-              set({ mode, policy: mode === 'None' ? 'None' : security.policy === 'None' ? 'Basic256Sha256' : security.policy })
+              set({
+                mode,
+                policy: mode === 'None' ? 'None' : security.policy === 'None' ? 'Basic256Sha256' : security.policy
+              })
             }}
           >
             {Object.keys(SECURITY_MODES).map((m) => (
@@ -49,7 +52,11 @@ export default function ClientSecurity({ value, onChange, endpoint, locked, onEr
           </Select>
         </Field>
         <Field label={t('opcua.client.policy')}>
-          <Select value={secure ? security.policy : 'None'} disabled={locked || !secure} onChange={(e) => set({ policy: e.target.value })}>
+          <Select
+            value={secure ? security.policy : 'None'}
+            disabled={locked || !secure}
+            onChange={(e) => set({ policy: e.target.value })}
+          >
             {!secure && <option value="None">None</option>}
             {Object.keys(SECURITY_POLICIES).map((p) => (
               <option key={p} value={p}>
@@ -115,7 +122,9 @@ export default function ClientSecurity({ value, onChange, endpoint, locked, onEr
                     <td className="px-3 py-1.5 text-slate-200">{t(`opcua.securityModes.${e.mode}`, null, e.mode)}</td>
                     <td className="px-3 py-1.5 font-mono text-[13px] text-slate-300">{policyLabel(e.policy)}</td>
                     <td className="px-3 py-1.5 text-xs text-slate-500">{e.userTokens.join(', ')}</td>
-                    <td className="px-3 py-1.5 text-xs text-slate-500">{t('opcua.client.level', { level: e.securityLevel })}</td>
+                    <td className="px-3 py-1.5 text-xs text-slate-500">
+                      {t('opcua.client.level', { level: e.securityLevel })}
+                    </td>
                     <td className="px-2 py-1 text-right">
                       <Button
                         size="sm"
@@ -134,7 +143,14 @@ export default function ClientSecurity({ value, onChange, endpoint, locked, onEr
         </div>
       )}
 
-      {certsOpen && <CertificatesDialog t={t} title={t('opcua.client.certsTitle')} api={clientCerts} onClose={() => setCertsOpen(false)} />}
+      {certsOpen && (
+        <CertificatesDialog
+          t={t}
+          title={t('opcua.client.certsTitle')}
+          api={clientCerts}
+          onClose={() => setCertsOpen(false)}
+        />
+      )}
     </div>
   )
 }

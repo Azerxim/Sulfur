@@ -45,12 +45,24 @@ export function encodeValue(value, dataType, order = 'ABCD') {
   const view = new DataView(new ArrayBuffer(words * 2))
   const n = toNumber(value, dataType)
   switch (dataType) {
-    case 'UInt16': view.setUint16(0, n); break
-    case 'Int16': view.setInt16(0, n); break
-    case 'UInt32': view.setUint32(0, n); break
-    case 'Int32': view.setInt32(0, n); break
-    case 'Float32': view.setFloat32(0, n); break
-    case 'Float64': view.setFloat64(0, n); break
+    case 'UInt16':
+      view.setUint16(0, n)
+      break
+    case 'Int16':
+      view.setInt16(0, n)
+      break
+    case 'UInt32':
+      view.setUint32(0, n)
+      break
+    case 'Int32':
+      view.setInt32(0, n)
+      break
+    case 'Float32':
+      view.setFloat32(0, n)
+      break
+    case 'Float64':
+      view.setFloat64(0, n)
+      break
   }
   const out = []
   for (let i = 0; i < words; i++) out.push(view.getUint16(i * 2))
@@ -66,12 +78,18 @@ export function decodeValue(words, dataType, order = 'ABCD') {
   const view = new DataView(new ArrayBuffer(count * 2))
   ordered.forEach((w, i) => view.setUint16(i * 2, w))
   switch (dataType) {
-    case 'UInt16': return view.getUint16(0)
-    case 'Int16': return view.getInt16(0)
-    case 'UInt32': return view.getUint32(0)
-    case 'Int32': return view.getInt32(0)
-    case 'Float32': return view.getFloat32(0)
-    case 'Float64': return view.getFloat64(0)
+    case 'UInt16':
+      return view.getUint16(0)
+    case 'Int16':
+      return view.getInt16(0)
+    case 'UInt32':
+      return view.getUint32(0)
+    case 'Int32':
+      return view.getInt32(0)
+    case 'Float32':
+      return view.getFloat32(0)
+    case 'Float64':
+      return view.getFloat64(0)
   }
 }
 

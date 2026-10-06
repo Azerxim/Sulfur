@@ -27,8 +27,7 @@ async function start(security = {}, extra = {}) {
   })
 }
 
-const connect = (client, extra = {}) =>
-  client.connect({ host: '127.0.0.1', port, unitId: 1, timeout: 1000, ...extra })
+const connect = (client, extra = {}) => client.connect({ host: '127.0.0.1', port, unitId: 1, timeout: 1000, ...extra })
 
 const tls = (role, autoAcceptCertificates = true) => ({ security: { mode: 'tls', role, autoAcceptCertificates } })
 
@@ -92,9 +91,29 @@ describe('Modbus TCP', () => {
     await start()
     const client = newClient()
     await connect(client)
-    const overlap = { id: 'x', name: 'Overlap', table: 'holdingRegisters', address: 1, dataType: 'UInt16', initialValue: 0, simulation: 'none', writable: true }
-    expect(await errorOf(() => server.upsertPoint(overlap))).toBe(t('modbus.errors.pointsOverlap', { a: 'Temperature', b: 'Overlap' }))
-    server.upsertPoint({ id: 'n1', name: 'New', table: 'holdingRegisters', address: 200, dataType: 'UInt32', initialValue: 123456, simulation: 'none', writable: true })
+    const overlap = {
+      id: 'x',
+      name: 'Overlap',
+      table: 'holdingRegisters',
+      address: 1,
+      dataType: 'UInt16',
+      initialValue: 0,
+      simulation: 'none',
+      writable: true
+    }
+    expect(await errorOf(() => server.upsertPoint(overlap))).toBe(
+      t('modbus.errors.pointsOverlap', { a: 'Temperature', b: 'Overlap' })
+    )
+    server.upsertPoint({
+      id: 'n1',
+      name: 'New',
+      table: 'holdingRegisters',
+      address: 200,
+      dataType: 'UInt32',
+      initialValue: 123456,
+      simulation: 'none',
+      writable: true
+    })
     expect(await client.readValue('holdingRegisters', 200, 'UInt32')).toBe(123456)
     server.setValue('n1', 70000)
     expect(await client.readValue('holdingRegisters', 200, 'UInt32')).toBe(70000)
@@ -102,7 +121,7 @@ describe('Modbus TCP', () => {
     expect(server.status().config.points.find((p) => p.id === 'n1')).toBeUndefined()
   })
 
-  it('répond par l\'exception 11 à un Unit ID inconnu', async () => {
+  it("répond par l'exception 11 à un Unit ID inconnu", async () => {
     await start()
     const client = newClient()
     await connect(client, { unitId: 5 })
@@ -122,8 +141,17 @@ describe('Modbus TCP', () => {
     expect(closed).toBe(true)
   })
 
-  it('respecte l\'ordre des mots configuré (CDAB)', async () => {
-    const point = { id: 'f', name: 'F', table: 'holdingRegisters', address: 0, dataType: 'Float32', initialValue: 3.5, simulation: 'none', writable: true }
+  it("respecte l'ordre des mots configuré (CDAB)", async () => {
+    const point = {
+      id: 'f',
+      name: 'F',
+      table: 'holdingRegisters',
+      address: 0,
+      dataType: 'Float32',
+      initialValue: 3.5,
+      simulation: 'none',
+      writable: true
+    }
     await start({}, { wordOrder: 'CDAB', points: [point] })
     const client = newClient()
     await connect(client)
@@ -150,7 +178,7 @@ describe('Barrières de sécurité (TCP)', () => {
     expect(results.filter((r) => /^Exception 6\b/.test(r)).length).toBeGreaterThanOrEqual(10)
   })
 
-  it('liste blanche d\'adresses IP', async () => {
+  it("liste blanche d'adresses IP", async () => {
     await start({ allowedIps: ['10.0.0.0/8'] })
     expect(await errorOf(connect(newClient()))).toBe(t('modbus.errors.closedPlain'))
     expect(logs.some((l) => l.message === t('modbus.log.ipRefused', { ip: '127.0.0.1' }))).toBe(true)
@@ -160,7 +188,9 @@ describe('Barrières de sécurité (TCP)', () => {
   })
 
   it('refuse une entrée de liste blanche invalide', async () => {
-    expect(await errorOf(start({ allowedIps: ['300.1.1.1'] }))).toBe(t('modbus.errors.invalidAllowedIp', { entry: '300.1.1.1' }))
+    expect(await errorOf(start({ allowedIps: ['300.1.1.1'] }))).toBe(
+      t('modbus.errors.invalidAllowedIp', { entry: '300.1.1.1' })
+    )
   })
 
   it('nombre maximal de connexions', async () => {

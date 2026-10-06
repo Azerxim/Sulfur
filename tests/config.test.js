@@ -57,7 +57,7 @@ describe('ConfigStore', () => {
     expect(new ConfigStore(file).get()).toEqual({ client: { port: 2 } })
   })
 
-  it('repart d\'une configuration vide si le fichier est illisible', async () => {
+  it("repart d'une configuration vide si le fichier est illisible", async () => {
     await fs.mkdir(path.dirname(file), { recursive: true })
     await fs.writeFile(file, '{ pas du json')
     expect(new ConfigStore(file).get()).toEqual({})
@@ -70,7 +70,7 @@ describe('ConfigStore', () => {
   })
 })
 
-describe('Fichier d\'échange (import / export)', () => {
+describe("Fichier d'échange (import / export)", () => {
   const known = ['opcua', 'modbus']
   const modules = { opcua: { server: { port: 4841 } }, modbus: { client: { host: '10.0.0.5' } } }
 

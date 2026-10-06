@@ -27,7 +27,9 @@ export default function Sidebar({ modules, pages = [], activeId, onSelect }) {
         </div>
       </div>
 
-      <div className="px-5 pt-2 pb-2 text-[11px] font-medium tracking-wider text-slate-500 uppercase">{t('app.modules')}</div>
+      <div className="px-5 pt-2 pb-2 text-[11px] font-medium tracking-wider text-slate-500 uppercase">
+        {t('app.modules')}
+      </div>
       <nav className="flex flex-col gap-0.5 px-2">
         {modules.map((m) => (
           <NavItem key={m.manifest.id} item={m} active={m.manifest.id === activeId} onSelect={onSelect} />

@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import { BookOpen, Eye, Lock, Plug, PlugZap, ShieldCheck, Send, X } from 'lucide-react'
-import { Button, Card, Checkbox, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
+import {
+  Button,
+  Card,
+  Checkbox,
+  CommitInput,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  StatusDot
+} from '@renderer/components/ui'
 import CertificatesDialog from '@renderer/components/CertificatesDialog'
 import { DATA_TYPES, DEFAULT_CLIENT_CONFIG, DEFAULT_CLIENT_REQUEST, TABLES, WORD_ORDERS } from '../shared/constants'
 import { decodeValue, encodeValue } from '../shared/codec'
@@ -16,34 +26,49 @@ const FORMATS = {
   UInt16: { words: 1, type: 'UInt16' },
   Int16: { words: 1, type: 'Int16' },
   Hex: { words: 1, type: 'UInt16', show: (w) => `0x${w.toString(16).toUpperCase().padStart(4, '0')}` },
-  binary: { words: 1, type: 'UInt16', show: (w) => w.toString(2).padStart(16, '0').replace(/(.{4})(?!$)/g, '$1 ') },
+  binary: {
+    words: 1,
+    type: 'UInt16',
+    show: (w) =>
+      w
+        .toString(2)
+        .padStart(16, '0')
+        .replace(/(.{4})(?!$)/g, '$1 ')
+  },
   UInt32: { words: 2, type: 'UInt32' },
   Int32: { words: 2, type: 'Int32' },
   Float32: { words: 2, type: 'Float32' },
   Float64: { words: 4, type: 'Float64' }
 }
 
-const formatNumber = (v) => (typeof v === 'number' && !Number.isInteger(v) ? Number(v.toPrecision(7)).toString() : String(v))
-const formatTime = (iso) => (iso ? new Date(iso).toLocaleTimeString(getLocale(), { hour12: false }) + '.' + iso.slice(20, 23) : '—')
+const formatNumber = (v) =>
+  typeof v === 'number' && !Number.isInteger(v) ? Number(v.toPrecision(7)).toString() : String(v)
+const formatTime = (iso) =>
+  iso ? new Date(iso).toLocaleTimeString(getLocale(), { hour12: false }) + '.' + iso.slice(20, 23) : '—'
 const address = (table, a) => `${TABLES[table].prefix} ${a}`
 
 /** Convertit une saisie en mots 16 bits selon le format choisi (liste séparée par des virgules pour 16 bits). */
 function parseWrite(raw, format, wordOrder) {
   const f = FORMATS[format]
-  const items = String(raw).split(/[,;\s]+/).filter(Boolean)
+  const items = String(raw)
+    .split(/[,;\s]+/)
+    .filter(Boolean)
   if (!items.length) throw new Error(t('modbus.client.errors.enterValue'))
   if (f.words > 1) {
     if (items.length > 1) throw new Error(t('modbus.client.errors.singleValue', { format }))
     return encodeValue(items[0], f.type, wordOrder)
   }
-  return items.flatMap((item) => {
-    if (format === 'Hex') return [parseInt(item.replace(/^0x/i, ''), 16)]
-    if (format === 'binary') return [parseInt(item.replace(/^0b/i, ''), 2)]
-    return encodeValue(item, f.type)
-  }).map((w) => {
-    if (!Number.isInteger(w) || w < 0 || w > 0xffff) throw new Error(t('modbus.client.errors.invalidValue', { value: raw }))
-    return w
-  })
+  return items
+    .flatMap((item) => {
+      if (format === 'Hex') return [parseInt(item.replace(/^0x/i, ''), 16)]
+      if (format === 'binary') return [parseInt(item.replace(/^0b/i, ''), 2)]
+      return encodeValue(item, f.type)
+    })
+    .map((w) => {
+      if (!Number.isInteger(w) || w < 0 || w > 0xffff)
+        throw new Error(t('modbus.client.errors.invalidValue', { value: raw }))
+      return w
+    })
 }
 
 export default function ClientPanel({ status, serverPort, serverMode }) {
@@ -64,7 +89,7 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
     if (serverPort && !connected) {
       setConfig((c) => ({ ...c, port: serverPort, security: { ...c.security, mode: serverMode ?? c.security.mode } }))
     }
-  }, [serverPort, serverMode, connected])
+  }, [serverPort, serverMode, connected, setConfig])
 
   useEffect(() => modbusApi.client.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [])
   useEffect(() => {
@@ -96,7 +121,9 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
   function write() {
     run(async () => {
       if (bit) {
-        const values = String(writeValue).split(/[,;\s]+/).filter(Boolean)
+        const values = String(writeValue)
+          .split(/[,;\s]+/)
+          .filter(Boolean)
         if (!values.length) throw new Error(t('modbus.client.errors.enterBits'))
         await modbusApi.client.write(op.table, Number(op.address), values)
       } else {
@@ -119,13 +146,18 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
   /** Lignes du tableau de résultats, décodées selon le format choisi. */
   function rows() {
     if (!result) return []
-    if (TABLES[result.table].bit) return result.data.map((v, i) => ({ address: result.address + i, value: v ? 'true' : 'false', raw: v ? 1 : 0 }))
+    if (TABLES[result.table].bit)
+      return result.data.map((v, i) => ({ address: result.address + i, value: v ? 'true' : 'false', raw: v ? 1 : 0 }))
     const f = FORMATS[result.format]
     const out = []
     for (let i = 0; i + f.words <= result.data.length; i += f.words) {
       const words = result.data.slice(i, i + f.words)
       const value = f.show ? f.show(words[0]) : formatNumber(decodeValue(words, f.type, result.wordOrder))
-      out.push({ address: result.address + i, value, raw: words.map((w) => w.toString(16).toUpperCase().padStart(4, '0')).join(' ') })
+      out.push({
+        address: result.address + i,
+        value,
+        raw: words.map((w) => w.toString(16).toUpperCase().padStart(4, '0')).join(' ')
+      })
     }
     return out
   }
@@ -144,11 +176,16 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
         id="modbus.client.connection"
         title={t('ui.connection')}
         className="shrink-0"
-        actions={<StatusDot on={connected} label={
+        actions={
+          <StatusDot
+            on={connected}
+            label={
               connected
                 ? `${t('modbus.client.connectedTo', { endpoint: status.endpoint })} · ${tlsLabel ?? t('modbus.client.plain')}`
                 : t('ui.disconnected')
-            } />}
+            }
+          />
+        }
       >
         <div className="flex flex-col gap-3">
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] items-end gap-3">
@@ -162,7 +199,12 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
               />
             </Field>
             <Field label={t('modbus.server.port')}>
-              <Input type="number" value={config.port} disabled={connected || busy} onChange={(e) => update({ port: Number(e.target.value) })} />
+              <Input
+                type="number"
+                value={config.port}
+                disabled={connected || busy}
+                onChange={(e) => update({ port: Number(e.target.value) })}
+              />
             </Field>
             <Field label={t('modbus.server.unitId')}>
               <Input
@@ -175,7 +217,12 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
               />
             </Field>
             <Field label={t('modbus.client.timeout')}>
-              <Input type="number" value={config.timeout} disabled={connected || busy} onChange={(e) => update({ timeout: Number(e.target.value) })} />
+              <Input
+                type="number"
+                value={config.timeout}
+                disabled={connected || busy}
+                onChange={(e) => update({ timeout: Number(e.target.value) })}
+              />
             </Field>
             {connected ? (
               <Button variant="danger" disabled={busy} onClick={() => run(modbusApi.client.disconnect)}>
@@ -190,7 +237,11 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
 
           <div className="grid grid-cols-[2fr_1fr_2fr_auto] items-end gap-3">
             <Field label={t('modbus.client.transport')}>
-              <Select value={security.mode} disabled={connected || busy} onChange={(e) => updateSecurity({ mode: e.target.value })}>
+              <Select
+                value={security.mode}
+                disabled={connected || busy}
+                onChange={(e) => updateSecurity({ mode: e.target.value })}
+              >
                 <option value="tcp">{t('modbus.transport.tcp')}</option>
                 <option value="tls">{t('modbus.transport.tls')}</option>
               </Select>
@@ -220,9 +271,7 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
             </Button>
           </div>
           {security.mode === 'tls' && !connected && (
-            <p className="text-xs text-slate-500">
-              {t('modbus.client.roleHint')}
-            </p>
+            <p className="text-xs text-slate-500">{t('modbus.client.roleHint')}</p>
           )}
           <ErrorBanner error={error} onClose={() => setError(null)} />
         </div>
@@ -232,7 +281,12 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr_1.4fr_auto] items-end gap-3">
             <Field label={t('modbus.client.table')}>
-              <Select value={op.table} onChange={(e) => updateOp({ table: e.target.value, quantity: Math.min(op.quantity, TABLES[e.target.value].max) })}>
+              <Select
+                value={op.table}
+                onChange={(e) =>
+                  updateOp({ table: e.target.value, quantity: Math.min(op.quantity, TABLES[e.target.value].max) })
+                }
+              >
                 {Object.entries(TABLES).map(([k, tb]) => (
                   <option key={k} value={k}>
                     {tb.prefix} · {tb.label}
@@ -241,13 +295,29 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
               </Select>
             </Field>
             <Field label={t('modbus.client.address')}>
-              <Input type="number" min={0} max={65535} value={op.address} onChange={(e) => updateOp({ address: e.target.value })} />
+              <Input
+                type="number"
+                min={0}
+                max={65535}
+                value={op.address}
+                onChange={(e) => updateOp({ address: e.target.value })}
+              />
             </Field>
             <Field label={t('modbus.client.quantity', { max: TABLES[op.table].max })}>
-              <Input type="number" min={1} max={TABLES[op.table].max} value={op.quantity} onChange={(e) => updateOp({ quantity: e.target.value })} />
+              <Input
+                type="number"
+                min={1}
+                max={TABLES[op.table].max}
+                value={op.quantity}
+                onChange={(e) => updateOp({ quantity: e.target.value })}
+              />
             </Field>
             <Field label={t('modbus.client.format')}>
-              <Select value={bit ? 'Boolean' : op.format} disabled={bit} onChange={(e) => updateOp({ format: e.target.value })}>
+              <Select
+                value={bit ? 'Boolean' : op.format}
+                disabled={bit}
+                onChange={(e) => updateOp({ format: e.target.value })}
+              >
                 {bit ? (
                   <option value="Boolean">{t('modbus.client.boolean')}</option>
                 ) : (
@@ -260,7 +330,11 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
               </Select>
             </Field>
             <Field label={t('modbus.client.wordOrder')}>
-              <Select value={op.wordOrder} disabled={bit || FORMATS[op.format].words < 2} onChange={(e) => updateOp({ wordOrder: e.target.value })}>
+              <Select
+                value={op.wordOrder}
+                disabled={bit || FORMATS[op.format].words < 2}
+                onChange={(e) => updateOp({ wordOrder: e.target.value })}
+              >
                 {WORD_ORDERS.map((k) => (
                   <option key={k} value={k}>
                     {t(`modbus.wordOrders.${k}`)}
@@ -287,10 +361,17 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
                     ? t('modbus.client.writeBits')
                     : FORMATS[op.format].words > 1
                       ? t('modbus.client.writeMulti', { format: op.format, count: FORMATS[op.format].words })
-                      : t('modbus.client.writeWords', { format: op.format === 'binary' ? t('modbus.client.binary') : op.format })
+                      : t('modbus.client.writeWords', {
+                          format: op.format === 'binary' ? t('modbus.client.binary') : op.format
+                        })
                 }
               >
-                <Input className="font-mono" value={writeValue} onChange={(e) => setWriteValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && connected && write()} />
+                <Input
+                  className="font-mono"
+                  value={writeValue}
+                  onChange={(e) => setWriteValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && connected && write()}
+                />
               </Field>
               <Button variant="primary" disabled={!connected || busy || !writeValue} onClick={write}>
                 <Send className="size-4" /> {t('modbus.client.write')}
@@ -371,18 +452,26 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
                 return (
                   <tr key={w.id} className="border-t border-ink-800">
                     <td className="py-1.5 pr-3 text-slate-300">
-                      {address(w.table, w.address)} <span className="font-sans text-xs text-slate-500">{TABLES[w.table].label}</span>
+                      {address(w.table, w.address)}{' '}
+                      <span className="font-sans text-xs text-slate-500">{TABLES[w.table].label}</span>
                     </td>
                     <td className="py-1.5 pr-3 text-slate-400">
                       {w.dataType}
                       {DATA_TYPES[w.dataType] > 1 ? ` · ${w.wordOrder}` : ''}
                     </td>
-                    <td className={`py-1.5 pr-3 tabular-nums ${d?.error ? 'font-sans text-xs text-red-300' : 'text-sulfur-300'}`}>
+                    <td
+                      className={`py-1.5 pr-3 tabular-nums ${d?.error ? 'font-sans text-xs text-red-300' : 'text-sulfur-300'}`}
+                    >
                       {d ? (d.error ?? formatNumber(d.value)) : '—'}
                     </td>
                     <td className="py-1.5 pr-3 text-slate-400 tabular-nums">{formatTime(d?.time)}</td>
                     <td className="py-1.5 text-right">
-                      <Button variant="ghost" size="icon" title={t('ui.remove2')} onClick={() => run(() => modbusApi.client.removeWatch(w.id))}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t('ui.remove2')}
+                        onClick={() => run(() => modbusApi.client.removeWatch(w.id))}
+                      >
                         <X className="size-3.5" />
                       </Button>
                     </td>
@@ -406,7 +495,14 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
           })}
         </p>
       )}
-      {certsOpen && <CertificatesDialog t={t} title={t('modbus.client.certsTitle')} api={clientCerts} onClose={() => setCertsOpen(false)} />}
+      {certsOpen && (
+        <CertificatesDialog
+          t={t}
+          title={t('modbus.client.certsTitle')}
+          api={clientCerts}
+          onClose={() => setCertsOpen(false)}
+        />
+      )}
     </div>
   )
 }

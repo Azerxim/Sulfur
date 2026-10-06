@@ -74,7 +74,7 @@ export class PkiStore {
   }
 
   async readFolder(dir) {
-    let files = []
+    let files
     try {
       files = (await fs.readdir(dir)).filter((f) => CERT_EXT.test(f))
     } catch {

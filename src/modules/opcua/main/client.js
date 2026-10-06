@@ -96,7 +96,7 @@ export class SimulationClient {
     } catch (err) {
       await client.disconnect().catch(() => {})
       await cm.dispose().catch(() => {})
-      throw new Error(explain(err))
+      throw new Error(explain(err), { cause: err })
     }
     this.certificateManager = cm
     // Le mot de passe n'est pas conservé une fois la session ouverte.

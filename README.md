@@ -14,19 +14,36 @@ npm run dev        # development mode (HMR)
 npm run build      # production build in out/
 npm run dist       # packaging (electron-builder) in dist/
 npm test           # automated tests (Vitest)
+npm run lint       # static analysis (ESLint)
+npm run format     # formatting (Prettier)
 ```
 
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
 certificates) plus unit tests: OPC UA security and live editing, Modbus TCP and Modbus/TCP Security,
-protocol and value encoding, translations (same keys and parameters in every language, every key used
+protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
 ```bash
 npm test             # run once
 npm run test:watch   # re-run on change
 ```
+
+## Lint and formatting
+
+- **ESLint** (`eslint.config.mjs`): recommended JavaScript rules, Node / browser globals depending on the
+  process, React hook rules (`rules-of-hooks`, `exhaustive-deps`) for the interface.
+- **Prettier** (`.prettierrc.json`): no semicolons, single quotes, 120 columns. Formatting rules are left
+  to Prettier (`eslint-config-prettier`). Markdown files are not formatted.
+
+```bash
+npm run lint           # report problems
+npm run format         # format all files
+npm run format:check   # check formatting without modifying (CI)
+```
+
+VS Code: the recommended extensions (ESLint, Prettier) are listed in `.vscode/extensions.json`.
 
 ## Architecture
 

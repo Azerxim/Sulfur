@@ -46,13 +46,16 @@ export default function ServerActivity({ status }) {
                 <tr key={c.id} className="border-t border-ink-800">
                   <td className="py-1.5 pr-2">
                     <div className="font-mono text-[13px] text-slate-200">{c.remote}</div>
-                    <div className="text-[11px] text-slate-500">{t('modbus.activity.since', { time: time(c.since) })}</div>
+                    <div className="text-[11px] text-slate-500">
+                      {t('modbus.activity.since', { time: time(c.since) })}
+                    </div>
                   </td>
                   <td className="py-1.5 pr-2 text-xs">
                     {c.tls ? (
                       <>
                         <div className="flex items-center gap-1 text-emerald-300">
-                          <Lock className="size-3" /> {t('modbus.activity.tlsRole', { protocol: c.tls.protocol, role: c.tls.role })}
+                          <Lock className="size-3" />{' '}
+                          {t('modbus.activity.tlsRole', { protocol: c.tls.protocol, role: c.tls.role })}
                         </div>
                         <div className="text-slate-500">
                           {c.tls.commonName ?? t('modbus.activity.noCertificate')} ·{' '}
@@ -64,13 +67,19 @@ export default function ServerActivity({ status }) {
                     )}
                   </td>
                   <td className="py-1.5 text-right font-mono tabular-nums text-slate-300">{c.requests}</td>
-                  <td className={`py-1.5 text-right font-mono tabular-nums ${c.denied ? 'text-amber-300' : 'text-slate-500'}`}>{c.denied}</td>
+                  <td
+                    className={`py-1.5 text-right font-mono tabular-nums ${c.denied ? 'text-amber-300' : 'text-slate-500'}`}
+                  >
+                    {c.denied}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p className="text-sm text-slate-500">{status.running ? t('modbus.activity.noClient') : t('modbus.activity.serverStopped')}</p>
+          <p className="text-sm text-slate-500">
+            {status.running ? t('modbus.activity.noClient') : t('modbus.activity.serverStopped')}
+          </p>
         )}
       </Card>
 
@@ -80,10 +89,20 @@ export default function ServerActivity({ status }) {
         actions={
           <>
             <label className="flex items-center gap-1.5 text-xs text-slate-400">
-              <input type="checkbox" className="size-3.5 accent-sulfur-400" checked={onlyAlerts} onChange={(e) => setOnlyAlerts(e.target.checked)} />
+              <input
+                type="checkbox"
+                className="size-3.5 accent-sulfur-400"
+                checked={onlyAlerts}
+                onChange={(e) => setOnlyAlerts(e.target.checked)}
+              />
               {t('modbus.activity.alertsOnly')}
             </label>
-            <Button variant="ghost" size="icon" title={t('modbus.activity.clearLog')} onClick={() => modbusApi.server.clearLogs().then(setLogs)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              title={t('modbus.activity.clearLog')}
+              onClick={() => modbusApi.server.clearLogs().then(setLogs)}
+            >
               <Trash2 className="size-3.5" />
             </Button>
           </>

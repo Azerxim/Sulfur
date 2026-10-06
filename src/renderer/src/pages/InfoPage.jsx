@@ -42,9 +42,7 @@ export default function InfoPage() {
   }, [])
 
   const interfaces = (info?.interfaces ?? []).filter((i) => showInternal || !i.internal)
-  const mainIps = (info?.interfaces ?? [])
-    .flatMap((i) => i.addresses)
-    .filter((a) => !a.internal && a.family === 'IPv4')
+  const mainIps = (info?.interfaces ?? []).flatMap((i) => i.addresses).filter((a) => !a.internal && a.family === 'IPv4')
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -113,7 +111,9 @@ export default function InfoPage() {
               <div className="flex items-center gap-2 border-b border-ink-800 px-3 py-2 text-sm">
                 <Network className="size-4 text-slate-500" />
                 <span className="font-medium text-slate-200">{itf.name}</span>
-                {itf.internal && <span className="rounded bg-ink-800 px-1.5 text-[11px] text-slate-400">{t('info.internal')}</span>}
+                {itf.internal && (
+                  <span className="rounded bg-ink-800 px-1.5 text-[11px] text-slate-400">{t('info.internal')}</span>
+                )}
                 {itf.mac && <span className="ml-auto font-mono text-xs text-slate-500 select-text">MAC {itf.mac}</span>}
               </div>
               <table className="w-full text-sm">

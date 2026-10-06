@@ -131,11 +131,17 @@ export default function ServerSecurity({ value, onChange, locked, onError }) {
             onChange={(e) => set({ allowAnonymous: e.target.checked })}
           />
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">{t('opcua.security.users', { count: security.users.length })}</span>
+            <span className="text-xs text-slate-400">
+              {t('opcua.security.users', { count: security.users.length })}
+            </span>
             <Button
               size="sm"
               disabled={locked}
-              onClick={() => set({ users: [...security.users, { username: `user${security.users.length + 1}`, passwordHash: null }] })}
+              onClick={() =>
+                set({
+                  users: [...security.users, { username: `user${security.users.length + 1}`, passwordHash: null }]
+                })
+              }
             >
               <Plus className="size-3.5" /> {t('opcua.security.user')}
             </Button>
@@ -174,7 +180,14 @@ export default function ServerSecurity({ value, onChange, locked, onError }) {
       {problems.length > 0 && (
         <p className="mt-3 text-xs text-amber-300">{t('ui.incomplete', { problems: problems.join(' · ') })}</p>
       )}
-      {certsOpen && <CertificatesDialog t={t} title={t('opcua.server.certsTitle')} api={serverCerts} onClose={() => setCertsOpen(false)} />}
+      {certsOpen && (
+        <CertificatesDialog
+          t={t}
+          title={t('opcua.server.certsTitle')}
+          api={serverCerts}
+          onClose={() => setCertsOpen(false)}
+        />
+      )}
     </Card>
   )
 }

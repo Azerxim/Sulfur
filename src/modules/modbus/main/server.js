@@ -29,9 +29,7 @@ export function validatePoint(def, size) {
 }
 
 const overlaps = (a, b) =>
-  a.table === b.table &&
-  a.address < b.address + pointSize(b.dataType) &&
-  b.address < a.address + pointSize(a.dataType)
+  a.table === b.table && a.address < b.address + pointSize(b.dataType) && b.address < a.address + pointSize(a.dataType)
 
 /**
  * Serveur Modbus TCP (port 502) ou Modbus/TCP Security (TLS, port 802).
@@ -69,7 +67,9 @@ export class ModbusServer {
   status() {
     return {
       running: !!this.server,
-      endpoint: this.server ? `${this.security.mode === 'tls' ? 'mbaps' : 'mbap'}://${this.config.host}:${this.config.port}` : null,
+      endpoint: this.server
+        ? `${this.security.mode === 'tls' ? 'mbaps' : 'mbap'}://${this.config.host}:${this.config.port}`
+        : null,
       config: this.config,
       certificate: this.server && this.security.mode === 'tls' ? this.certificate : null,
       connections: [...this.sessions.values()].map((s) => ({
@@ -130,7 +130,8 @@ export class ModbusServer {
     this.points.clear()
     for (const def of points) this.addPoint(def)
 
-    const server = security.mode === 'tls' ? await this.createTlsServer(security) : net.createServer((s) => this.onPlainSocket(s))
+    const server =
+      security.mode === 'tls' ? await this.createTlsServer(security) : net.createServer((s) => this.onPlainSocket(s))
     server.on('error', (err) => this.log('error', t('modbus.log.serverError', { message: err.message })))
     try {
       await new Promise((resolve, reject) => {
@@ -142,8 +143,8 @@ export class ModbusServer {
       })
     } catch (err) {
       this.reset()
-      if (err.code === 'EACCES') throw new Error(t('modbus.errors.portPrivileged', { port }))
-      if (err.code === 'EADDRINUSE') throw new Error(t('modbus.errors.portInUse', { port }))
+      if (err.code === 'EACCES') throw new Error(t('modbus.errors.portPrivileged', { port }), { cause: err })
+      if (err.code === 'EADDRINUSE') throw new Error(t('modbus.errors.portInUse', { port }), { cause: err })
       throw err
     }
 
@@ -349,14 +350,20 @@ export class ModbusServer {
       return this.deny(session, fc, EX.SERVER_DEVICE_BUSY, message)
     }
     if (!this.config.anyUnitId && unitId !== this.config.unitId) {
-      return this.deny(session, fc, EX.GATEWAY_TARGET_FAILED, t('modbus.log.unknownUnit', { unitId, expected: this.config.unitId }))
+      return this.deny(
+        session,
+        fc,
+        EX.GATEWAY_TARGET_FAILED,
+        t('modbus.log.unknownUnit', { unitId, expected: this.config.unitId })
+      )
     }
 
     let req
     try {
       req = parseRequest(pdu)
     } catch (err) {
-      if (err instanceof ModbusException) return this.deny(session, fc, err.code, t('modbus.log.rejected', { message: err.message }))
+      if (err instanceof ModbusException)
+        return this.deny(session, fc, err.code, t('modbus.log.rejected', { message: err.message }))
       throw err
     }
 
@@ -369,7 +376,12 @@ export class ModbusServer {
       return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.noRead', { role: session.tls?.role ?? '—' }))
     }
     if (!this.store.inRange(req.address, req.quantity)) {
-      return this.deny(session, fc, EX.ILLEGAL_DATA_ADDRESS, t('modbus.log.outOfRange', { table: req.table, address: req.address, quantity: req.quantity }))
+      return this.deny(
+        session,
+        fc,
+        EX.ILLEGAL_DATA_ADDRESS,
+        t('modbus.log.outOfRange', { table: req.table, address: req.address, quantity: req.quantity })
+      )
     }
 
     if (!req.write) return buildResponse(req, this.store.read(req.table, req.address, req.quantity))
@@ -416,7 +428,11 @@ export class ModbusServer {
 
   readPoint(def) {
     if (TABLES[def.table].bit) return this.store.read(def.table, def.address, 1)[0]
-    return decodeValue(this.store.read(def.table, def.address, pointSize(def.dataType)), def.dataType, this.config.wordOrder)
+    return decodeValue(
+      this.store.read(def.table, def.address, pointSize(def.dataType)),
+      def.dataType,
+      this.config.wordOrder
+    )
   }
 
   syncConfig() {
@@ -433,7 +449,12 @@ export class ModbusServer {
     validatePoint(next, this.config.size)
     this.checkUnique([...[...this.points.values()].map((p) => p.def).filter((d) => d.id !== next.id), next])
     const current = this.points.get(next.id)
-    if (current && current.def.table === next.table && current.def.address === next.address && current.def.dataType === next.dataType) {
+    if (
+      current &&
+      current.def.table === next.table &&
+      current.def.address === next.address &&
+      current.def.dataType === next.dataType
+    ) {
       current.def = next
     } else {
       this.points.delete(next.id)
@@ -457,7 +478,8 @@ export class ModbusServer {
     const entry = this.points.get(id)
     if (!entry) throw new Error(t('modbus.errors.unknownPoint'))
     entry.value = TABLES[entry.def.table].bit ? toBoolean(raw) : Number(raw)
-    if (!TABLES[entry.def.table].bit && !Number.isFinite(entry.value)) throw new Error(t('errors.invalidNumber', { value: raw }))
+    if (!TABLES[entry.def.table].bit && !Number.isFinite(entry.value))
+      throw new Error(t('errors.invalidNumber', { value: raw }))
     this.writePoint(entry)
     this.onValues(this.values())
     return entry.value

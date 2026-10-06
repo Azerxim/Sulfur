@@ -14,13 +14,15 @@ npm run dev        # lancement en développement (HMR)
 npm run build      # build de production dans out/
 npm run dist       # packaging (electron-builder) dans dist/
 npm test           # tests automatisés (Vitest)
+npm run lint       # analyse statique (ESLint)
+npm run format     # mise en forme (Prettier)
 ```
 
 ## Tests
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
 (sockets, TLS, certificats) et des tests unitaires : sécurité et modification à chaud OPC UA, Modbus TCP
-et Modbus/TCP Security, protocole et encodage des valeurs, traductions (mêmes clés et paramètres dans
+et Modbus/TCP Security, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -28,6 +30,22 @@ de certificats temporaire.
 npm test             # exécution unique
 npm run test:watch   # relance à chaque modification
 ```
+
+## Lint et formatage
+
+- **ESLint** (`eslint.config.mjs`) : règles JavaScript recommandées, variables globales Node / navigateur
+  selon le process, règles des hooks React (`rules-of-hooks`, `exhaustive-deps`) pour l'interface.
+- **Prettier** (`.prettierrc.json`) : sans point-virgule, guillemets simples, 120 colonnes. Les règles de
+  mise en forme sont laissées à Prettier (`eslint-config-prettier`). Les fichiers Markdown ne sont pas
+  reformatés.
+
+```bash
+npm run lint           # signale les problèmes
+npm run format         # met en forme tous les fichiers
+npm run format:check   # vérifie la mise en forme sans modifier (CI)
+```
+
+VS Code : les extensions recommandées (ESLint, Prettier) sont listées dans `.vscode/extensions.json`.
 
 ## Architecture
 

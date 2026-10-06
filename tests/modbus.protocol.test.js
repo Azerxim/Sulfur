@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { decodeValue, encodeValue } from '@modules/modbus/shared/codec'
-import { FrameError, FrameReader, ModbusException, buildResponse, encodeFrame, parseRequest, packBits, unpackBits, writeRequest } from '@modules/modbus/main/protocol'
+import {
+  FrameError,
+  FrameReader,
+  ModbusException,
+  buildResponse,
+  encodeFrame,
+  parseRequest,
+  packBits,
+  unpackBits,
+  writeRequest
+} from '@modules/modbus/main/protocol'
 import { RateLimiter, buildAllowList, isAllowed } from '@modules/modbus/main/security'
 
 describe('Encodage des valeurs', () => {
@@ -65,7 +75,7 @@ describe('Protocole Modbus TCP', () => {
   })
 })
 
-describe('Contrôle d\'accès', () => {
+describe("Contrôle d'accès", () => {
   it('liste blanche IPv4 / IPv6, CIDR et adresses mappées', () => {
     const list = buildAllowList(['192.168.1.0/24', '10.0.0.5', '::1'])
     expect(isAllowed(list, '192.168.1.42')).toBe(true)

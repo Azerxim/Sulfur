@@ -17,7 +17,9 @@ const dictionaries = {
 }
 
 const flatten = (obj, prefix = '') =>
-  Object.entries(obj).flatMap(([k, v]) => (typeof v === 'object' ? flatten(v, `${prefix}${k}.`) : [[`${prefix}${k}`, v]]))
+  Object.entries(obj).flatMap(([k, v]) =>
+    typeof v === 'object' ? flatten(v, `${prefix}${k}.`) : [[`${prefix}${k}`, v]]
+  )
 const params = (text) => [...(text.match(/\{\w+\}/g) ?? [])].sort().join()
 
 afterEach(() => {

@@ -102,7 +102,11 @@ export default function ServerSecurity({ value, onChange, locked }) {
               {security.roles.map((r, i) => (
                 <tr key={i}>
                   <td className="py-1 pr-2">
-                    <Input value={r.name} disabled={locked || !tlsMode} onChange={(e) => setRole(i, { name: e.target.value })} />
+                    <Input
+                      value={r.name}
+                      disabled={locked || !tlsMode}
+                      onChange={(e) => setRole(i, { name: e.target.value })}
+                    />
                   </td>
                   {['read', 'write'].map((k) => (
                     <td key={k} className="text-center">
@@ -132,7 +136,11 @@ export default function ServerSecurity({ value, onChange, locked }) {
           </table>
           <div className="flex items-end gap-2">
             <Field label={t('modbus.security.defaultRole')} className="flex-1">
-              <Select value={security.defaultRole} disabled={locked || !tlsMode} onChange={(e) => set({ defaultRole: e.target.value })}>
+              <Select
+                value={security.defaultRole}
+                disabled={locked || !tlsMode}
+                onChange={(e) => set({ defaultRole: e.target.value })}
+              >
                 <option value="">{t('modbus.security.refuse')}</option>
                 {security.roles
                   .filter((r) => r.name.trim())
@@ -147,7 +155,11 @@ export default function ServerSecurity({ value, onChange, locked }) {
               size="sm"
               className="mb-1"
               disabled={locked || !tlsMode}
-              onClick={() => set({ roles: [...security.roles, { name: `Role${security.roles.length + 1}`, read: true, write: false }] })}
+              onClick={() =>
+                set({
+                  roles: [...security.roles, { name: `Role${security.roles.length + 1}`, read: true, write: false }]
+                })
+              }
             >
               <Plus className="size-3.5" /> {t('modbus.security.addRole')}
             </Button>
@@ -163,7 +175,14 @@ export default function ServerSecurity({ value, onChange, locked }) {
               value={ipsDraft}
               disabled={locked}
               onChange={(e) => setIpsDraft(e.target.value)}
-              onBlur={() => set({ allowedIps: ipsDraft.split(/[\n,;]+/).map((l) => l.trim()).filter(Boolean) })}
+              onBlur={() =>
+                set({
+                  allowedIps: ipsDraft
+                    .split(/[\n,;]+/)
+                    .map((l) => l.trim())
+                    .filter(Boolean)
+                })
+              }
             />
           </Field>
           <div className="grid grid-cols-2 gap-2">
@@ -195,13 +214,18 @@ export default function ServerSecurity({ value, onChange, locked }) {
         </Section>
       </div>
 
-      {problems.length > 0 && <p className="mt-3 text-xs text-amber-300">{t('ui.incomplete', { problems: problems.join(' · ') })}</p>}
-      {!tlsMode && (
-        <p className="mt-3 text-xs text-slate-500">
-          {t('modbus.security.plainWarning')}
-        </p>
+      {problems.length > 0 && (
+        <p className="mt-3 text-xs text-amber-300">{t('ui.incomplete', { problems: problems.join(' · ') })}</p>
       )}
-      {certsOpen && <CertificatesDialog t={t} title={t('modbus.server.certsTitle')} api={serverCerts} onClose={() => setCertsOpen(false)} />}
+      {!tlsMode && <p className="mt-3 text-xs text-slate-500">{t('modbus.security.plainWarning')}</p>}
+      {certsOpen && (
+        <CertificatesDialog
+          t={t}
+          title={t('modbus.server.certsTitle')}
+          api={serverCerts}
+          onClose={() => setCertsOpen(false)}
+        />
+      )}
     </Card>
   )
 }

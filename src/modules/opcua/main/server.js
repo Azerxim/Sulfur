@@ -33,7 +33,11 @@ export async function hashUsers(users = []) {
   return Promise.all(
     users.map(async (u) => {
       if (!u.username?.trim()) throw new Error(t('opcua.errors.userNoName'))
-      const passwordHash = isPasswordHash(u.passwordHash) ? u.passwordHash : u.password ? await hashPassword(u.password) : null
+      const passwordHash = isPasswordHash(u.passwordHash)
+        ? u.passwordHash
+        : u.password
+          ? await hashPassword(u.password)
+          : null
       if (!passwordHash) throw new Error(t('opcua.errors.userNoPassword', { name: u.username }))
       return { username: u.username.trim(), passwordHash }
     })

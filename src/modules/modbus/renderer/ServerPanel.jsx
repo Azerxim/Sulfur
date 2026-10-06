@@ -1,7 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import { Copy, Lock, Play, Plus, Square, Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
-import { DATA_TYPES, DEFAULT_SERVER_CONFIG, REGISTER_TYPES, SIMULATIONS, TABLES, WORD_ORDERS } from '../shared/constants'
+import {
+  Button,
+  Card,
+  Checkbox,
+  CommitInput,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  StatusDot
+} from '@renderer/components/ui'
+import {
+  DATA_TYPES,
+  DEFAULT_SERVER_CONFIG,
+  REGISTER_TYPES,
+  SIMULATIONS,
+  TABLES,
+  WORD_ORDERS
+} from '../shared/constants'
 import { pointSize } from '../shared/codec'
 import { usePersistentState } from '@renderer/module-config'
 import { modbusApi } from './api'
@@ -46,7 +63,10 @@ function newPoint(points) {
 }
 
 const overlap = (a, b) =>
-  a.id !== b.id && a.table === b.table && a.address < b.address + pointSize(b.dataType) && b.address < a.address + pointSize(a.dataType)
+  a.id !== b.id &&
+  a.table === b.table &&
+  a.address < b.address + pointSize(b.dataType) &&
+  b.address < a.address + pointSize(a.dataType)
 
 function LiveValue({ point, value, onSet }) {
   if (point.dataType === 'Boolean') {
@@ -55,7 +75,9 @@ function LiveValue({ point, value, onSet }) {
         onClick={() => onSet(!value)}
         title={t('ui.toggle')}
         className={`h-9 w-full rounded-md border font-mono text-sm transition-colors ${
-          value ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-ink-700 bg-ink-950 text-slate-400'
+          value
+            ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+            : 'border-ink-700 bg-ink-950 text-slate-400'
         }`}
       >
         {formatValue(value)}
@@ -125,7 +147,15 @@ export default function ServerPanel({ status }) {
     const dataType = bit ? 'Boolean' : point.dataType === 'Boolean' ? 'UInt16' : point.dataType
     updatePoint(
       point.id,
-      { table, dataType, writable: TABLES[table].writable && point.writable, address: nextAddress(config.points.filter((p) => p.id !== point.id), table) },
+      {
+        table,
+        dataType,
+        writable: TABLES[table].writable && point.writable,
+        address: nextAddress(
+          config.points.filter((p) => p.id !== point.id),
+          table
+        )
+      },
       { immediate: true }
     )
   }
@@ -152,7 +182,8 @@ export default function ServerPanel({ status }) {
   const duplicates = names.filter((n, i) => names.indexOf(n) !== i)
   const overlapping = new Set(config.points.filter((p) => config.points.some((q) => overlap(p, q))).map((p) => p.id))
   const problems = securityProblems(config.security)
-  const invalid = duplicates.length > 0 || overlapping.size > 0 || config.points.some((p) => !p.name.trim()) || problems.length > 0
+  const invalid =
+    duplicates.length > 0 || overlapping.size > 0 || config.points.some((p) => !p.name.trim()) || problems.length > 0
 
   const headers = [
     t('ui.name'),
@@ -185,7 +216,12 @@ export default function ServerPanel({ status }) {
                 <Square className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
-              <Button variant="primary" size="sm" disabled={busy || invalid} onClick={() => run(() => modbusApi.server.start(config))}>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={busy || invalid}
+                onClick={() => run(() => modbusApi.server.start(config))}
+              >
                 <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
@@ -195,7 +231,11 @@ export default function ServerPanel({ status }) {
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-6 gap-4">
             <Field label={t('modbus.server.host')}>
-              <Input value={config.host} disabled={running || busy} onChange={(e) => update({ host: e.target.value })} />
+              <Input
+                value={config.host}
+                disabled={running || busy}
+                onChange={(e) => update({ host: e.target.value })}
+              />
             </Field>
             <Field label={t('modbus.server.port')}>
               <Input
@@ -216,7 +256,11 @@ export default function ServerPanel({ status }) {
               />
             </Field>
             <Field label={t('modbus.server.wordOrder')}>
-              <Select value={config.wordOrder} disabled={running || busy} onChange={(e) => update({ wordOrder: e.target.value })}>
+              <Select
+                value={config.wordOrder}
+                disabled={running || busy}
+                onChange={(e) => update({ wordOrder: e.target.value })}
+              >
                 {WORD_ORDERS.map((k) => (
                   <option key={k} value={k}>
                     {t(`modbus.wordOrders.${k}`)}
@@ -336,7 +380,11 @@ export default function ServerPanel({ status }) {
                         min={0}
                         value={p.address}
                         disabled={busy}
-                        title={overlapping.has(p.id) ? t('modbus.server.overlap') : t('modbus.server.occupies', { count: pointSize(p.dataType) })}
+                        title={
+                          overlapping.has(p.id)
+                            ? t('modbus.server.overlap')
+                            : t('modbus.server.occupies', { count: pointSize(p.dataType) })
+                        }
                         className={overlapping.has(p.id) ? 'border-red-500/60' : ''}
                         onCommit={(raw) => updatePoint(p.id, { address: Number(raw) }, { immediate: true })}
                       />
@@ -357,7 +405,11 @@ export default function ServerPanel({ status }) {
                     </td>
                     <td className="w-32 p-1.5">
                       {running ? (
-                        <LiveValue point={p} value={values[p.id]} onSet={(raw) => live(() => modbusApi.server.setValue(p.id, raw))} />
+                        <LiveValue
+                          point={p}
+                          value={values[p.id]}
+                          onSet={(raw) => live(() => modbusApi.server.setValue(p.id, raw))}
+                        />
                       ) : (
                         <Input
                           value={String(p.initialValue)}
@@ -393,14 +445,22 @@ export default function ServerPanel({ status }) {
                       <input
                         type="checkbox"
                         className="size-4 accent-sulfur-400"
-                        title={TABLES[p.table].writable ? t('modbus.server.allowWrite') : t('modbus.server.readOnlyTable')}
+                        title={
+                          TABLES[p.table].writable ? t('modbus.server.allowWrite') : t('modbus.server.readOnlyTable')
+                        }
                         checked={!!p.writable}
                         disabled={busy || !TABLES[p.table].writable}
                         onChange={(e) => updatePoint(p.id, { writable: e.target.checked }, { immediate: true })}
                       />
                     </td>
                     <td className="p-1.5">
-                      <Button variant="ghost" size="icon" disabled={busy} onClick={() => removePoint(p.id)} title={t('ui.remove')}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={busy}
+                        onClick={() => removePoint(p.id)}
+                        title={t('ui.remove')}
+                      >
                         <Trash2 className="size-3.5" />
                       </Button>
                     </td>

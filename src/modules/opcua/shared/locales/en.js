@@ -83,7 +83,8 @@ export default {
       certRefused: 'Certificate refused: approve the certificate in the server and/or client store. {details}',
       noAnonymous: 'The server does not allow anonymous access: use a username / password.',
       noUsername: 'The server does not accept username / password authentication on this endpoint.',
-      noEndpoint: 'The server does not offer this security mode / policy pair (use “Discover” to list the available endpoints).'
+      noEndpoint:
+        'The server does not offer this security mode / policy pair (use “Discover” to list the available endpoints).'
     }
   }
 }

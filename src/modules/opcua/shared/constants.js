@@ -33,7 +33,9 @@ export const DEFAULT_SERVER_SECURITY = {
   policies: ['Basic256Sha256', 'Aes128_Sha256_RsaOaep', 'Aes256_Sha256_RsaPss'],
   allowAnonymous: true,
   // Utilisateur par défaut admin / admin (seule l'empreinte scrypt est conservée)
-  users: [{ username: 'admin', passwordHash: 'scrypt$mbUEZRBI1M8Kevl1/G39dg==$lMVG0wqpSC7IQcuJl1Kw1Xi3bKVvt7wrE59pCNfA4ww=' }],
+  users: [
+    { username: 'admin', passwordHash: 'scrypt$mbUEZRBI1M8Kevl1/G39dg==$lMVG0wqpSC7IQcuJl1Kw1Xi3bKVvt7wrE59pCNfA4ww=' }
+  ],
   autoAcceptCertificates: true
 }
 
@@ -53,11 +55,61 @@ export const DEFAULT_SERVER_CONFIG = {
   updateRate: 100,
   security: DEFAULT_SERVER_SECURITY,
   variables: [
-    { id: 'var-1', name: 'Temperature', dataType: 'Double', initialValue: 20, simulation: 'sine', period: 10000, min: 15, max: 25, writable: true },
-    { id: 'var-2', name: 'Pressure', dataType: 'Double', initialValue: 1, simulation: 'random', period: 1000, min: 0.9, max: 1.1, writable: true },
-    { id: 'var-3', name: 'Counter', dataType: 'Int32', initialValue: 0, simulation: 'ramp', period: 10000, min: 0, max: 100, writable: true },
-    { id: 'var-4', name: 'Running', dataType: 'Boolean', initialValue: true, simulation: 'toggle', period: 5000, min: 0, max: 1, writable: true },
-    { id: 'var-5', name: 'Label', dataType: 'String', initialValue: 'Sulfur', simulation: 'none', period: 1000, min: 0, max: 0, writable: true }
+    {
+      id: 'var-1',
+      name: 'Temperature',
+      dataType: 'Double',
+      initialValue: 20,
+      simulation: 'sine',
+      period: 10000,
+      min: 15,
+      max: 25,
+      writable: true
+    },
+    {
+      id: 'var-2',
+      name: 'Pressure',
+      dataType: 'Double',
+      initialValue: 1,
+      simulation: 'random',
+      period: 1000,
+      min: 0.9,
+      max: 1.1,
+      writable: true
+    },
+    {
+      id: 'var-3',
+      name: 'Counter',
+      dataType: 'Int32',
+      initialValue: 0,
+      simulation: 'ramp',
+      period: 10000,
+      min: 0,
+      max: 100,
+      writable: true
+    },
+    {
+      id: 'var-4',
+      name: 'Running',
+      dataType: 'Boolean',
+      initialValue: true,
+      simulation: 'toggle',
+      period: 5000,
+      min: 0,
+      max: 1,
+      writable: true
+    },
+    {
+      id: 'var-5',
+      name: 'Label',
+      dataType: 'String',
+      initialValue: 'Sulfur',
+      simulation: 'none',
+      period: 1000,
+      min: 0,
+      max: 0,
+      writable: true
+    }
   ]
 }
 

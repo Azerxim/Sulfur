@@ -51,7 +51,13 @@ const MBAP_LENGTH = 7
 
 export class ModbusException extends Error {
   constructor(code, message) {
-    super(message ?? t('modbus.exceptions.format', { code, message: t(`modbus.exceptions.${code}`, null, t('modbus.exceptions.unknown')) }))
+    super(
+      message ??
+        t('modbus.exceptions.format', {
+          code,
+          message: t(`modbus.exceptions.${code}`, null, t('modbus.exceptions.unknown'))
+        })
+    )
     this.code = code
   }
 }
@@ -139,12 +145,14 @@ export function parseRequest(pdu) {
     case FC.READ_INPUT_REGISTERS: {
       const quantity = pdu.readUInt16BE(3)
       const max = fc <= 2 ? 2000 : 125
-      if (quantity < 1 || quantity > max) throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.invalidQuantity', { quantity }))
+      if (quantity < 1 || quantity > max)
+        throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.invalidQuantity', { quantity }))
       return { ...base, quantity }
     }
     case FC.WRITE_SINGLE_COIL: {
       const raw = pdu.readUInt16BE(3)
-      if (raw !== 0xff00 && raw !== 0x0000) throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.invalidCoilValue'))
+      if (raw !== 0xff00 && raw !== 0x0000)
+        throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.invalidCoilValue'))
       return { ...base, quantity: 1, values: [raw === 0xff00] }
     }
     case FC.WRITE_SINGLE_REGISTER:

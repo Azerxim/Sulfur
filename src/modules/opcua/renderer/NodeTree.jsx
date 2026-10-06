@@ -2,7 +2,14 @@ import { useState } from 'react'
 import { Box, ChevronRight, Folder, FunctionSquare, Tag, Type } from 'lucide-react'
 import { opcuaApi } from './api'
 
-const icons = { Object: Folder, Variable: Tag, Method: FunctionSquare, ObjectType: Type, VariableType: Type, DataType: Type }
+const icons = {
+  Object: Folder,
+  Variable: Tag,
+  Method: FunctionSquare,
+  ObjectType: Type,
+  VariableType: Type,
+  DataType: Type
+}
 
 function TreeNode({ node, depth, selectedId, onSelect }) {
   const [open, setOpen] = useState(false)
@@ -42,7 +49,9 @@ function TreeNode({ node, depth, selectedId, onSelect }) {
             toggle()
           }}
         >
-          <ChevronRight className={`size-3.5 transition-transform ${open ? 'rotate-90' : ''} ${loading ? 'animate-pulse' : ''}`} />
+          <ChevronRight
+            className={`size-3.5 transition-transform ${open ? 'rotate-90' : ''} ${loading ? 'animate-pulse' : ''}`}
+          />
         </button>
         <Icon className={`size-3.5 shrink-0 ${node.nodeClass === 'Variable' ? 'text-sulfur-400' : 'text-slate-500'}`} />
         <span className="truncate">{node.displayName}</span>
