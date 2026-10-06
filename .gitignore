@@ -147,3 +147,12 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+out/
+dist/
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+# PKI générée par node-opcua
+pki/
+.env
