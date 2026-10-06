@@ -1,4 +1,5 @@
 import fs from 'fs/promises'
+import os from 'os'
 import path from 'path'
 import { OPCUACertificateManager } from 'node-opcua'
 import { exploreCertificate, makeSHA1Thumbprint, readCertificate } from 'node-opcua-crypto'
@@ -32,6 +33,35 @@ export class PkiStore {
     })
     await cm.initialize()
     return cm
+  }
+
+  /**
+   * Garantit que le certificat propre (own/certs/certificate.pem) porte le nom et l'URI attendus,
+   * sinon le (re)génère — node-opcua ne le recrée que s'il est absent.
+   */
+  async ensureOwnCertificate(cm, { commonName, applicationUri }) {
+    const file = path.join(cm.rootDir, 'own', 'certs', 'certificate.pem')
+    try {
+      const current = describe(file)
+      if (current.commonName === commonName && current.applicationUri === applicationUri && !current.expired) return
+      await fs.unlink(file)
+    } catch {
+      // absent ou illisible : on le (re)crée
+    }
+    const hostname = os.hostname()
+    const ip = Object.values(os.networkInterfaces())
+      .flat()
+      .filter((a) => !a.internal)
+      .map((a) => a.address)
+    await cm.createSelfSignedCertificate({
+      applicationUri,
+      dns: [...new Set([hostname, 'localhost'])],
+      ip: [...new Set(ip)],
+      outputFile: file,
+      subject: `/CN=${commonName}/O=Sulfur`,
+      startDate: new Date(),
+      validity: 365 * 10
+    })
   }
 
   async list() {

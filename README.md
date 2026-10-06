@@ -56,6 +56,7 @@ src/
   - modes `None`, `Sign`, `SignAndEncrypt` et politiques Basic256Sha256, Aes128-Sha256-RsaOaep,
     Aes256-Sha256-RsaPss (+ Basic256 / Basic128Rsa15 obsolètes) ;
   - authentification anonyme et/ou par identifiant / mot de passe (utilisateurs définis côté serveur) ;
+  - certificat du serveur `OPCUA@Sulfur` (généré au premier démarrage) ;
   - magasins de certificats séparés serveur / client, avec approbation des certificats rejetés depuis
     l'interface. Emplacement : `<userData>/modules/opcua/pki/{server,client}`
     (Linux : `~/.config/sulfur/…`, Windows : `%APPDATA%\sulfur\…`).

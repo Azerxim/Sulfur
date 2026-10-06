@@ -5,14 +5,23 @@ import {
   StatusCodes,
   MessageSecurityMode,
   SecurityPolicy,
-  makeAccessLevelFlag
+  makeAccessLevelFlag,
+  makeApplicationUrn
 } from 'node-opcua'
+import os from 'os'
 import { randomUUID } from 'crypto'
 import { DEFAULT_SERVER_SECURITY } from '../shared/constants'
 import { coerce, toPlain } from './serialize'
 import { simulate } from './simulator'
 
 const VALUES_EMIT_INTERVAL = 250
+
+/** Identité de l'application serveur (nom du certificat : OPCUA@Sulfur). */
+export const SERVER_IDENTITY = {
+  commonName: 'OPCUA@Sulfur',
+  applicationName: 'Sulfur OPC UA Server',
+  applicationUri: makeApplicationUrn(os.hostname(), 'Sulfur:OPCUA-Server')
+}
 
 /** Traduit la configuration de sécurité en options OPCUAServer. */
 export function securityOptions(security = DEFAULT_SERVER_SECURITY) {
@@ -80,12 +89,18 @@ export class SimulationServer {
     const security = { ...DEFAULT_SERVER_SECURITY, ...config.security }
     const options = securityOptions(security)
     this.certificateManager = await this.pki.createManager(!!security.autoAcceptCertificates)
+    await this.pki.ensureOwnCertificate(this.certificateManager, SERVER_IDENTITY)
 
     const server = new OPCUAServer({
       port: Number(config.port),
       resourcePath: config.resourcePath,
       ...options,
       serverCertificateManager: this.certificateManager,
+      serverInfo: {
+        applicationUri: SERVER_IDENTITY.applicationUri,
+        applicationName: { text: SERVER_IDENTITY.applicationName, locale: 'fr' },
+        productUri: 'Sulfur-OPCUA-Server'
+      },
       buildInfo: {
         productName: 'Sulfur OPC UA Simulator',
         manufacturerName: 'Sulfur',
