@@ -4,6 +4,7 @@ import { Button, Card, Checkbox, Field, Input, Select } from '@renderer/componen
 import CertificatesDialog from '@renderer/components/CertificatesDialog'
 import { DEFAULT_SERVER_SECURITY } from '../shared/constants'
 import { certStore } from './api'
+import { t } from '../shared/i18n'
 
 const serverCerts = certStore('server')
 
@@ -24,10 +25,10 @@ export function securityProblems(value) {
   const s = { ...DEFAULT_SERVER_SECURITY, ...value }
   const names = s.roles.map((r) => r.name.trim())
   return [
-    s.mode === 'tls' && !s.roles.length && 'définissez au moins un rôle',
-    names.some((n) => !n) && 'un rôle n\'a pas de nom',
-    new Set(names).size !== names.length && 'deux rôles portent le même nom',
-    s.defaultRole && !names.includes(s.defaultRole) && 'le rôle par défaut n\'existe plus'
+    s.mode === 'tls' && !s.roles.length && t('modbus.security.problems.noRole'),
+    names.some((n) => !n) && t('modbus.security.problems.unnamedRole'),
+    new Set(names).size !== names.length && t('modbus.security.problems.duplicateRole'),
+    s.defaultRole && !names.includes(s.defaultRole) && t('modbus.security.problems.missingDefault')
   ].filter(Boolean)
 }
 
@@ -46,24 +47,24 @@ export default function ServerSecurity({ value, onChange, locked }) {
   return (
     <Card
       id="modbus.server.security"
-      title="Sécurité"
+      title={t('ui.security')}
       className="shrink-0"
       actions={
         <>
-          {locked && <span className="text-xs text-slate-500">Modifiable serveur arrêté</span>}
+          {locked && <span className="text-xs text-slate-500">{t('ui.lockedWhileRunning')}</span>}
           <Button size="sm" onClick={() => setCertsOpen(true)}>
-            <ShieldCheck className="size-3.5" /> Certificats
+            <ShieldCheck className="size-3.5" /> {t('ui.certificates')}
           </Button>
         </>
       }
     >
       <div className="grid grid-cols-3 gap-6">
-        <Section title="Transport" hint="Modbus/TCP Security : TLS ≥ 1.2 avec authentification mutuelle par certificats.">
+        <Section title={t('modbus.security.transport')} hint={t('modbus.security.transportHint')}>
           <Select value={security.mode} disabled={locked} onChange={(e) => set({ mode: e.target.value })}>
-            <option value="tcp">Modbus TCP (non chiffré)</option>
-            <option value="tls">Modbus/TCP Security (TLS)</option>
+            <option value="tcp">{t('modbus.transport.tcp')}</option>
+            <option value="tls">{t('modbus.transport.tls')}</option>
           </Select>
-          <Field label="Version TLS minimale">
+          <Field label={t('modbus.security.minTls')}>
             <Select
               value={security.minTlsVersion}
               disabled={locked || !tlsMode}
@@ -74,26 +75,26 @@ export default function ServerSecurity({ value, onChange, locked }) {
             </Select>
           </Field>
           <Checkbox
-            label="Exiger un certificat client"
+            label={t('modbus.security.requireClientCert')}
             disabled={locked || !tlsMode}
             checked={security.requireClientCertificate}
             onChange={(e) => set({ requireClientCertificate: e.target.checked })}
           />
           <Checkbox
-            label="Accepter automatiquement les certificats inconnus"
+            label={t('ui.autoAcceptUnknownCerts')}
             disabled={locked || !tlsMode}
             checked={security.autoAcceptCertificates}
             onChange={(e) => set({ autoAcceptCertificates: e.target.checked })}
           />
         </Section>
 
-        <Section title="Rôles (TLS)" hint="Rôle lu dans le certificat client (OID 1.3.6.1.4.1.50316.802.1).">
+        <Section title={t('modbus.security.roles')} hint={t('modbus.security.rolesHint')}>
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-slate-500">
               <tr>
-                <th className="pb-1 font-medium">Rôle</th>
-                <th className="pb-1 text-center font-medium">Lecture</th>
-                <th className="pb-1 text-center font-medium">Écriture</th>
+                <th className="pb-1 font-medium">{t('modbus.security.role')}</th>
+                <th className="pb-1 text-center font-medium">{t('ui.read')}</th>
+                <th className="pb-1 text-center font-medium">{t('ui.write')}</th>
                 <th />
               </tr>
             </thead>
@@ -118,7 +119,7 @@ export default function ServerSecurity({ value, onChange, locked }) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Supprimer"
+                      title={t('ui.remove')}
                       disabled={locked || !tlsMode}
                       onClick={() => set({ roles: security.roles.filter((_, j) => j !== i) })}
                     >
@@ -130,14 +131,14 @@ export default function ServerSecurity({ value, onChange, locked }) {
             </tbody>
           </table>
           <div className="flex items-end gap-2">
-            <Field label="Certificat sans rôle / rôle inconnu" className="flex-1">
+            <Field label={t('modbus.security.defaultRole')} className="flex-1">
               <Select value={security.defaultRole} disabled={locked || !tlsMode} onChange={(e) => set({ defaultRole: e.target.value })}>
-                <option value="">Refuser la connexion</option>
+                <option value="">{t('modbus.security.refuse')}</option>
                 {security.roles
                   .filter((r) => r.name.trim())
                   .map((r) => (
                     <option key={r.name} value={r.name}>
-                      Appliquer le rôle {r.name}
+                      {t('modbus.security.applyRole', { name: r.name })}
                     </option>
                   ))}
               </Select>
@@ -148,13 +149,13 @@ export default function ServerSecurity({ value, onChange, locked }) {
               disabled={locked || !tlsMode}
               onClick={() => set({ roles: [...security.roles, { name: `Role${security.roles.length + 1}`, read: true, write: false }] })}
             >
-              <Plus className="size-3.5" /> Rôle
+              <Plus className="size-3.5" /> {t('modbus.security.addRole')}
             </Button>
           </div>
         </Section>
 
-        <Section title="Contrôle d'accès" hint="S'applique en TCP comme en TLS.">
-          <Field label="Adresses autorisées (une par ligne, CIDR accepté — vide = toutes)">
+        <Section title={t('modbus.security.access')} hint={t('modbus.security.accessHint')}>
+          <Field label={t('modbus.security.allowedIps')}>
             <textarea
               rows={3}
               placeholder={'192.168.1.0/24\n10.0.0.5\n::1'}
@@ -166,7 +167,7 @@ export default function ServerSecurity({ value, onChange, locked }) {
             />
           </Field>
           <div className="grid grid-cols-2 gap-2">
-            <Field label="Connexions max. (0 = ∞)">
+            <Field label={t('modbus.security.maxConnections')}>
               <Input
                 type="number"
                 min={0}
@@ -175,7 +176,7 @@ export default function ServerSecurity({ value, onChange, locked }) {
                 onChange={(e) => set({ maxConnections: Number(e.target.value) })}
               />
             </Field>
-            <Field label="Requêtes/s par client (0 = ∞)">
+            <Field label={t('modbus.security.maxRate')}>
               <Input
                 type="number"
                 min={0}
@@ -186,7 +187,7 @@ export default function ServerSecurity({ value, onChange, locked }) {
             </Field>
           </div>
           <Checkbox
-            label="Lecture seule (toute écriture refusée)"
+            label={t('modbus.security.readOnly')}
             disabled={locked}
             checked={security.readOnly}
             onChange={(e) => set({ readOnly: e.target.checked })}
@@ -194,13 +195,13 @@ export default function ServerSecurity({ value, onChange, locked }) {
         </Section>
       </div>
 
-      {problems.length > 0 && <p className="mt-3 text-xs text-amber-300">Configuration incomplète : {problems.join(' · ')}.</p>}
+      {problems.length > 0 && <p className="mt-3 text-xs text-amber-300">{t('ui.incomplete', { problems: problems.join(' · ') })}</p>}
       {!tlsMode && (
         <p className="mt-3 text-xs text-slate-500">
-          En Modbus TCP non chiffré, aucun client n'est authentifié : seuls le contrôle d'accès et la lecture seule s'appliquent.
+          {t('modbus.security.plainWarning')}
         </p>
       )}
-      {certsOpen && <CertificatesDialog title="Certificats du serveur Modbus" api={serverCerts} onClose={() => setCertsOpen(false)} />}
+      {certsOpen && <CertificatesDialog t={t} title={t('modbus.server.certsTitle')} api={serverCerts} onClose={() => setCertsOpen(false)} />}
     </Card>
   )
 }

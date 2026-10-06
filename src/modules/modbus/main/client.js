@@ -1,9 +1,10 @@
 import net from 'net'
 import tls from 'tls'
 import { randomUUID } from 'crypto'
-import { DEFAULT_CLIENT_CONFIG, EXCEPTIONS, TABLES } from '../shared/constants'
+import { DEFAULT_CLIENT_CONFIG, TABLES } from '../shared/constants'
 import { decodeValue, encodeValue, pointSize, toBoolean } from '../shared/codec'
 import { FrameReader, ModbusException, encodeFrame, parseResponse, readRequest, writeRequest } from './protocol'
+import { t } from '../shared/i18n'
 
 export const CLIENT_COMMON_NAME = 'Sulfur Modbus Client'
 
@@ -11,7 +12,12 @@ export const CLIENT_COMMON_NAME = 'Sulfur Modbus Client'
 const SETTLE_DELAY = 250
 
 const describeError = (err) =>
-  err instanceof ModbusException ? `Exception ${err.code} : ${EXCEPTIONS[err.code] ?? 'code inconnu'}` : err.message
+  err instanceof ModbusException
+    ? t('modbus.exceptions.format', {
+        code: err.code,
+        message: t(`modbus.exceptions.${err.code}`, null, t('modbus.exceptions.unknown'))
+      })
+    : err.message
 
 /**
  * Client Modbus TCP / Modbus/TCP Security.
@@ -50,9 +56,9 @@ export class ModbusClient {
     const config = { ...DEFAULT_CLIENT_CONFIG, ...options, security: { ...DEFAULT_CLIENT_CONFIG.security, ...options?.security } }
     const port = Number(config.port)
     const unitId = Number(config.unitId)
-    if (!config.host?.trim()) throw new Error('Adresse du serveur manquante')
-    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Port invalide (1 à 65535)')
-    if (!Number.isInteger(unitId) || unitId < 0 || unitId > 255) throw new Error('Unit ID invalide (0 à 255)')
+    if (!config.host?.trim()) throw new Error(t('modbus.errors.missingHost'))
+    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(t('modbus.errors.invalidPort'))
+    if (!Number.isInteger(unitId) || unitId < 0 || unitId > 255) throw new Error(t('modbus.errors.invalidUnitId'))
     config.port = port
     config.unitId = unitId
     config.timeout = Math.max(100, Number(config.timeout) || 2000)
@@ -73,11 +79,7 @@ export class ModbusClient {
       socket.once('close', onClose)
     })
     if (closedEarly) {
-      throw new Error(
-        secure
-          ? 'Connexion fermée par le serveur : certificat non approuvé, rôle non autorisé ou adresse IP refusée (voir le journal du serveur)'
-          : 'Connexion fermée par le serveur : adresse IP refusée ou nombre maximal de connexions atteint'
-      )
+      throw new Error(secure ? t('modbus.errors.closedTls') : t('modbus.errors.closedPlain'))
     }
 
     const reader = new FrameReader()
@@ -90,7 +92,7 @@ export class ModbusClient {
     })
     socket.on('close', () => {
       if (this.socket !== socket) return
-      this.cleanup(new Error('Connexion fermée par le serveur'))
+      this.cleanup(new Error(t('modbus.errors.closed')))
       this.onStatus({ ...this.status(), lost: true })
     })
     this.socket = socket
@@ -103,7 +105,10 @@ export class ModbusClient {
   openTcp(config) {
     return new Promise((resolve, reject) => {
       const socket = net.connect({ host: config.host, port: config.port })
-      const timer = setTimeout(() => socket.destroy(new Error(`Délai de connexion dépassé (${config.timeout} ms)`)), config.timeout)
+      const timer = setTimeout(
+        () => socket.destroy(new Error(t('modbus.errors.connectTimeout', { timeout: config.timeout }))),
+        config.timeout
+      )
       socket.once('connect', () => {
         clearTimeout(timer)
         socket.setNoDelay(true)
@@ -114,7 +119,13 @@ export class ModbusClient {
       })
       const onError = (err) => {
         clearTimeout(timer)
-        reject(new Error(err.code === 'ECONNREFUSED' ? `Connexion refusée par ${config.host}:${config.port}` : err.message))
+        reject(
+          new Error(
+            err.code === 'ECONNREFUSED'
+              ? t('modbus.errors.connectionRefused', { host: config.host, port: config.port })
+              : err.message
+          )
+        )
       }
       socket.once('error', onError)
     })
@@ -133,7 +144,10 @@ export class ModbusClient {
         rejectUnauthorized: false,
         servername: net.isIP(config.host) ? undefined : config.host
       })
-      const timer = setTimeout(() => s.destroy(new Error(`Délai de connexion dépassé (${config.timeout} ms)`)), config.timeout)
+      const timer = setTimeout(
+        () => s.destroy(new Error(t('modbus.errors.connectTimeout', { timeout: config.timeout }))),
+        config.timeout
+      )
       s.once('secureConnect', () => {
         clearTimeout(timer)
         s.off('error', onError)
@@ -142,7 +156,13 @@ export class ModbusClient {
       })
       const onError = (err) => {
         clearTimeout(timer)
-        reject(new Error(err.code === 'ECONNREFUSED' ? `Connexion refusée par ${config.host}:${config.port}` : `TLS : ${err.message}`))
+        reject(
+          new Error(
+            err.code === 'ECONNREFUSED'
+              ? t('modbus.errors.connectionRefused', { host: config.host, port: config.port })
+              : t('modbus.errors.tls', { message: err.message })
+          )
+        )
       }
       s.once('error', onError)
     })
@@ -150,14 +170,12 @@ export class ModbusClient {
     const peer = socket.getPeerX509Certificate()
     if (!peer) {
       socket.destroy()
-      throw new Error('Le serveur n\'a présenté aucun certificat')
+      throw new Error(t('modbus.errors.noServerCert'))
     }
     const check = await this.pki.checkPeer(peer, { autoAccept: !!config.security.autoAcceptCertificates })
     if (!check.ok) {
       socket.destroy()
-      throw new Error(
-        `Certificat du serveur « ${check.info.commonName} » refusé (${check.reason}) : approuvez-le dans les certificats du client`
-      )
+      throw new Error(t('modbus.errors.serverCertRefused', { name: check.info.commonName, reason: check.reason }))
     }
     socket.setNoDelay(true)
     this.tlsInfo = {
@@ -171,7 +189,7 @@ export class ModbusClient {
 
   async disconnect() {
     const socket = this.socket
-    this.cleanup(new Error('Déconnecté'))
+    this.cleanup(new Error(t('modbus.errors.disconnected')))
     if (socket) socket.destroy()
     this.onStatus(this.status())
     return this.status()
@@ -201,13 +219,13 @@ export class ModbusClient {
   }
 
   request(pdu, quantity) {
-    if (!this.socket) return Promise.reject(new Error('Client non connecté'))
+    if (!this.socket) return Promise.reject(new Error(t('errors.notConnected')))
     this.transactionId = (this.transactionId % 0xffff) + 1
     const id = this.transactionId
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id)
-        reject(new Error(`Pas de réponse du serveur (délai de ${this.config.timeout} ms dépassé)`))
+        reject(new Error(t('modbus.errors.responseTimeout', { timeout: this.config.timeout })))
       }, this.config.timeout)
       this.pending.set(id, { resolve, reject, timer, request: pdu, quantity })
       this.socket.write(encodeFrame(id, this.config.unitId, pdu))
@@ -218,10 +236,10 @@ export class ModbusClient {
 
   checkRange(table, address, quantity) {
     const info = TABLES[table]
-    if (!info) throw new Error(`Table inconnue : ${table}`)
-    if (!Number.isInteger(address) || address < 0 || address > 65535) throw new Error('Adresse invalide (0 à 65535)')
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > info.max) throw new Error(`Quantité invalide (1 à ${info.max})`)
-    if (address + quantity > 65536) throw new Error('La plage dépasse l\'adresse 65535')
+    if (!info) throw new Error(t('modbus.errors.unknownTable', { table }))
+    if (!Number.isInteger(address) || address < 0 || address > 65535) throw new Error(t('modbus.errors.invalidAddress'))
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > info.max) throw new Error(t('modbus.errors.invalidQuantityRange', { max: info.max }))
+    if (address + quantity > 65536) throw new Error(t('modbus.errors.rangeOverflow'))
   }
 
   /** Lecture brute : booléens (coils / discrete inputs) ou mots 16 bits (registres). */
@@ -239,14 +257,14 @@ export class ModbusClient {
   /** Écriture brute : booléens pour les coils, mots 16 bits pour les holding registers. */
   async write(table, address, values, options = {}) {
     address = Number(address)
-    if (!TABLES[table]?.writable) throw new Error('Cette table est en lecture seule (discrete inputs / input registers)')
-    if (!values.length) throw new Error('Aucune valeur à écrire')
+    if (!TABLES[table]?.writable) throw new Error(t('modbus.errors.readOnlyTable'))
+    if (!values.length) throw new Error(t('modbus.errors.noValues'))
     const max = table === 'coils' ? 1968 : 123
-    if (values.length > max) throw new Error(`Au plus ${max} valeurs par écriture`)
+    if (values.length > max) throw new Error(t('modbus.errors.tooManyValues', { max }))
     this.checkRange(table, address, 1)
     const clean = table === 'coils' ? values.map(toBoolean) : values.map((v) => {
       const n = Number(v)
-      if (!Number.isInteger(n) || n < 0 || n > 0xffff) throw new Error(`Registre invalide : ${v} (0 à 65535)`)
+      if (!Number.isInteger(n) || n < 0 || n > 0xffff) throw new Error(t('modbus.errors.invalidRegister', { value: v }))
       return n
     })
     try {
@@ -295,7 +313,7 @@ export class ModbusClient {
 
   setPollInterval(ms) {
     const n = Number(ms)
-    if (!Number.isFinite(n) || n < 50) throw new Error('Période de scrutation minimale : 50 ms')
+    if (!Number.isFinite(n) || n < 50) throw new Error(t('modbus.errors.minPoll'))
     this.config = { ...(this.config ?? DEFAULT_CLIENT_CONFIG), pollInterval: n }
     if (this.socket) this.startPolling()
     this.onStatus(this.status())

@@ -5,6 +5,7 @@ import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
 import { MODBUS_ROLE_OID } from '../shared/constants'
+import { t } from '../shared/i18n'
 
 x509.cryptoProvider.set(webcrypto)
 
@@ -25,7 +26,7 @@ export function readRole(der) {
 
 function roleExtension(role) {
   const value = Buffer.from(role, 'utf8')
-  if (value.length > 127) throw new Error('Nom de rôle trop long')
+  if (value.length > 127) throw new Error(t('modbus.errors.roleTooLong'))
   return new x509.Extension(MODBUS_ROLE_OID, false, Buffer.concat([Buffer.from([0x0c, value.length]), value]))
 }
 
@@ -46,7 +47,7 @@ export function describe(der, file) {
     commonName: subject.CN ?? cert.subject,
     organization: subject.O ?? null,
     role,
-    description: role ? `Rôle Modbus : ${role}` : 'Sans rôle Modbus',
+    description: role ? t('modbus.errors.roleDescription', { role }) : t('modbus.errors.noRoleDescription'),
     notBefore: new Date(cert.validFrom).toISOString(),
     notAfter: notAfter.toISOString(),
     expired: notAfter < new Date() || new Date(cert.validFrom) > new Date()
@@ -137,7 +138,7 @@ export class ModbusPki {
       try {
         out.push(describe(await fs.readFile(full), full))
       } catch {
-        out.push({ path: full, file, thumbprint: file, commonName: file, error: 'Certificat illisible' })
+        out.push({ path: full, file, thumbprint: file, commonName: file, error: t('certs.unreadable') })
       }
     }
     return out.sort((a, b) => a.commonName.localeCompare(b.commonName))
@@ -155,7 +156,7 @@ export class ModbusPki {
    */
   async checkPeer(peer, { autoAccept }) {
     const info = describe(peer.raw)
-    if (info.expired) return { ok: false, info, reason: 'certificat expiré ou pas encore valide' }
+    if (info.expired) return { ok: false, info, reason: t('modbus.errors.certExpired') }
     // Les certificats sont épinglés par empreinte : seul un certificat présent dans « approuvés » est accepté.
     const { trusted, rejected } = await this.list()
     if (trusted.some((c) => c.thumbprint === info.thumbprint)) return { ok: true, info }
@@ -169,7 +170,7 @@ export class ModbusPki {
         if (old) await fs.unlink(old.path).catch(() => {})
       }
     }
-    return autoAccept ? { ok: true, info, accepted: true } : { ok: false, info, reason: 'certificat non approuvé' }
+    return autoAccept ? { ok: true, info, accepted: true } : { ok: false, info, reason: t('modbus.errors.certNotTrusted') }
   }
 
   async find(thumbprint, stores = ['trusted', 'rejected']) {
@@ -178,7 +179,7 @@ export class ModbusPki {
       const cert = all[store].find((c) => c.thumbprint === thumbprint)
       if (cert) return { store, cert }
     }
-    throw new Error('Certificat introuvable')
+    throw new Error(t('errors.certNotFound'))
   }
 
   async move(thumbprint, target) {

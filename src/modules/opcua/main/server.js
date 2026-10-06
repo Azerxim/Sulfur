@@ -9,6 +9,7 @@ import {
   makeApplicationUrn
 } from 'node-opcua'
 import os from 'os'
+import { t } from '../shared/i18n'
 import { randomUUID } from 'crypto'
 import { DEFAULT_SERVER_SECURITY } from '../shared/constants'
 import { coerce, toPlain } from './serialize'
@@ -31,9 +32,9 @@ export const SERVER_IDENTITY = {
 export async function hashUsers(users = []) {
   return Promise.all(
     users.map(async (u) => {
-      if (!u.username?.trim()) throw new Error('Un utilisateur n\'a pas d\'identifiant')
+      if (!u.username?.trim()) throw new Error(t('opcua.errors.userNoName'))
       const passwordHash = isPasswordHash(u.passwordHash) ? u.passwordHash : u.password ? await hashPassword(u.password) : null
-      if (!passwordHash) throw new Error(`Mot de passe manquant pour l'utilisateur "${u.username}"`)
+      if (!passwordHash) throw new Error(t('opcua.errors.userNoPassword', { name: u.username }))
       return { username: u.username.trim(), passwordHash }
     })
   )
@@ -43,12 +44,12 @@ export async function hashUsers(users = []) {
 export function securityOptions(security = DEFAULT_SERVER_SECURITY) {
   const modes = security.modes ?? []
   const secure = modes.filter((m) => m !== 'None')
-  if (!modes.length) throw new Error('Sélectionnez au moins un mode de sécurité')
+  if (!modes.length) throw new Error(t('opcua.errors.noMode'))
   if (secure.length && !security.policies?.length) {
-    throw new Error('Sélectionnez au moins une politique de sécurité pour les modes Signature / Chiffrement')
+    throw new Error(t('opcua.errors.noPolicy'))
   }
   if (!security.allowAnonymous && !security.users?.length) {
-    throw new Error('Aucune authentification possible : autorisez l\'accès anonyme ou ajoutez un utilisateur')
+    throw new Error(t('opcua.errors.noAuth'))
   }
   const users = security.users ?? []
   return {
@@ -104,9 +105,9 @@ export class SimulationServer {
   }
 
   async start(config) {
-    if (this.server) throw new Error('Le serveur est déjà démarré')
+    if (this.server) throw new Error(t('errors.alreadyStarted'))
     const names = config.variables.map((v) => v.name)
-    if (new Set(names).size !== names.length) throw new Error('Noms de variables en double')
+    if (new Set(names).size !== names.length) throw new Error(t('opcua.errors.duplicateNames'))
 
     const security = { ...DEFAULT_SERVER_SECURITY, ...config.security }
     security.users = await hashUsers(security.users)
@@ -183,7 +184,7 @@ export class SimulationServer {
   }
 
   requireRunning() {
-    if (!this.server) throw new Error('Le serveur n\'est pas démarré')
+    if (!this.server) throw new Error(t('errors.notStarted'))
   }
 
   /** Valeurs courantes de toutes les variables : { [id]: valeur } */
@@ -199,9 +200,9 @@ export class SimulationServer {
    */
   upsertVariable(def) {
     this.requireRunning()
-    if (!def.name?.trim()) throw new Error('Le nom de la variable est vide')
+    if (!def.name?.trim()) throw new Error(t('opcua.errors.emptyName'))
     for (const [id, v] of this.vars) {
-      if (id !== def.id && v.def.name === def.name) throw new Error(`La variable "${def.name}" existe déjà`)
+      if (id !== def.id && v.def.name === def.name) throw new Error(t('opcua.errors.exists', { name: def.name }))
     }
 
     const entry = this.vars.get(def.id)
@@ -231,7 +232,7 @@ export class SimulationServer {
   setValue(id, raw) {
     this.requireRunning()
     const entry = this.vars.get(id)
-    if (!entry) throw new Error('Variable inconnue')
+    if (!entry) throw new Error(t('opcua.errors.unknownVariable'))
     entry.value = coerce(raw, entry.def.dataType)
     this.onValues(this.values())
     return toPlain(entry.value)
@@ -240,7 +241,7 @@ export class SimulationServer {
   setUpdateRate(rate) {
     this.requireRunning()
     const n = Number(rate)
-    if (!Number.isFinite(n) || n < 10) throw new Error('Période minimale : 10 ms')
+    if (!Number.isFinite(n) || n < 10) throw new Error(t('errors.minPeriod', { min: 10 }))
     this.config = { ...this.config, updateRate: n }
     this.startSimulation()
     this.onStatus(this.status())
@@ -251,7 +252,7 @@ export class SimulationServer {
 
   createVariable(def) {
     const dataType = DataType[def.dataType]
-    if (dataType === undefined) throw new Error(`Type inconnu : ${def.dataType}`)
+    if (dataType === undefined) throw new Error(t('opcua.errors.unknownType', { type: def.dataType }))
     const ns = this.server.engine.addressSpace.getOwnNamespace()
     const entry = { def, value: coerce(def.initialValue, def.dataType), node: null }
 
@@ -292,10 +293,10 @@ export class SimulationServer {
     clearInterval(this.simTimer)
     const dt = Number(this.config.updateRate) || 100
     this.simTimer = setInterval(() => {
-      const t = Date.now() - this.t0
+      const elapsed = Date.now() - this.t0
       for (const entry of this.vars.values()) {
         if (entry.def.simulation === 'none') continue
-        entry.value = simulate(entry.def, entry.value, t, dt)
+        entry.value = simulate(entry.def, entry.value, elapsed, dt)
       }
     }, dt)
   }

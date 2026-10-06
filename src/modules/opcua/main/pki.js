@@ -2,6 +2,7 @@ import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
 import { OPCUACertificateManager } from 'node-opcua'
+import { t } from '../shared/i18n'
 import { exploreCertificate, makeSHA1Thumbprint, readCertificate } from 'node-opcua-crypto'
 
 const CERT_EXT = /\.(der|pem|crt|cer)$/i
@@ -84,7 +85,7 @@ export class PkiStore {
         try {
           return describe(path.join(dir, file))
         } catch {
-          return { file, thumbprint: file, commonName: file, error: 'Certificat illisible' }
+          return { file, thumbprint: file, commonName: file, error: t('certs.unreadable') }
         }
       })
       .sort((a, b) => a.commonName.localeCompare(b.commonName))
@@ -96,7 +97,7 @@ export class PkiStore {
       const cert = all[store].find((c) => c.thumbprint === thumbprint)
       if (cert) return { store, cert }
     }
-    throw new Error('Certificat introuvable')
+    throw new Error(t('errors.certNotFound'))
   }
 
   async move(thumbprint, target) {

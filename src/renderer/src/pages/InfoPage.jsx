@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Check, Copy, Network, RefreshCw } from 'lucide-react'
 import { Button, Card, ErrorBanner } from '../components/ui'
+import { useI18n } from '../preferences'
 
 function CopyButton({ text }) {
+  const { t } = useI18n()
   const [copied, setCopied] = useState(false)
   return (
     <Button
       variant="ghost"
       size="icon"
-      title="Copier"
+      title={t('ui.copy')}
       onClick={() => {
         navigator.clipboard.writeText(text)
         setCopied(true)
@@ -21,6 +23,7 @@ function CopyButton({ text }) {
 }
 
 export default function InfoPage() {
+  const { t } = useI18n()
   const [info, setInfo] = useState(null)
   const [error, setError] = useState(null)
   const [showInternal, setShowInternal] = useState(false)
@@ -48,17 +51,17 @@ export default function InfoPage() {
       <ErrorBanner error={error} onClose={() => setError(null)} />
 
       {info && (
-        <Card id="info.system" title="Système">
-          <dl className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-1.5 text-sm">
-            <dt className="text-slate-500">Nom du PC</dt>
+        <Card id="info.system" title={t('info.system')}>
+          <dl className="grid grid-cols-[200px_1fr] gap-x-4 gap-y-1.5 text-sm">
+            <dt className="text-slate-500">{t('info.hostname')}</dt>
             <dd className="font-mono text-slate-200 select-text">{info.hostname}</dd>
-            <dt className="text-slate-500">Système</dt>
+            <dt className="text-slate-500">{t('info.os')}</dt>
             <dd className="text-slate-200">
               {info.platform} ({info.arch})
             </dd>
-            <dt className="text-slate-500">Version de Sulfur</dt>
+            <dt className="text-slate-500">{t('info.appVersion')}</dt>
             <dd className="text-slate-200">{info.appVersion}</dd>
-            <dt className="text-slate-500">Electron / Node</dt>
+            <dt className="text-slate-500">{t('info.runtime')}</dt>
             <dd className="text-slate-200">
               {info.versions.electron} / {info.versions.node}
             </dd>
@@ -68,10 +71,10 @@ export default function InfoPage() {
 
       <Card
         id="info.ips"
-        title="Adresses IP du PC"
+        title={t('info.ips')}
         actions={
           <Button variant="ghost" size="sm" onClick={load}>
-            <RefreshCw className="size-3.5" /> Actualiser
+            <RefreshCw className="size-3.5" /> {t('ui.refresh')}
           </Button>
         }
       >
@@ -85,13 +88,13 @@ export default function InfoPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">{info ? 'Aucune adresse IPv4 externe (PC hors réseau ?)' : 'Chargement…'}</p>
+          <p className="text-sm text-slate-500">{info ? t('info.noIp') : t('ui.loading')}</p>
         )}
       </Card>
 
       <Card
         id="info.interfaces"
-        title="Interfaces réseau"
+        title={t('info.interfaces')}
         actions={
           <label className="flex items-center gap-2 text-xs text-slate-400">
             <input
@@ -100,7 +103,7 @@ export default function InfoPage() {
               checked={showInternal}
               onChange={(e) => setShowInternal(e.target.checked)}
             />
-            Afficher les interfaces internes
+            {t('info.showInternal')}
           </label>
         }
       >
@@ -110,7 +113,7 @@ export default function InfoPage() {
               <div className="flex items-center gap-2 border-b border-ink-800 px-3 py-2 text-sm">
                 <Network className="size-4 text-slate-500" />
                 <span className="font-medium text-slate-200">{itf.name}</span>
-                {itf.internal && <span className="rounded bg-ink-800 px-1.5 text-[11px] text-slate-400">interne</span>}
+                {itf.internal && <span className="rounded bg-ink-800 px-1.5 text-[11px] text-slate-400">{t('info.internal')}</span>}
                 {itf.mac && <span className="ml-auto font-mono text-xs text-slate-500 select-text">MAC {itf.mac}</span>}
               </div>
               <table className="w-full text-sm">

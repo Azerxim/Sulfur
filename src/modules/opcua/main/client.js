@@ -12,6 +12,7 @@ import {
   UserTokenType,
   Variant
 } from 'node-opcua'
+import { t } from '../shared/i18n'
 import { DEFAULT_CLIENT_SECURITY } from '../shared/constants'
 import { coerce, dataValueToPlain, toPlain } from './serialize'
 
@@ -64,7 +65,7 @@ export class SimulationClient {
         mode: MessageSecurityMode[e.securityMode],
         policy: e.securityPolicyUri.split('#')[1] ?? 'None',
         securityLevel: e.securityLevel,
-        userTokens: [...new Set((e.userIdentityTokens ?? []).map((t) => UserTokenType[t.tokenType]))]
+        userTokens: [...new Set((e.userIdentityTokens ?? []).map((token) => UserTokenType[token.tokenType]))]
       }))
     } finally {
       await client.disconnect().catch(() => {})
@@ -76,7 +77,7 @@ export class SimulationClient {
     if (this.session) await this.disconnect()
     const security = { ...DEFAULT_CLIENT_SECURITY, ...options }
     if (security.mode !== 'None' && !SecurityPolicy[security.policy]) {
-      throw new Error('Choisissez une politique de sécurité pour ce mode')
+      throw new Error(t('opcua.errors.choosePolicy'))
     }
 
     const cm = await this.pki.createManager(!!security.autoAcceptCertificates)
@@ -135,7 +136,7 @@ export class SimulationClient {
   }
 
   requireSession() {
-    if (!this.session) throw new Error('Client non connecté')
+    if (!this.session) throw new Error(t('errors.notConnected'))
     return this.session
   }
 
@@ -181,7 +182,7 @@ export class SimulationClient {
       attributeId: AttributeIds.Value,
       value: { value: new Variant({ dataType: current.value.dataType, value }) }
     })
-    if (!statusCode.isGood()) throw new Error(`Écriture refusée : ${statusCode.name}`)
+    if (!statusCode.isGood()) throw new Error(t('opcua.errors.writeRefused', { status: statusCode.name }))
     return { statusCode: statusCode.name, value: toPlain(value) }
   }
 
@@ -216,19 +217,19 @@ export class SimulationClient {
 function explain(err) {
   const msg = err?.message ?? String(err)
   if (/BadIdentityTokenRejected|BadUserAccessDenied|BadIdentityTokenInvalid/.test(msg)) {
-    return `Authentification refusée (identifiant ou mot de passe incorrect, ou mode non autorisé). ${msg}`
+    return t('opcua.errors.authRefused', { details: msg })
   }
   if (/BadSecurityChecksFailed|BadCertificateUntrusted|BadCertificate/.test(msg)) {
-    return `Certificat refusé : approuvez le certificat dans le magasin du serveur et/ou du client. ${msg}`
+    return t('opcua.errors.certRefused', { details: msg })
   }
   if (/ANONYMOUS user token policy/i.test(msg)) {
-    return 'Le serveur n\'autorise pas l\'accès anonyme : utilisez un identifiant / mot de passe.'
+    return t('opcua.errors.noAnonymous')
   }
   if (/USERNAME user token policy/i.test(msg)) {
-    return 'Le serveur n\'accepte pas l\'authentification par identifiant / mot de passe sur cet endpoint.'
+    return t('opcua.errors.noUsername')
   }
   if (/End point must exist|cannot find endpoint|BadSecurityPolicyRejected|BadSecurityModeRejected/i.test(msg)) {
-    return 'Le serveur ne propose pas ce couple mode / politique de sécurité (utilisez « Découvrir » pour voir les endpoints disponibles).'
+    return t('opcua.errors.noEndpoint')
   }
   return msg
 }

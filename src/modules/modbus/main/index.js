@@ -1,9 +1,11 @@
 import { join } from 'path'
 import { shell } from 'electron'
 import { MODBUS_MODULE } from '../shared/constants'
+import '../shared/locales'
 import { ModbusPki } from './pki'
 import { ModbusServer } from './server'
 import { ModbusClient } from './client'
+import { t } from '../shared/i18n'
 
 let server = null
 let client = null
@@ -18,7 +20,7 @@ export const modbusMainModule = {
       client: new ModbusPki(join(ctx.dataDir, 'pki', 'client'))
     }
     const store = (which) => {
-      if (!pki[which]) throw new Error(`Magasin inconnu : ${which}`)
+      if (!pki[which]) throw new Error(t('errors.unknownStore', { name: which }))
       return pki[which]
     }
 

@@ -1,6 +1,8 @@
 import { join } from 'path'
 import { shell } from 'electron'
+import { t } from '../shared/i18n'
 import { OPCUA_MODULE } from '../shared/constants'
+import '../shared/locales'
 import { PkiStore } from './pki'
 import { hashPassword } from './passwords'
 import { SimulationServer } from './server'
@@ -19,7 +21,7 @@ export const opcuaMainModule = {
       client: new PkiStore(join(ctx.dataDir, 'pki', 'client'))
     }
     const store = (which) => {
-      if (!pki[which]) throw new Error(`Magasin inconnu : ${which}`)
+      if (!pki[which]) throw new Error(t('errors.unknownStore', { name: which }))
       return pki[which]
     }
 

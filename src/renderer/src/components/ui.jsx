@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { t } from '@shared/i18n'
 
 const buttonVariants = {
-  primary: 'bg-sulfur-400 text-ink-950 hover:bg-sulfur-300 disabled:bg-ink-700 disabled:text-slate-500',
+  primary: 'bg-sulfur-400 text-on-accent hover:bg-sulfur-300 disabled:bg-ink-700 disabled:text-slate-500',
   secondary: 'bg-ink-800 text-slate-200 hover:bg-ink-700 disabled:text-slate-600',
   danger: 'bg-red-500/15 text-red-300 hover:bg-red-500/25 disabled:text-slate-600',
   ghost: 'text-slate-400 hover:bg-ink-800 hover:text-slate-200 disabled:text-slate-600'
@@ -70,7 +71,7 @@ export function Card({ id, title, actions, className = '', collapsible = true, d
               <button
                 type="button"
                 aria-expanded={!isCollapsed}
-                title={isCollapsed ? 'Déplier' : 'Réduire'}
+                title={isCollapsed ? t('ui.expand') : t('ui.collapse')}
                 className="-ml-1 grid size-5 place-items-center rounded text-slate-500 hover:bg-ink-800 hover:text-slate-200"
                 onClick={(e) => {
                   e.stopPropagation()
@@ -159,7 +160,7 @@ export function ErrorBanner({ error, onClose }) {
     <div className="flex items-start justify-between gap-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
       <span className="break-all">{error}</span>
       {onClose && (
-        <button onClick={onClose} className="text-red-300/70 hover:text-red-200">
+        <button onClick={onClose} title={t('ui.close')} className="text-red-300/70 hover:text-red-200">
           ✕
         </button>
       )}
@@ -170,17 +171,17 @@ export function ErrorBanner({ error, onClose }) {
 export function Tabs({ tabs, value, onChange }) {
   return (
     <div className="flex gap-1 rounded-lg bg-ink-900 p-1">
-      {tabs.map((t) => (
+      {tabs.map((tab) => (
         <button
-          key={t.id}
-          onClick={() => onChange(t.id)}
+          key={tab.id}
+          onClick={() => onChange(tab.id)}
           className={`flex items-center gap-2 rounded-md px-4 py-1.5 text-sm transition-colors ${
-            value === t.id ? 'bg-ink-700 text-slate-100' : 'text-slate-400 hover:text-slate-200'
+            value === tab.id ? 'bg-ink-700 text-slate-100' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          {t.icon && <t.icon className="size-4" />}
-          {t.label}
-          {t.badge}
+          {tab.icon && <tab.icon className="size-4" />}
+          {tab.label}
+          {tab.badge}
         </button>
       ))}
     </div>
@@ -209,7 +210,7 @@ export function Modal({ title, onClose, actions, children, className = 'max-w-4x
           <h2 className="text-sm font-medium text-slate-100">{title}</h2>
           <div className="flex items-center gap-2">
             {actions}
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-200" autoFocus>
+            <button onClick={onClose} title={t('ui.close')} className="text-slate-500 hover:text-slate-200" autoFocus>
               ✕
             </button>
           </div>

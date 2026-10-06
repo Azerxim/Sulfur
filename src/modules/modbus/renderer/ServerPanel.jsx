@@ -6,6 +6,7 @@ import { pointSize } from '../shared/codec'
 import { modbusApi } from './api'
 import ServerSecurity, { securityProblems } from './ServerSecurity'
 import ServerActivity from './ServerActivity'
+import { t } from '../shared/i18n'
 
 /** Délai avant d'envoyer au serveur les paramètres modifiés pendant qu'il tourne. */
 const LIVE_DEBOUNCE = 300
@@ -51,7 +52,7 @@ function LiveValue({ point, value, onSet }) {
     return (
       <button
         onClick={() => onSet(!value)}
-        title="Basculer"
+        title={t('ui.toggle')}
         className={`h-9 w-full rounded-md border font-mono text-sm transition-colors ${
           value ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-ink-700 bg-ink-950 text-slate-400'
         }`}
@@ -152,27 +153,39 @@ export default function ServerPanel({ status }) {
   const problems = securityProblems(config.security)
   const invalid = duplicates.length > 0 || overlapping.size > 0 || config.points.some((p) => !p.name.trim()) || problems.length > 0
 
-  const headers = ['Nom', 'Table', 'Adresse', 'Type', running ? 'Valeur courante' : 'Valeur initiale', 'Simulation', 'Période (ms)', 'Min', 'Max', 'Écriture', '']
+  const headers = [
+    t('ui.name'),
+    t('modbus.server.table'),
+    t('modbus.server.address'),
+    t('ui.type'),
+    running ? t('ui.currentValue') : t('ui.initialValue'),
+    t('ui.simulation'),
+    t('ui.periodMs'),
+    t('ui.min'),
+    t('ui.max'),
+    t('ui.write'),
+    ''
+  ]
 
   return (
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
       <Card
         id="modbus.server.config"
-        title="Configuration du serveur"
+        title={t('modbus.server.title')}
         className="shrink-0"
         actions={
           <>
             <StatusDot
               on={running}
-              label={running ? `En marche · ${status.connections?.length ?? 0} connexion(s)` : 'Arrêté'}
+              label={running ? t('modbus.server.running', { count: status.connections?.length ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(modbusApi.server.stop)}>
-                <Square className="size-3.5" /> Arrêter
+                <Square className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button variant="primary" size="sm" disabled={busy || invalid} onClick={() => run(() => modbusApi.server.start(config))}>
-                <Play className="size-3.5" /> {busy ? 'Démarrage…' : 'Démarrer'}
+                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -180,10 +193,10 @@ export default function ServerPanel({ status }) {
       >
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-6 gap-4">
-            <Field label="Interface d'écoute">
+            <Field label={t('modbus.server.host')}>
               <Input value={config.host} disabled={running || busy} onChange={(e) => update({ host: e.target.value })} />
             </Field>
-            <Field label="Port">
+            <Field label={t('modbus.server.port')}>
               <Input
                 type="number"
                 value={config.port}
@@ -191,7 +204,7 @@ export default function ServerPanel({ status }) {
                 onChange={(e) => update({ port: Number(e.target.value) })}
               />
             </Field>
-            <Field label="Unit ID">
+            <Field label={t('modbus.server.unitId')}>
               <Input
                 type="number"
                 min={0}
@@ -201,16 +214,16 @@ export default function ServerPanel({ status }) {
                 onChange={(e) => update({ unitId: Number(e.target.value) })}
               />
             </Field>
-            <Field label="Ordre des mots (32/64 bits)">
+            <Field label={t('modbus.server.wordOrder')}>
               <Select value={config.wordOrder} disabled={running || busy} onChange={(e) => update({ wordOrder: e.target.value })}>
-                {Object.entries(WORD_ORDERS).map(([k, label]) => (
+                {WORD_ORDERS.map((k) => (
                   <option key={k} value={k}>
-                    {label}
+                    {t(`modbus.wordOrders.${k}`)}
                   </option>
                 ))}
               </Select>
             </Field>
-            <Field label="Taille de chaque table">
+            <Field label={t('modbus.server.size')}>
               <Input
                 type="number"
                 min={1}
@@ -220,7 +233,7 @@ export default function ServerPanel({ status }) {
                 onChange={(e) => update({ size: Number(e.target.value) })}
               />
             </Field>
-            <Field label="Période de simulation (ms)">
+            <Field label={t('ui.simulationRate')}>
               <CommitInput
                 type="number"
                 min={10}
@@ -235,14 +248,12 @@ export default function ServerPanel({ status }) {
           </div>
           <div className="flex items-center gap-6">
             <Checkbox
-              label="Répondre à tous les Unit ID"
+              label={t('modbus.server.anyUnitId')}
               disabled={running || busy}
               checked={!!config.anyUnitId}
               onChange={(e) => update({ anyUnitId: e.target.checked })}
             />
-            <span className="text-xs text-slate-500">
-              Ports standards : 502 (TCP) et 802 (TLS) — droits administrateur requis sous Linux pour les ports &lt; 1024.
-            </span>
+            <span className="text-xs text-slate-500">{t('modbus.server.portsHint')}</span>
           </div>
 
           {status.endpoint && (
@@ -251,14 +262,15 @@ export default function ServerPanel({ status }) {
               {status.endpoint}
               {status.certificate && (
                 <span className="font-sans text-xs text-slate-500">
-                  · certificat {status.certificate.commonName} · empreinte {status.certificate.thumbprint.slice(0, 16)}…
+                  · {t('modbus.server.certificate', { name: status.certificate.commonName })} · {t('certs.thumbprint')}{' '}
+                  {status.certificate.thumbprint.slice(0, 16)}…
                 </span>
               )}
               <Button
                 variant="ghost"
                 size="icon"
                 className="ml-auto"
-                title="Copier"
+                title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
                 <Copy className="size-3.5" />
@@ -273,13 +285,13 @@ export default function ServerPanel({ status }) {
 
       <Card
         id="modbus.server.points"
-        title={`Points simulés (${config.points.length})`}
+        title={t('modbus.server.points', { count: config.points.length })}
         className="min-h-72 shrink-0"
         actions={
           <>
-            {running && <span className="text-xs text-slate-500">Modifications appliquées en direct</span>}
+            {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" disabled={busy} onClick={addPoint}>
-              <Plus className="size-3.5" /> Ajouter
+              <Plus className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -310,9 +322,9 @@ export default function ServerPanel({ status }) {
                     </td>
                     <td className="w-48 p-1.5">
                       <Select value={p.table} disabled={busy} onChange={(e) => changeTable(p, e.target.value)}>
-                        {Object.entries(TABLES).map(([k, t]) => (
+                        {Object.entries(TABLES).map(([k, tb]) => (
                           <option key={k} value={k}>
-                            {t.prefix} · {t.label}
+                            {tb.prefix} · {tb.label}
                           </option>
                         ))}
                       </Select>
@@ -323,7 +335,7 @@ export default function ServerPanel({ status }) {
                         min={0}
                         value={p.address}
                         disabled={busy}
-                        title={overlapping.has(p.id) ? 'Chevauche un autre point' : `Occupe ${pointSize(p.dataType)} adresse(s)`}
+                        title={overlapping.has(p.id) ? t('modbus.server.overlap') : t('modbus.server.occupies', { count: pointSize(p.dataType) })}
                         className={overlapping.has(p.id) ? 'border-red-500/60' : ''}
                         onCommit={(raw) => updatePoint(p.id, { address: Number(raw) }, { immediate: true })}
                       />
@@ -334,10 +346,10 @@ export default function ServerPanel({ status }) {
                         disabled={busy || bit}
                         onChange={(e) => updatePoint(p.id, { dataType: e.target.value }, { immediate: true })}
                       >
-                        {(bit ? ['Boolean'] : REGISTER_TYPES).map((t) => (
-                          <option key={t} value={t}>
-                            {t}
-                            {DATA_TYPES[t] > 1 ? ` (${DATA_TYPES[t]} reg.)` : ''}
+                        {(bit ? ['Boolean'] : REGISTER_TYPES).map((ty) => (
+                          <option key={ty} value={ty}>
+                            {ty}
+                            {DATA_TYPES[ty] > 1 ? ` (${t('modbus.server.registers', { count: DATA_TYPES[ty] })})` : ''}
                           </option>
                         ))}
                       </Select>
@@ -359,9 +371,9 @@ export default function ServerPanel({ status }) {
                         disabled={busy}
                         onChange={(e) => updatePoint(p.id, { simulation: e.target.value }, { immediate: true })}
                       >
-                        {Object.entries(SIMULATIONS).map(([k, label]) => (
+                        {SIMULATIONS.map((k) => (
                           <option key={k} value={k}>
-                            {label}
+                            {t(`simulations.${k}`)}
                           </option>
                         ))}
                       </Select>
@@ -380,14 +392,14 @@ export default function ServerPanel({ status }) {
                       <input
                         type="checkbox"
                         className="size-4 accent-sulfur-400"
-                        title={TABLES[p.table].writable ? 'Autoriser l\'écriture par les clients' : 'Table en lecture seule'}
+                        title={TABLES[p.table].writable ? t('modbus.server.allowWrite') : t('modbus.server.readOnlyTable')}
                         checked={!!p.writable}
                         disabled={busy || !TABLES[p.table].writable}
                         onChange={(e) => updatePoint(p.id, { writable: e.target.checked }, { immediate: true })}
                       />
                     </td>
                     <td className="p-1.5">
-                      <Button variant="ghost" size="icon" disabled={busy} onClick={() => removePoint(p.id)} title="Supprimer">
+                      <Button variant="ghost" size="icon" disabled={busy} onClick={() => removePoint(p.id)} title={t('ui.remove')}>
                         <Trash2 className="size-3.5" />
                       </Button>
                     </td>

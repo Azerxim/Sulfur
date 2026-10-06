@@ -1,4 +1,5 @@
 import { DATA_TYPES } from './constants'
+import { t } from './i18n'
 
 /**
  * Encodage / décodage des valeurs sur des registres Modbus 16 bits.
@@ -25,7 +26,7 @@ const INT_RANGES = {
 export function toNumber(value, dataType) {
   if (typeof value === 'boolean') return value ? 1 : 0
   const n = Number(value)
-  if (!Number.isFinite(n)) throw new Error(`Valeur numérique invalide : ${value}`)
+  if (!Number.isFinite(n)) throw new Error(t('errors.invalidNumber', { value }))
   const range = INT_RANGES[dataType]
   if (!range) return n
   return Math.min(range[1], Math.max(range[0], Math.round(n)))
@@ -40,7 +41,7 @@ export function toBoolean(value) {
 /** Valeur → tableau de mots 16 bits. */
 export function encodeValue(value, dataType, order = 'ABCD') {
   const words = DATA_TYPES[dataType]
-  if (!words) throw new Error(`Type non encodable sur des registres : ${dataType}`)
+  if (!words) throw new Error(t('modbus.errors.notEncodable', { type: dataType }))
   const view = new DataView(new ArrayBuffer(words * 2))
   const n = toNumber(value, dataType)
   switch (dataType) {
@@ -59,8 +60,8 @@ export function encodeValue(value, dataType, order = 'ABCD') {
 /** Tableau de mots 16 bits → valeur. */
 export function decodeValue(words, dataType, order = 'ABCD') {
   const count = DATA_TYPES[dataType]
-  if (!count) throw new Error(`Type non décodable depuis des registres : ${dataType}`)
-  if (words.length < count) throw new Error(`${dataType} nécessite ${count} registre(s)`)
+  if (!count) throw new Error(t('modbus.errors.notDecodable', { type: dataType }))
+  if (words.length < count) throw new Error(t('modbus.errors.needsRegisters', { type: dataType, count }))
   const ordered = reorder(words.slice(0, count), order)
   const view = new DataView(new ArrayBuffer(count * 2))
   ordered.forEach((w, i) => view.setUint16(i * 2, w))

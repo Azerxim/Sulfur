@@ -5,6 +5,8 @@
  *   PDU  : functionCode (1) · données (≤ 252 octets)
  */
 
+import { t } from '../shared/i18n'
+
 export const FC = {
   READ_COILS: 1,
   READ_DISCRETE_INPUTS: 2,
@@ -49,7 +51,7 @@ const MBAP_LENGTH = 7
 
 export class ModbusException extends Error {
   constructor(code, message) {
-    super(message ?? `Exception Modbus ${code}`)
+    super(message ?? t('modbus.exceptions.format', { code, message: t(`modbus.exceptions.${code}`, null, t('modbus.exceptions.unknown')) }))
     this.code = code
   }
 }
@@ -70,8 +72,8 @@ export class FrameReader {
     while (this.buffer.length >= MBAP_LENGTH) {
       const protocolId = this.buffer.readUInt16BE(2)
       const length = this.buffer.readUInt16BE(4)
-      if (protocolId !== 0) throw new FrameError(`Identifiant de protocole invalide (${protocolId})`)
-      if (length < 2 || length > MAX_PDU + 1) throw new FrameError(`Longueur de trame invalide (${length})`)
+      if (protocolId !== 0) throw new FrameError(t('modbus.errors.invalidProtocolId', { id: protocolId }))
+      if (length < 2 || length > MAX_PDU + 1) throw new FrameError(t('modbus.errors.invalidLength', { length }))
       const total = 6 + length
       if (this.buffer.length < total) break
       const frame = this.buffer.subarray(0, total)
@@ -122,9 +124,9 @@ export function unpackBits(bytes, count) {
 export function parseRequest(pdu) {
   const fc = pdu[0]
   const fn = FUNCTIONS[fc]
-  if (!fn) throw new ModbusException(EX.ILLEGAL_FUNCTION, `Code fonction non supporté (${fc})`)
+  if (!fn) throw new ModbusException(EX.ILLEGAL_FUNCTION, t('modbus.errors.unsupportedFunction', { fc }))
   const need = (n) => {
-    if (pdu.length < n) throw new ModbusException(EX.ILLEGAL_DATA_VALUE, 'Requête tronquée')
+    if (pdu.length < n) throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.truncated'))
   }
   need(5)
   const address = pdu.readUInt16BE(1)
@@ -137,12 +139,12 @@ export function parseRequest(pdu) {
     case FC.READ_INPUT_REGISTERS: {
       const quantity = pdu.readUInt16BE(3)
       const max = fc <= 2 ? 2000 : 125
-      if (quantity < 1 || quantity > max) throw new ModbusException(EX.ILLEGAL_DATA_VALUE, `Quantité invalide (${quantity})`)
+      if (quantity < 1 || quantity > max) throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.invalidQuantity', { quantity }))
       return { ...base, quantity }
     }
     case FC.WRITE_SINGLE_COIL: {
       const raw = pdu.readUInt16BE(3)
-      if (raw !== 0xff00 && raw !== 0x0000) throw new ModbusException(EX.ILLEGAL_DATA_VALUE, 'Valeur de coil invalide')
+      if (raw !== 0xff00 && raw !== 0x0000) throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.invalidCoilValue'))
       return { ...base, quantity: 1, values: [raw === 0xff00] }
     }
     case FC.WRITE_SINGLE_REGISTER:
@@ -152,7 +154,7 @@ export function parseRequest(pdu) {
       const quantity = pdu.readUInt16BE(3)
       const byteCount = pdu[5]
       if (quantity < 1 || quantity > 1968 || byteCount !== Math.ceil(quantity / 8) || pdu.length !== 6 + byteCount) {
-        throw new ModbusException(EX.ILLEGAL_DATA_VALUE, 'Requête d\'écriture de coils invalide')
+        throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.invalidCoilsWrite'))
       }
       return { ...base, quantity, values: unpackBits(pdu.subarray(6), quantity) }
     }
@@ -161,7 +163,7 @@ export function parseRequest(pdu) {
       const quantity = pdu.readUInt16BE(3)
       const byteCount = pdu[5]
       if (quantity < 1 || quantity > 123 || byteCount !== quantity * 2 || pdu.length !== 6 + byteCount) {
-        throw new ModbusException(EX.ILLEGAL_DATA_VALUE, 'Requête d\'écriture de registres invalide')
+        throw new ModbusException(EX.ILLEGAL_DATA_VALUE, t('modbus.errors.invalidRegistersWrite'))
       }
       const values = []
       for (let i = 0; i < quantity; i++) values.push(pdu.readUInt16BE(6 + i * 2))
@@ -254,14 +256,14 @@ export function writeRequest(table, address, values, { forceMultiple = false } =
     values.forEach((v, i) => pdu.writeUInt16BE(v, 6 + i * 2))
     return pdu
   }
-  throw new Error('Cette table est en lecture seule (discrete inputs / input registers)')
+  throw new Error(t('modbus.errors.readOnlyTable'))
 }
 
 /** Analyse une réponse. Lève ModbusException si le serveur a répondu par une exception. */
 export function parseResponse(requestPdu, pdu, quantity) {
   const fc = pdu[0]
   if (fc === (requestPdu[0] | 0x80)) throw new ModbusException(pdu[1])
-  if (fc !== requestPdu[0]) throw new Error(`Réponse inattendue (code fonction ${fc})`)
+  if (fc !== requestPdu[0]) throw new Error(t('modbus.errors.unexpectedResponse', { fc }))
   switch (fc) {
     case FC.READ_COILS:
     case FC.READ_DISCRETE_INPUTS:

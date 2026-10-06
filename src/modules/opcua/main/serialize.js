@@ -1,4 +1,5 @@
 import { DataType } from 'node-opcua'
+import { t } from '../shared/i18n'
 
 /** Convertit une valeur OPC UA en valeur sérialisable par l'IPC Electron. */
 export function toPlain(value) {
@@ -37,7 +38,7 @@ export function coerce(raw, dataTypeName) {
     case 'Double':
     case 'Float': {
       const n = Number(raw)
-      if (Number.isNaN(n)) throw new Error(`Valeur numérique invalide : ${raw}`)
+      if (Number.isNaN(n)) throw new Error(t('errors.invalidNumber', { value: raw }))
       return n
     }
     case 'SByte':
@@ -47,12 +48,12 @@ export function coerce(raw, dataTypeName) {
     case 'Int32':
     case 'UInt32': {
       const n = Number(raw)
-      if (!Number.isInteger(n)) throw new Error(`Valeur entière invalide : ${raw}`)
+      if (!Number.isInteger(n)) throw new Error(t('errors.invalidInteger', { value: raw }))
       return n
     }
     case 'DateTime':
       return new Date(raw)
     default:
-      throw new Error(`Écriture non supportée pour le type ${dataTypeName}`)
+      throw new Error(t('opcua.errors.writeUnsupported', { type: dataTypeName }))
   }
 }

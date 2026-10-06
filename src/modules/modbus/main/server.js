@@ -7,6 +7,7 @@ import { decodeValue, encodeValue, pointSize, toBoolean } from '../shared/codec'
 import { DataStore } from './datastore'
 import { EX, FrameReader, ModbusException, buildResponse, encodeFrame, exceptionPdu, parseRequest } from './protocol'
 import { RateLimiter, buildAllowList, isAllowed, normalizeIp, resolveRole } from './security'
+import { t } from '../shared/i18n'
 
 const VALUES_EMIT_INTERVAL = 250
 const MAX_LOG = 300
@@ -14,16 +15,16 @@ export const SERVER_COMMON_NAME = 'MODBUS@Sulfur'
 
 /** Vérifie la cohérence d'un point (table, type, adresse) avec la taille de la mémoire. */
 export function validatePoint(def, size) {
-  if (!def.name?.trim()) throw new Error('Le nom du point est vide')
+  if (!def.name?.trim()) throw new Error(t('modbus.errors.emptyPointName'))
   const table = TABLES[def.table]
-  if (!table) throw new Error(`Table inconnue : ${def.table}`)
-  if (!(def.dataType in DATA_TYPES)) throw new Error(`Type inconnu : ${def.dataType}`)
+  if (!table) throw new Error(t('modbus.errors.unknownTable', { table: def.table }))
+  if (!(def.dataType in DATA_TYPES)) throw new Error(t('modbus.errors.unknownType', { type: def.dataType }))
   if (table.bit !== (def.dataType === 'Boolean')) {
-    throw new Error(`« ${def.name} » : le type ${def.dataType} n'est pas compatible avec la table ${table.label}`)
+    throw new Error(t('modbus.errors.incompatibleType', { name: def.name, type: def.dataType, table: table.label }))
   }
   const address = Number(def.address)
   if (!Number.isInteger(address) || address < 0 || address + pointSize(def.dataType) > size) {
-    throw new Error(`« ${def.name} » : adresse hors limites (0 à ${size - pointSize(def.dataType)})`)
+    throw new Error(t('modbus.errors.addressOutOfRange', { name: def.name, max: size - pointSize(def.dataType) }))
   }
 }
 
@@ -106,16 +107,16 @@ export class ModbusServer {
   // --- Démarrage / arrêt --------------------------------------------------------
 
   async start(config) {
-    if (this.server) throw new Error('Le serveur est déjà démarré')
+    if (this.server) throw new Error(t('errors.alreadyStarted'))
     const security = { ...DEFAULT_SERVER_SECURITY, ...config.security }
     const port = Number(config.port)
     const unitId = Number(config.unitId)
     const size = Number(config.size)
-    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Port invalide (1 à 65535)')
-    if (!Number.isInteger(unitId) || unitId < 0 || unitId > 255) throw new Error('Unit ID invalide (0 à 255)')
-    if (!Number.isInteger(size) || size < 1 || size > 65536) throw new Error('Taille mémoire invalide (1 à 65536)')
+    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(t('modbus.errors.invalidPort'))
+    if (!Number.isInteger(unitId) || unitId < 0 || unitId > 255) throw new Error(t('modbus.errors.invalidUnitId'))
+    if (!Number.isInteger(size) || size < 1 || size > 65536) throw new Error(t('modbus.errors.invalidSize'))
     if (security.mode === 'tls' && !(security.roles ?? []).length && !security.defaultRole) {
-      throw new Error('Mode TLS : définissez au moins un rôle autorisé')
+      throw new Error(t('modbus.errors.tlsNeedsRole'))
     }
     const allowList = buildAllowList(security.allowedIps)
     const points = config.points.map((p) => ({ ...p, id: p.id ?? randomUUID(), address: Number(p.address) }))
@@ -130,7 +131,7 @@ export class ModbusServer {
     for (const def of points) this.addPoint(def)
 
     const server = security.mode === 'tls' ? await this.createTlsServer(security) : net.createServer((s) => this.onPlainSocket(s))
-    server.on('error', (err) => this.log('error', `Erreur serveur : ${err.message}`))
+    server.on('error', (err) => this.log('error', t('modbus.log.serverError', { message: err.message })))
     try {
       await new Promise((resolve, reject) => {
         server.once('error', reject)
@@ -141,8 +142,8 @@ export class ModbusServer {
       })
     } catch (err) {
       this.reset()
-      if (err.code === 'EACCES') throw new Error(`Port ${port} : droits administrateur requis pour les ports < 1024 (502 / 802)`)
-      if (err.code === 'EADDRINUSE') throw new Error(`Le port ${port} est déjà utilisé`)
+      if (err.code === 'EACCES') throw new Error(t('modbus.errors.portPrivileged', { port }))
+      if (err.code === 'EADDRINUSE') throw new Error(t('modbus.errors.portInUse', { port }))
       throw err
     }
 
@@ -160,9 +161,13 @@ export class ModbusServer {
     }, VALUES_EMIT_INTERVAL)
     this.log(
       'info',
-      `Serveur démarré sur ${config.host || '0.0.0.0'}:${port} — ${
-        security.mode === 'tls' ? `Modbus/TCP Security (≥ ${security.minTlsVersion})` : 'Modbus TCP non chiffré'
-      }`
+      t('modbus.log.started', {
+        address: `${config.host || '0.0.0.0'}:${port}`,
+        transport:
+          security.mode === 'tls'
+            ? t('modbus.log.tlsTransport', { version: security.minTlsVersion })
+            : t('modbus.log.plainTransport')
+      })
     )
     this.onStatus(this.status())
     return this.status()
@@ -174,7 +179,7 @@ export class ModbusServer {
     this.reset()
     if (server) {
       await new Promise((resolve) => server.close(() => resolve()))
-      this.log('info', 'Serveur arrêté')
+      this.log('info', t('modbus.log.stopped'))
     }
     this.onStatus(this.status())
     return this.status()
@@ -206,7 +211,7 @@ export class ModbusServer {
     })
     server.on('secureConnection', (socket) => this.onTlsSocket(socket))
     server.on('tlsClientError', (err, socket) =>
-      this.log('warn', `Échec de négociation TLS avec ${normalizeIp(socket?.remoteAddress)} : ${err.message}`)
+      this.log('warn', t('modbus.log.tlsFailure', { ip: normalizeIp(socket?.remoteAddress), message: err.message }))
     )
     return server
   }
@@ -215,12 +220,12 @@ export class ModbusServer {
   admit(socket) {
     const ip = normalizeIp(socket.remoteAddress)
     if (!isAllowed(this.allowList, ip)) {
-      this.log('warn', `Connexion refusée : ${ip} n'est pas dans la liste des adresses autorisées`)
+      this.log('warn', t('modbus.log.ipRefused', { ip }))
       return false
     }
     const max = Number(this.security.maxConnections) || 0
     if (max > 0 && this.sessions.size >= max) {
-      this.log('warn', `Connexion refusée : ${ip} — nombre maximal de connexions atteint (${max})`)
+      this.log('warn', t('modbus.log.maxConnections', { ip, max }))
       return false
     }
     return true
@@ -236,7 +241,7 @@ export class ModbusServer {
     socket.on('error', () => {})
     const ip = normalizeIp(socket.remoteAddress)
     const refuse = (reason) => {
-      this.log('warn', `Connexion TLS refusée pour ${ip} : ${reason}`)
+      this.log('warn', t('modbus.log.tlsRefused', { ip, reason }))
       socket.destroy()
     }
     try {
@@ -244,16 +249,16 @@ export class ModbusServer {
       let certRole = null
       let commonName = null
       if (!peer) {
-        if (this.security.requireClientCertificate) return refuse('aucun certificat client présenté')
+        if (this.security.requireClientCertificate) return refuse(t('modbus.log.noClientCert'))
       } else {
         const check = await this.pki.checkPeer(peer, { autoAccept: !!this.security.autoAcceptCertificates })
         commonName = check.info.commonName
-        if (!check.ok) return refuse(`certificat « ${commonName} » ${check.reason} (à approuver dans les certificats du serveur)`)
-        if (check.accepted) this.log('info', `Certificat « ${commonName} » accepté automatiquement`)
+        if (!check.ok) return refuse(t('modbus.log.certNotTrusted', { name: commonName, reason: check.reason }))
+        if (check.accepted) this.log('info', t('modbus.log.certAccepted', { name: commonName }))
         certRole = check.info.role
       }
       const role = resolveRole(this.security, certRole)
-      if (!role) return refuse(certRole ? `rôle « ${certRole} » non autorisé` : 'certificat sans rôle Modbus et aucun rôle par défaut')
+      if (!role) return refuse(certRole ? t('modbus.log.roleRefused', { role: certRole }) : t('modbus.log.noRole'))
       if (!this.server || socket.destroyed) return socket.destroy()
       this.openSession(
         socket,
@@ -268,7 +273,7 @@ export class ModbusServer {
       )
       socket.resume()
     } catch (err) {
-      refuse(`erreur de vérification (${err.message})`)
+      refuse(t('modbus.log.verifyError', { message: err.message }))
     }
   }
 
@@ -294,14 +299,21 @@ export class ModbusServer {
     socket.on('data', (chunk) => this.onData(session, chunk))
     socket.on('close', () => {
       if (this.sessions.delete(session.id)) {
-        this.log('info', `Déconnexion de ${session.remote} (${session.requests} requête(s))`)
+        this.log('info', t('modbus.log.disconnected', { remote: session.remote, count: session.requests }))
         this.onStatus(this.status())
       }
     })
-    const who = tlsInfo
-      ? `${tlsInfo.protocol}, certificat « ${tlsInfo.commonName ?? 'aucun'} », rôle ${tlsInfo.role}`
-      : 'non chiffrée'
-    this.log('info', `Connexion de ${session.remote} (${who})`)
+    this.log(
+      'info',
+      tlsInfo
+        ? t('modbus.log.connectedTls', {
+            remote: session.remote,
+            protocol: tlsInfo.protocol,
+            name: tlsInfo.commonName ?? t('modbus.log.noCertificate'),
+            role: tlsInfo.role
+          })
+        : t('modbus.log.connectedPlain', { remote: session.remote })
+    )
     this.onStatus(this.status())
   }
 
@@ -310,7 +322,7 @@ export class ModbusServer {
     try {
       frames = session.reader.push(chunk)
     } catch (err) {
-      this.log('warn', `Trame invalide reçue de ${session.remote} : ${err.message} — connexion fermée`)
+      this.log('warn', t('modbus.log.invalidFrame', { remote: session.remote, message: err.message }))
       return session.socket.destroy()
     }
     for (const frame of frames) {
@@ -321,7 +333,7 @@ export class ModbusServer {
 
   deny(session, fc, code, message) {
     session.denied++
-    if (message) this.log('warn', `${session.remote} : ${message}`)
+    if (message) this.log('warn', t('modbus.log.denied', { remote: session.remote, message }))
     return exceptionPdu(fc, code)
   }
 
@@ -332,32 +344,32 @@ export class ModbusServer {
 
     if (session.limiter && !session.limiter.take()) {
       const now = Date.now()
-      const message = now - session.lastThrottleLog > 1000 ? 'limite de requêtes par seconde dépassée (exception 06)' : null
+      const message = now - session.lastThrottleLog > 1000 ? t('modbus.log.throttled') : null
       if (message) session.lastThrottleLog = now
       return this.deny(session, fc, EX.SERVER_DEVICE_BUSY, message)
     }
     if (!this.config.anyUnitId && unitId !== this.config.unitId) {
-      return this.deny(session, fc, EX.GATEWAY_TARGET_FAILED, `Unit ID ${unitId} inconnu (attendu ${this.config.unitId})`)
+      return this.deny(session, fc, EX.GATEWAY_TARGET_FAILED, t('modbus.log.unknownUnit', { unitId, expected: this.config.unitId }))
     }
 
     let req
     try {
       req = parseRequest(pdu)
     } catch (err) {
-      if (err instanceof ModbusException) return this.deny(session, fc, err.code, `requête rejetée : ${err.message}`)
+      if (err instanceof ModbusException) return this.deny(session, fc, err.code, t('modbus.log.rejected', { message: err.message }))
       throw err
     }
 
     if (req.write) {
-      if (this.security.readOnly) return this.deny(session, fc, EX.ILLEGAL_FUNCTION, 'écriture refusée (serveur en lecture seule)')
+      if (this.security.readOnly) return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.readOnly'))
       if (!session.permissions.write) {
-        return this.deny(session, fc, EX.ILLEGAL_FUNCTION, `écriture refusée (rôle ${session.tls?.role ?? '—'} sans droit d'écriture)`)
+        return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.noWrite', { role: session.tls?.role ?? '—' }))
       }
     } else if (!session.permissions.read) {
-      return this.deny(session, fc, EX.ILLEGAL_FUNCTION, `lecture refusée (rôle ${session.tls?.role ?? '—'} sans droit de lecture)`)
+      return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.noRead', { role: session.tls?.role ?? '—' }))
     }
     if (!this.store.inRange(req.address, req.quantity)) {
-      return this.deny(session, fc, EX.ILLEGAL_DATA_ADDRESS, `adresse hors limites (${req.table} ${req.address}+${req.quantity})`)
+      return this.deny(session, fc, EX.ILLEGAL_DATA_ADDRESS, t('modbus.log.outOfRange', { table: req.table, address: req.address, quantity: req.quantity }))
     }
 
     if (!req.write) return buildResponse(req, this.store.read(req.table, req.address, req.quantity))
@@ -370,7 +382,7 @@ export class ModbusServer {
     )
     const locked = touched.find((p) => !p.def.writable)
     if (locked) {
-      return this.deny(session, fc, EX.ILLEGAL_DATA_ADDRESS, `écriture refusée : le point « ${locked.def.name} » est protégé en écriture`)
+      return this.deny(session, fc, EX.ILLEGAL_DATA_ADDRESS, t('modbus.log.protectedPoint', { name: locked.def.name }))
     }
     this.store.write(req.table, req.address, req.values)
     for (const p of touched) p.value = this.readPoint(p.def)
@@ -382,8 +394,8 @@ export class ModbusServer {
   checkUnique(points) {
     points.forEach((a, i) => {
       points.slice(i + 1).forEach((b) => {
-        if (a.name === b.name) throw new Error(`Le point « ${a.name} » existe déjà`)
-        if (overlaps(a, b)) throw new Error(`Les points « ${a.name} » et « ${b.name} » se chevauchent`)
+        if (a.name === b.name) throw new Error(t('modbus.errors.pointExists', { name: a.name }))
+        if (overlaps(a, b)) throw new Error(t('modbus.errors.pointsOverlap', { a: a.name, b: b.name }))
       })
     })
   }
@@ -412,7 +424,7 @@ export class ModbusServer {
   }
 
   requireRunning() {
-    if (!this.server) throw new Error('Le serveur n\'est pas démarré')
+    if (!this.server) throw new Error(t('errors.notStarted'))
   }
 
   upsertPoint(def) {
@@ -443,9 +455,9 @@ export class ModbusServer {
   setValue(id, raw) {
     this.requireRunning()
     const entry = this.points.get(id)
-    if (!entry) throw new Error('Point inconnu')
+    if (!entry) throw new Error(t('modbus.errors.unknownPoint'))
     entry.value = TABLES[entry.def.table].bit ? toBoolean(raw) : Number(raw)
-    if (!TABLES[entry.def.table].bit && !Number.isFinite(entry.value)) throw new Error(`Valeur numérique invalide : ${raw}`)
+    if (!TABLES[entry.def.table].bit && !Number.isFinite(entry.value)) throw new Error(t('errors.invalidNumber', { value: raw }))
     this.writePoint(entry)
     this.onValues(this.values())
     return entry.value
@@ -454,7 +466,7 @@ export class ModbusServer {
   setUpdateRate(rate) {
     this.requireRunning()
     const n = Number(rate)
-    if (!Number.isFinite(n) || n < 10) throw new Error('Période minimale : 10 ms')
+    if (!Number.isFinite(n) || n < 10) throw new Error(t('errors.minPeriod', { min: 10 }))
     this.config = { ...this.config, updateRate: n }
     this.startSimulation()
     this.onStatus(this.status())
@@ -465,11 +477,11 @@ export class ModbusServer {
     clearInterval(this.simTimer)
     const dt = Number(this.config.updateRate) || 100
     this.simTimer = setInterval(() => {
-      const t = Date.now() - this.t0
+      const elapsed = Date.now() - this.t0
       for (const entry of this.points.values()) {
         const { def } = entry
         if (def.simulation === 'none') continue
-        let v = simulate(def, entry.value, t, dt)
+        let v = simulate(def, entry.value, elapsed, dt)
         if (def.dataType === 'Boolean' && typeof v !== 'boolean') v = v >= (def.min + def.max) / 2
         entry.value = v
         this.writePoint(entry)

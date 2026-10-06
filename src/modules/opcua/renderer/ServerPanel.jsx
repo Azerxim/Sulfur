@@ -4,6 +4,7 @@ import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select, StatusDot
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, SIMULATIONS } from '../shared/constants'
 import { opcuaApi } from './api'
 import ServerSecurity, { isSecurityValid } from './ServerSecurity'
+import { t } from '../shared/i18n'
 
 /** Délai avant d'envoyer au serveur les paramètres modifiés pendant qu'il tourne. */
 const LIVE_DEBOUNCE = 300
@@ -39,7 +40,7 @@ function LiveValue({ variable, value, onSet }) {
     return (
       <button
         onClick={() => onSet(!value)}
-        title="Basculer"
+        title={t('ui.toggle')}
         className={`h-9 w-full rounded-md border font-mono text-sm transition-colors ${
           value ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-ink-700 bg-ink-950 text-slate-400'
         }`}
@@ -127,20 +128,30 @@ export default function ServerPanel({ status }) {
   const invalid =
     duplicates.length > 0 || config.variables.some((v) => !v.name.trim()) || !isSecurityValid(config.security)
 
-  const headers = ['Nom', 'Type', running ? 'Valeur courante' : 'Valeur initiale', 'Simulation', 'Période (ms)', 'Min', 'Max', 'Écriture', '']
+  const headers = [
+    t('ui.name'),
+    t('ui.type'),
+    running ? t('ui.currentValue') : t('ui.initialValue'),
+    t('ui.simulation'),
+    t('ui.periodMs'),
+    t('ui.min'),
+    t('ui.max'),
+    t('ui.write'),
+    ''
+  ]
 
   return (
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
       <Card
         id="opcua.server.config"
-        title="Configuration du serveur"
+        title={t('opcua.server.title')}
         className="shrink-0"
         actions={
           <>
-            <StatusDot on={running} label={running ? `En marche · ${status.sessions ?? 0} session(s)` : 'Arrêté'} />
+            <StatusDot on={running} label={running ? t('opcua.server.running', { count: status.sessions ?? 0 }) : t('ui.stopped')} />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(opcuaApi.server.stop)}>
-                <Square className="size-3.5" /> Arrêter
+                <Square className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -149,7 +160,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy || invalid}
                 onClick={() => run(() => opcuaApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? 'Démarrage…' : 'Démarrer'}
+                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -157,7 +168,7 @@ export default function ServerPanel({ status }) {
       >
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-4 gap-4">
-            <Field label="Port">
+            <Field label={t('opcua.server.port')}>
               <Input
                 type="number"
                 value={config.port}
@@ -165,21 +176,21 @@ export default function ServerPanel({ status }) {
                 onChange={(e) => update({ port: Number(e.target.value) })}
               />
             </Field>
-            <Field label="Chemin de ressource">
+            <Field label={t('opcua.server.resourcePath')}>
               <Input
                 value={config.resourcePath}
                 disabled={running || busy}
                 onChange={(e) => update({ resourcePath: e.target.value })}
               />
             </Field>
-            <Field label="Dossier racine">
+            <Field label={t('opcua.server.rootFolder')}>
               <Input
                 value={config.rootFolder}
                 disabled={running || busy}
                 onChange={(e) => update({ rootFolder: e.target.value })}
               />
             </Field>
-            <Field label="Période de simulation (ms)">
+            <Field label={t('ui.simulationRate')}>
               <CommitInput
                 type="number"
                 min={10}
@@ -200,7 +211,7 @@ export default function ServerPanel({ status }) {
                 variant="ghost"
                 size="icon"
                 className="ml-auto"
-                title="Copier"
+                title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpointUrl)}
               >
                 <Copy className="size-3.5" />
@@ -220,13 +231,13 @@ export default function ServerPanel({ status }) {
 
       <Card
         id="opcua.server.variables"
-        title={`Variables simulées (${config.variables.length})`}
+        title={t('opcua.server.variables', { count: config.variables.length })}
         className="min-h-72 flex-1"
         actions={
           <>
-            {running && <span className="text-xs text-slate-500">Modifications appliquées en direct</span>}
+            {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" disabled={busy} onClick={addVar}>
-              <Plus className="size-3.5" /> Ajouter
+              <Plus className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -249,7 +260,7 @@ export default function ServerPanel({ status }) {
                     <CommitInput
                       value={v.name}
                       disabled={busy}
-                      title={running ? 'Renommer recrée le nœud (son NodeId change)' : undefined}
+                      title={running ? t('ui.renameRecreates') : undefined}
                       className={duplicates.includes(v.name) || !v.name.trim() ? 'border-red-500/60' : ''}
                       onCommit={(name) => updateVar(v.id, { name: name.trim() }, { immediate: true })}
                     />
@@ -258,11 +269,11 @@ export default function ServerPanel({ status }) {
                     <Select
                       value={v.dataType}
                       disabled={busy}
-                      title={running ? 'Changer le type recrée le nœud' : undefined}
+                      title={running ? t('ui.typeRecreates') : undefined}
                       onChange={(e) => updateVar(v.id, { dataType: e.target.value }, { immediate: true })}
                     >
-                      {DATA_TYPES.map((t) => (
-                        <option key={t}>{t}</option>
+                      {DATA_TYPES.map((type) => (
+                        <option key={type}>{type}</option>
                       ))}
                     </Select>
                   </td>
@@ -283,9 +294,9 @@ export default function ServerPanel({ status }) {
                       disabled={busy}
                       onChange={(e) => updateVar(v.id, { simulation: e.target.value }, { immediate: true })}
                     >
-                      {Object.entries(SIMULATIONS).map(([k, label]) => (
+                      {SIMULATIONS.map((k) => (
                         <option key={k} value={k}>
-                          {label}
+                          {t(`simulations.${k}`)}
                         </option>
                       ))}
                     </Select>
@@ -310,7 +321,7 @@ export default function ServerPanel({ status }) {
                     />
                   </td>
                   <td className="p-1.5">
-                    <Button variant="ghost" size="icon" disabled={busy} onClick={() => removeVar(v.id)} title="Supprimer">
+                    <Button variant="ghost" size="icon" disabled={busy} onClick={() => removeVar(v.id)} title={t('ui.remove')}>
                       <Trash2 className="size-3.5" />
                     </Button>
                   </td>

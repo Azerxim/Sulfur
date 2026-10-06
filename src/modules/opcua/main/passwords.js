@@ -1,5 +1,6 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from 'crypto'
 import { promisify } from 'util'
+import { t } from '../shared/i18n'
 
 const scrypt = promisify(scryptCb)
 const KEY_LENGTH = 32
@@ -9,7 +10,7 @@ const KEY_LENGTH = 32
  * Format stocké : `scrypt$<sel base64>$<empreinte base64>` — le mot de passe en clair n'est jamais conservé.
  */
 export async function hashPassword(password) {
-  if (typeof password !== 'string' || !password) throw new Error('Le mot de passe est vide')
+  if (typeof password !== 'string' || !password) throw new Error(t('errors.emptyPassword'))
   const salt = randomBytes(16)
   const key = await scrypt(password.normalize('NFKC'), salt, KEY_LENGTH)
   return `scrypt$${salt.toString('base64')}$${key.toString('base64')}`

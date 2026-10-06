@@ -7,13 +7,8 @@ export const OPCUA_MODULE = {
 export const DATA_TYPES = ['Double', 'Float', 'Int32', 'UInt32', 'Int16', 'Boolean', 'String']
 
 /** Générateurs de valeurs disponibles pour les variables simulées. */
-export const SIMULATIONS = {
-  none: 'Statique',
-  sine: 'Sinus',
-  ramp: 'Rampe',
-  random: 'Aléatoire',
-  toggle: 'Bascule'
-}
+/** Générateurs de valeurs (libellés : simulations.*). */
+export const SIMULATIONS = ['none', 'sine', 'ramp', 'random', 'toggle']
 
 export const SECURITY_MODES = {
   None: 'Aucune',
@@ -26,9 +21,12 @@ export const SECURITY_POLICIES = {
   Basic256Sha256: 'Basic256Sha256',
   Aes128_Sha256_RsaOaep: 'Aes128-Sha256-RsaOaep',
   Aes256_Sha256_RsaPss: 'Aes256-Sha256-RsaPss',
-  Basic256: 'Basic256 (obsolète)',
-  Basic128Rsa15: 'Basic128Rsa15 (obsolète)'
+  Basic256: 'Basic256',
+  Basic128Rsa15: 'Basic128Rsa15'
 }
+
+/** Politiques conservées pour la compatibilité mais déconseillées. */
+export const DEPRECATED_POLICIES = ['Basic256', 'Basic128Rsa15']
 
 export const DEFAULT_SERVER_SECURITY = {
   modes: ['None', 'Sign', 'SignAndEncrypt'],

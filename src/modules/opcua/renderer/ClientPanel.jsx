@@ -5,9 +5,11 @@ import { DEFAULT_CLIENT_SECURITY, ROOT_NODES } from '../shared/constants'
 import { opcuaApi } from './api'
 import NodeTree from './NodeTree'
 import ClientSecurity from './ClientSecurity'
+import { getLocale } from '@shared/i18n'
+import { t } from '../shared/i18n'
 
 const formatValue = (v) => (v === null || v === undefined ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v))
-const formatTime = (iso) => (iso ? new Date(iso).toLocaleTimeString('fr-FR', { hour12: false }) + '.' + iso.slice(20, 23) : '—')
+const formatTime = (iso) => (iso ? new Date(iso).toLocaleTimeString(getLocale(), { hour12: false }) + '.' + iso.slice(20, 23) : '—')
 
 export default function ClientPanel({ status, serverEndpoint }) {
   const [endpoint, setEndpoint] = useState('opc.tcp://localhost:4840/UA/Sulfur')
@@ -89,24 +91,26 @@ export default function ClientPanel({ status, serverEndpoint }) {
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
       <Card
         id="opcua.client.connection"
-        title="Connexion"
+        title={t('ui.connection')}
         className="shrink-0"
         actions={
           <StatusDot
             on={connected}
             label={
               connected && status.security
-                ? `Connecté · ${status.security.mode}${status.security.mode !== 'None' ? ` / ${status.security.policy}` : ''}`
+                ? t('opcua.client.connectedWith', {
+                    security: `${status.security.mode}${status.security.mode !== 'None' ? ` / ${status.security.policy}` : ''}`
+                  })
                 : connected
-                  ? 'Connecté'
-                  : 'Déconnecté'
+                  ? t('ui.connected')
+                  : t('ui.disconnected')
             }
           />
         }
       >
         <div className="flex flex-col gap-3">
           <div className="flex items-end gap-3">
-            <Field label="Endpoint" className="flex-1">
+            <Field label={t('opcua.client.endpoint')} className="flex-1">
               <Input
                 className="font-mono"
                 value={endpoint}
@@ -117,11 +121,11 @@ export default function ClientPanel({ status, serverEndpoint }) {
             </Field>
             {connected ? (
               <Button variant="danger" disabled={busy} onClick={() => run(opcuaApi.client.disconnect)}>
-                <Plug className="size-4" /> Déconnecter
+                <Plug className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button variant="primary" disabled={busy || !endpoint} onClick={() => run(() => opcuaApi.client.connect(endpoint, security))}>
-                <PlugZap className="size-4" /> {busy ? 'Connexion…' : 'Connecter'}
+                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
@@ -139,9 +143,9 @@ export default function ClientPanel({ status, serverEndpoint }) {
       <div className="grid min-h-96 flex-1 grid-cols-[minmax(260px,1fr)_2fr] gap-4">
         <Card
           id="opcua.client.tree"
-          title="Espace d'adressage"
+          title={t('opcua.client.addressSpace')}
           actions={
-            <Button variant="ghost" size="icon" disabled={!connected} title="Recharger" onClick={() => setTreeKey((k) => k + 1)}>
+            <Button variant="ghost" size="icon" disabled={!connected} title={t('opcua.client.reload')} onClick={() => setTreeKey((k) => k + 1)}>
               <RefreshCw className="size-3.5" />
             </Button>
           }
@@ -150,7 +154,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
             {connected ? (
               <NodeTree key={treeKey} roots={ROOT_NODES} selectedId={selected?.nodeId} onSelect={select} />
             ) : (
-              <p className="text-sm text-slate-500">Connectez-vous pour parcourir les nœuds.</p>
+              <p className="text-sm text-slate-500">{t('opcua.client.connectToBrowse')}</p>
             )}
           </div>
         </Card>
@@ -158,23 +162,23 @@ export default function ClientPanel({ status, serverEndpoint }) {
         <div className="flex min-h-0 flex-col gap-4">
           <Card
             id="opcua.client.node"
-            title="Nœud sélectionné"
+            title={t('opcua.client.selectedNode')}
             actions={
               details && (
                 <>
                   <Button variant="ghost" size="sm" onClick={refresh}>
-                    <RefreshCw className="size-3.5" /> Lire
+                    <RefreshCw className="size-3.5" /> {t('opcua.client.read')}
                   </Button>
                   <Button size="sm" onClick={toggleMonitor}>
                     {isMonitored ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                    {isMonitored ? 'Ne plus surveiller' : 'Surveiller'}
+                    {isMonitored ? t('opcua.client.unmonitor') : t('opcua.client.monitor')}
                   </Button>
                 </>
               )
             }
           >
             {!selected ? (
-              <p className="text-sm text-slate-500">Sélectionnez un nœud dans l'arborescence.</p>
+              <p className="text-sm text-slate-500">{t('opcua.client.selectNode')}</p>
             ) : (
               <div className="flex flex-col gap-4">
                 <dl className="grid grid-cols-[120px_1fr] gap-x-4 gap-y-1.5 text-sm">
@@ -182,24 +186,24 @@ export default function ClientPanel({ status, serverEndpoint }) {
                   <dd className="font-mono break-all text-slate-200">{selected.nodeId}</dd>
                   <dt className="text-slate-500">BrowseName</dt>
                   <dd className="font-mono text-slate-200">{selected.browseName}</dd>
-                  <dt className="text-slate-500">Classe</dt>
+                  <dt className="text-slate-500">{t('opcua.client.nodeClass')}</dt>
                   <dd className="text-slate-200">{selected.nodeClass}</dd>
                   {details && (
                     <>
-                      <dt className="text-slate-500">Valeur</dt>
+                      <dt className="text-slate-500">{t('ui.value')}</dt>
                       <dd className="font-mono break-all text-sulfur-300">{formatValue(details.value)}</dd>
-                      <dt className="text-slate-500">Type</dt>
+                      <dt className="text-slate-500">{t('ui.type')}</dt>
                       <dd className="text-slate-200">{details.dataType}</dd>
-                      <dt className="text-slate-500">Statut</dt>
+                      <dt className="text-slate-500">{t('ui.status')}</dt>
                       <dd className="text-slate-200">{details.statusCode}</dd>
-                      <dt className="text-slate-500">Horodatage</dt>
+                      <dt className="text-slate-500">{t('ui.timestamp')}</dt>
                       <dd className="text-slate-200">{formatTime(details.sourceTimestamp)}</dd>
                     </>
                   )}
                 </dl>
                 {details?.writable && (
                   <div className="flex items-end gap-2">
-                    <Field label="Nouvelle valeur" className="flex-1">
+                    <Field label={t('opcua.client.newValue')} className="flex-1">
                       <Input
                         className="font-mono"
                         value={writeValue}
@@ -208,7 +212,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
                       />
                     </Field>
                     <Button variant="primary" disabled={busy} onClick={write}>
-                      <Send className="size-4" /> Écrire
+                      <Send className="size-4" /> {t('opcua.client.write')}
                     </Button>
                   </div>
                 )}
@@ -216,18 +220,18 @@ export default function ClientPanel({ status, serverEndpoint }) {
             )}
           </Card>
 
-          <Card id="opcua.client.monitoring" title={`Surveillance (${status.monitored?.length ?? 0})`} className="flex-1">
+          <Card id="opcua.client.monitoring" title={t('ui.monitoring', { count: status.monitored?.length ?? 0 })} className="flex-1">
             <div className="h-full overflow-auto">
               {!status.monitored?.length ? (
-                <p className="text-sm text-slate-500">Aucune variable surveillée.</p>
+                <p className="text-sm text-slate-500">{t('opcua.client.noMonitored')}</p>
               ) : (
                 <table className="w-full text-sm">
                   <thead className="text-left text-xs text-slate-500">
                     <tr>
                       <th className="pb-2 font-medium">NodeId</th>
-                      <th className="pb-2 font-medium">Valeur</th>
-                      <th className="pb-2 font-medium">Statut</th>
-                      <th className="pb-2 font-medium">Horodatage</th>
+                      <th className="pb-2 font-medium">{t('ui.value')}</th>
+                      <th className="pb-2 font-medium">{t('ui.status')}</th>
+                      <th className="pb-2 font-medium">{t('ui.timestamp')}</th>
                       <th />
                     </tr>
                   </thead>
@@ -244,7 +248,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
                             <Button
                               variant="ghost"
                               size="icon"
-                              title="Retirer"
+                              title={t('ui.remove2')}
                               onClick={() => run(() => opcuaApi.client.unsubscribe(nodeId).then(() => dropLive(nodeId)))}
                             >
                               <X className="size-3.5" />

@@ -25,32 +25,12 @@ export const DATA_TYPES = {
 
 export const REGISTER_TYPES = Object.keys(DATA_TYPES).filter((t) => DATA_TYPES[t] > 0)
 
-/** Ordre des mots / octets pour les valeurs sur plusieurs registres. */
-export const WORD_ORDERS = {
-  ABCD: 'ABCD (big-endian)',
-  CDAB: 'CDAB (mots inversés)',
-  BADC: 'BADC (octets inversés)',
-  DCBA: 'DCBA (little-endian)'
-}
+/** Ordre des mots / octets pour les valeurs sur plusieurs registres (libellés : modbus.wordOrders.*). */
+export const WORD_ORDERS = ['ABCD', 'CDAB', 'BADC', 'DCBA']
 
-export const SIMULATIONS = {
-  none: 'Statique',
-  sine: 'Sinus',
-  ramp: 'Rampe',
-  random: 'Aléatoire',
-  toggle: 'Bascule'
-}
+/** Générateurs de valeurs (libellés : simulations.*). */
+export const SIMULATIONS = ['none', 'sine', 'ramp', 'random', 'toggle']
 
-export const EXCEPTIONS = {
-  1: 'Fonction illégale ou non autorisée',
-  2: 'Adresse de données illégale',
-  3: 'Valeur de données illégale',
-  4: 'Défaillance de l\'équipement serveur',
-  5: 'Acquittement',
-  6: 'Équipement serveur occupé',
-  10: 'Chemin de passerelle indisponible',
-  11: 'La cible de la passerelle ne répond pas (Unit ID inconnu)'
-}
 
 /** OID de l'extension « rôle » des certificats Modbus/TCP Security. */
 export const MODBUS_ROLE_OID = '1.3.6.1.4.1.50316.802.1'

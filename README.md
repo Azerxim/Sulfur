@@ -1,6 +1,7 @@
 # Sulfur
 
 Application de simulation modulaire — Electron + React (JavaScript) + TailwindCSS v4.
+Interface en anglais (par défaut) et en français, thème sombre (par défaut) ou clair.
 
 ## Démarrage
 
@@ -25,9 +26,11 @@ src/
 │   └── src/
 │       ├── App.jsx       # Shell (sidebar + module actif)
 │       ├── components/   # Composants UI partagés (Card, CertificatesDialog…)
-│       ├── pages/        # Pages de l'application (Informations…)
+│       ├── pages/        # Pages de l'application (Informations, Paramètres)
+│       ├── preferences.jsx # Langue et thème (useI18n, usePreferences)
 │       └── modules.js    # ← liste des modules "renderer"
-├── shared/               # Code commun main/renderer (simulateur de valeurs…)
+├── shared/               # Code commun main/renderer (i18n, langues, simulateur…)
+│   └── locales/          # Textes communs (fr.js, en.js)
 └── modules/              # Modules de simulation
     ├── opcua/
     │   ├── main/         # Serveur + client node-opcua
@@ -39,6 +42,30 @@ src/
         └── shared/       # Constantes + encodage des valeurs (codec)
 ```
 
+## Langues et thème
+
+La langue et le thème se choisissent dans **Paramètres** (mémorisés, y compris par le process principal
+pour ouvrir la fenêtre directement dans le bon thème). La langue s'applique à l'interface et aux messages
+produits par le process principal (erreurs, journaux des serveurs). Par défaut : anglais, thème sombre.
+
+- Les textes sont rangés par dictionnaire : `src/shared/locales/` (application) et
+  `src/modules/<id>/shared/locales/` (chaque module, clés préfixées par l'identifiant du module).
+- Dans le code : `t('ui.monitoring', { count: 3 })`. Côté React, `const { t } = useI18n()`.
+  Dans un module, utiliser le `t` de `src/modules/<id>/shared/i18n.js`.
+- Une clé absente d'une langue est affichée en anglais.
+- Un module qui ne fournit pas la langue choisie est affiché **entièrement en anglais** (textes communs
+  compris), sans mélange de langues.
+
+**Ajouter une langue** (ex. allemand) :
+
+1. déclarer `de: { label: 'Deutsch', locale: 'de-DE' }` dans `src/shared/languages.js` ;
+2. créer `de.js` à côté de chaque `fr.js` (`src/shared/locales/` et `src/modules/*/shared/locales/`) ;
+3. l'enregistrer dans le `index.js` voisin : `registerMessages({ fr, en, de })`.
+
+Le **thème clair** redéfinit les variables de couleurs Tailwind (`ink`, `slate`, accents) sous
+`:root[data-theme='light']` dans `src/renderer/src/index.css` : les composants n'ont pas de classes
+spécifiques au thème. Le texte posé sur la couleur d'accent utilise `text-on-accent`.
+
 ### Ajouter un module
 
 1. Créer `src/modules/<id>/` avec `main/index.js`, `renderer/index.js` et `shared/`.
@@ -48,6 +75,9 @@ src/
 3. **Renderer** : exporter `{ manifest, icon, Component }` (icône `lucide-react`).
    - `window.sulfur.invoke('<id>:action', ...args)` / `window.sulfur.on('<id>:event', fn)`
 4. Enregistrer le module dans `src/main/modules.js` et `src/renderer/src/modules.js`.
+5. Fournir ses textes dans `shared/locales/` (au minimum `en.js`, puis `index.js` :
+   `registerMessages({ en, fr }, '<id>')`) et un `shared/i18n.js` exportant `t = moduleT('<id>')`.
+   Le nom et la description affichés viennent des clés `<id>.name` / `<id>.description`.
 
 ## Module OPC UA
 

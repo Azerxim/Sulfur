@@ -1,4 +1,5 @@
 import net from 'net'
+import { t } from '../shared/i18n'
 
 /** '::ffff:192.168.1.10' → '192.168.1.10' */
 export const normalizeIp = (ip = '') => (ip.startsWith('::ffff:') ? ip.slice(7) : ip)
@@ -14,13 +15,13 @@ export function buildAllowList(entries = []) {
   for (const entry of clean) {
     const [address, prefix] = entry.split('/')
     const type = net.isIPv4(address) ? 'ipv4' : net.isIPv6(address) ? 'ipv6' : null
-    if (!type) throw new Error(`Adresse autorisée invalide : « ${entry} »`)
+    if (!type) throw new Error(t('modbus.errors.invalidAllowedIp', { entry }))
     if (prefix === undefined) {
       list.addAddress(address, type)
     } else {
       const bits = Number(prefix)
       const max = type === 'ipv4' ? 32 : 128
-      if (!Number.isInteger(bits) || bits < 0 || bits > max) throw new Error(`Masque invalide : « ${entry} »`)
+      if (!Number.isInteger(bits) || bits < 0 || bits > max) throw new Error(t('modbus.errors.invalidMask', { entry }))
       list.addSubnet(address, bits, type)
     }
   }

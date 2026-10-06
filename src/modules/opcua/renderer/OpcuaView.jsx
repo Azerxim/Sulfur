@@ -4,6 +4,7 @@ import { Tabs } from '@renderer/components/ui'
 import { opcuaApi } from './api'
 import ServerPanel from './ServerPanel'
 import ClientPanel from './ClientPanel'
+import { t } from '../shared/i18n'
 
 const dot = (on) => <span className={`size-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-slate-600'}`} />
 
@@ -25,8 +26,8 @@ export default function OpcuaView() {
         value={tab}
         onChange={setTab}
         tabs={[
-          { id: 'server', label: 'Serveur', icon: Server, badge: dot(serverStatus.running) },
-          { id: 'client', label: 'Client', icon: MonitorSmartphone, badge: dot(clientStatus.connected) }
+          { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
+          { id: 'client', label: t('ui.client'), icon: MonitorSmartphone, badge: dot(clientStatus.connected) }
         ]}
       />
       {/* Les deux panneaux restent montés pour conserver leur état local. */}
