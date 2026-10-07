@@ -6,9 +6,33 @@ export const OPCUA_MODULE = {
 
 export const DATA_TYPES = ['Double', 'Float', 'Int32', 'UInt32', 'Int16', 'Boolean', 'String']
 
-/** Générateurs de valeurs disponibles pour les variables simulées. */
+/** Types sur lesquels une alarme à seuils peut porter. */
+export const NUMERIC_TYPES = DATA_TYPES.filter((type) => !['Boolean', 'String'].includes(type))
+
 /** Générateurs de valeurs (libellés : simulations.*). */
 export const SIMULATIONS = ['none', 'sine', 'ramp', 'random', 'toggle']
+
+/** Comportements des méthodes simulées (libellés : opcua.methods.behaviors.*). */
+export const METHOD_BEHAVIORS = ['echo', 'variables', 'fail']
+
+/** Codes d'état renvoyés par une méthode en échec. */
+export const METHOD_FAILURES = [
+  'BadInvalidArgument',
+  'BadOutOfRange',
+  'BadInvalidState',
+  'BadUserAccessDenied',
+  'BadNotImplemented',
+  'BadInternalError'
+]
+
+/** Seuils d'une alarme, du plus haut au plus bas (vides = absents). */
+export const ALARM_LIMITS = ['highHigh', 'high', 'low', 'lowLow']
+
+/** Nombre de valeurs conservées par variable historisée. */
+export const HISTORY_MAX_VALUES = 10000
+
+/** Durées proposées pour la lecture d'historique côté client (ms). */
+export const HISTORY_RANGES = [60_000, 600_000, 3_600_000, 86_400_000]
 
 export const SECURITY_MODES = {
   None: 'Aucune',
@@ -64,7 +88,8 @@ export const DEFAULT_SERVER_CONFIG = {
       period: 10000,
       min: 15,
       max: 25,
-      writable: true
+      writable: true,
+      historizing: true
     },
     {
       id: 'var-2',
@@ -109,7 +134,33 @@ export const DEFAULT_SERVER_CONFIG = {
       min: 0,
       max: 0,
       writable: true
+    },
+    {
+      id: 'var-6',
+      name: 'Levels',
+      dataType: 'Double',
+      arrayLength: 4,
+      initialValue: '0, 0, 0, 0',
+      simulation: 'sine',
+      period: 8000,
+      min: 0,
+      max: 100,
+      writable: true
     }
+  ],
+  structures: [],
+  methods: [
+    {
+      id: 'method-1',
+      name: 'SetLabel',
+      inputs: [{ name: 'Label', dataType: 'String', array: false }],
+      outputs: [{ name: 'Counter', dataType: 'Int32', array: false }],
+      behavior: 'variables',
+      statusCode: 'BadInvalidArgument'
+    }
+  ],
+  alarms: [
+    { id: 'alarm-1', name: 'TemperatureAlarm', variable: 'var-1', highHigh: 24.5, high: 23, low: '', lowLow: '' }
   ]
 }
 

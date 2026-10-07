@@ -134,6 +134,8 @@ export default {
       }
     },
     log: {
+      faultCut: 'Connexion de {ip} refusée : coupure simulée',
+      faultCutAll: 'Coupure simulée : connexions fermées',
       started: 'Serveur démarré sur {address} — {transport}',
       tlsTransport: 'Modbus/TCP Security (≥ {version})',
       plainTransport: 'Modbus TCP non chiffré',
@@ -165,6 +167,7 @@ export default {
       protectedPoint: 'écriture refusée : le point « {name} » est protégé en écriture'
     },
     errors: {
+      unknownWatch: 'Surveillance inconnue',
       emptyPointName: 'Le nom du point est vide',
       unknownTable: 'Table inconnue : {table}',
       unknownType: 'Type inconnu : {type}',

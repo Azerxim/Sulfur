@@ -36,12 +36,12 @@ Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 
 Rendre les simulateurs plus utiles pour tester des équipements et logiciels réels.
 
-- [ ] **Injection de défauts** : délais de réponse, coupures de connexion, exceptions forcées (Modbus) ou
+- [x] **Injection de défauts** : délais de réponse, coupures de connexion, exceptions forcées (Modbus) ou
   codes d'état d'erreur (OPC UA), pour tester le comportement des clients en cas de problème.
-- [ ] **Scénarios** : enchaîner des évolutions de valeurs dans le temps (scriptées ou enregistrées) et
-  les rejouer.
-- [ ] **Courbes et enregistrement** : graphiques des valeurs surveillées, export CSV.
-- [ ] **OPC UA** : tableaux et types structurés, méthodes, événements et alarmes, lecture d'historique,
+- [x] **Scénarios** : enchaîner des évolutions de valeurs dans le temps (scriptées ou enregistrées) et
+  les rejouer (module Simulateur, comme l'injection de défauts).
+- [x] **Courbes et enregistrement** : graphiques des valeurs surveillées, export CSV (module Courbes).
+- [x] **OPC UA** : tableaux et types structurés, méthodes, événements et alarmes, lecture d'historique,
   import d'espace d'adressage (NodeSet2 XML).
 - [ ] **Modbus** : explorateur de registres côté serveur, plusieurs Unit ID sur un même serveur
   (simulation de passerelle), identification de l'équipement (fonction 43 / 14), lecture/écriture
@@ -89,7 +89,6 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 
 ## Limites connues
 
-- Appliquer une simulation numérique (sinus, rampe…) à une variable OPC UA de type `String` échoue.
 - Les champs numériques utilisent le séparateur décimal du système, quelle que soit la langue de
   l'interface.
 - Au tout premier lancement après avoir choisi le thème clair dans une version antérieure, la fenêtre

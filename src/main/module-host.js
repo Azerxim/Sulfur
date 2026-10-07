@@ -7,6 +7,10 @@ import { ConfigStore } from './config-store'
  *  - ctx.handle(action, fn) : enregistre un handler `<moduleId>:<action>` appelable depuis le renderer
  *  - ctx.emit(event, payload) : diffuse un événement `<moduleId>:<event>` à toutes les fenêtres
  *  - ctx.dataDir : dossier de données persistant propre au module
+ *  - ctx.config() : configuration enregistrée du module (voir ci-dessous)
+ *  - ctx.expose(api) : publie les points de données du module pour les autres modules
+ *    (contrat décrit dans `@shared/points`)
+ *  - ctx.peers() : points publiés par les autres modules, [{ id, api }]
  *  - ctx.log(...args)
  *
  * Chaque module dispose aussi d'une configuration enregistrée (`<dataDir>/config.json`), lue et écrite
@@ -18,12 +22,15 @@ export class ModuleHost {
   modules = []
   /** Configurations enregistrées, par identifiant de module. */
   configs = new Map()
+  /** Points publiés par les modules (ctx.expose), par identifiant de module. */
+  apis = new Map()
 
   async load(modules) {
     for (const mod of modules) {
       const ctx = this.createContext(mod.manifest.id)
       const config = new ConfigStore(join(ctx.dataDir, 'config.json'))
       this.configs.set(mod.manifest.id, config)
+      ctx.config = () => config.get()
       ctx.handle('config:load', () => config.get())
       ctx.handle('config:save', (section, value) => config.set(section, value))
       ctx.handle('config:reset', () => config.replace({}))
@@ -45,8 +52,16 @@ export class ModuleHost {
   }
 
   createContext(id) {
+    const apis = this.apis
     return {
       dataDir: join(app.getPath('userData'), 'modules', id),
+      config: () => ({}),
+      expose(api) {
+        apis.set(id, api)
+      },
+      peers() {
+        return [...apis].filter(([peer]) => peer !== id).map(([peer, api]) => ({ id: peer, api }))
+      },
       handle(action, fn) {
         ipcMain.handle(`${id}:${action}`, async (_e, ...args) => {
           try {

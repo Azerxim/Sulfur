@@ -5,6 +5,7 @@ import '../shared/locales'
 import { ModbusPki } from './pki'
 import { ModbusServer } from './server'
 import { ModbusClient } from './client'
+import { createPointsApi } from './points'
 import { t } from '../shared/i18n'
 
 let server = null
@@ -33,6 +34,8 @@ export const modbusMainModule = {
       onStatus: (status) => ctx.emit('client:status', status),
       onData: (data) => ctx.emit('client:data', data)
     })
+
+    ctx.expose(createPointsApi({ server, client, savedConfig: ctx.config }))
 
     ctx.handle('server:status', () => server.status())
     ctx.handle('server:start', (config) => server.start(config))

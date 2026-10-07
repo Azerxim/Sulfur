@@ -10,10 +10,14 @@ import opcuaEn from '@modules/opcua/shared/locales/en'
 import opcuaFr from '@modules/opcua/shared/locales/fr'
 import modbusEn from '@modules/modbus/shared/locales/en'
 import modbusFr from '@modules/modbus/shared/locales/fr'
+import simulatorEn from '@modules/simulator/shared/locales/en'
+import simulatorFr from '@modules/simulator/shared/locales/fr'
+import trendsEn from '@modules/trends/shared/locales/en'
+import trendsFr from '@modules/trends/shared/locales/fr'
 
 const dictionaries = {
-  en: { ...coreEn, ...opcuaEn, ...modbusEn },
-  fr: { ...coreFr, ...opcuaFr, ...modbusFr }
+  en: { ...coreEn, ...opcuaEn, ...modbusEn, ...simulatorEn, ...trendsEn },
+  fr: { ...coreFr, ...opcuaFr, ...modbusFr, ...simulatorFr, ...trendsFr }
 }
 
 const flatten = (obj, prefix = '') =>

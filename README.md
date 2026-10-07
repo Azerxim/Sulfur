@@ -23,7 +23,7 @@ npm run format     # formatting (Prettier)
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
-certificates) plus unit tests: OPC UA security and live editing, Modbus TCP and Modbus/TCP Security,
+certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, fault injection, scenarios and trend recording on both protocols,
 protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
@@ -98,16 +98,19 @@ src/
 │       ├── module-config.js # Saved module settings (usePersistentState)
 │       └── modules.js    # ← list of "renderer" modules
 ├── shared/               # Code shared by main/renderer (i18n, languages, simulator…)
+│   ├── points.js         # Data points shared between modules (contract)
 │   └── locales/          # Common strings (en.js, fr.js)
 └── modules/              # Simulation modules
     ├── opcua/
     │   ├── main/         # node-opcua server + client
     │   ├── renderer/     # Module React interface
     │   └── shared/       # Shared constants
-    └── modbus/
-        ├── main/         # Protocol, server, client, PKI, security
-        ├── renderer/     # Module React interface
-        └── shared/       # Constants + value encoding (codec)
+    ├── modbus/
+    │   ├── main/         # Protocol, server, client, PKI, security
+    │   ├── renderer/     # Module React interface
+    │   └── shared/       # Constants + value encoding (codec)
+    ├── simulator/        # Fault injection and scenarios (uses the points of the other modules)
+    └── trends/           # Trends, data logging and CSV export (same)
 ```
 
 ## Languages and theme
@@ -163,6 +166,9 @@ inconsistent configuration), a button restores its default configuration.
 2. **Main**: export `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` optional).
    - `ctx.handle('action', fn)` exposes the IPC channel `<id>:action`
    - `ctx.emit('event', payload)` broadcasts `<id>:event` to the interface
+   - `ctx.expose(api)` publishes the module's data points (list, read, write, injectable faults) for
+     the simulator and the trends; `ctx.peers()` returns those of the other modules. The contract is
+     described in `src/shared/points.js`.
 3. **Renderer**: export `{ manifest, icon, Component }` (`lucide-react` icon).
    - `window.sulfur.invoke('<id>:action', ...args)` / `window.sulfur.on('<id>:event', fn)`
 4. Register the module in `src/main/modules.js` and `src/renderer/src/modules.js`.
@@ -174,9 +180,23 @@ inconsistent configuration), a button restores its default configuration.
 
 - **Server**: simulated variables (sine, ramp, random, toggle, static) exposed under
   `Objects/<root folder>` with NodeIds `ns=1;s=<folder>.<variable>`. Default endpoint:
-  `opc.tcp://localhost:4840/UA/Sulfur`.
-- **Client**: connects to any OPC UA server, browses the address space, reads/writes and monitors
-  values in real time (subscriptions).
+  `opc.tcp://localhost:4840/UA/Sulfur`. A String variable receives the generated value as text.
+  - **Arrays** (fixed size, elements simulated with a phase shift) and **structured types**
+    (ExtensionObject, `Name:Type` fields, `[]` for an array);
+  - **methods** with input / output arguments: echo, read / write of the variables of the same name,
+    or failure with a chosen status code;
+  - acknowledgeable **limit alarms** (ExclusiveLimitAlarmType: HighHigh, High, Low, LowLow), and
+    **events** raised on demand;
+  - **history**: historized variables keep their last 10,000 values (HistoryRead);
+  - **NodeSet2 XML import**: the types and nodes of the file are added to the address space; required
+    companion models shipped with node-opcua (DI, Machinery…) are loaded automatically. Imported files
+    are saved with the configuration.
+
+  Variables, methods and alarms can be edited while the server is running; structured types and
+  imported models are loaded at start.
+- **Client**: connects to any OPC UA server, browses the address space, reads/writes (arrays and
+  structures included, as JSON) and monitors values in real time (subscriptions), calls methods, reads
+  history, receives events and alarms and acknowledges them.
 - **Security** (server and client):
   - `None`, `Sign`, `SignAndEncrypt` modes and Basic256Sha256, Aes128-Sha256-RsaOaep,
     Aes256-Sha256-RsaPss policies (+ deprecated Basic256 / Basic128Rsa15);
@@ -208,3 +228,27 @@ inconsistent configuration), a button restores its default configuration.
     location: `<userData>/modules/modbus/pki/{server,client}`.
 - Default ports 5020 (TCP) / 8020 (TLS): the standard ports 502 / 802 require administrator rights
   on Linux.
+
+## Simulator module
+
+Acts on the servers and clients of the other modules through the points they publish.
+
+- **Fault injection**: response delay, no response, connection cut (open connections closed, new
+  ones refused), forced Modbus exception (all requests, reads or writes), forced OPC UA status code
+  (BadSensorFailure, BadCommunicationError…) and frozen values on chosen points. A fault is
+  activated by hand or by a scenario, until it is stopped or for a given duration; editing an active
+  fault applies it immediately.
+- **Scenarios**: steps chained in time — write a value, linear ramp, wait, activate or stop a
+  fault — played once or in a loop. Faults activated by a scenario are stopped at its end.
+- **Recording**: the changes of chosen points (servers or values monitored by the clients) are
+  recorded as a new scenario (writes and waits), which can be edited and replayed.
+
+## Trends module
+
+- Periodic sampling (50 ms minimum) of up to 8 points: server variables and points, values monitored
+  by the OPC UA and Modbus clients (booleans as 0 / 1). The last 100,000 samples are kept.
+- Real-time chart with a sliding window (1 min to 1 h, or the whole recording), drag to zoom,
+  crosshair and tooltip listing every curve; one shared chart (one axis) or one chart per point
+  for points on different scales. Colorblind-safe palette, light and dark variants.
+- Table of the points with the value at the cursor (or the last one), min and max.
+- **CSV export** (`;` separator, ISO timestamps, decimal point or comma), one column per point.

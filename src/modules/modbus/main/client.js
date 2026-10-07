@@ -30,6 +30,8 @@ export class ModbusClient {
   pending = new Map()
   transactionId = 0
   watches = new Map()
+  /** Dernière lecture par surveillance : id -> { value, error, time } */
+  last = new Map()
   pollTimer = null
   polling = false
 
@@ -203,6 +205,7 @@ export class ModbusClient {
     clearInterval(this.pollTimer)
     this.pollTimer = null
     this.socket = null
+    this.last.clear()
     for (const p of this.pending.values()) {
       clearTimeout(p.timer)
       p.reject(error)
@@ -316,6 +319,7 @@ export class ModbusClient {
 
   removeWatch(id) {
     this.watches.delete(id)
+    this.last.delete(id)
     this.onStatus(this.status())
     return this.status()
   }
@@ -342,13 +346,18 @@ export class ModbusClient {
         if (!this.socket) break
         try {
           const value = await this.readValue(w.table, w.address, w.dataType, w.wordOrder)
-          this.onData({ id: w.id, value, error: null, time: new Date().toISOString() })
+          this.received({ id: w.id, value, error: null, time: new Date().toISOString() })
         } catch (err) {
-          this.onData({ id: w.id, value: null, error: err.message, time: new Date().toISOString() })
+          this.received({ id: w.id, value: null, error: err.message, time: new Date().toISOString() })
         }
       }
     } finally {
       this.polling = false
     }
+  }
+
+  received(data) {
+    if (this.watches.has(data.id)) this.last.set(data.id, data)
+    this.onData(data)
   }
 }

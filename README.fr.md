@@ -23,8 +23,8 @@ npm run format     # mise en forme (Prettier)
 ## Tests
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
-(sockets, TLS, certificats) et des tests unitaires : sécurité et modification à chaud OPC UA, Modbus TCP
-et Modbus/TCP Security, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+(sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP
+et Modbus/TCP Security, injection de défauts, scénarios et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -101,16 +101,19 @@ src/
 │       ├── module-config.js # Réglages enregistrés des modules (usePersistentState)
 │       └── modules.js    # ← liste des modules "renderer"
 ├── shared/               # Code commun main/renderer (i18n, langues, simulateur…)
+│   ├── points.js         # Points de données partagés entre modules (contrat)
 │   └── locales/          # Textes communs (fr.js, en.js)
 └── modules/              # Modules de simulation
     ├── opcua/
     │   ├── main/         # Serveur + client node-opcua
     │   ├── renderer/     # Interface React du module
     │   └── shared/       # Constantes partagées
-    └── modbus/
-        ├── main/         # Protocole, serveur, client, PKI, sécurité
-        ├── renderer/     # Interface React du module
-        └── shared/       # Constantes + encodage des valeurs (codec)
+    ├── modbus/
+    │   ├── main/         # Protocole, serveur, client, PKI, sécurité
+    │   ├── renderer/     # Interface React du module
+    │   └── shared/       # Constantes + encodage des valeurs (codec)
+    ├── simulator/        # Injection de défauts et scénarios (utilise les points des autres modules)
+    └── trends/           # Courbes, enregistrement et export CSV (idem)
 ```
 
 ## Langues et thème
@@ -168,6 +171,9 @@ configuration par défaut.
 2. **Main** : exporter `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` facultatif).
    - `ctx.handle('action', fn)` expose le canal IPC `<id>:action`
    - `ctx.emit('event', payload)` diffuse `<id>:event` vers l'interface
+   - `ctx.expose(api)` publie les points de données du module (liste, lecture, écriture, défauts
+     injectables) pour le simulateur et les courbes ; `ctx.peers()` retourne ceux des autres modules.
+     Le contrat est décrit dans `src/shared/points.js`.
 3. **Renderer** : exporter `{ manifest, icon, Component }` (icône `lucide-react`).
    - `window.sulfur.invoke('<id>:action', ...args)` / `window.sulfur.on('<id>:event', fn)`
 4. Enregistrer le module dans `src/main/modules.js` et `src/renderer/src/modules.js`.
@@ -179,9 +185,24 @@ configuration par défaut.
 
 - **Serveur** : variables simulées (sinus, rampe, aléatoire, bascule, statique) exposées sous
   `Objects/<dossier racine>` avec des NodeId `ns=1;s=<dossier>.<variable>`. Endpoint par défaut :
-  `opc.tcp://localhost:4840/UA/Sulfur`.
+  `opc.tcp://localhost:4840/UA/Sulfur`. Une variable String reçoit la valeur générée sous forme de texte.
+  - **Tableaux** (taille fixe, éléments simulés avec un déphasage) et **types structurés**
+    (ExtensionObject, champs `Nom:Type`, `[]` pour un tableau) ;
+  - **méthodes** avec arguments d'entrée / sortie : écho, lecture / écriture des variables du même nom
+    ou échec avec un code d'erreur choisi ;
+  - **alarmes à seuils** (ExclusiveLimitAlarmType : très haut, haut, bas, très bas) acquittables, et
+    émission d'**événements** à la demande ;
+  - **historique** : les variables historisées conservent leurs 10 000 dernières valeurs (HistoryRead) ;
+  - **import NodeSet2 XML** : les types et nœuds du fichier sont ajoutés à l'espace d'adressage ; les
+    modèles compagnons requis fournis avec node-opcua (DI, Machinery…) sont chargés automatiquement.
+    Les fichiers importés sont enregistrés avec la configuration.
+
+  Variables, méthodes et alarmes se modifient serveur démarré ; les types structurés et les modèles
+  importés sont chargés au démarrage.
 - **Client** : connexion à n'importe quel serveur OPC UA, navigation dans l'espace d'adressage,
-  lecture/écriture et surveillance temps réel (abonnements).
+  lecture/écriture (y compris tableaux et structures, en JSON) et surveillance temps réel
+  (abonnements), appel de méthodes, lecture d'historique, réception des événements et alarmes avec
+  acquittement.
 - **Sécurité** (serveur et client) :
   - modes `None`, `Sign`, `SignAndEncrypt` et politiques Basic256Sha256, Aes128-Sha256-RsaOaep,
     Aes256-Sha256-RsaPss (+ Basic256 / Basic128Rsa15 obsolètes) ;
@@ -213,3 +234,31 @@ configuration par défaut.
     emplacement : `<userData>/modules/modbus/pki/{server,client}`.
 - Ports par défaut 5020 (TCP) / 8020 (TLS) : les ports standards 502 / 802 nécessitent des droits
   administrateur sous Linux.
+
+## Module Simulateur
+
+Agit sur les serveurs et clients des autres modules par les points qu'ils publient.
+
+- **Injection de défauts** : délai de réponse, absence de réponse, coupure de connexion (connexions
+  ouvertes fermées, nouvelles refusées), exception Modbus forcée (toutes les requêtes, lectures ou
+  écritures), code d'état OPC UA forcé (BadSensorFailure, BadCommunicationError…) et valeurs figées
+  sur les points choisis. Un défaut s'active à la main ou par un scénario, jusqu'à son arrêt ou pour
+  une durée donnée ; modifier un défaut actif l'applique aussitôt.
+- **Scénarios** : étapes enchaînées dans le temps — écrire une valeur, rampe linéaire, attendre,
+  activer ou arrêter un défaut — jouées une fois ou en boucle. Les défauts activés par un scénario
+  sont arrêtés à sa fin.
+- **Enregistrement** : les évolutions des points choisis (serveurs ou valeurs surveillées par les
+  clients) sont enregistrées dans un nouveau scénario (écritures et attentes), modifiable et
+  rejouable.
+
+## Module Courbes
+
+- Échantillonnage périodique (50 ms minimum) de 8 points au plus : variables et points des serveurs,
+  valeurs surveillées par les clients OPC UA et Modbus (booléens en 0 / 1). Les 100 000 derniers
+  échantillons sont conservés.
+- Graphique temps réel avec fenêtre glissante (1 min à 1 h, ou tout l'enregistrement), zoom par
+  glisser, réticule et info-bulle listant toutes les courbes ; un graphique commun (un seul axe) ou
+  un graphique par point pour des échelles différentes. Palette adaptée aux daltoniens, variantes
+  claire et sombre.
+- Tableau des points avec la valeur au curseur (ou la dernière), le minimum et le maximum.
+- **Export CSV** (séparateur `;`, horodatage ISO, point ou virgule décimale), une colonne par point.

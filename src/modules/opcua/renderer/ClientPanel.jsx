@@ -6,12 +6,11 @@ import { usePersistentState } from '@renderer/module-config'
 import { opcuaApi } from './api'
 import NodeTree from './NodeTree'
 import ClientSecurity from './ClientSecurity'
-import { getLocale } from '@shared/i18n'
+import MethodCall from './MethodCall'
+import HistoryView from './HistoryView'
+import EventsCard from './EventsCard'
 import { t } from '../shared/i18n'
-
-const formatValue = (v) => (v === null || v === undefined ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v))
-const formatTime = (iso) =>
-  iso ? new Date(iso).toLocaleTimeString(getLocale(), { hour12: false }) + '.' + iso.slice(20, 23) : '—'
+import { formatTime, formatValue } from './format'
 
 export default function ClientPanel({ status, serverEndpoint }) {
   const [endpoint, setEndpoint] = usePersistentState('opcua', 'clientEndpoint', 'opc.tcp://localhost:4840/UA/Sulfur')
@@ -151,7 +150,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
         </div>
       </Card>
 
-      <div className="grid min-h-96 flex-1 grid-cols-[minmax(260px,1fr)_2fr] gap-4">
+      <div className="grid min-h-[36rem] flex-1 shrink-0 grid-cols-[minmax(260px,1fr)_2fr] gap-4">
         <Card
           id="opcua.client.tree"
           title={t('opcua.client.addressSpace')}
@@ -197,7 +196,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
             {!selected ? (
               <p className="text-sm text-slate-500">{t('opcua.client.selectNode')}</p>
             ) : (
-              <div className="flex flex-col gap-4">
+              <div className="flex h-full flex-col gap-4 overflow-auto">
                 <dl className="grid grid-cols-[120px_1fr] gap-x-4 gap-y-1.5 text-sm">
                   <dt className="text-slate-500">NodeId</dt>
                   <dd className="font-mono break-all text-slate-200">{selected.nodeId}</dd>
@@ -232,6 +231,12 @@ export default function ClientPanel({ status, serverEndpoint }) {
                       <Send className="size-4" /> {t('opcua.client.write')}
                     </Button>
                   </div>
+                )}
+                {details?.historizing && (
+                  <HistoryView key={selected.nodeId} nodeId={selected.nodeId} onError={setError} />
+                )}
+                {selected.nodeClass === 'Method' && (
+                  <MethodCall key={selected.nodeId} nodeId={selected.nodeId} onError={setError} />
                 )}
               </div>
             )}
@@ -287,6 +292,8 @@ export default function ClientPanel({ status, serverEndpoint }) {
           </Card>
         </div>
       </div>
+
+      <EventsCard connected={connected} subscribed={!!status.events} onError={setError} />
     </div>
   )
 }

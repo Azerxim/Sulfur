@@ -34,11 +34,12 @@ Make what exists reliable before adding features.
 
 Make the simulators more useful for testing real equipment and software.
 
-- [ ] **Fault injection**: response delays, dropped connections, forced exceptions (Modbus) or bad
+- [x] **Fault injection**: response delays, dropped connections, forced exceptions (Modbus) or bad
   status codes (OPC UA), to test how clients behave when things go wrong.
-- [ ] **Scenarios**: chain value changes over time (scripted or recorded) and replay them.
-- [ ] **Trends and data logging**: charts of monitored values, CSV export.
-- [ ] **OPC UA**: arrays and structured types, methods, events and alarms, history read, address space
+- [x] **Scenarios**: chain value changes over time (scripted or recorded) and replay them (Simulator
+  module, like fault injection).
+- [x] **Trends and data logging**: charts of monitored values, CSV export (Trends module).
+- [x] **OPC UA**: arrays and structured types, methods, events and alarms, history read, address space
   import (NodeSet2 XML).
 - [ ] **Modbus**: register explorer on the server side, several Unit IDs on one server (gateway
   simulation), device identification (function 43 / 14), read/write multiple registers (function 23).
@@ -85,7 +86,6 @@ The order within each version will be set according to needs.
 
 ## Known limitations
 
-- Applying a numeric simulation (sine, ramp…) to an OPC UA `String` variable fails.
 - Number fields use the operating system's decimal separator, whatever the interface language.
 - On the very first launch after choosing the light theme in an older version, the window may open
   dark once.

@@ -133,6 +133,8 @@ export default {
       }
     },
     log: {
+      faultCut: 'Connection from {ip} refused: simulated connection cut',
+      faultCutAll: 'Simulated connection cut: connections closed',
       started: 'Server started on {address} — {transport}',
       tlsTransport: 'Modbus/TCP Security (≥ {version})',
       plainTransport: 'unencrypted Modbus TCP',
@@ -164,6 +166,7 @@ export default {
       protectedPoint: 'write refused: point “{name}” is write-protected'
     },
     errors: {
+      unknownWatch: 'Unknown monitored item',
       emptyPointName: 'The point name is empty',
       unknownTable: 'Unknown table: {table}',
       unknownType: 'Unknown type: {type}',

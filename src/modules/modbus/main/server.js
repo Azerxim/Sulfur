@@ -56,6 +56,8 @@ export class ModbusServer {
   simTimer = null
   emitTimer = null
   sessionSeq = 0
+  /** Défauts injectés par le simulateur : [{ id, type, params, points }] (points : ids de points). */
+  faults = []
 
   constructor(pki, { onStatus, onValues, onLog }) {
     this.pki = pki
@@ -220,6 +222,10 @@ export class ModbusServer {
   /** Contrôles communs à l'ouverture : liste blanche IP et nombre maximal de connexions. */
   admit(socket) {
     const ip = normalizeIp(socket.remoteAddress)
+    if (this.fault('cut')) {
+      this.log('warn', t('modbus.log.faultCut', { ip }))
+      return false
+    }
     if (!isAllowed(this.allowList, ip)) {
       this.log('warn', t('modbus.log.ipRefused', { ip }))
       return false
@@ -328,7 +334,13 @@ export class ModbusServer {
     }
     for (const frame of frames) {
       const pdu = this.handle(session, frame)
-      if (pdu && !session.socket.destroyed) session.socket.write(encodeFrame(frame.transactionId, frame.unitId, pdu))
+      if (!pdu || this.fault('noResponse')) continue
+      const send = () => {
+        if (!session.socket.destroyed) session.socket.write(encodeFrame(frame.transactionId, frame.unitId, pdu))
+      }
+      const delay = Number(this.fault('delay')?.params?.ms) || 0
+      if (delay > 0) setTimeout(send, delay)
+      else send()
     }
   }
 
@@ -366,6 +378,13 @@ export class ModbusServer {
         return this.deny(session, fc, err.code, t('modbus.log.rejected', { message: err.message }))
       throw err
     }
+
+    const forced = this.faults.find(
+      (f) =>
+        f.type === 'exception' &&
+        (!f.params?.scope || f.params.scope === 'all' || (f.params.scope === 'write') === req.write)
+    )
+    if (forced) return this.deny(session, fc, Number(forced.params?.code) || EX.SERVER_DEVICE_FAILURE, null)
 
     if (req.write) {
       if (this.security.readOnly) return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.readOnly'))
@@ -495,6 +514,25 @@ export class ModbusServer {
     return this.status()
   }
 
+  // --- Défauts injectés (module simulateur) ---------------------------------------
+
+  /** Défaut actif d'un type donné, éventuellement limité à un point. */
+  fault(type, pointId) {
+    return this.faults.find(
+      (f) => f.type === type && (pointId === undefined || !f.points?.length || f.points.includes(pointId))
+    )
+  }
+
+  /** Remplace les défauts actifs ; une coupure ferme immédiatement les connexions ouvertes. */
+  setFaults(faults = []) {
+    const wasCut = !!this.fault('cut')
+    this.faults = faults
+    if (this.server && !wasCut && this.fault('cut')) {
+      for (const s of this.sessions.values()) s.socket.destroy()
+      this.log('warn', t('modbus.log.faultCutAll'))
+    }
+  }
+
   startSimulation() {
     clearInterval(this.simTimer)
     const dt = Number(this.config.updateRate) || 100
@@ -502,7 +540,7 @@ export class ModbusServer {
       const elapsed = Date.now() - this.t0
       for (const entry of this.points.values()) {
         const { def } = entry
-        if (def.simulation === 'none') continue
+        if (def.simulation === 'none' || this.fault('freeze', def.id)) continue
         let v = simulate(def, entry.value, elapsed, dt)
         if (def.dataType === 'Boolean' && typeof v !== 'boolean') v = v >= (def.min + def.max) / 2
         entry.value = v

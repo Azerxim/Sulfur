@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { shell } from 'electron'
+import { BrowserWindow, dialog, shell } from 'electron'
 import { t } from '../shared/i18n'
 import { OPCUA_MODULE } from '../shared/constants'
 import '../shared/locales'
@@ -7,6 +7,8 @@ import { PkiStore } from './pki'
 import { hashPassword } from './passwords'
 import { SimulationServer } from './server'
 import { SimulationClient } from './client'
+import { readNodesetFiles } from './nodesets'
+import { createPointsApi } from './points'
 
 let server = null
 let client = null
@@ -33,8 +35,11 @@ export const opcuaMainModule = {
     client = new SimulationClient(
       pki.client,
       (status) => ctx.emit('client:status', status),
-      (change) => ctx.emit('client:data', change)
+      (change) => ctx.emit('client:data', change),
+      (event) => ctx.emit('client:event', event)
     )
+
+    ctx.expose(createPointsApi({ server, client, savedConfig: ctx.config }))
 
     ctx.handle('server:status', () => server.status())
     ctx.handle('server:start', (config) => server.start(config))
@@ -44,6 +49,22 @@ export const opcuaMainModule = {
     ctx.handle('server:removeVariable', (id) => server.removeVariable(id))
     ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
     ctx.handle('server:setUpdateRate', (rate) => server.setUpdateRate(rate))
+    ctx.handle('server:upsertMethod', (def) => server.upsertMethod(def))
+    ctx.handle('server:removeMethod', (id) => server.removeMethod(id))
+    ctx.handle('server:upsertAlarm', (def) => server.upsertAlarm(def))
+    ctx.handle('server:removeAlarm', (id) => server.removeAlarm(id))
+    ctx.handle('server:raiseEvent', (event) => server.raiseEvent(event))
+
+    // Fichiers NodeSet2 à importer dans l'espace d'adressage du serveur (null si annulé).
+    ctx.handle('nodesets:pick', async () => {
+      const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+      const { canceled, filePaths } = await dialog.showOpenDialog(window, {
+        title: t('opcua.nodesets.pickTitle'),
+        filters: [{ name: 'NodeSet2 XML', extensions: ['xml'] }],
+        properties: ['openFile', 'multiSelections']
+      })
+      return canceled || !filePaths?.length ? null : readNodesetFiles(filePaths)
+    })
 
     ctx.handle('client:status', () => client.status())
     ctx.handle('client:connect', (url, security) => client.connect(url, security))
@@ -54,6 +75,14 @@ export const opcuaMainModule = {
     ctx.handle('client:write', (nodeId, value) => client.write(nodeId, value))
     ctx.handle('client:subscribe', (nodeId) => client.subscribe(nodeId))
     ctx.handle('client:unsubscribe', (nodeId) => client.unsubscribe(nodeId))
+    ctx.handle('client:history', (nodeId, start, end) => client.history(nodeId, start, end))
+    ctx.handle('client:methodInfo', (nodeId) => client.methodInfo(nodeId))
+    ctx.handle('client:call', (nodeId, inputs) => client.call(nodeId, inputs))
+    ctx.handle('client:subscribeEvents', () => client.subscribeEvents())
+    ctx.handle('client:unsubscribeEvents', () => client.unsubscribeEvents())
+    ctx.handle('client:acknowledge', (conditionId, eventId, comment) =>
+      client.acknowledge(conditionId, eventId, comment)
+    )
 
     // Le renderer ne conserve que l'empreinte des mots de passe des utilisateurs du serveur.
     ctx.handle('security:hashPassword', (password) => hashPassword(password))

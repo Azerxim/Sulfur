@@ -2,3 +2,5 @@
 import '@shared/locales'
 import '@modules/opcua/shared/i18n'
 import '@modules/modbus/shared/i18n'
+import '@modules/simulator/shared/i18n'
+import '@modules/trends/shared/i18n'
