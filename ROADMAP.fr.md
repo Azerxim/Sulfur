@@ -64,8 +64,10 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
 
 ## Nouveaux modules : automatismes industriels
 
-- [ ] **Siemens S7** (S7comm)
-- [ ] **Siemens PLCSim Advanced** : piloter des automates virtuels S7-1500 (création et démarrage
+- [x] **Siemens S7** (S7comm) : automate simulé (mémoire I / Q / M / DB, points simulés,
+  identification, RUN / STOP) et client (rack / emplacement ou TSAP, lecture / écriture typées,
+  surveillance)
+- [x] **Siemens PLCSim Advanced** : piloter des automates virtuels S7-1500 (création et démarrage
   d'instances, lecture / écriture des variables, points publiés pour le simulateur et les courbes).
   Disponible sous Windows uniquement : PLCSim Advanced doit être installé et l'utilisateur indique
   le chemin de ses DLL (API Simulation Runtime) dans les réglages du module.

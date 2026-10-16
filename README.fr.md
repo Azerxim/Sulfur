@@ -24,7 +24,7 @@ npm run format     # mise en forme (Prettier)
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
 (sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP
-et Modbus/TCP Security, HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+et Modbus/TCP Security, HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -114,6 +114,8 @@ src/
     │   └── shared/       # Constantes + encodage des valeurs (codec)
     ├── http/             # Serveur REST (variables, routes, webhooks) + client HTTP
     ├── ntp/              # Serveur de temps à horloge simulée + client NTP
+    ├── s7/               # Automate S7 simulé (S7comm) + client S7
+    ├── plcsim/           # Automates virtuels S7-PLCSIM Advanced (Windows, pont PowerShell vers l'API)
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     └── trends/           # Courbes, enregistrement et export CSV (idem)
 ```
@@ -292,13 +294,54 @@ configuration par défaut.
 - Défauts du simulateur : délai (latence réseau simulée, comptée dans le délai aller-retour),
   absence de réponse, Kiss-o'-Death (DENY, RSTR, RATE), horloge figée.
 
+## Module Siemens S7
+
+- **Automate simulé** (S7comm sur ISO-on-TCP, port par défaut 1102 ; le port standard 102 est
+  souvent pris sous Windows par les services Siemens et demande des droits administrateur sous
+  Linux) : entrées (I), sorties (Q), mémentos (M) et blocs de données configurables ; **points
+  simulés** à des adresses S7 (`DB1.DBD0`, `MW10`, `Q0.0`… en types Bool, Byte, Int, DInt, Real,
+  LReal, String…) avec les générateurs habituels ; taille de PDU négociée (240, 480, 960) ;
+  identification de la CPU renvoyée dans les listes d'état système (SZL 0x0011, 0x001C) et état de
+  fonctionnement (0x0424) ; RUN / STOP à la main ou par les clients (services PI) ; protection en
+  écriture ; explorateur de mémoire (octets bruts, modifiables) ; clients connectés et journal. Les
+  clients se connectent avec n'importe quel rack et emplacement. Vérifié avec Snap7.
+- **Client** : connexion par rack et emplacement (connexion PG, OP ou S7 basique) ou TSAP explicites,
+  négociation de la PDU ; lecture et écriture typées par adresse (notation internationale ou
+  allemande : `E0.1`, `AW2`) ; lecture et écriture d'octets bruts découpées selon la taille de PDU ;
+  identification de la CPU (référence, firmware, numéro de série…), état de fonctionnement,
+  démarrage à chaud / à froid et STOP (avec confirmation) ; **surveillance** groupée en requêtes
+  multi-variables, conservée au redémarrage et publiée comme points. S7-1200 / 1500 : autorisez
+  PUT/GET et utilisez des blocs de données à accès standard.
+- Défauts du simulateur : délai de réponse, absence de réponse, coupure de connexion, code de retour
+  forcé (défaut matériel, accès refusé, adresse hors limites… en lecture, en écriture ou les deux),
+  valeurs figées.
+
+## Module PLCSim Advanced (Windows)
+
+Pilote les automates virtuels S7-1500 de **S7-PLCSIM Advanced** par son API Simulation Runtime
+(assembly .NET `Siemens.Simatic.Simulation.Runtime.Api`), chargée par Windows PowerShell 5.1 dans un
+processus d'arrière-plan : aucun module natif à compiler. Le dossier de l'API est détecté
+automatiquement (version la plus récente dans
+`C:\Program Files (x86)\Common Files\Siemens\PLCSIMADV\API\<version>`) ou indiqué dans le module.
+
+- Connexion à l'API (éventuellement au démarrage de Sulfur) : version de l'API, disponibilité du
+  Runtime Manager, mode réseau (Softbus ou TCP/IP).
+- **Instances** : création (type de CPU), mise sous / hors tension, RUN / STOP, effacement général,
+  suppression, adresse IP de chaque interface. Le programme se charge depuis TIA Portal.
+- **Variables** : table des variables du programme chargé (filtre, tableaux développés), ou adresses
+  des entrées, sorties et mémentos ; **surveillance** de plusieurs instances, écriture depuis la liste
+  et publication comme points : un flux du simulateur peut piloter les entrées de l'automate virtuel
+  pour simuler le procédé. Les variables surveillées sont conservées au redémarrage.
+- Test sur l'API réelle : `SULFUR_PLCSIM_LIVE=1 npm test` (crée, met sous tension puis supprime une
+  instance de test).
+
 ## Module Simulateur
 
 Agit sur les serveurs et clients des autres modules par les points qu'ils publient.
 
 - **Injection de défauts** : délai de réponse, absence de réponse, coupure de connexion (connexions
-  ouvertes fermées, nouvelles refusées), exception Modbus forcée (toutes les requêtes, lectures ou
-  écritures), code d'état OPC UA forcé (BadSensorFailure, BadCommunicationError…) et valeurs figées
+  ouvertes fermées, nouvelles refusées), exception Modbus ou code de retour S7 forcés (toutes les requêtes,
+  lectures ou écritures), code d'état OPC UA forcé (BadSensorFailure, BadCommunicationError…) et valeurs figées
   sur les points choisis. Un défaut s'active à la main ou par un flux, jusqu'à son arrêt ou pour
   une durée donnée ; modifier un défaut actif l'applique aussitôt.
 - **Flux** (à la manière de Node-RED) : des nœuds reliés par des fils se transmettent des messages

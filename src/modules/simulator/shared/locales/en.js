@@ -4,7 +4,8 @@ export default {
     description: 'Fault injection and node flows on the servers and clients of the other modules',
     groups: {
       server: 'Server',
-      client: 'Client'
+      client: 'Client',
+      plc: 'PLC'
     },
     faults: {
       title: 'Fault injection ({count})',
@@ -13,7 +14,7 @@ export default {
         delay: 'Response delay',
         noResponse: 'No response',
         cut: 'Connection cut',
-        exception: 'Forced Modbus exception',
+        exception: 'Forced exception (Modbus, S7)',
         badStatus: 'Forced status code',
         kissOfDeath: "Kiss-o'-Death (NTP)",
         freeze: 'Frozen values'
@@ -52,7 +53,8 @@ export default {
       clearAll: 'Stop all',
       newName: 'Fault {n}'
     },
-    noPoint: 'No point available: configure variables or points in the OPC UA and Modbus modules.',
+    noPoint:
+      'No point available: configure variables, points or monitored items in the protocol modules (OPC UA, Modbus, S7…).',
     flows: {
       title: 'Flows ({count})',
       hint: 'As in Node-RED, nodes linked by wires pass messages (msg.payload) to each other. Drag nodes from the palette, link an output (right) to an input (left), then deploy: flows run continuously and are restarted at launch. Delete removes the selection.',

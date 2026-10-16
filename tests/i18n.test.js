@@ -14,14 +14,18 @@ import httpEn from '@modules/http/shared/locales/en'
 import httpFr from '@modules/http/shared/locales/fr'
 import ntpEn from '@modules/ntp/shared/locales/en'
 import ntpFr from '@modules/ntp/shared/locales/fr'
+import s7En from '@modules/s7/shared/locales/en'
+import s7Fr from '@modules/s7/shared/locales/fr'
+import plcsimEn from '@modules/plcsim/shared/locales/en'
+import plcsimFr from '@modules/plcsim/shared/locales/fr'
 import simulatorEn from '@modules/simulator/shared/locales/en'
 import simulatorFr from '@modules/simulator/shared/locales/fr'
 import trendsEn from '@modules/trends/shared/locales/en'
 import trendsFr from '@modules/trends/shared/locales/fr'
 
 const dictionaries = {
-  en: { ...coreEn, ...opcuaEn, ...modbusEn, ...httpEn, ...ntpEn, ...simulatorEn, ...trendsEn },
-  fr: { ...coreFr, ...opcuaFr, ...modbusFr, ...httpFr, ...ntpFr, ...simulatorFr, ...trendsFr }
+  en: { ...coreEn, ...opcuaEn, ...modbusEn, ...httpEn, ...ntpEn, ...s7En, ...plcsimEn, ...simulatorEn, ...trendsEn },
+  fr: { ...coreFr, ...opcuaFr, ...modbusFr, ...httpFr, ...ntpFr, ...s7Fr, ...plcsimFr, ...simulatorFr, ...trendsFr }
 }
 
 const flatten = (obj, prefix = '') =>

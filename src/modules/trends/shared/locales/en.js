@@ -4,7 +4,8 @@ export default {
     description: 'Trends of the values of the other modules, data logging and CSV export',
     groups: {
       server: 'Server',
-      client: 'Client'
+      client: 'Client',
+      plc: 'PLC'
     },
     chart: {
       title: 'Trends',

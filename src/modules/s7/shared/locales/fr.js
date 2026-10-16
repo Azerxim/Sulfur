@@ -1,0 +1,191 @@
+export default {
+  s7: {
+    name: 'Siemens S7',
+    description: 'Automate S7 simulé (S7comm) et client S7 (S7-300/400/1200/1500)',
+    tabs: { server: 'Automate' },
+    address: 'Adresse',
+    stringLength: 'Longueur de chaîne',
+    areas: {
+      I: 'Entrées (I)',
+      Q: 'Sorties (Q)',
+      M: 'Mémentos (M)',
+      DB: 'Bloc de données (DB)'
+    },
+    pduSizes: {
+      240: '240 (S7-300)',
+      480: '480 (S7-400 / 1200)',
+      960: '960 (S7-1500)'
+    },
+    cpu: {
+      state: 'CPU',
+      states: { run: 'RUN', stop: 'STOP', unknown: 'inconnu' }
+    },
+    identity: {
+      orderCode: 'Numéro de référence',
+      version: 'Firmware',
+      moduleName: 'Nom du module',
+      moduleType: 'Type de module',
+      serialNumber: 'Numéro de série',
+      plantId: "Identification de l'installation",
+      copyright: 'Copyright'
+    },
+    server: {
+      title: 'Automate simulé',
+      running: 'En marche · {count} connexion(s)',
+      host: "Interface d'écoute",
+      port: 'Port',
+      pduSize: 'Taille de PDU maximale',
+      readOnly: 'Protection en écriture (écritures et arrêt / démarrage refusés)',
+      hint: "Port standard : 102 (souvent pris sous Windows par les services Siemens, droits administrateur requis sous Linux). Les clients se connectent avec n'importe quel rack et emplacement. En STOP, la simulation des points est suspendue.",
+      memory: 'Mémoire',
+      dbNumber: 'Numéro de DB',
+      dbSize: 'Taille (octets)',
+      dbNamePlaceholder: 'Facultatif',
+      addDb: 'Bloc de données',
+      identity: 'Identification de la CPU',
+      identityHint:
+        "Renvoyée aux clients qui lisent les listes d'état système (SZL 0x0011 et 0x001C), par exemple pour afficher les informations de la CPU.",
+      points: 'Points simulés ({count})',
+      noPoint: 'Aucun point. Ajoutez-en un pour simuler une valeur à une adresse de la mémoire.'
+    },
+    explorer: {
+      title: 'Explorateur de mémoire',
+      zone: 'Zone',
+      start: 'Octet de départ',
+      previous: 'Page précédente',
+      next: 'Page suivante',
+      size: '{size} octets',
+      hint: "Mémoire brute de l'automate, rafraîchie en continu. Les octets colorés appartiennent à un point ; cliquez sur un octet pour le modifier (hexadécimal 0x.. ou décimal).",
+      notRunning: "Démarrez l'automate pour explorer sa mémoire.",
+      cellTitle: '{offset} · {name} ({type}) = {value}'
+    },
+    activity: {
+      clients: 'Clients connectés ({count})',
+      client: 'Client',
+      requests: 'Requêtes',
+      since: 'depuis {time}',
+      noClient: 'Aucun client connecté',
+      serverStopped: 'Automate arrêté',
+      log: 'Journal',
+      clearLog: 'Effacer le journal',
+      noEvent: 'Aucun événement'
+    },
+    client: {
+      connectedTo: 'Connecté à {endpoint} · TSAP {tsap} · PDU {pdu}',
+      host: "Adresse de l'automate",
+      pduSize: 'PDU demandée',
+      timeout: "Délai d'attente (ms)",
+      addressing: 'Adressage',
+      addressingModes: {
+        rackSlot: 'Rack et emplacement',
+        tsap: 'TSAP'
+      },
+      localTsap: 'TSAP local',
+      remoteTsap: 'TSAP distant',
+      rack: 'Rack',
+      slot: 'Emplacement',
+      connectionType: 'Type de connexion',
+      connectionTypes: {
+        PG: 'PG (console de programmation)',
+        OP: 'OP (pupitre opérateur)',
+        S7Basic: 'S7 basique'
+      },
+      hint: "Emplacement habituel : 2 pour un S7-300, 1 (ou 0) pour un S7-1200 / 1500. Sur S7-1200 / 1500, autorisez l'accès PUT/GET et utilisez des blocs de données à accès standard (non optimisé).",
+      cpu: 'CPU',
+      identify: "Lire l'identification",
+      identifyHint:
+        "Numéro de référence, firmware, nom du module et numéro de série lus dans les listes d'état système (SZL).",
+      readState: "Lire l'état",
+      confirm: 'Confirmer ?',
+      hotStart: 'Démarrage à chaud',
+      coldStart: 'Démarrage à froid',
+      controlHint: "Change l'état de fonctionnement de l'automate réel : un second clic confirme.",
+      io: 'Lecture / écriture',
+      label: 'Libellé (surveillance)',
+      labelPlaceholder: 'Facultatif',
+      watch: 'Surveiller',
+      watchHint: 'Lit cette adresse périodiquement et la publie comme point pour le simulateur et les courbes',
+      writeValue: 'Valeur à écrire ({type})',
+      raw: 'Octets bruts',
+      byteCount: 'Octets',
+      writeBytes: "Octets à écrire à partir de l'octet de départ (hexadécimal, séparés par des espaces)",
+      rawHeader: '{zone} · octets {from} à {to} · {time}',
+      pollEvery: 'Lire toutes les',
+      noWatch: 'Aucune adresse surveillée. Saisissez une adresse puis cliquez sur Surveiller.'
+    },
+    returnCodes: {
+      1: 'Défaut matériel',
+      3: 'Accès refusé',
+      5: 'Adresse hors limites',
+      6: 'Type de données non pris en charge',
+      7: 'Type de données incohérent',
+      10: "L'objet n'existe pas",
+      unknown: 'code inconnu',
+      format: 'Erreur {code} : {message}'
+    },
+    headerErrors: {
+      33028: 'Fonction non prise en charge',
+      33796: 'Service non pris en charge ou erreur de protocole',
+      34048: 'Taille de PDU dépassée',
+      54786: 'Protection : opération interdite (mot de passe ou niveau de protection)'
+    },
+    log: {
+      started: 'Automate démarré sur {endpoint}',
+      stopped: 'Automate arrêté',
+      connected: 'Connexion de {remote}',
+      disconnected: 'Déconnexion de {remote}',
+      invalidFrame: 'Trame invalide de {remote} ({message}) : connexion fermée',
+      write: '{remote} a écrit {count} octet(s) en {address}',
+      writeRefused: '{count} écriture(s) de {remote} refusée(s)',
+      controlRefused: "Demande d'arrêt / de démarrage de {remote} refusée (protection en écriture)",
+      faultCut: 'Connexion de {ip} refusée (défaut injecté : coupure)',
+      faultCutAll: 'Connexions fermées (défaut injecté : coupure)',
+      cpu: {
+        run: 'CPU passée en RUN',
+        stop: 'CPU passée en STOP',
+        runBy: 'CPU passée en RUN par {remote}',
+        stopBy: 'CPU passée en STOP par {remote}'
+      }
+    },
+    errors: {
+      invalidAddress: 'Adresse S7 invalide : {address} (exemples : DB1.DBX0.0, DB1.DBW2, MW10, I0.1, QB0)',
+      invalidBit: 'Numéro de bit invalide (0 à 7) : {address}',
+      invalidDb: 'Numéro de bloc de données invalide (1 à 65535) : {address}',
+      unknownType: 'Type de données inconnu : {type}',
+      boolNeedsBit: 'Un Bool exige une adresse de bit (par exemple {address}.0)',
+      typeNeedsByte: "Le type {type} exige une adresse d'octet, sans numéro de bit",
+      shortData: 'Le type {type} occupe {count} octet(s)',
+      missingHost: "Indiquez l'adresse de l'automate",
+      invalidPort: 'Port invalide (1 à 65535)',
+      invalidTsap: 'TSAP invalide (4 chiffres hexadécimaux, par exemple 01.00 ou 0102)',
+      invalidRack: 'Rack invalide (0 à 7)',
+      invalidSlot: 'Emplacement invalide (0 à 31)',
+      connectTimeout: "Pas de réponse de l'automate après {timeout} ms",
+      connectionRefused: 'Connexion refusée par {host}:{port}',
+      responseTimeout: 'Pas de réponse après {timeout} ms',
+      closedDuringHandshake: "L'automate a fermé la connexion pendant la négociation",
+      isoRefused: "Connexion ISO refusée (TSAP distant {tsap}) : vérifiez le rack et l'emplacement",
+      closed: "Connexion fermée par l'automate",
+      disconnected: 'Déconnecté',
+      header: 'Erreur S7 {code} : {message}',
+      szl: "L'automate a refusé la lecture de la liste d'état système {id}",
+      unknownArea: 'Zone mémoire inconnue : {area}',
+      invalidRange: 'Adresse de début ou taille invalide',
+      invalidByte: 'Octet invalide (0 à 255) : {value}',
+      noValues: 'Aucune valeur à écrire',
+      minPoll: 'Intervalle de scrutation minimal : 50 ms',
+      unknownWatch: 'Élément surveillé inconnu',
+      invalidAreaSize: 'Taille de la zone {area} invalide (1 à {max} octets)',
+      invalidDbNumber: 'Numéro de bloc de données invalide (1 à 65535)',
+      duplicateDb: 'Le bloc de données DB{number} est défini deux fois',
+      invalidDbSize: 'Taille du DB{number} invalide (1 à {max} octets)',
+      emptyPointName: "Un point n'a pas de nom",
+      pointAddress: 'Point « {name} » : {message}',
+      pointUnknownDb: "Point « {name} » : le DB{db} n'existe pas",
+      pointOutOfRange: 'Point « {name} » : {address} dépasse la mémoire ({size} octets)',
+      portInUse: 'Le port {port} est déjà utilisé',
+      unknownPoint: 'Point inconnu',
+      invalidCpuState: 'État de CPU invalide'
+    }
+  }
+}
