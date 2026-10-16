@@ -1,7 +1,7 @@
 export default {
   simulator: {
     name: 'Simulateur',
-    description: 'Injection de défauts et scénarios sur les serveurs et clients des autres modules',
+    description: 'Injection de défauts et flux de nœuds sur les serveurs et clients des autres modules',
     groups: {
       server: 'Serveur',
       client: 'Client'
@@ -15,6 +15,7 @@ export default {
         cut: 'Coupure de connexion',
         exception: 'Exception Modbus forcée',
         badStatus: "Code d'état forcé",
+        kissOfDeath: "Kiss-o'-Death (NTP)",
         freeze: 'Valeurs figées'
       },
       typeHints: {
@@ -24,7 +25,9 @@ export default {
         exception: "Les requêtes reçoivent le code d'exception choisi.",
         badStatus:
           "Les variables gardent leur valeur mais signalent le code d'état choisi (toutes les variables si aucune n'est choisie).",
-        freeze: "La simulation des points choisis s'arrête (tous les points si aucun n'est choisi)."
+        kissOfDeath: "Les requêtes reçoivent une réponse Kiss-o'-Death avec le code choisi (DENY, RSTR, RATE).",
+        freeze:
+          "La simulation des points choisis s'arrête (tous les points si aucun n'est choisi) ; l'horloge d'un serveur NTP est figée."
       },
       scopes: {
         all: 'Toutes les requêtes',
@@ -49,57 +52,187 @@ export default {
       clearAll: 'Tout arrêter',
       newName: 'Défaut {n}'
     },
-    scenarios: {
-      title: 'Scénarios ({count})',
-      hint: 'Un scénario enchaîne des étapes dans le temps : écrire une valeur, rampe, attente, activer ou arrêter un défaut. Les défauts activés par un scénario sont arrêtés à sa fin.',
-      empty: 'Aucun scénario. Créez-en un, ou enregistrez les évolutions de points pour les rejouer.',
-      newName: 'Scénario {n}',
+    noPoint: 'Aucun point disponible : configurez des variables ou des points dans les modules OPC UA et Modbus.',
+    flows: {
+      title: 'Flux ({count})',
+      hint: 'Comme dans Node-RED, des nœuds reliés par des fils se transmettent des messages (msg.payload). Glissez des nœuds depuis la palette, reliez une sortie (à droite) à une entrée (à gauche), puis déployez : les flux tournent en continu et sont relancés au démarrage. Suppr efface la sélection.',
+      empty: 'Aucun flux. Créez-en un, ou enregistrez les évolutions de points pour les rejouer.',
+      newName: 'Flux {n}',
       recordedName: 'Enregistrement {time}',
-      loop: 'En boucle',
-      play: 'Lancer',
+      add: 'Nouveau flux',
+      duplicate: 'Dupliquer le flux',
+      remove: 'Supprimer le flux',
+      confirmRemove: 'Supprimer le flux « {name} » ?',
+      disabled: 'Désactivé',
+      deploy: 'Déployer',
+      deployHint: 'Arrête les flux en marche et lance ceux de l’éditeur',
       stop: 'Arrêter',
-      steps: 'Étapes ({count})',
-      addStep: 'Étape',
-      running: 'Étape {step} / {count}',
-      iteration: 'boucle {n}',
+      restart: 'Relancer',
+      restartHint: 'Relance les flux déployés',
+      running: 'En marche',
+      stopped: 'Arrêtés',
+      undeployed: 'Modifications non déployées',
       record: 'Enregistrer',
       recording: 'Enregistrement… {count} changement(s)',
       stopRecording: "Arrêter l'enregistrement",
       recordPoints: 'Points à enregistrer',
-      recordHint: 'Les évolutions des points choisis sont enregistrées dans un nouveau scénario.',
-      duplicate: 'Dupliquer',
-      moveUp: 'Monter',
-      moveDown: 'Descendre',
-      noPoint: 'Aucun point disponible : configurez des variables ou des points dans les modules OPC UA et Modbus.'
+      recordHint: 'Les évolutions des points choisis sont enregistrées dans un nouveau flux.'
     },
-    steps: {
-      set: 'Écrire',
+    editor: {
+      properties: 'Propriétés',
+      debug: 'Débogage',
+      noSelection: 'Sélectionnez un nœud pour modifier ses réglages.',
+      trigger: 'Déclencher',
+      output: 'Sortie {n}',
+      duplicateNode: 'Dupliquer le nœud'
+    },
+    debug: {
+      currentFlow: 'Flux affiché seulement',
+      clear: 'Effacer',
+      empty: 'Aucun message. Les nœuds Débogage, les avertissements et les erreurs des nœuds s’affichent ici.'
+    },
+    categories: {
+      triggers: 'Déclencheurs',
+      points: 'Points',
+      timing: 'Temps et défauts',
+      logic: 'Logique',
+      function: 'Fonction',
+      generators: 'Générateurs',
+      output: 'Sortie'
+    },
+    nodes: {
+      inject: 'Déclencheur',
+      watch: 'Changement de point',
+      read: 'Lire un point',
+      write: 'Écrire un point',
+      delay: 'Attendre',
       ramp: 'Rampe',
-      wait: 'Attendre',
-      fault: 'Défaut'
+      fault: 'Défaut',
+      switch: 'Aiguillage',
+      scale: 'Mise à l’échelle',
+      counter: 'Compteur',
+      filter: 'Filtre de changement',
+      function: 'Fonction',
+      generator: 'Générateur',
+      debug: 'Débogage'
     },
-    step: {
+    nodeHints: {
+      inject:
+        'Envoie un message à la main (bouton à gauche du nœud déployé), au déploiement et/ou à intervalle régulier.',
+      watch: 'Envoie la valeur du point à chaque changement (msg.payload, msg.previous, msg.topic = clé du point).',
+      read: 'Remplace msg.payload par la valeur actuelle du point.',
+      write: 'Écrit msg.payload, ou une valeur fixe, dans le point, puis transmet le message.',
+      delay: 'Retarde chaque message de la durée indiquée.',
+      ramp: 'Fait varier le point linéairement jusqu’à la valeur cible, puis transmet le message. Un nouveau message remplace la rampe en cours.',
+      fault:
+        'Active ou arrête un défaut de la table ci-dessus. Les défauts activés par les flux sont arrêtés au redéploiement.',
+      switch: 'Envoie le message sur la sortie de chaque règle vérifiée (une sortie par règle).',
+      scale: 'Convertit msg.payload d’une plage d’entrée vers une plage de sortie.',
+      counter: 'Compte les messages reçus et envoie le total ; msg.reset remet le compteur à zéro.',
+      filter: 'Ne laisse passer que les messages dont msg.payload a changé (d’au moins la bande morte pour un nombre).',
+      function: 'Code JavaScript exécuté pour chaque message.',
+      generator:
+        'Produit des valeurs en continu (sinus, rampe, aléatoire, bascule). Un message faux en entrée le met en pause, vrai le relance.',
+      debug: 'Affiche les messages reçus dans l’onglet Débogage.'
+    },
+    props: {
+      autoName: 'Automatique',
       point: 'Point',
+      payload: 'Valeur',
+      payloadType: 'Type',
+      topic: 'Sujet (msg.topic)',
+      repeat: 'Répéter toutes les (s, 0 = non)',
+      once: 'Envoyer au déploiement',
+      interval: 'Intervalle (ms)',
+      initial: 'Envoyer aussi la valeur au déploiement',
+      source: 'Valeur écrite',
+      fixed: 'Valeur fixe',
       value: 'Valeur',
+      duration: 'Durée (s)',
       from: 'De',
       fromCurrent: 'actuelle',
       to: 'À',
-      duration: 'Durée (s)',
       fault: 'Défaut',
-      on: 'Activer',
-      off: 'Arrêter'
+      action: 'Action',
+      property: 'Propriété',
+      rules: 'Règles',
+      addRule: 'Règle',
+      checkAll: 'Vérifier toutes les règles (sinon s’arrêter à la première)',
+      inMin: 'Entrée min',
+      inMax: 'Entrée max',
+      outMin: 'Sortie min',
+      outMax: 'Sortie max',
+      clamp: 'Limiter à la plage de sortie',
+      round: 'Arrondir à l’entier',
+      initialValue: 'Valeur initiale',
+      step: 'Pas',
+      deadband: 'Bande morte (0 = tout changement)',
+      code: 'Code',
+      codeHint:
+        'Disponibles : msg, node (send, status, warn, error), context, flow, global. Retourner un message, un tableau (un élément par sortie) ou null. Durée limitée à 1 s par message.',
+      outputs: 'Sorties',
+      simulation: 'Fonction',
+      min: 'Min',
+      max: 'Max',
+      period: 'Période (s)',
+      integer: 'Valeurs entières',
+      autostart: 'Démarrer au déploiement',
+      show: 'Afficher',
+      wholeMessage: 'Message entier',
+      active: 'Actif'
+    },
+    payloadTypes: {
+      number: 'Nombre',
+      string: 'Texte',
+      boolean: 'Booléen',
+      json: 'JSON',
+      timestamp: 'Horodatage'
+    },
+    operators: {
+      eq: '=',
+      neq: '≠',
+      lt: '<',
+      lte: '≤',
+      gt: '>',
+      gte: '≥',
+      between: 'entre',
+      true: 'est vrai',
+      false: 'est faux',
+      else: 'sinon'
+    },
+    simulations: {
+      sine: 'Sinus',
+      ramp: 'Rampe',
+      random: 'Aléatoire',
+      toggle: 'Bascule'
+    },
+    faultActions: {
+      on: 'activer',
+      off: 'arrêter',
+      msg: 'selon msg.payload'
+    },
+    status: {
+      unavailable: 'indisponible',
+      pending: '{count} en attente',
+      faultOn: 'actif',
+      faultOff: 'arrêté',
+      paused: 'en pause'
     },
     errors: {
       unknownModule: 'Module inconnu : {id}',
       unsupportedFault: 'Le module {module} ne prend pas en charge ce défaut',
       unknownFault: 'Défaut inconnu',
       invalidDuration: 'Durée invalide : {value}',
-      notNumeric: "Le point {point} n'a pas de valeur numérique pour la rampe",
-      stepFailed: 'Étape {step} ({type}) : {message}',
-      alreadyRunning: 'Un scénario est déjà en cours',
+      invalidInterval: 'Intervalle invalide : {value}',
+      notNumber: 'Valeur non numérique pour {label} : {value}',
+      invalidJson: 'JSON invalide',
+      noPoint: 'Aucun point choisi',
+      unavailable: 'Valeur indisponible : {point}',
+      emptyRange: 'La plage d’entrée est vide (min = max)',
+      invalidFlows: 'Flux invalides',
+      notDeployed: 'Ce nœud n’est pas déployé',
       alreadyRecording: 'Un enregistrement est déjà en cours',
-      noPoints: 'Choisissez au moins un point',
-      emptyScenario: "Le scénario n'a aucune étape"
+      noPoints: 'Choisissez au moins un point'
     }
   }
 }

@@ -1,0 +1,28 @@
+/* Éditeur de flux : couleurs de React Flow reprises du thème de Sulfur (clair comme sombre). */
+.sulfur-flow {
+  --xy-background-color: var(--color-ink-950);
+  --xy-background-pattern-color: var(--color-ink-700);
+  --xy-edge-stroke: var(--color-slate-500);
+  --xy-edge-stroke-width: 2;
+  --xy-edge-stroke-selected: var(--color-sulfur-400);
+  --xy-connectionline-stroke: var(--color-sulfur-400);
+  --xy-connectionline-stroke-width: 2;
+  --xy-controls-button-background-color: var(--color-ink-800);
+  --xy-controls-button-background-color-hover: var(--color-ink-700);
+  --xy-controls-button-color: var(--color-slate-300);
+  --xy-controls-button-color-hover: var(--color-slate-100);
+  --xy-controls-button-border-color: var(--color-ink-700);
+  --xy-controls-box-shadow: none;
+  --xy-attribution-background-color: transparent;
+  --xy-selection-background-color: color-mix(in srgb, var(--color-sulfur-400) 8%, transparent);
+  --xy-selection-border: 1px dashed var(--color-sulfur-400);
+}
+
+.sulfur-flow .react-flow__attribution a {
+  color: var(--color-slate-600);
+}
+
+.sulfur-flow .react-flow__handle-connecting,
+.sulfur-flow .react-flow__handle:hover {
+  background: var(--color-sulfur-400) !important;
+}

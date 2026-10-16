@@ -5,9 +5,12 @@ import { ModbusClient } from '@modules/modbus/main/client'
 import { ModbusPki } from '@modules/modbus/main/pki'
 import { DEFAULT_SERVER_CONFIG, DEFAULT_SERVER_SECURITY } from '@modules/modbus/shared/constants'
 import { t } from '@modules/modbus/shared/i18n'
+import { migrateModbusConfig } from '@modules/modbus/shared/units'
 import { errorOf, freePort, sleep, tempDir } from './helpers'
 
 let tmp, serverPki, clientPki, server, logs, port
+const DEFAULT_UNIT = DEFAULT_SERVER_CONFIG.units[0]
+const DEFAULT_POINTS = DEFAULT_UNIT.points
 const clients = []
 
 /** Client suivi pour être déconnecté après chaque test. */
@@ -82,7 +85,7 @@ describe('Modbus TCP', () => {
     const client = newClient()
     await connect(client)
     expect(await errorOf(client.write('inputRegisters', 0, [1]))).toBe(t('modbus.errors.readOnlyTable'))
-    server.upsertPoint({ ...DEFAULT_SERVER_CONFIG.points[1], writable: false })
+    server.upsertPoint({ ...DEFAULT_POINTS[1], writable: false })
     expect(await errorOf(client.writeValue('holdingRegisters', 10, 5, 'Int16'))).toMatch(/^Exception 2\b/)
     expect(await errorOf(client.read('holdingRegisters', 9995, 10))).toMatch(/^Exception 2\b/)
   })
@@ -118,7 +121,7 @@ describe('Modbus TCP', () => {
     server.setValue('n1', 70000)
     expect(await client.readValue('holdingRegisters', 200, 'UInt32')).toBe(70000)
     server.removePoint('n1')
-    expect(server.status().config.points.find((p) => p.id === 'n1')).toBeUndefined()
+    expect(server.status().config.units[0].points.find((p) => p.id === 'n1')).toBeUndefined()
   })
 
   it("répond par l'exception 11 à un Unit ID inconnu", async () => {
@@ -152,11 +155,133 @@ describe('Modbus TCP', () => {
       simulation: 'none',
       writable: true
     }
-    await start({}, { wordOrder: 'CDAB', points: [point] })
+    await start({}, { wordOrder: 'CDAB', units: [{ ...DEFAULT_UNIT, points: [point] }] })
     const client = newClient()
     await connect(client)
     expect(await client.readValue('holdingRegisters', 0, 'Float32', 'CDAB')).toBe(3.5)
     expect(await client.readValue('holdingRegisters', 0, 'Float32', 'ABCD')).not.toBe(3.5)
+  })
+})
+
+describe('Passerelle : plusieurs Unit ID', () => {
+  beforeAll(newServer)
+
+  const point = (id, name, address, initialValue) => ({
+    id,
+    name,
+    table: 'holdingRegisters',
+    address,
+    dataType: 'UInt16',
+    initialValue,
+    simulation: 'none',
+    writable: true
+  })
+  const units = [
+    { id: 'u1', unitId: 1, name: 'Pompe', points: [point('p1', 'Vitesse', 0, 11)] },
+    {
+      id: 'u2',
+      unitId: 7,
+      name: 'Vanne',
+      identity: { vendorName: 'ACME', productCode: 'V-200', revision: '2.3', productName: 'Vanne' },
+      points: [point('p2', 'Vitesse', 0, 22), { ...point('p3', 'Fixe', 5, 3), writable: false }]
+    }
+  ]
+
+  it('sert chaque équipement avec sa propre mémoire et refuse les autres Unit ID', async () => {
+    await start({}, { units })
+    const one = newClient()
+    const seven = newClient()
+    await connect(one, { unitId: 1 })
+    await connect(seven, { unitId: 7 })
+    expect(await one.read('holdingRegisters', 0, 1)).toEqual([11])
+    expect(await seven.read('holdingRegisters', 0, 1)).toEqual([22])
+    await seven.write('holdingRegisters', 0, [99])
+    expect(server.values()).toMatchObject({ p1: 11, p2: 99 })
+
+    const other = newClient()
+    await connect(other, { unitId: 3 })
+    expect(await errorOf(other.read('holdingRegisters', 0, 1))).toMatch(/^Exception 11\b/)
+    expect(logs.some((l) => l.message.includes('1, 7'))).toBe(true)
+  })
+
+  it('répond au premier équipement pour tout Unit ID si demandé', async () => {
+    await start({}, { units, anyUnitId: true })
+    const client = newClient()
+    await connect(client, { unitId: 42 })
+    expect(await client.read('holdingRegisters', 0, 1)).toEqual([11])
+  })
+
+  it('ajoute, modifie et retire des équipements à chaud', async () => {
+    await start({}, { units })
+    server.addUnit({ id: 'u3', unitId: 9, name: 'Nouveau', points: [point('p4', 'X', 2, 5)] })
+    const client = newClient()
+    await connect(client, { unitId: 9 })
+    expect(await client.read('holdingRegisters', 2, 1)).toEqual([5])
+    expect(() => server.addUnit({ unitId: 7 })).toThrow(t('modbus.errors.unitExists', { unitId: 7 }))
+
+    server.updateUnit({ id: 'u3', unitId: 10 })
+    expect(await errorOf(client.read('holdingRegisters', 2, 1))).toMatch(/^Exception 11\b/)
+    server.removeUnit('u3')
+    expect(server.status().config.units.map((u) => u.id)).toEqual(['u1', 'u2'])
+    expect(server.values().p4).toBeUndefined()
+    server.removeUnit('u2')
+    expect(() => server.removeUnit('u1')).toThrow(t('modbus.errors.lastUnit'))
+  })
+
+  it('accepte encore une configuration à un seul équipement (ancienne forme) et la convertit', async () => {
+    const { units: _units, port: _port, ...legacy } = DEFAULT_SERVER_CONFIG
+    await start({}, { ...legacy, unitId: 4, points: DEFAULT_POINTS, units: undefined })
+    expect(server.status().config.units).toMatchObject([
+      { unitId: 4, points: DEFAULT_POINTS.map((p) => ({ id: p.id })) }
+    ])
+    const migrated = migrateModbusConfig({ server: { ...legacy, unitId: 4, points: DEFAULT_POINTS }, client: {} })
+    expect(migrated.server.units[0]).toMatchObject({ id: 'unit-1', unitId: 4 })
+    expect(migrated.server.points).toBeUndefined()
+    expect(migrateModbusConfig(migrated)).toBe(migrated)
+  })
+
+  it('lit et écrit en une requête (fonction 23), en respectant les points protégés', async () => {
+    await start({}, { units })
+    const client = newClient()
+    await connect(client, { unitId: 7 })
+    // Écriture faite avant la lecture : la plage lue contient déjà les valeurs écrites.
+    expect(await client.readWrite(0, 3, 1, [100, 200])).toEqual([22, 100, 200])
+    expect(await errorOf(client.readWrite(0, 1, 5, [1]))).toMatch(/^Exception 2\b/) // point Fixe protégé
+    expect(await errorOf(client.readWrite(9999, 2, 0, [1]))).toMatch(/^Exception 2\b/)
+  })
+
+  it('identifie chaque équipement (fonction 43 / 14)', async () => {
+    await start({}, { units })
+    const seven = newClient()
+    await connect(seven, { unitId: 7 })
+    const regular = await seven.readDeviceIdentification(2)
+    expect(regular.conformity).toBe(0x82)
+    expect(Object.fromEntries(regular.objects.map((o) => [o.id, o.value]))).toMatchObject({
+      0: 'ACME',
+      1: 'V-200',
+      2: '2.3',
+      4: 'Vanne'
+    })
+    const basic = await seven.readDeviceIdentification(1)
+    expect(basic.objects.map((o) => o.id)).toEqual([0, 1, 2])
+    expect(await errorOf(seven.readDeviceIdentification(3))).toMatch(/^Exception 3\b/)
+
+    const one = newClient()
+    await connect(one, { unitId: 1 })
+    const defaults = await one.readDeviceIdentification(2)
+    expect(defaults.objects.find((o) => o.id === 0).value).toBe('Sulfur')
+  })
+
+  it('explore et modifie la mémoire brute d’un équipement', async () => {
+    await start({}, { units })
+    expect(server.registers('u2', 'holdingRegisters', 0, 6)).toEqual([22, 0, 0, 0, 0, 3])
+    expect(server.registers('u2', 'holdingRegisters', 9998, 10)).toHaveLength(2)
+    server.writeRegister('u2', 'holdingRegisters', 0, 1234)
+    expect(server.values().p2).toBe(1234)
+    server.writeRegister('u1', 'discreteInputs', 3, true)
+    expect(server.registers('u1', 'discreteInputs', 3, 1)).toEqual([true])
+    expect(() => server.writeRegister('u1', 'holdingRegisters', 0, 70000)).toThrow()
+    expect(() => server.registers('u1', 'holdingRegisters', 0, 5000)).toThrow()
   })
 })
 

@@ -40,10 +40,13 @@ Rendre les simulateurs plus utiles pour tester des équipements et logiciels ré
   codes d'état d'erreur (OPC UA), pour tester le comportement des clients en cas de problème.
 - [x] **Scénarios** : enchaîner des évolutions de valeurs dans le temps (scriptées ou enregistrées) et
   les rejouer (module Simulateur, comme l'injection de défauts).
+- [x] **Flux de nœuds** à la manière de Node-RED : éditeur graphique, flux déployés qui tournent en
+  continu (déclencheurs, points, rampes, défauts, logique, fonction JavaScript, générateurs,
+  débogage) ; remplacent les scénarios, convertis automatiquement.
 - [x] **Courbes et enregistrement** : graphiques des valeurs surveillées, export CSV (module Courbes).
 - [x] **OPC UA** : tableaux et types structurés, méthodes, événements et alarmes, lecture d'historique,
   import d'espace d'adressage (NodeSet2 XML).
-- [ ] **Modbus** : explorateur de registres côté serveur, plusieurs Unit ID sur un même serveur
+- [x] **Modbus** : explorateur de registres côté serveur, plusieurs Unit ID sur un même serveur
   (simulation de passerelle), identification de l'équipement (fonction 43 / 14), lecture/écriture
   multiple (fonction 23).
 
@@ -55,13 +58,17 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
 - [ ] **SNMP** : agent et manager, v1 / v2c / v3 (authentification et chiffrement USM), MIB simulée
   et traps
 - [ ] **Syslog** : serveur et émetteur, UDP / TCP / TLS
-- [ ] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
-- [ ] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
+- [x] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
+- [x] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
   l'horodatage et la validité des certificats sur les équipements
 
 ## Nouveaux modules : automatismes industriels
 
 - [ ] **Siemens S7** (S7comm)
+- [ ] **Siemens PLCSim Advanced** : piloter des automates virtuels S7-1500 (création et démarrage
+  d'instances, lecture / écriture des variables, points publiés pour le simulateur et les courbes).
+  Disponible sous Windows uniquement : PLCSim Advanced doit être installé et l'utilisateur indique
+  le chemin de ses DLL (API Simulation Runtime) dans les réglages du module.
 - [ ] **EtherNet/IP (CIP)** : automates Rockwell / Allen-Bradley
 - [ ] **BACnet/IP** : gestion technique du bâtiment (CVC, éclairage)
 - [ ] **OPC UA PubSub** : mode publication / abonnement d'OPC UA, en extension du module OPC UA
@@ -78,6 +85,8 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 
 - **Liens entre modules** : relier une variable d'un module à un autre (par exemple une variable
   OPC UA recopiée dans un registre Modbus) pour simuler une passerelle ou une installation complète.
+  Déjà possible avec un flux du simulateur (*Changement de point* → *Écrire un point*) ; reste à
+  proposer un lien direct, sans flux.
 - **Renforcement de la sécurité** :
   - activer le sandbox de l'interface ;
   - chiffrer les configurations enregistrées qui contiennent des secrets ;

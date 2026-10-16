@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, Eye, Lock, Plug, PlugZap, ShieldCheck, Send, X } from 'lucide-react'
+import { ArrowLeftRight, BookOpen, Eye, Fingerprint, Lock, Plug, PlugZap, ShieldCheck, Send, X } from 'lucide-react'
 import {
   Button,
   Card,
@@ -12,7 +12,14 @@ import {
   StatusDot
 } from '@renderer/components/ui'
 import CertificatesDialog from '@renderer/components/CertificatesDialog'
-import { DATA_TYPES, DEFAULT_CLIENT_CONFIG, DEFAULT_CLIENT_REQUEST, TABLES, WORD_ORDERS } from '../shared/constants'
+import {
+  DATA_TYPES,
+  DEFAULT_CLIENT_CONFIG,
+  DEFAULT_CLIENT_REQUEST,
+  IDENTITY_OBJECTS,
+  TABLES,
+  WORD_ORDERS
+} from '../shared/constants'
 import { decodeValue, encodeValue } from '../shared/codec'
 import { getLocale } from '@shared/i18n'
 import { t } from '../shared/i18n'
@@ -47,6 +54,15 @@ const formatTime = (iso) =>
   iso ? new Date(iso).toLocaleTimeString(getLocale(), { hour12: false }) + '.' + iso.slice(20, 23) : '—'
 const address = (table, a) => `${TABLES[table].prefix} ${a}`
 
+/** Niveaux de lecture de l'identification (fonction 43 / 14) proposés au client. */
+const IDENTIFICATION_CODES = [1, 2, 3]
+
+/** Libellé d'un objet d'identification : nom standard (0 à 6) ou numéro. */
+const objectLabel = (id) =>
+  IDENTITY_OBJECTS[id]
+    ? t(`modbus.identity.${IDENTITY_OBJECTS[id]}`)
+    : t('modbus.client.object', { id: `0x${id.toString(16).toUpperCase().padStart(2, '0')}` })
+
 /** Convertit une saisie en mots 16 bits selon le format choisi (liste séparée par des virgules pour 16 bits). */
 function parseWrite(raw, format, wordOrder) {
   const f = FORMATS[format]
@@ -80,6 +96,8 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
   const [result, setResult] = useState(null)
   const [writeValue, setWriteValue] = useState('')
   const [live, setLive] = useState({})
+  const [identification, setIdentification] = useState(null)
+  const [identificationCode, setIdentificationCode] = useState(2)
   const connected = status.connected
   const security = config.security
   const bit = TABLES[op.table].bit
@@ -93,7 +111,10 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
 
   useEffect(() => modbusApi.client.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [])
   useEffect(() => {
-    if (!connected) setLive({})
+    if (!connected) {
+      setLive({})
+      setIdentification(null)
+    }
   }, [connected])
 
   async function run(action) {
@@ -132,6 +153,25 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
       await read()
     })
   }
+
+  /** Fonction 23 : écrit la saisie à l'adresse d'écriture puis lit la plage demandée, en une requête. */
+  function readWrite() {
+    run(async () => {
+      const data = await modbusApi.client.readWrite(
+        Number(op.address),
+        Number(op.quantity),
+        Number(op.writeAddress ?? op.address),
+        parseWrite(writeValue, op.format, op.wordOrder)
+      )
+      setResult({ ...op, address: Number(op.address), data, time: new Date().toISOString() })
+    })
+  }
+
+  const identify = () =>
+    run(async () => {
+      const data = await modbusApi.client.identify(identificationCode)
+      setIdentification({ ...data, time: new Date().toISOString() })
+    })
 
   const watch = () =>
     run(() =>
@@ -379,6 +419,24 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
             </div>
           )}
 
+          {op.table === 'holdingRegisters' && (
+            <div className="flex items-end gap-3">
+              <Field className="w-56" label={t('modbus.client.writeAddress')}>
+                <Input
+                  type="number"
+                  min={0}
+                  max={65535}
+                  value={op.writeAddress ?? op.address}
+                  onChange={(e) => updateOp({ writeAddress: e.target.value })}
+                />
+              </Field>
+              <Button disabled={!connected || busy || !writeValue} onClick={readWrite}>
+                <ArrowLeftRight className="size-4" /> {t('modbus.client.readWrite')}
+              </Button>
+              <p className="mb-2 text-xs text-slate-500">{t('modbus.client.readWriteHint')}</p>
+            </div>
+          )}
+
           {result && (
             <div className="rounded-md border border-ink-800">
               <div className="flex items-center justify-between border-b border-ink-800 px-3 py-1.5 text-xs text-slate-400">
@@ -415,6 +473,56 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
             </div>
           )}
         </div>
+      </Card>
+
+      <Card
+        id="modbus.client.identification"
+        title={t('modbus.client.identification')}
+        className="shrink-0"
+        actions={
+          <>
+            <Select
+              className="h-7! w-44 text-xs"
+              value={identificationCode}
+              onChange={(e) => setIdentificationCode(Number(e.target.value))}
+            >
+              {IDENTIFICATION_CODES.map((code) => (
+                <option key={code} value={code}>
+                  {t(`modbus.client.identificationCodes.${code}`)}
+                </option>
+              ))}
+            </Select>
+            <Button size="sm" disabled={!connected || busy} onClick={identify}>
+              <Fingerprint className="size-3.5" /> {t('modbus.client.identify')}
+            </Button>
+          </>
+        }
+      >
+        {identification ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-slate-500">
+              {t('modbus.client.conformity', {
+                level: `0x${(identification.conformity ?? 0).toString(16).toUpperCase().padStart(2, '0')}`,
+                time: formatTime(identification.time)
+              })}
+            </p>
+            <table className="w-full text-sm">
+              <tbody>
+                {identification.objects.map((o) => (
+                  <tr key={o.id} className="border-t border-ink-800">
+                    <td className="w-12 py-1.5 pr-3 font-mono text-xs text-slate-500">
+                      {String(o.id).padStart(2, '0')}
+                    </td>
+                    <td className="w-56 py-1.5 pr-3 text-slate-400">{objectLabel(o.id)}</td>
+                    <td className="py-1.5 font-mono text-[13px] text-sulfur-300 select-text">{o.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">{t('modbus.client.identificationHint')}</p>
+        )}
       </Card>
 
       <Card

@@ -4,10 +4,14 @@ import {
   FrameError,
   FrameReader,
   ModbusException,
+  buildIdentificationResponse,
   buildResponse,
   encodeFrame,
+  identificationRequest,
   parseRequest,
+  parseResponse,
   packBits,
+  readWriteRequest,
   unpackBits,
   writeRequest
 } from '@modules/modbus/main/protocol'
@@ -67,6 +71,48 @@ describe('Protocole Modbus TCP', () => {
     expect(code([99, 0, 0, 0, 1])).toBe(1) // fonction inconnue
     expect(code([3, 0, 0, 0, 200])).toBe(3) // quantité > 125
     expect(code([5, 0, 0, 0x12, 0x34])).toBe(3) // valeur de coil invalide
+  })
+
+  it('analyse une lecture / écriture multiple (fonction 23)', () => {
+    const req = parseRequest(readWriteRequest(3, 2, 10, [7, 8, 9]))
+    expect(req).toMatchObject({
+      fc: 23,
+      address: 3,
+      quantity: 2,
+      writeAddress: 10,
+      writeQuantity: 3,
+      values: [7, 8, 9]
+    })
+    expect([...buildResponse(req, [1, 2])]).toEqual([23, 4, 0, 1, 0, 2])
+    const bad = Buffer.from(readWriteRequest(0, 1, 0, [1]))
+    bad[9] = 4 // nombre d'octets incohérent
+    expect(() => parseRequest(bad)).toThrow(ModbusException)
+  })
+
+  it('découpe une identification trop longue en plusieurs réponses', () => {
+    const long = 'x'.repeat(200)
+    const objects = new Map([
+      [0, 'Vendor'],
+      [1, 'Code'],
+      [2, '1.0'],
+      [4, long],
+      [5, long]
+    ])
+    const first = buildIdentificationResponse(parseRequest(identificationRequest(2, 0)), objects)
+    const parsed = parseResponse(identificationRequest(2, 0), first)
+    expect(first.length).toBeLessThanOrEqual(253)
+    expect(parsed).toMatchObject({ moreFollows: true, nextObjectId: 5 })
+    expect(parsed.objects.map((o) => o.id)).toEqual([0, 1, 2, 4])
+    const next = parseResponse(
+      identificationRequest(2, 5),
+      buildIdentificationResponse(parseRequest(identificationRequest(2, 5)), objects)
+    )
+    expect(next).toMatchObject({ moreFollows: false, objects: [{ id: 5, value: long }] })
+    // Objet individuel absent → exception 2 ; MEI inconnu → exception 1.
+    expect(() => buildIdentificationResponse(parseRequest(identificationRequest(4, 3)), objects)).toThrow(
+      ModbusException
+    )
+    expect(() => parseRequest(Buffer.from([43, 13, 1, 0]))).toThrow(ModbusException)
   })
 
   it('empaquette les bits', () => {

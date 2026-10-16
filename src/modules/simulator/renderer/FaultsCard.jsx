@@ -15,6 +15,7 @@ function defaultParams(type, spec) {
   if (type === 'delay') return { ms: 500 }
   if (type === 'exception') return { code: spec?.codes?.[0]?.value ?? 4, scope: 'all' }
   if (type === 'badStatus') return { code: spec?.codes?.[0]?.value ?? 'BadSensorFailure' }
+  if (type === 'kissOfDeath') return { code: spec?.codes?.[0]?.value ?? 'DENY' }
   return {}
 }
 
@@ -83,14 +84,21 @@ function FaultSettings({ fault, spec, points, onChange }) {
           {picker}
         </div>
       )
+    case 'kissOfDeath':
+      return codeSelect
     case 'freeze':
-      return picker
+      // Défaut sans points (ex. horloge NTP figée) : rien à choisir.
+      return spec && !spec.points ? (
+        <span className="text-xs text-slate-500">{t(`simulator.faults.typeHints.${fault.type}`)}</span>
+      ) : (
+        picker
+      )
     default:
       return <span className="text-xs text-slate-500">{t(`simulator.faults.typeHints.${fault.type}`)}</span>
   }
 }
 
-/** Défauts injectables dans les serveurs des autres modules, activés à la main ou par un scénario. */
+/** Défauts injectables dans les serveurs des autres modules, activés à la main ou par un flux. */
 export default function FaultsCard({ faults, onChange, targets, status, onError }) {
   const [now, setNow] = useState(Date.now())
   const timers = useRef({})

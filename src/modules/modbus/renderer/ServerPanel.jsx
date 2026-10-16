@@ -13,17 +13,22 @@ import {
 } from '@renderer/components/ui'
 import {
   DATA_TYPES,
+  DEFAULT_IDENTITY,
   DEFAULT_SERVER_CONFIG,
+  IDENTITY_OBJECTS,
+  MAX_UNIT_ID,
   REGISTER_TYPES,
   SIMULATIONS,
   TABLES,
   WORD_ORDERS
 } from '../shared/constants'
 import { pointSize } from '../shared/codec'
+import { unitLabel } from '../shared/units'
 import { usePersistentState } from '@renderer/module-config'
 import { modbusApi } from './api'
 import ServerSecurity, { securityProblems } from './ServerSecurity'
 import ServerActivity from './ServerActivity'
+import RegisterExplorer from './RegisterExplorer'
 import { t } from '../shared/i18n'
 
 /** Délai avant d'envoyer au serveur les paramètres modifiés pendant qu'il tourne. */
@@ -43,6 +48,7 @@ function nextAddress(points, table) {
   return points.filter((p) => p.table === table).reduce((max, p) => Math.max(max, p.address + pointSize(p.dataType)), 0)
 }
 
+/** Nouveau point d'un équipement (nom libre parmi `points`, première adresse libre). */
 function newPoint(points) {
   const names = new Set(points.map((p) => p.name))
   let i = points.length + 1
@@ -60,6 +66,14 @@ function newPoint(points) {
     max: 100,
     writable: true
   }
+}
+
+/** Nouvel équipement : premier Unit ID libre. */
+function newUnit(units) {
+  const used = new Set(units.map((u) => Number(u.unitId)))
+  let unitId = 1
+  while (used.has(unitId) && unitId < MAX_UNIT_ID) unitId++
+  return { id: crypto.randomUUID(), unitId, name: '', identity: DEFAULT_IDENTITY, points: [] }
 }
 
 const overlap = (a, b) =>
@@ -92,8 +106,11 @@ export default function ServerPanel({ status }) {
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  const [selectedUnit, setSelectedUnit] = useState(config.units[0]?.id)
   const timers = useRef({})
   const running = status.running
+  const units = config.units
+  const unit = units.find((u) => u.id === selectedUnit) ?? units[0]
 
   // Le serveur est la source de vérité quand il tourne : on reprend sa configuration au démarrage.
   useEffect(() => {
@@ -127,19 +144,46 @@ export default function ServerPanel({ status }) {
       if (current.config) setConfig(current.config)
     })
 
-  function push(point, immediate) {
-    clearTimeout(timers.current[point.id])
-    const send = () => liveSync(() => modbusApi.server.upsertPoint(point))
+  /** Envoie une modification au serveur en marche (après un court délai pendant la saisie). */
+  function debounce(key, send, immediate) {
+    clearTimeout(timers.current[key])
     if (immediate) send()
-    else timers.current[point.id] = setTimeout(send, LIVE_DEBOUNCE)
+    else timers.current[key] = setTimeout(send, LIVE_DEBOUNCE)
   }
 
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
+  const setUnits = (fn) => setConfig((c) => ({ ...c, units: fn(c.units) }))
+
+  function updateUnit(id, patch, { immediate = false } = {}) {
+    const next = { ...units.find((u) => u.id === id), ...patch }
+    setUnits((list) => list.map((u) => (u.id === id ? next : u)))
+    if (running) {
+      const { points: _points, ...def } = next
+      debounce(`unit:${id}`, () => liveSync(() => modbusApi.server.updateUnit(def)), immediate)
+    }
+  }
+
+  function addUnit() {
+    const u = newUnit(units)
+    setUnits((list) => [...list, u])
+    setSelectedUnit(u.id)
+    if (running) liveSync(() => modbusApi.server.addUnit(u))
+  }
+
+  function removeUnit(id) {
+    const rest = units.filter((u) => u.id !== id)
+    setUnits(() => rest)
+    setSelectedUnit(rest[0]?.id)
+    if (running) liveSync(() => modbusApi.server.removeUnit(id))
+  }
+
+  const setPoints = (fn) => setUnits((list) => list.map((u) => (u.id === unit.id ? { ...u, points: fn(u.points) } : u)))
 
   function updatePoint(id, patch, { immediate = false } = {}) {
-    const next = { ...config.points.find((p) => p.id === id), ...patch }
-    setConfig((c) => ({ ...c, points: c.points.map((p) => (p.id === id ? next : p)) }))
-    if (running) push(next, immediate)
+    const next = { ...unit.points.find((p) => p.id === id), ...patch }
+    setPoints((points) => points.map((p) => (p.id === id ? next : p)))
+    const unitId = unit.id
+    if (running) debounce(id, () => liveSync(() => modbusApi.server.upsertPoint(next, unitId)), immediate)
   }
 
   function changeTable(point, table) {
@@ -152,7 +196,7 @@ export default function ServerPanel({ status }) {
         dataType,
         writable: TABLES[table].writable && point.writable,
         address: nextAddress(
-          config.points.filter((p) => p.id !== point.id),
+          unit.points.filter((p) => p.id !== point.id),
           table
         )
       },
@@ -161,14 +205,14 @@ export default function ServerPanel({ status }) {
   }
 
   function addPoint() {
-    const p = newPoint(config.points)
-    setConfig((c) => ({ ...c, points: [...c.points, p] }))
-    if (running) push(p, true)
+    const p = newPoint(unit.points)
+    setPoints((points) => [...points, p])
+    if (running) liveSync(() => modbusApi.server.upsertPoint(p, unit.id))
   }
 
   function removePoint(id) {
     clearTimeout(timers.current[id])
-    setConfig((c) => ({ ...c, points: c.points.filter((p) => p.id !== id) }))
+    setPoints((points) => points.filter((p) => p.id !== id))
     if (running) liveSync(() => modbusApi.server.removePoint(id))
   }
 
@@ -178,12 +222,26 @@ export default function ServerPanel({ status }) {
     update({ security, ...(swap ? { port: swap } : {}) })
   }
 
-  const names = config.points.map((p) => p.name)
-  const duplicates = names.filter((n, i) => names.indexOf(n) !== i)
-  const overlapping = new Set(config.points.filter((p) => config.points.some((q) => overlap(p, q))).map((p) => p.id))
+  // Contrôles : par équipement (noms et chevauchements de points), et Unit ID uniques.
+  const problemsOf = (u) => {
+    const names = u.points.map((p) => p.name)
+    return {
+      duplicates: names.filter((n, i) => names.indexOf(n) !== i),
+      overlapping: new Set(u.points.filter((p) => u.points.some((q) => overlap(p, q))).map((p) => p.id)),
+      empty: u.points.some((p) => !p.name.trim())
+    }
+  }
+  const unitIds = units.map((u) => Number(u.unitId))
+  const badUnitIds = new Set(
+    unitIds.filter((id, i) => unitIds.indexOf(id) !== i || !Number.isInteger(id) || id < 0 || id > MAX_UNIT_ID)
+  )
+  const unitInvalid = (u) => {
+    const p = problemsOf(u)
+    return badUnitIds.has(Number(u.unitId)) || p.duplicates.length > 0 || p.overlapping.size > 0 || p.empty
+  }
+  const { duplicates, overlapping } = problemsOf(unit)
   const problems = securityProblems(config.security)
-  const invalid =
-    duplicates.length > 0 || overlapping.size > 0 || config.points.some((p) => !p.name.trim()) || problems.length > 0
+  const invalid = units.some(unitInvalid) || problems.length > 0
 
   const headers = [
     t('ui.name'),
@@ -229,7 +287,7 @@ export default function ServerPanel({ status }) {
         }
       >
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-6 gap-4">
+          <div className="grid grid-cols-5 gap-4">
             <Field label={t('modbus.server.host')}>
               <Input
                 value={config.host}
@@ -243,16 +301,6 @@ export default function ServerPanel({ status }) {
                 value={config.port}
                 disabled={running || busy}
                 onChange={(e) => update({ port: Number(e.target.value) })}
-              />
-            </Field>
-            <Field label={t('modbus.server.unitId')}>
-              <Input
-                type="number"
-                min={0}
-                max={255}
-                value={config.unitId}
-                disabled={running || busy || config.anyUnitId}
-                onChange={(e) => update({ unitId: Number(e.target.value) })}
               />
             </Field>
             <Field label={t('modbus.server.wordOrder')}>
@@ -295,6 +343,7 @@ export default function ServerPanel({ status }) {
             <Checkbox
               label={t('modbus.server.anyUnitId')}
               disabled={running || busy}
+              title={t('modbus.server.anyUnitIdHint')}
               checked={!!config.anyUnitId}
               onChange={(e) => update({ anyUnitId: e.target.checked })}
             />
@@ -330,17 +379,91 @@ export default function ServerPanel({ status }) {
 
       <Card
         id="modbus.server.points"
-        title={t('modbus.server.points', { count: config.points.length })}
+        title={t('modbus.server.units', { count: units.length })}
         className="min-h-72 shrink-0"
         actions={
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
-            <Button size="sm" disabled={busy} onClick={addPoint}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+            <Button size="sm" disabled={busy || units.length > MAX_UNIT_ID} onClick={addUnit}>
+              <Plus className="size-3.5" /> {t('modbus.server.addUnit')}
             </Button>
           </>
         }
       >
+        <p className="mb-3 text-xs text-slate-500">{t('modbus.server.unitsHint')}</p>
+        <div className="mb-3 flex flex-wrap items-center gap-1 border-b border-ink-800">
+          {units.map((u) => (
+            <button
+              key={u.id}
+              type="button"
+              onClick={() => setSelectedUnit(u.id)}
+              className={`-mb-px rounded-t-md border px-3 py-1.5 text-sm ${
+                u.id === unit.id
+                  ? 'border-ink-800 border-b-ink-900 bg-ink-900 text-slate-100'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              } ${unitInvalid(u) ? 'text-red-300!' : ''}`}
+            >
+              {unitLabel(u)}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-3 grid grid-cols-[8rem_minmax(0,1fr)_auto] items-end gap-3">
+          <Field label={t('modbus.server.unitId')}>
+            <CommitInput
+              type="number"
+              min={0}
+              max={MAX_UNIT_ID}
+              value={unit.unitId}
+              disabled={busy}
+              className={badUnitIds.has(Number(unit.unitId)) ? 'border-red-500/60' : ''}
+              title={badUnitIds.has(Number(unit.unitId)) ? t('modbus.server.unitIdInvalid') : undefined}
+              onCommit={(raw) => updateUnit(unit.id, { unitId: Number(raw) }, { immediate: true })}
+            />
+          </Field>
+          <Field label={t('ui.name')}>
+            <CommitInput
+              value={unit.name ?? ''}
+              disabled={busy}
+              placeholder={t('modbus.server.unitNamePlaceholder')}
+              onCommit={(name) => updateUnit(unit.id, { name: name.trim() }, { immediate: true })}
+            />
+          </Field>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mb-1"
+            title={t('modbus.server.removeUnit')}
+            disabled={busy || units.length <= 1}
+            onClick={() => removeUnit(unit.id)}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
+
+        <details className="mb-4 rounded-md border border-ink-800 px-3 py-2">
+          <summary className="cursor-pointer text-sm text-slate-300">{t('modbus.server.identification')}</summary>
+          <p className="mt-2 text-xs text-slate-500">{t('modbus.server.identificationHint')}</p>
+          <div className="mt-3 grid grid-cols-4 gap-3">
+            {IDENTITY_OBJECTS.map((key, id) => (
+              <Field key={key} label={`${String(id).padStart(2, '0')} · ${t(`modbus.identity.${key}`)}`}>
+                <Input
+                  value={unit.identity?.[key] ?? ''}
+                  disabled={busy}
+                  placeholder={id <= 2 ? DEFAULT_IDENTITY[key] : ''}
+                  onChange={(e) => updateUnit(unit.id, { identity: { ...unit.identity, [key]: e.target.value } })}
+                />
+              </Field>
+            ))}
+          </div>
+        </details>
+
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-sm text-slate-300">{t('modbus.server.points', { count: unit.points.length })}</h3>
+          <Button size="sm" disabled={busy} onClick={addPoint}>
+            <Plus className="size-3.5" /> {t('ui.add')}
+          </Button>
+        </div>
         <div className="overflow-auto">
           <table className="w-full min-w-[1150px] text-sm">
             <thead className="text-left text-xs text-slate-500">
@@ -353,7 +476,7 @@ export default function ServerPanel({ status }) {
               </tr>
             </thead>
             <tbody>
-              {config.points.map((p) => {
+              {unit.points.map((p) => {
                 const bit = TABLES[p.table].bit
                 return (
                   <tr key={p.id} className="align-middle">
@@ -471,6 +594,8 @@ export default function ServerPanel({ status }) {
           </table>
         </div>
       </Card>
+
+      <RegisterExplorer units={units} running={running} wordOrder={config.wordOrder} />
 
       <ServerActivity status={status} />
     </div>

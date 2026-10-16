@@ -1,4 +1,5 @@
 import { DEFAULT_SERVER_CONFIG, TABLES } from '../shared/constants'
+import { allPoints, normalizeServerConfig, unitLabel } from '../shared/units'
 import { t } from '../shared/i18n'
 
 /** Codes d'exception proposés pour le défaut « exception forcée ». */
@@ -20,17 +21,22 @@ const CLIENT = 'client:'
  * points du serveur (`server:<id>`) et surveillances du client (`client:<id>`).
  */
 export function createPointsApi({ server, client, savedConfig = () => ({}) }) {
-  const points = () => server.status().config?.points ?? savedConfig().server?.points ?? DEFAULT_SERVER_CONFIG.points
+  // Points de tous les équipements du serveur (configuration en marche, sinon enregistrée).
+  const points = () =>
+    allPoints(server.status().config ?? normalizeServerConfig(savedConfig().server) ?? DEFAULT_SERVER_CONFIG)
 
   return {
     name: 'Modbus TCP',
 
     points() {
+      const list = points()
+      // Plusieurs équipements : le nom du point est précédé de celui de son équipement.
+      const several = new Set(list.map(({ unit }) => unit.id)).size > 1
       return [
-        ...points().map((p) => ({
+        ...list.map(({ unit, point: p }) => ({
           id: SERVER + p.id,
           group: 'server',
-          name: p.name,
+          name: several ? `${unitLabel(unit)} · ${p.name}` : p.name,
           dataType: p.dataType,
           numeric: true,
           writable: true

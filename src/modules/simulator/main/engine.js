@@ -1,8 +1,8 @@
-import { parsePointKey, toNumber } from '@shared/points'
-import { RAMP_INTERVAL, RECORD_INTERVAL } from '../shared/constants'
+import { parsePointKey } from '@shared/points'
+import { RECORD_INTERVAL } from '../shared/constants'
 import { t } from '../shared/i18n'
 
-const seconds = (value) => {
+export const seconds = (value) => {
   const n = Number(value)
   if (!Number.isFinite(n) || n < 0) throw new Error(t('simulator.errors.invalidDuration', { value }))
   return n * 1000
@@ -12,18 +12,15 @@ const seconds = (value) => {
 const roundSeconds = (ms) => Math.round(ms / 10) / 100
 
 /**
- * Moteur du simulateur : défauts injectés dans les autres modules, lecture des scénarios et
- * enregistrement des évolutions de points. Les modules sont atteints par leurs points publiés
- * (`peers()` : [{ id, api }], contrat `@shared/points`).
+ * Moteur du simulateur : défauts injectés dans les autres modules et enregistrement des évolutions
+ * de points. Les flux (`./flows`) s'en servent pour lire et écrire les points et piloter les défauts.
+ * Les modules sont atteints par leurs points publiés (`peers()` : [{ id, api }], contrat `@shared/points`).
  */
 export class SimulatorEngine {
-  /** id du défaut -> { def, until, timer, byScenario } */
+  /** id du défaut -> { def, until, timer, byFlow } */
   active = new Map()
-  /** Scénario en cours : { id, name, count, step, iteration, loop, token } */
-  run = null
   /** Enregistrement en cours : { keys, startedAt, last, events, timer } */
   recording = null
-  error = null
 
   constructor({ peers, onStatus = () => {} }) {
     this.peers = peers
@@ -33,19 +30,11 @@ export class SimulatorEngine {
   status() {
     return {
       faults: [...this.active.values()].map(({ def, until }) => ({ id: def.id, until })),
-      scenario: this.run && {
-        id: this.run.id,
-        step: this.run.step,
-        count: this.run.count,
-        iteration: this.run.iteration,
-        loop: this.run.loop
-      },
       recording: this.recording && {
         keys: this.recording.keys,
         startedAt: this.recording.startedAt,
         count: this.recording.events.length
-      },
-      error: this.error
+      }
     }
   }
 
@@ -91,7 +80,7 @@ export class SimulatorEngine {
   /**
    * Active (ou réactive) un défaut : def = { id, module, type, params, points, duration (s, 0 = illimité) }.
    */
-  async activateFault(def, { byScenario = false } = {}) {
+  async activateFault(def, { byFlow = false } = {}) {
     const api = this.peer(def.module)
     if (!(api.faultTypes?.() ?? []).some((f) => f.type === def.type)) {
       throw new Error(t('simulator.errors.unsupportedFault', { module: api.name }))
@@ -99,12 +88,12 @@ export class SimulatorEngine {
     const duration = seconds(def.duration ?? 0)
     const previous = this.active.get(def.id)
     clearTimeout(previous?.timer)
-    // Un défaut déjà activé à la main le reste à la fin du scénario.
+    // Un défaut déjà activé à la main le reste au redéploiement des flux.
     const entry = {
       def,
       until: duration ? Date.now() + duration : null,
       timer: null,
-      byScenario: byScenario && (!previous || previous.byScenario)
+      byFlow: byFlow && (!previous || previous.byFlow)
     }
     if (duration) entry.timer = setTimeout(() => this.deactivateFault(def.id).catch(() => {}), duration)
     this.active.set(def.id, entry)
@@ -138,124 +127,10 @@ export class SimulatorEngine {
     await this.peer(moduleId).setFaults?.(faults)
   }
 
-  // --- Scénarios ---------------------------------------------------------------------
-
-  /**
-   * Lance un scénario : { id, name, loop, steps }. `faults` : défauts connus, pour les étapes « fault ».
-   * Le scénario s'exécute en arrière-plan ; son avancement est publié par onStatus.
-   */
-  play(scenario, faults = []) {
-    if (this.run) throw new Error(t('simulator.errors.alreadyRunning'))
-    if (!scenario.steps?.length) throw new Error(t('simulator.errors.emptyScenario'))
-    const token = { cancelled: false, wake: null }
-    this.error = null
-    this.run = {
-      id: scenario.id,
-      count: scenario.steps.length,
-      step: 0,
-      iteration: 1,
-      loop: !!scenario.loop,
-      token
-    }
-    this.execute(scenario, faults, token).then(
-      () => this.finish(token),
-      (err) => this.finish(token, err)
-    )
-    return this.changed()
-  }
-
-  async stop() {
-    const token = this.run?.token
-    if (token) {
-      token.cancelled = true
-      token.wake?.()
-    }
-    await this.finish(token)
-    return this.status()
-  }
-
-  async finish(token, err) {
-    if (!this.run || this.run.token !== token) return
-    this.run = null
-    if (err) this.error = err.message
-    // Les défauts activés par le scénario ne lui survivent pas.
-    for (const entry of [...this.active.values()].filter((e) => e.byScenario)) {
+  /** Arrête les défauts activés par les flux (redéploiement ou arrêt des flux). */
+  async releaseFlowFaults() {
+    for (const entry of [...this.active.values()].filter((e) => e.byFlow)) {
       await this.deactivateFault(entry.def.id).catch(() => {})
-    }
-    this.changed()
-  }
-
-  sleep(ms, token) {
-    return new Promise((resolve) => {
-      if (token.cancelled || ms <= 0) return resolve()
-      const timer = setTimeout(done, ms)
-      function done() {
-        clearTimeout(timer)
-        token.wake = null
-        resolve()
-      }
-      token.wake = done
-    })
-  }
-
-  async execute(scenario, faults, token) {
-    do {
-      for (const [index, step] of scenario.steps.entries()) {
-        if (token.cancelled) return
-        this.run.step = index + 1
-        this.changed()
-        try {
-          await this.executeStep(step, faults, token)
-        } catch (err) {
-          throw new Error(
-            t('simulator.errors.stepFailed', {
-              step: index + 1,
-              type: t(`simulator.steps.${step.type}`),
-              message: err.message
-            }),
-            { cause: err }
-          )
-        }
-      }
-      if (token.cancelled || !scenario.loop) return
-      this.run.iteration++
-    } while (!token.cancelled)
-  }
-
-  async executeStep(step, faults, token) {
-    switch (step.type) {
-      case 'set':
-        return this.write(step.point, step.value)
-      case 'wait':
-        return this.sleep(seconds(step.duration), token)
-      case 'ramp': {
-        const duration = seconds(step.duration)
-        const from =
-          step.from === '' || step.from === undefined || step.from === null
-            ? this.read([step.point])[step.point]
-            : step.from
-        const start = toNumber(from)
-        const end = toNumber(step.to)
-        if (start === null || end === null) throw new Error(t('simulator.errors.notNumeric', { point: step.point }))
-        const count = Math.max(1, Math.round(duration / RAMP_INTERVAL))
-        // Bornes entières : valeurs intermédiaires entières (variables de type entier).
-        const integer = Number.isInteger(start) && Number.isInteger(end)
-        for (let k = 1; k <= count && !token.cancelled; k++) {
-          await this.sleep(duration / count, token)
-          if (token.cancelled) return
-          const value = start + ((end - start) * k) / count
-          await this.write(step.point, integer ? Math.round(value) : value)
-        }
-        return
-      }
-      case 'fault': {
-        const def = faults.find((f) => f.id === step.fault)
-        if (!def) throw new Error(t('simulator.errors.unknownFault'))
-        if (step.action === 'off') return this.deactivateFault(def.id)
-        return this.activateFault(def, { byScenario: true })
-      }
-      default:
-        return undefined
     }
   }
 
@@ -286,7 +161,7 @@ export class SimulatorEngine {
     return this.changed()
   }
 
-  /** Arrête l'enregistrement et retourne les étapes du scénario correspondant. */
+  /** Arrête l'enregistrement et retourne les étapes correspondantes (voir stepsToFlow). */
   stopRecording() {
     const recording = this.recording
     if (!recording) return []
@@ -309,7 +184,6 @@ export class SimulatorEngine {
 
   async dispose() {
     if (this.recording) this.stopRecording()
-    await this.stop()
     await this.clearFaults().catch(() => {})
   }
 }

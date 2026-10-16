@@ -35,7 +35,10 @@ export function registerConfigTransfer(host, moduleIds) {
     })
     if (canceled || !filePaths?.length) return null
     const { modules, ignored } = parseBundle(await fs.readFile(filePaths[0], 'utf8'), moduleIds)
-    for (const [id, config] of Object.entries(modules)) host.configs.get(id).replace(config)
+    for (const [id, config] of Object.entries(modules)) {
+      modules[id] = host.migrate(id, config)
+      host.configs.get(id).replace(modules[id])
+    }
     return { filePath: filePaths[0], modules, ignored }
   })
 }

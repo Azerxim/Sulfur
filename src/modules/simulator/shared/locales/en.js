@@ -1,7 +1,7 @@
 export default {
   simulator: {
     name: 'Simulator',
-    description: 'Fault injection and scenarios on the servers and clients of the other modules',
+    description: 'Fault injection and node flows on the servers and clients of the other modules',
     groups: {
       server: 'Server',
       client: 'Client'
@@ -15,6 +15,7 @@ export default {
         cut: 'Connection cut',
         exception: 'Forced Modbus exception',
         badStatus: 'Forced status code',
+        kissOfDeath: "Kiss-o'-Death (NTP)",
         freeze: 'Frozen values'
       },
       typeHints: {
@@ -24,7 +25,9 @@ export default {
         exception: 'Requests are answered with the chosen exception code.',
         badStatus:
           'The variables keep their value but report the chosen status code (all variables if none is chosen).',
-        freeze: 'The simulation of the chosen points stops (all points if none is chosen).'
+        kissOfDeath: "Requests get a Kiss-o'-Death response with the chosen code (DENY, RSTR, RATE).",
+        freeze:
+          'The simulation of the chosen points stops (all points if none is chosen); the clock of an NTP server is frozen.'
       },
       scopes: {
         all: 'All requests',
@@ -49,57 +52,185 @@ export default {
       clearAll: 'Stop all',
       newName: 'Fault {n}'
     },
-    scenarios: {
-      title: 'Scenarios ({count})',
-      hint: 'A scenario chains steps in time: write a value, ramp, wait, activate or stop a fault. Faults activated by a scenario are stopped at its end.',
-      empty: 'No scenario. Create one, or record the changes of points to replay them.',
-      newName: 'Scenario {n}',
+    noPoint: 'No point available: configure variables or points in the OPC UA and Modbus modules.',
+    flows: {
+      title: 'Flows ({count})',
+      hint: 'As in Node-RED, nodes linked by wires pass messages (msg.payload) to each other. Drag nodes from the palette, link an output (right) to an input (left), then deploy: flows run continuously and are restarted at launch. Delete removes the selection.',
+      empty: 'No flow. Create one, or record the changes of points to replay them.',
+      newName: 'Flow {n}',
       recordedName: 'Recording {time}',
-      loop: 'Loop',
-      play: 'Play',
+      add: 'New flow',
+      duplicate: 'Duplicate the flow',
+      remove: 'Delete the flow',
+      confirmRemove: 'Delete the flow “{name}”?',
+      disabled: 'Disabled',
+      deploy: 'Deploy',
+      deployHint: 'Stops the running flows and starts those of the editor',
       stop: 'Stop',
-      steps: 'Steps ({count})',
-      addStep: 'Step',
-      running: 'Step {step} / {count}',
-      iteration: 'loop {n}',
+      restart: 'Restart',
+      restartHint: 'Restarts the deployed flows',
+      running: 'Running',
+      stopped: 'Stopped',
+      undeployed: 'Undeployed changes',
       record: 'Record',
       recording: 'Recording… {count} change(s)',
       stopRecording: 'Stop recording',
       recordPoints: 'Points to record',
-      recordHint: 'The changes of the chosen points are recorded as a new scenario.',
-      duplicate: 'Duplicate',
-      moveUp: 'Move up',
-      moveDown: 'Move down',
-      noPoint: 'No point available: configure variables or points in the OPC UA and Modbus modules.'
+      recordHint: 'The changes of the chosen points are recorded as a new flow.'
     },
-    steps: {
-      set: 'Write',
+    editor: {
+      properties: 'Properties',
+      debug: 'Debug',
+      noSelection: 'Select a node to edit its settings.',
+      trigger: 'Trigger',
+      output: 'Output {n}',
+      duplicateNode: 'Duplicate the node'
+    },
+    debug: {
+      currentFlow: 'Displayed flow only',
+      clear: 'Clear',
+      empty: 'No message. Debug nodes, node warnings and errors are shown here.'
+    },
+    categories: {
+      triggers: 'Triggers',
+      points: 'Points',
+      timing: 'Time and faults',
+      logic: 'Logic',
+      function: 'Function',
+      generators: 'Generators',
+      output: 'Output'
+    },
+    nodes: {
+      inject: 'Trigger',
+      watch: 'Point change',
+      read: 'Read a point',
+      write: 'Write a point',
+      delay: 'Wait',
       ramp: 'Ramp',
-      wait: 'Wait',
-      fault: 'Fault'
+      fault: 'Fault',
+      switch: 'Switch',
+      scale: 'Scale',
+      counter: 'Counter',
+      filter: 'Change filter',
+      function: 'Function',
+      generator: 'Generator',
+      debug: 'Debug'
     },
-    step: {
+    nodeHints: {
+      inject: 'Sends a message by hand (button left of the deployed node), at deployment and/or at a regular interval.',
+      watch: 'Sends the value of the point at each change (msg.payload, msg.previous, msg.topic = point key).',
+      read: 'Replaces msg.payload with the current value of the point.',
+      write: 'Writes msg.payload, or a fixed value, to the point, then passes the message on.',
+      delay: 'Delays each message by the given duration.',
+      ramp: 'Changes the point linearly up to the target value, then passes the message on. A new message replaces the running ramp.',
+      fault: 'Activates or stops a fault of the table above. Faults activated by flows are stopped at redeployment.',
+      switch: 'Sends the message on the output of each matching rule (one output per rule).',
+      scale: 'Converts msg.payload from an input range to an output range.',
+      counter: 'Counts the received messages and sends the total; msg.reset resets the counter.',
+      filter: 'Only lets through messages whose msg.payload has changed (by at least the deadband for a number).',
+      function: 'JavaScript code run for each message.',
+      generator:
+        'Produces values continuously (sine, ramp, random, toggle). A false message on its input pauses it, a true one restarts it.',
+      debug: 'Shows the received messages in the Debug tab.'
+    },
+    props: {
+      autoName: 'Automatic',
       point: 'Point',
+      payload: 'Value',
+      payloadType: 'Type',
+      topic: 'Topic (msg.topic)',
+      repeat: 'Repeat every (s, 0 = no)',
+      once: 'Send at deployment',
+      interval: 'Interval (ms)',
+      initial: 'Also send the value at deployment',
+      source: 'Written value',
+      fixed: 'Fixed value',
       value: 'Value',
+      duration: 'Duration (s)',
       from: 'From',
       fromCurrent: 'current',
       to: 'To',
-      duration: 'Duration (s)',
       fault: 'Fault',
-      on: 'Activate',
-      off: 'Stop'
+      action: 'Action',
+      property: 'Property',
+      rules: 'Rules',
+      addRule: 'Rule',
+      checkAll: 'Check all rules (otherwise stop at the first one)',
+      inMin: 'Input min',
+      inMax: 'Input max',
+      outMin: 'Output min',
+      outMax: 'Output max',
+      clamp: 'Limit to the output range',
+      round: 'Round to an integer',
+      initialValue: 'Initial value',
+      step: 'Step',
+      deadband: 'Deadband (0 = any change)',
+      code: 'Code',
+      codeHint:
+        'Available: msg, node (send, status, warn, error), context, flow, global. Return a message, an array (one element per output) or null. Limited to 1 s per message.',
+      outputs: 'Outputs',
+      simulation: 'Function',
+      min: 'Min',
+      max: 'Max',
+      period: 'Period (s)',
+      integer: 'Integer values',
+      autostart: 'Start at deployment',
+      show: 'Show',
+      wholeMessage: 'Whole message',
+      active: 'Active'
+    },
+    payloadTypes: {
+      number: 'Number',
+      string: 'Text',
+      boolean: 'Boolean',
+      json: 'JSON',
+      timestamp: 'Timestamp'
+    },
+    operators: {
+      eq: '=',
+      neq: '≠',
+      lt: '<',
+      lte: '≤',
+      gt: '>',
+      gte: '≥',
+      between: 'between',
+      true: 'is true',
+      false: 'is false',
+      else: 'otherwise'
+    },
+    simulations: {
+      sine: 'Sine',
+      ramp: 'Ramp',
+      random: 'Random',
+      toggle: 'Toggle'
+    },
+    faultActions: {
+      on: 'activate',
+      off: 'stop',
+      msg: 'from msg.payload'
+    },
+    status: {
+      unavailable: 'unavailable',
+      pending: '{count} pending',
+      faultOn: 'active',
+      faultOff: 'stopped',
+      paused: 'paused'
     },
     errors: {
       unknownModule: 'Unknown module: {id}',
       unsupportedFault: 'The module {module} does not support this fault',
       unknownFault: 'Unknown fault',
       invalidDuration: 'Invalid duration: {value}',
-      notNumeric: 'The point {point} has no numeric value for the ramp',
-      stepFailed: 'Step {step} ({type}): {message}',
-      alreadyRunning: 'A scenario is already running',
+      invalidInterval: 'Invalid interval: {value}',
+      notNumber: 'Non-numeric value for {label}: {value}',
+      invalidJson: 'Invalid JSON',
+      noPoint: 'No point chosen',
+      unavailable: 'Value unavailable: {point}',
+      emptyRange: 'The input range is empty (min = max)',
+      invalidFlows: 'Invalid flows',
+      notDeployed: 'This node is not deployed',
       alreadyRecording: 'A recording is already running',
-      noPoints: 'Choose at least one point',
-      emptyScenario: 'The scenario has no step'
+      noPoints: 'Choose at least one point'
     }
   }
 }

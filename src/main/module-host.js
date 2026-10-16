@@ -8,6 +8,8 @@ import { ConfigStore } from './config-store'
  *  - ctx.emit(event, payload) : diffuse un événement `<moduleId>:<event>` à toutes les fenêtres
  *  - ctx.dataDir : dossier de données persistant propre au module
  *  - ctx.config() : configuration enregistrée du module (voir ci-dessous)
+ *  - ctx.setConfig(section, value) : remplace une section de cette configuration (état propre au
+ *    process principal, comme les flux déployés du simulateur)
  *  - ctx.expose(api) : publie les points de données du module pour les autres modules
  *    (contrat décrit dans `@shared/points`)
  *  - ctx.peers() : points publiés par les autres modules, [{ id, api }]
@@ -16,7 +18,8 @@ import { ConfigStore } from './config-store'
  * Chaque module dispose aussi d'une configuration enregistrée (`<dataDir>/config.json`), lue et écrite
  * par l'interface via les canaux `<moduleId>:config:load`, `<moduleId>:config:save` et
  * `<moduleId>:config:reset`. Un module peut exporter `busy()` (serveur démarré, client connecté) :
- * l'import d'une configuration est alors refusé.
+ * l'import d'une configuration est alors refusé. Il peut aussi exporter `migrateConfig(config)`, qui
+ * convertit une configuration d'une version antérieure, au chargement comme à l'import.
  */
 export class ModuleHost {
   modules = []
@@ -29,8 +32,11 @@ export class ModuleHost {
     for (const mod of modules) {
       const ctx = this.createContext(mod.manifest.id)
       const config = new ConfigStore(join(ctx.dataDir, 'config.json'))
+      const migrated = this.migrate(mod.manifest.id, config.get(), [mod])
+      if (migrated !== config.get()) config.replace(migrated)
       this.configs.set(mod.manifest.id, config)
       ctx.config = () => config.get()
+      ctx.setConfig = (section, value) => config.set(section, value)
       ctx.handle('config:load', () => config.get())
       ctx.handle('config:save', (section, value) => config.set(section, value))
       ctx.handle('config:reset', () => config.replace({}))
@@ -38,6 +44,12 @@ export class ModuleHost {
       this.modules.push(mod)
       console.log(`[sulfur] module "${mod.manifest.id}" chargé`)
     }
+  }
+
+  /** Configuration d'un module convertie par son `migrateConfig` (inchangée s'il n'en a pas). */
+  migrate(id, config, modules = this.modules) {
+    const mod = modules.find((m) => m.manifest.id === id)
+    return mod?.migrateConfig ? mod.migrateConfig(config) : config
   }
 
   async dispose() {

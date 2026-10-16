@@ -73,7 +73,7 @@ export function PointsPicker({ points, value = [], onChange, emptyLabel, disable
               ))}
             </div>
           ))}
-          {!points.length && <p className="p-1 text-sm text-slate-500">{t('simulator.scenarios.noPoint')}</p>}
+          {!points.length && <p className="p-1 text-sm text-slate-500">{t('simulator.noPoint')}</p>}
         </div>
       )}
     </div>

@@ -32,7 +32,8 @@ export default {
       unitId: 'Unit ID',
       wordOrder: 'Ordre des mots (32/64 bits)',
       size: 'Taille de chaque table',
-      anyUnitId: 'Répondre à tous les Unit ID',
+      anyUnitId: 'Unit ID inconnu : répondre avec le premier équipement',
+      anyUnitIdHint: "Sinon, une requête vers un Unit ID non configuré reçoit l'exception 0B.",
       portsHint:
         'Ports standards : 502 (TCP) et 802 (TLS) — droits administrateur requis sous Linux pour les ports < 1024.',
       certificate: 'certificat {name}',
@@ -44,7 +45,37 @@ export default {
       registers: '{count} reg.',
       allowWrite: "Autoriser l'écriture par les clients",
       readOnlyTable: 'Table en lecture seule',
-      certsTitle: 'Certificats du serveur Modbus'
+      certsTitle: 'Certificats du serveur Modbus',
+      units: 'Équipements ({count})',
+      unitsHint:
+        'Chaque équipement répond à son Unit ID avec sa propre mémoire, ses points et son identification : plusieurs équipements simulent une passerelle.',
+      addUnit: 'Équipement',
+      removeUnit: "Supprimer l'équipement",
+      unitIdInvalid: 'Unit ID déjà utilisé ou hors de la plage 0 à 255',
+      unitNamePlaceholder: 'Facultatif',
+      identification: "Identification de l'équipement (fonction 43 / 14)",
+      identificationHint:
+        "Objets renvoyés aux clients qui lisent l'identification. Les objets 00 à 02 (basiques) sont obligatoires : vides, ils prennent la valeur indiquée en grisé ; les objets 03 à 06 vides ne sont pas envoyés."
+    },
+    identity: {
+      vendorName: 'Fabricant',
+      productCode: 'Code produit',
+      revision: 'Révision',
+      vendorUrl: 'URL du fabricant',
+      productName: 'Nom du produit',
+      modelName: 'Modèle',
+      userApplicationName: "Nom de l'application"
+    },
+    explorer: {
+      title: 'Explorateur de registres',
+      unit: 'Équipement',
+      start: 'Adresse de départ',
+      count: 'Adresses',
+      previous: 'Page précédente',
+      next: 'Page suivante',
+      hint: 'Mémoire brute du serveur, rafraîchie en continu. Les adresses colorées appartiennent à un point ; cliquez sur une valeur pour la modifier (toutes les tables, y compris en lecture seule pour les clients).',
+      notRunning: 'Démarrez le serveur pour explorer sa mémoire.',
+      cellTitle: '{address} · {name} ({type}) = {value}'
     },
     security: {
       transport: 'Transport',
@@ -123,6 +154,19 @@ export default {
       resultHeader: '{table} · adresses {from} à {to} · lu à {time}',
       raw: 'Brut',
       pollEvery: 'Scrutation toutes les',
+      writeAddress: "Adresse d'écriture (FC 23)",
+      readWrite: 'Écrire puis lire (FC 23)',
+      readWriteHint: "Écrit la saisie à l'adresse d'écriture puis lit la plage ci-dessus, en une seule requête.",
+      identification: "Identification de l'équipement",
+      identificationHint: "Lit l'identification du serveur (fonction 43 / 14) : fabricant, code produit, révision…",
+      identify: 'Identifier',
+      identificationCodes: {
+        1: 'Basique (00 à 02)',
+        2: 'Régulière (00 à 06)',
+        3: 'Étendue'
+      },
+      conformity: 'Niveau de conformité {level} · {time}',
+      object: 'Objet {id}',
       noWatch: 'Aucune adresse surveillée. Utilisez « Surveiller » dans la carte Lecture / écriture.',
       encrypted: 'Canal chiffré {protocol} ({cipher}) · empreinte du serveur {thumbprint}…',
       certsTitle: 'Certificats du client Modbus',
@@ -158,7 +202,9 @@ export default {
       invalidFrame: 'Trame invalide reçue de {remote} : {message} — connexion fermée',
       denied: '{remote} : {message}',
       throttled: 'limite de requêtes par seconde dépassée (exception 06)',
-      unknownUnit: 'Unit ID {unitId} inconnu (attendu {expected})',
+      unknownUnit: 'Unit ID {unitId} inconnu (configurés : {expected})',
+      unitAdded: 'Équipement ajouté : {unit}',
+      unitRemoved: 'Équipement retiré : {unit}',
       rejected: 'requête rejetée : {message}',
       readOnly: 'écriture refusée (serveur en lecture seule)',
       noWrite: "écriture refusée (rôle {role} sans droit d'écriture)",
@@ -221,6 +267,17 @@ export default {
       noValues: 'Aucune valeur à écrire',
       tooManyValues: 'Au plus {max} valeurs par écriture',
       invalidRegister: 'Registre invalide : {value} (0 à 65535)',
+      unsupportedMei: 'Type MEI {mei} non pris en charge (seule la lecture de l’identification, 14, l’est)',
+      invalidDeviceIdCode: "Code de lecture de l'identification invalide : {code}",
+      extendedIdentification: 'Identification étendue non prise en charge (niveau de conformité 0x82)',
+      unknownObject: "Objet d'identification {id} absent",
+      invalidReadWrite: 'Lecture / écriture multiple invalide (quantités ou nombre d’octets)',
+      invalidResponse: 'Réponse invalide du serveur',
+      noUnit: 'Le serveur doit porter au moins un équipement',
+      duplicatePointId: 'Identifiant de point en double : {id}',
+      unitExists: 'Le Unit ID {unitId} est déjà utilisé',
+      unknownUnit: 'Équipement inconnu',
+      lastUnit: 'Le serveur doit garder au moins un équipement',
       minPoll: 'Période de scrutation minimale : 50 ms'
     }
   }

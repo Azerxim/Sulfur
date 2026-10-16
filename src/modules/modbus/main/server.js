@@ -2,10 +2,27 @@ import net from 'net'
 import tls from 'tls'
 import { randomUUID } from 'crypto'
 import { simulate } from '@shared/simulator'
-import { DATA_TYPES, DEFAULT_SERVER_SECURITY, TABLES } from '../shared/constants'
+import {
+  DATA_TYPES,
+  DEFAULT_IDENTITY,
+  DEFAULT_SERVER_SECURITY,
+  IDENTITY_OBJECTS,
+  MAX_UNIT_ID,
+  TABLES
+} from '../shared/constants'
 import { decodeValue, encodeValue, pointSize, toBoolean } from '../shared/codec'
+import { normalizeServerConfig, unitLabel } from '../shared/units'
 import { DataStore } from './datastore'
-import { EX, FrameReader, ModbusException, buildResponse, encodeFrame, exceptionPdu, parseRequest } from './protocol'
+import {
+  EX,
+  FrameReader,
+  ModbusException,
+  buildIdentificationResponse,
+  buildResponse,
+  encodeFrame,
+  exceptionPdu,
+  parseRequest
+} from './protocol'
 import { RateLimiter, buildAllowList, isAllowed, normalizeIp, resolveRole } from './security'
 import { t } from '../shared/i18n'
 
@@ -28,6 +45,27 @@ export function validatePoint(def, size) {
   }
 }
 
+/** Nombre maximal d'adresses lues d'un coup par l'explorateur de registres. */
+export const MAX_EXPLORER_COUNT = 500
+
+function validateUnitId(value) {
+  const unitId = Number(value)
+  if (!Number.isInteger(unitId) || unitId < 0 || unitId > MAX_UNIT_ID) throw new Error(t('modbus.errors.invalidUnitId'))
+  return unitId
+}
+
+/** Objets d'identification d'un équipement (fonction 43 / 14) : Map identifiant → texte. */
+export function identityObjects(identity = {}) {
+  const objects = new Map()
+  IDENTITY_OBJECTS.forEach((key, id) => {
+    const value = String(identity[key] ?? '').trim()
+    // Objets basiques (0 à 2) obligatoires : valeur par défaut s'ils sont vides.
+    if (id <= 2) objects.set(id, value || DEFAULT_IDENTITY[key])
+    else if (value) objects.set(id, value)
+  })
+  return objects
+}
+
 const overlaps = (a, b) =>
   a.table === b.table && a.address < b.address + pointSize(b.dataType) && b.address < a.address + pointSize(a.dataType)
 
@@ -40,14 +78,20 @@ const overlaps = (a, b) =>
  *  - liste blanche d'adresses IP, nombre maximal de connexions, limite de requêtes par seconde
  *  - mode lecture seule global, points protégés en écriture, filtrage du Unit ID
  *  - rejet des trames invalides (connexion fermée)
+ *
+ * Le serveur porte un ou plusieurs équipements (passerelle) : chacun répond à son Unit ID avec sa
+ * propre mémoire, ses points et son identification (fonction 43 / 14).
  */
 export class ModbusServer {
   server = null
   config = null
   security = null
-  store = null
   allowList = null
-  /** id -> { def, value } */
+  /** id de l'équipement -> { def (sans les points), store } */
+  units = new Map()
+  /** Unit ID -> équipement */
+  byUnitId = new Map()
+  /** id du point -> { def, value, unit } */
   points = new Map()
   /** id -> session */
   sessions = new Map()
@@ -110,27 +154,44 @@ export class ModbusServer {
 
   async start(config) {
     if (this.server) throw new Error(t('errors.alreadyStarted'))
+    config = normalizeServerConfig(config)
     const security = { ...DEFAULT_SERVER_SECURITY, ...config.security }
     const port = Number(config.port)
-    const unitId = Number(config.unitId)
     const size = Number(config.size)
     if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(t('modbus.errors.invalidPort'))
-    if (!Number.isInteger(unitId) || unitId < 0 || unitId > 255) throw new Error(t('modbus.errors.invalidUnitId'))
     if (!Number.isInteger(size) || size < 1 || size > 65536) throw new Error(t('modbus.errors.invalidSize'))
+    if (!config.units?.length) throw new Error(t('modbus.errors.noUnit'))
     if (security.mode === 'tls' && !(security.roles ?? []).length && !security.defaultRole) {
       throw new Error(t('modbus.errors.tlsNeedsRole'))
     }
     const allowList = buildAllowList(security.allowedIps)
-    const points = config.points.map((p) => ({ ...p, id: p.id ?? randomUUID(), address: Number(p.address) }))
-    points.forEach((p) => validatePoint(p, size))
-    this.checkUnique(points)
+    const units = config.units.map((u) => ({
+      ...u,
+      id: u.id ?? randomUUID(),
+      unitId: validateUnitId(u.unitId),
+      name: u.name ?? '',
+      identity: { ...DEFAULT_IDENTITY, ...u.identity },
+      points: (u.points ?? []).map((p) => ({ ...p, id: p.id ?? randomUUID(), address: Number(p.address) }))
+    }))
+    this.checkUnits(units)
+    for (const unit of units) {
+      unit.points.forEach((p) => validatePoint(p, size))
+      this.checkUnique(unit.points)
+    }
+    const ids = units.flatMap((u) => u.points.map((p) => p.id))
+    const duplicate = ids.find((id, i) => ids.indexOf(id) !== i)
+    if (duplicate) throw new Error(t('modbus.errors.duplicatePointId', { id: duplicate }))
 
-    this.config = { ...config, port, unitId, size, security, points }
+    this.config = { ...config, port, size, security, units }
     this.security = security
     this.allowList = allowList
-    this.store = new DataStore(size)
+    this.units.clear()
+    this.byUnitId.clear()
     this.points.clear()
-    for (const def of points) this.addPoint(def)
+    for (const { points, ...def } of units) {
+      const unit = this.addUnitRuntime(def)
+      for (const point of points) this.addPoint(point, unit)
+    }
 
     const server =
       security.mode === 'tls' ? await this.createTlsServer(security) : net.createServer((s) => this.onPlainSocket(s))
@@ -361,12 +422,13 @@ export class ModbusServer {
       if (message) session.lastThrottleLog = now
       return this.deny(session, fc, EX.SERVER_DEVICE_BUSY, message)
     }
-    if (!this.config.anyUnitId && unitId !== this.config.unitId) {
+    const unit = this.byUnitId.get(unitId) ?? (this.config.anyUnitId ? this.units.values().next().value : null)
+    if (!unit) {
       return this.deny(
         session,
         fc,
         EX.GATEWAY_TARGET_FAILED,
-        t('modbus.log.unknownUnit', { unitId, expected: this.config.unitId })
+        t('modbus.log.unknownUnit', { unitId, expected: [...this.byUnitId.keys()].join(', ') })
       )
     }
 
@@ -386,38 +448,66 @@ export class ModbusServer {
     )
     if (forced) return this.deny(session, fc, Number(forced.params?.code) || EX.SERVER_DEVICE_FAILURE, null)
 
+    if (req.identification) {
+      if (!session.permissions.read) {
+        return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.noRead', { role: session.tls?.role ?? '—' }))
+      }
+      try {
+        return buildIdentificationResponse(req, identityObjects(unit.def.identity))
+      } catch (err) {
+        if (err instanceof ModbusException)
+          return this.deny(session, fc, err.code, t('modbus.log.rejected', { message: err.message }))
+        throw err
+      }
+    }
+
     if (req.write) {
       if (this.security.readOnly) return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.readOnly'))
       if (!session.permissions.write) {
         return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.noWrite', { role: session.tls?.role ?? '—' }))
       }
-    } else if (!session.permissions.read) {
+    }
+    if ((!req.write || req.read) && !session.permissions.read) {
       return this.deny(session, fc, EX.ILLEGAL_FUNCTION, t('modbus.log.noRead', { role: session.tls?.role ?? '—' }))
     }
-    if (!this.store.inRange(req.address, req.quantity)) {
-      return this.deny(
-        session,
-        fc,
-        EX.ILLEGAL_DATA_ADDRESS,
-        t('modbus.log.outOfRange', { table: req.table, address: req.address, quantity: req.quantity })
-      )
+    const { store } = unit
+    // Fonction 23 : plage écrite en plus de la plage lue (address / quantity).
+    const writeAddress = req.writeAddress ?? req.address
+    const writeQuantity = req.writeQuantity ?? req.quantity
+    const ranges = [[req.address, req.quantity]]
+    if (req.read) ranges.push([writeAddress, writeQuantity])
+    for (const [address, quantity] of ranges) {
+      if (!store.inRange(address, quantity)) {
+        return this.deny(
+          session,
+          fc,
+          EX.ILLEGAL_DATA_ADDRESS,
+          t('modbus.log.outOfRange', { table: req.table, address, quantity })
+        )
+      }
     }
 
-    if (!req.write) return buildResponse(req, this.store.read(req.table, req.address, req.quantity))
+    if (!req.write) return buildResponse(req, store.read(req.table, req.address, req.quantity))
 
-    const touched = [...this.points.values()].filter(
-      ({ def }) =>
-        def.table === req.table &&
-        def.address < req.address + req.quantity &&
-        req.address < def.address + pointSize(def.dataType)
-    )
+    const touched = this.touchedPoints(unit, req.table, writeAddress, writeQuantity)
     const locked = touched.find((p) => !p.def.writable)
     if (locked) {
       return this.deny(session, fc, EX.ILLEGAL_DATA_ADDRESS, t('modbus.log.protectedPoint', { name: locked.def.name }))
     }
-    this.store.write(req.table, req.address, req.values)
-    for (const p of touched) p.value = this.readPoint(p.def)
-    return buildResponse(req)
+    store.write(req.table, writeAddress, req.values)
+    for (const p of touched) p.value = this.readPoint(p)
+    return buildResponse(req, req.read ? store.read(req.table, req.address, req.quantity) : undefined)
+  }
+
+  /** Points d'un équipement qui occupent une partie de la plage [address, address + quantity[. */
+  touchedPoints(unit, table, address, quantity) {
+    return [...this.points.values()].filter(
+      (p) =>
+        p.unit === unit &&
+        p.def.table === table &&
+        p.def.address < address + quantity &&
+        address < p.def.address + pointSize(p.def.dataType)
+    )
   }
 
   // --- Points simulés (modifiables à chaud) -----------------------------------
@@ -431,45 +521,167 @@ export class ModbusServer {
     })
   }
 
-  addPoint(def) {
+  addPoint(def, unit) {
     const value = TABLES[def.table].bit ? toBoolean(def.initialValue) : Number(def.initialValue) || 0
-    const entry = { def, value }
+    const entry = { def, value, unit }
     this.points.set(def.id, entry)
     this.writePoint(entry)
   }
 
   writePoint(entry) {
-    const { def } = entry
-    if (TABLES[def.table].bit) this.store.write(def.table, def.address, [toBoolean(entry.value)])
-    else this.store.write(def.table, def.address, encodeValue(entry.value, def.dataType, this.config.wordOrder))
-    entry.value = this.readPoint(def)
+    const { def, unit } = entry
+    if (TABLES[def.table].bit) unit.store.write(def.table, def.address, [toBoolean(entry.value)])
+    else unit.store.write(def.table, def.address, encodeValue(entry.value, def.dataType, this.config.wordOrder))
+    entry.value = this.readPoint(entry)
   }
 
-  readPoint(def) {
-    if (TABLES[def.table].bit) return this.store.read(def.table, def.address, 1)[0]
+  readPoint({ def, unit }) {
+    if (TABLES[def.table].bit) return unit.store.read(def.table, def.address, 1)[0]
     return decodeValue(
-      this.store.read(def.table, def.address, pointSize(def.dataType)),
+      unit.store.read(def.table, def.address, pointSize(def.dataType)),
       def.dataType,
       this.config.wordOrder
     )
   }
 
+  /** Reconstruit `config.units` à partir des équipements et points en mémoire. */
   syncConfig() {
-    this.config = { ...this.config, points: [...this.points.values()].map((p) => p.def) }
+    const units = [...this.units.values()].map((unit) => ({
+      ...unit.def,
+      points: [...this.points.values()].filter((p) => p.unit === unit).map((p) => p.def)
+    }))
+    this.config = { ...this.config, units }
+  }
+
+  // --- Équipements (Unit ID) ---------------------------------------------------------
+
+  /** Unit ID uniques, identifiants d'équipements uniques. */
+  checkUnits(units) {
+    units.forEach((a, i) => {
+      units.slice(i + 1).forEach((b) => {
+        if (a.unitId === b.unitId) throw new Error(t('modbus.errors.unitExists', { unitId: a.unitId }))
+        if (a.id === b.id) throw new Error(t('modbus.errors.unitExists', { unitId: a.unitId }))
+      })
+    })
+  }
+
+  addUnitRuntime(def) {
+    const unit = { def, store: new DataStore(this.config.size) }
+    this.units.set(def.id, unit)
+    this.byUnitId.set(def.unitId, unit)
+    return unit
+  }
+
+  unit(id) {
+    const unit = this.units.get(id)
+    if (!unit) throw new Error(t('modbus.errors.unknownUnit'))
+    return unit
+  }
+
+  /** Ajoute un équipement (sans points) au serveur en marche. */
+  addUnit(def) {
+    this.requireRunning()
+    const next = {
+      id: def.id ?? randomUUID(),
+      unitId: validateUnitId(def.unitId),
+      name: def.name ?? '',
+      identity: { ...DEFAULT_IDENTITY, ...def.identity }
+    }
+    this.checkUnits([...[...this.units.values()].map((u) => u.def), next])
+    this.addUnitRuntime(next)
+    for (const point of def.points ?? []) this.upsertPoint(point, next.id, { silent: true })
+    return this.changed(t('modbus.log.unitAdded', { unit: unitLabel(next) }))
+  }
+
+  /** Modifie le Unit ID, le nom ou l'identification d'un équipement. */
+  updateUnit(def) {
+    this.requireRunning()
+    const unit = this.unit(def.id)
+    const next = {
+      ...unit.def,
+      unitId: validateUnitId(def.unitId ?? unit.def.unitId),
+      name: def.name ?? unit.def.name,
+      identity: { ...unit.def.identity, ...def.identity }
+    }
+    this.checkUnits([...[...this.units.values()].filter((u) => u !== unit).map((u) => u.def), next])
+    this.byUnitId.delete(unit.def.unitId)
+    unit.def = next
+    this.byUnitId.set(next.unitId, unit)
+    return this.changed()
+  }
+
+  /** Retire un équipement et ses points (le serveur en garde au moins un). */
+  removeUnit(id) {
+    this.requireRunning()
+    const unit = this.unit(id)
+    if (this.units.size <= 1) throw new Error(t('modbus.errors.lastUnit'))
+    this.units.delete(id)
+    this.byUnitId.delete(unit.def.unitId)
+    for (const [pointId, p] of this.points) if (p.unit === unit) this.points.delete(pointId)
+    return this.changed(t('modbus.log.unitRemoved', { unit: unitLabel(unit.def) }))
+  }
+
+  changed(message) {
+    this.syncConfig()
+    if (message) this.log('info', message)
+    this.onStatus(this.status())
+    return this.status()
+  }
+
+  // --- Explorateur de registres --------------------------------------------------------
+
+  checkExplorerRange(unit, table, address, count) {
+    if (!TABLES[table]) throw new Error(t('modbus.errors.unknownTable', { table }))
+    if (!Number.isInteger(count) || count < 1 || count > MAX_EXPLORER_COUNT)
+      throw new Error(t('modbus.errors.invalidQuantityRange', { max: MAX_EXPLORER_COUNT }))
+    if (!unit.store.inRange(address, 1)) throw new Error(t('modbus.errors.invalidAddress'))
+  }
+
+  /** Contenu brut d'une table d'un équipement : booléens ou mots 16 bits (tronqué à la fin de la mémoire). */
+  registers(unitKey, table, address, count) {
+    this.requireRunning()
+    const unit = this.unit(unitKey)
+    address = Number(address)
+    count = Number(count)
+    this.checkExplorerRange(unit, table, address, count)
+    return unit.store.read(table, address, Math.min(count, this.config.size - address))
+  }
+
+  /** Écrit une adresse de la mémoire d'un équipement (toutes tables) ; les points concernés suivent. */
+  writeRegister(unitKey, table, address, raw) {
+    this.requireRunning()
+    const unit = this.unit(unitKey)
+    address = Number(address)
+    this.checkExplorerRange(unit, table, address, 1)
+    let value
+    if (TABLES[table].bit) value = toBoolean(raw)
+    else {
+      value = Number(raw)
+      if (!Number.isInteger(value) || value < 0 || value > 0xffff)
+        throw new Error(t('modbus.errors.invalidRegister', { value: raw }))
+    }
+    unit.store.write(table, address, [value])
+    for (const p of this.touchedPoints(unit, table, address, 1)) p.value = this.readPoint(p)
+    this.onValues(this.values())
+    return unit.store.read(table, address, 1)[0]
   }
 
   requireRunning() {
     if (!this.server) throw new Error(t('errors.notStarted'))
   }
 
-  upsertPoint(def) {
+  /** Ajoute ou modifie un point de l'équipement `unitKey` (par défaut : celui qui le porte, sinon le premier). */
+  upsertPoint(def, unitKey, { silent = false } = {}) {
     this.requireRunning()
-    const next = { ...def, address: Number(def.address) }
+    const current = this.points.get(def.id)
+    const unit = unitKey ? this.unit(unitKey) : (current?.unit ?? this.units.values().next().value)
+    const next = { ...def, id: def.id ?? randomUUID(), address: Number(def.address) }
     validatePoint(next, this.config.size)
-    this.checkUnique([...[...this.points.values()].map((p) => p.def).filter((d) => d.id !== next.id), next])
-    const current = this.points.get(next.id)
+    const siblings = [...this.points.values()].filter((p) => p.unit === unit && p.def.id !== next.id).map((p) => p.def)
+    this.checkUnique([...siblings, next])
     if (
       current &&
+      current.unit === unit &&
       current.def.table === next.table &&
       current.def.address === next.address &&
       current.def.dataType === next.dataType
@@ -477,19 +689,16 @@ export class ModbusServer {
       current.def = next
     } else {
       this.points.delete(next.id)
-      this.addPoint(next)
+      this.addPoint(next, unit)
     }
-    this.syncConfig()
-    this.onStatus(this.status())
-    return this.status()
+    if (silent) return null
+    return this.changed()
   }
 
   removePoint(id) {
     this.requireRunning()
     this.points.delete(id)
-    this.syncConfig()
-    this.onStatus(this.status())
-    return this.status()
+    return this.changed()
   }
 
   setValue(id, raw) {

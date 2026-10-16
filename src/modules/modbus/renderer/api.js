@@ -10,10 +10,15 @@ export const modbusApi = {
     values: () => invoke('server:values'),
     logs: () => invoke('server:logs'),
     clearLogs: () => invoke('server:clearLogs'),
-    upsertPoint: (def) => invoke('server:upsertPoint', def),
+    upsertPoint: (def, unitId) => invoke('server:upsertPoint', def, unitId),
     removePoint: (id) => invoke('server:removePoint', id),
     setValue: (id, value) => invoke('server:setValue', id, value),
     setUpdateRate: (rate) => invoke('server:setUpdateRate', rate),
+    addUnit: (def) => invoke('server:addUnit', def),
+    updateUnit: (def) => invoke('server:updateUnit', def),
+    removeUnit: (id) => invoke('server:removeUnit', id),
+    registers: (unitId, table, address, count) => invoke('server:registers', unitId, table, address, count),
+    writeRegister: (unitId, table, address, value) => invoke('server:writeRegister', unitId, table, address, value),
     onStatus: (fn) => on('server:status', fn),
     onValues: (fn) => on('server:values', fn),
     onLog: (fn) => on('server:log', fn)
@@ -24,6 +29,9 @@ export const modbusApi = {
     disconnect: () => invoke('client:disconnect'),
     read: (table, address, quantity) => invoke('client:read', table, address, quantity),
     write: (table, address, values) => invoke('client:write', table, address, values),
+    readWrite: (readAddress, readQuantity, writeAddress, values) =>
+      invoke('client:readWrite', readAddress, readQuantity, writeAddress, values),
+    identify: (code) => invoke('client:identify', code),
     writeValue: (table, address, value, dataType, wordOrder) =>
       invoke('client:writeValue', table, address, value, dataType, wordOrder),
     addWatch: (item) => invoke('client:addWatch', item),

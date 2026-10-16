@@ -23,7 +23,7 @@ npm run format     # formatting (Prettier)
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
-certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, fault injection, scenarios and trend recording on both protocols,
+certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), fault injection, node flows and trend recording on both protocols,
 protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
@@ -109,7 +109,9 @@ src/
     │   ├── main/         # Protocol, server, client, PKI, security
     │   ├── renderer/     # Module React interface
     │   └── shared/       # Constants + value encoding (codec)
-    ├── simulator/        # Fault injection and scenarios (uses the points of the other modules)
+    ├── http/             # REST server (variables, routes, webhooks) + HTTP client
+    ├── ntp/              # Time server with a simulated clock + NTP client
+    ├── simulator/        # Fault injection and node flows (uses the points of the other modules)
     └── trends/           # Trends, data logging and CSV export (same)
 ```
 
@@ -211,11 +213,23 @@ inconsistent configuration), a button restores its default configuration.
 ## Modbus TCP module
 
 - **Server**: the four tables (coils, discrete inputs, input registers, holding registers),
-  functions 1 to 6, 15 and 16. Typed simulated points (Boolean, UInt16/Int16, UInt32/Int32,
-  Float32, Float64, word order ABCD / CDAB / BADC / DCBA), editable while the server is running.
-  List of connected clients and security event log.
-- **Client**: read / write on every table with decoding (UInt16 → Float64, hexadecimal, binary)
-  and periodic monitoring.
+  functions 1 to 6, 15, 16, 23 (read / write multiple) and 43 / 14 (device identification). Typed
+  simulated points (Boolean, UInt16/Int16, UInt32/Int32, Float32, Float64, word order ABCD / CDAB /
+  BADC / DCBA), editable while the server is running. List of connected clients and security event
+  log.
+  - **Several devices** on one server (gateway simulation): each responds to its Unit ID with its
+    own memory, points and identification; an unconfigured Unit ID gets exception 0B, or is served
+    by the first device if the option is checked. Devices are added, edited or removed while the
+    server is running.
+  - **Identification** (function 43 / 14): objects 00 to 06 (vendor, product code, revision, URL,
+    product, model, application) per device; basic, regular (stream access, responses split when
+    needed) and individual reads; conformity level 0x82.
+  - **Register explorer**: raw memory of a device by pages (UInt16, Int16, hexadecimal, binary,
+    bits), refreshed continuously; addresses taken by a point are highlighted and every value can
+    be edited.
+- **Client**: read / write on every table with decoding (UInt16 → Float64, hexadecimal, binary),
+  write then read in one request (function 23), device identification read and periodic
+  monitoring.
 - **Security**:
   - **Modbus/TCP Security** (TLS ≥ 1.2, standard port 802) with mutual authentication using pinned
     X.509 certificates (trusted / rejected stores, approval from the interface);
@@ -229,6 +243,48 @@ inconsistent configuration), a button restores its default configuration.
 - Default ports 5020 (TCP) / 8020 (TLS): the standard ports 502 / 802 require administrator rights
   on Linux.
 
+## HTTP / REST module
+
+- **Server** HTTP or HTTPS (self-signed certificate `HTTP@Sulfur`, generated on first start), default
+  port 8080:
+  - **simulated variables** (number, integer, boolean, text, JSON; sine, ramp, random, toggle),
+    editable while running, exposed by a built-in REST API: `GET <base>/variables`,
+    `GET <base>/variables/<name>`, `PUT | PATCH | POST <base>/variables/<name>` (body
+    `{ "value": … }` or the value alone) for writable variables;
+  - **routes** checked in order: method, path with parameters (`/api/devices/:id`, `*` at the end),
+    status, headers, delay and response body template (`{{var.<name>}}`, `{{params.<name>}}`,
+    `{{query.<name>}}`, `{{headers.<name>}}`, `{{body.<field>}}`, `{{now}}`, `{{uuid}}`…); a route
+    can assign a variable from the request (e.g. `body.value`);
+  - **authentication**: Basic (users, passwords hashed with scrypt as soon as they are entered),
+    Bearer token or API key in a header; CORS headers;
+  - **webhooks**: outgoing JSON calls at each change of the chosen variables (with a minimum spacing)
+    or periodically;
+  - log of received requests and webhook calls, with their bodies.
+- **Client**: requests with every method to a base address or a full URL (authentication, common
+  headers, unverified certificates accepted on request), readable response (status, duration,
+  headers, indented JSON) and history; **monitoring** of a JSON value (path such as `data.value`)
+  polled periodically and published as a point; with a write method, the simulator can write it.
+  Client passwords, tokens and keys are not saved.
+- Simulator faults: response delay, no response, connection cut, forced HTTP status (on all requests
+  or those concerning the chosen variables), frozen values.
+
+## NTP module
+
+- **Server** (UDP, default port 1123; standard port 123 needs administrator rights on Linux):
+  responds to NTP v1 to v4 client requests with a **simulated clock**: offset from real time (time
+  jumps of ±1 min to ±1 year in one click) or fixed start time, drift in ppm; announced stratum
+  (1 to 16), leap indicator, reference identifier and precision. Everything applies live. Useful to
+  test the timestamps of devices and the validity of their certificates. List of recent clients and
+  log.
+- **Client**: single or periodic query of a server; clock offset, round-trip delay, stratum, leap
+  indicator, reference, precision, root delay and dispersion; history. A response whose Origin field
+  does not match the request is ignored.
+- Points for the simulator and trends: server time, offset (writable: a flow can cause time jumps),
+  drift, stratum and leap indicator (writable), request count; offset, delay and stratum measured by
+  the client.
+- Simulator faults: delay (simulated network latency, included in the round-trip delay), no
+  response, Kiss-o'-Death (DENY, RSTR, RATE), frozen clock.
+
 ## Simulator module
 
 Acts on the servers and clients of the other modules through the points they publish.
@@ -236,12 +292,30 @@ Acts on the servers and clients of the other modules through the points they pub
 - **Fault injection**: response delay, no response, connection cut (open connections closed, new
   ones refused), forced Modbus exception (all requests, reads or writes), forced OPC UA status code
   (BadSensorFailure, BadCommunicationError…) and frozen values on chosen points. A fault is
-  activated by hand or by a scenario, until it is stopped or for a given duration; editing an active
+  activated by hand or by a flow, until it is stopped or for a given duration; editing an active
   fault applies it immediately.
-- **Scenarios**: steps chained in time — write a value, linear ramp, wait, activate or stop a
-  fault — played once or in a loop. Faults activated by a scenario are stopped at its end.
+- **Flows** (as in Node-RED): nodes linked by wires pass messages (`msg.payload`) to each other,
+  edited on a canvas (drag from the palette, link an output to an input, Delete removes the
+  selection). **Deploy** sends all flows to the main process, where they run continuously; deployed
+  flows are restarted at launch, and **Stop** / **Restart** pause them. A flow can be disabled.
+  Nodes:
+  - triggers: *Trigger* (by hand, at deployment and/or every n seconds), *Point change*;
+  - points: *Read a point*, *Write a point* (`msg.payload` or a fixed value);
+  - time and faults: *Wait*, *Ramp* (linear, from the current value or a given one), *Fault*
+    (activate / stop a fault of the table, or from `msg.payload`); faults activated by flows are
+    stopped at redeployment;
+  - logic: *Switch* (one output per rule: =, ≠, <, ≤, >, ≥, between, true, false, otherwise),
+    *Scale*, *Counter*, *Change filter* (with deadband);
+  - *Function*: JavaScript run for each message in an isolated context (`vm`), limited to 1 s, with
+    `msg`, `node`, `context`, `flow` and `global`; one or more outputs;
+  - *Generator*: sine, ramp, random or toggle values, paused / restarted by a message;
+  - *Debug*: messages shown in the Debug tab, with node warnings and errors.
+  Each node shows its status under it (last value, pending messages, error). Linking a *Point change*
+  of a module to a *Write a point* of another simulates a gateway between protocols.
 - **Recording**: the changes of chosen points (servers or values monitored by the clients) are
-  recorded as a new scenario (writes and waits), which can be edited and replayed.
+  recorded as a new flow (writes and waits), which can be edited and replayed.
+- Scenarios saved by an earlier version (or found in an imported configuration) are converted into
+  flows: a manual trigger followed by one node per step, looped back for a looping scenario.
 
 ## Trends module
 

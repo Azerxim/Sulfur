@@ -32,7 +32,8 @@ export default {
       unitId: 'Unit ID',
       wordOrder: 'Word order (32/64 bits)',
       size: 'Size of each table',
-      anyUnitId: 'Respond to every Unit ID',
+      anyUnitId: 'Unknown Unit ID: respond with the first device',
+      anyUnitIdHint: 'Otherwise, a request to an unconfigured Unit ID gets exception 0B.',
       portsHint: 'Standard ports: 502 (TCP) and 802 (TLS) — administrator rights required on Linux for ports < 1024.',
       certificate: 'certificate {name}',
       points: 'Simulated points ({count})',
@@ -43,7 +44,37 @@ export default {
       registers: '{count} reg.',
       allowWrite: 'Allow clients to write',
       readOnlyTable: 'Read-only table',
-      certsTitle: 'Modbus server certificates'
+      certsTitle: 'Modbus server certificates',
+      units: 'Devices ({count})',
+      unitsHint:
+        'Each device responds to its Unit ID with its own memory, points and identification: several devices simulate a gateway.',
+      addUnit: 'Device',
+      removeUnit: 'Delete the device',
+      unitIdInvalid: 'Unit ID already used or outside the 0 to 255 range',
+      unitNamePlaceholder: 'Optional',
+      identification: 'Device identification (function 43 / 14)',
+      identificationHint:
+        'Objects returned to clients that read the identification. Objects 00 to 02 (basic) are mandatory: when empty, they take the greyed value; empty objects 03 to 06 are not sent.'
+    },
+    identity: {
+      vendorName: 'Vendor name',
+      productCode: 'Product code',
+      revision: 'Revision',
+      vendorUrl: 'Vendor URL',
+      productName: 'Product name',
+      modelName: 'Model name',
+      userApplicationName: 'User application name'
+    },
+    explorer: {
+      title: 'Register explorer',
+      unit: 'Device',
+      start: 'Start address',
+      count: 'Addresses',
+      previous: 'Previous page',
+      next: 'Next page',
+      hint: 'Raw memory of the server, refreshed continuously. Coloured addresses belong to a point; click a value to change it (all tables, including those read-only for clients).',
+      notRunning: 'Start the server to explore its memory.',
+      cellTitle: '{address} · {name} ({type}) = {value}'
     },
     security: {
       transport: 'Transport',
@@ -122,6 +153,19 @@ export default {
       resultHeader: '{table} · addresses {from} to {to} · read at {time}',
       raw: 'Raw',
       pollEvery: 'Poll every',
+      writeAddress: 'Write address (FC 23)',
+      readWrite: 'Write then read (FC 23)',
+      readWriteHint: 'Writes the input at the write address then reads the range above, in a single request.',
+      identification: 'Device identification',
+      identificationHint: 'Reads the identification of the server (function 43 / 14): vendor, product code, revision…',
+      identify: 'Identify',
+      identificationCodes: {
+        1: 'Basic (00 to 02)',
+        2: 'Regular (00 to 06)',
+        3: 'Extended'
+      },
+      conformity: 'Conformity level {level} · {time}',
+      object: 'Object {id}',
       noWatch: 'No monitored address. Use “Monitor” in the Read / write card.',
       encrypted: 'Encrypted channel {protocol} ({cipher}) · server thumbprint {thumbprint}…',
       certsTitle: 'Modbus client certificates',
@@ -157,7 +201,9 @@ export default {
       invalidFrame: 'Invalid frame received from {remote}: {message} — connection closed',
       denied: '{remote}: {message}',
       throttled: 'requests per second limit exceeded (exception 06)',
-      unknownUnit: 'Unknown Unit ID {unitId} (expected {expected})',
+      unknownUnit: 'Unknown Unit ID {unitId} (configured: {expected})',
+      unitAdded: 'Device added: {unit}',
+      unitRemoved: 'Device removed: {unit}',
       rejected: 'request rejected: {message}',
       readOnly: 'write refused (server is read only)',
       noWrite: 'write refused (role {role} has no write permission)',
@@ -219,6 +265,17 @@ export default {
       noValues: 'No value to write',
       tooManyValues: 'At most {max} values per write',
       invalidRegister: 'Invalid register: {value} (0 to 65535)',
+      unsupportedMei: 'MEI type {mei} not supported (only device identification, 14, is)',
+      invalidDeviceIdCode: 'Invalid device identification code: {code}',
+      extendedIdentification: 'Extended identification not supported (conformity level 0x82)',
+      unknownObject: 'Identification object {id} not available',
+      invalidReadWrite: 'Invalid read / write multiple (quantities or byte count)',
+      invalidResponse: 'Invalid response from the server',
+      noUnit: 'The server must hold at least one device',
+      duplicatePointId: 'Duplicate point identifier: {id}',
+      unitExists: 'Unit ID {unitId} is already used',
+      unknownUnit: 'Unknown device',
+      lastUnit: 'The server must keep at least one device',
       minPoll: 'Minimum polling period: 50 ms'
     }
   }

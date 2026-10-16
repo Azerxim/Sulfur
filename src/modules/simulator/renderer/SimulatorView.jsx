@@ -2,19 +2,19 @@ import { useEffect, useMemo, useState } from 'react'
 import { ErrorBanner } from '@renderer/components/ui'
 import { usePersistentState } from '@renderer/module-config'
 import { pointKey } from '@shared/points'
-import { DEFAULT_FAULTS, DEFAULT_SCENARIOS } from '../shared/constants'
+import { DEFAULT_FAULTS, DEFAULT_FLOWS } from '../shared/constants'
 import { simulatorApi } from './api'
 import FaultsCard from './FaultsCard'
-import ScenariosCard from './ScenariosCard'
+import FlowsCard from './FlowsCard'
 
 /** Fréquence de rafraîchissement des modules et de leurs points (les surveillances des clients changent). */
 const TARGETS_REFRESH = 3000
 
 export default function SimulatorView() {
   const [faults, setFaults] = usePersistentState('simulator', 'faults', DEFAULT_FAULTS)
-  const [scenarios, setScenarios] = usePersistentState('simulator', 'scenarios', DEFAULT_SCENARIOS)
+  const [flows, setFlows] = usePersistentState('simulator', 'flows', DEFAULT_FLOWS)
   const [targets, setTargets] = useState([])
-  const [status, setStatus] = useState({ faults: [], scenario: null, recording: null, error: null })
+  const [status, setStatus] = useState({ faults: [], recording: null })
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -42,14 +42,7 @@ export default function SimulatorView() {
     <div className="flex h-full flex-col gap-4 overflow-auto p-6">
       <ErrorBanner error={error} onClose={() => setError(null)} />
       <FaultsCard faults={faults} onChange={setFaults} targets={targets} status={status} onError={setError} />
-      <ScenariosCard
-        scenarios={scenarios}
-        onChange={setScenarios}
-        faults={faults}
-        points={points}
-        status={status}
-        onError={setError}
-      />
+      <FlowsCard flows={flows} onChange={setFlows} faults={faults} points={points} status={status} onError={setError} />
     </div>
   )
 }

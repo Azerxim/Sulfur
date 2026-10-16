@@ -3,7 +3,17 @@ import tls from 'tls'
 import { randomUUID } from 'crypto'
 import { DEFAULT_CLIENT_CONFIG, TABLES } from '../shared/constants'
 import { decodeValue, encodeValue, pointSize, toBoolean } from '../shared/codec'
-import { FrameReader, ModbusException, encodeFrame, parseResponse, readRequest, writeRequest } from './protocol'
+import {
+  DEVICE_ID_CODES,
+  FrameReader,
+  ModbusException,
+  encodeFrame,
+  identificationRequest,
+  parseResponse,
+  readRequest,
+  readWriteRequest,
+  writeRequest
+} from './protocol'
 import { t } from '../shared/i18n'
 
 export const CLIENT_COMMON_NAME = 'Sulfur Modbus Client'
@@ -285,6 +295,57 @@ export class ModbusClient {
       throw new Error(describeError(err), { cause: err })
     }
     return { address, count: clean.length }
+  }
+
+  /**
+   * Écrit des holding registers puis en lit d'autres en une seule requête (fonction 23).
+   * Retourne les mots lus.
+   */
+  async readWrite(readAddress, readQuantity, writeAddress, values) {
+    readAddress = Number(readAddress)
+    readQuantity = Number(readQuantity)
+    writeAddress = Number(writeAddress)
+    this.checkRange('holdingRegisters', readAddress, readQuantity)
+    if (!values.length) throw new Error(t('modbus.errors.noValues'))
+    if (values.length > 121) throw new Error(t('modbus.errors.tooManyValues', { max: 121 }))
+    this.checkRange('holdingRegisters', writeAddress, values.length)
+    const clean = values.map((v) => {
+      const n = Number(v)
+      if (!Number.isInteger(n) || n < 0 || n > 0xffff) throw new Error(t('modbus.errors.invalidRegister', { value: v }))
+      return n
+    })
+    try {
+      return await this.request(readWriteRequest(readAddress, readQuantity, writeAddress, clean), readQuantity)
+    } catch (err) {
+      throw new Error(describeError(err), { cause: err })
+    }
+  }
+
+  /**
+   * Identification de l'équipement (fonction 43 / 14), en suivant les réponses découpées.
+   * `code` : 1 basique, 2 régulière, 3 étendue. Retourne { conformity, objects: [{ id, value }] }.
+   */
+  async readDeviceIdentification(code = DEVICE_ID_CODES.REGULAR) {
+    code = Number(code)
+    if (![DEVICE_ID_CODES.BASIC, DEVICE_ID_CODES.REGULAR, DEVICE_ID_CODES.EXTENDED].includes(code)) {
+      throw new Error(t('modbus.errors.invalidDeviceIdCode', { code }))
+    }
+    const objects = []
+    let objectId = 0
+    let conformity = null
+    try {
+      // Garde-fou : au plus 256 objets, donc au plus 256 réponses.
+      for (let i = 0; i < 256; i++) {
+        const response = await this.request(identificationRequest(code, objectId))
+        conformity = response.conformity
+        objects.push(...response.objects)
+        if (!response.moreFollows || response.nextObjectId <= objectId) break
+        objectId = response.nextObjectId
+      }
+    } catch (err) {
+      throw new Error(describeError(err), { cause: err })
+    }
+    return { conformity, objects }
   }
 
   /** Écrit une valeur typée (Float32, Int32…) en l'encodant sur le nombre de registres nécessaire. */

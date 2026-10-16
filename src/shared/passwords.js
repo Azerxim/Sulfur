@@ -1,12 +1,12 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from 'crypto'
 import { promisify } from 'util'
-import { t } from '../shared/i18n'
+import { t } from './i18n'
 
 const scrypt = promisify(scryptCb)
 const KEY_LENGTH = 32
 
 /**
- * Hachage des mots de passe des utilisateurs du serveur (scrypt + sel aléatoire).
+ * Hachage des mots de passe des utilisateurs des serveurs (scrypt + sel aléatoire), process principal.
  * Format stocké : `scrypt$<sel base64>$<empreinte base64>` — le mot de passe en clair n'est jamais conservé.
  */
 export async function hashPassword(password) {

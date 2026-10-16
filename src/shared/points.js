@@ -32,4 +32,4 @@ export function toNumber(value) {
 }
 
 /** Défauts communs, dans l'ordre d'affichage (libellés : simulator.faults.types.*). */
-export const FAULT_TYPES = ['delay', 'noResponse', 'cut', 'exception', 'badStatus', 'freeze']
+export const FAULT_TYPES = ['delay', 'noResponse', 'cut', 'exception', 'badStatus', 'kissOfDeath', 'freeze']

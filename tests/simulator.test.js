@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { SimulationServer } from '@modules/opcua/main/server'
 import { SimulationClient } from '@modules/opcua/main/client'
 import { PkiStore } from '@modules/opcua/main/pki'
@@ -10,6 +10,8 @@ import { ModbusPki } from '@modules/modbus/main/pki'
 import { createPointsApi as modbusPoints } from '@modules/modbus/main/points'
 import { DEFAULT_SERVER_CONFIG as MODBUS_CONFIG } from '@modules/modbus/shared/constants'
 import { SimulatorEngine } from '@modules/simulator/main/engine'
+import { FlowRuntime } from '@modules/simulator/main/flows'
+import { createNode, migrateSimulatorConfig, stepsToFlow } from '@modules/simulator/shared/flows'
 import { TrendRecorder } from '@modules/trends/main/recorder'
 import { t } from '@modules/simulator/shared/i18n'
 import { errorOf, freePort, sleep, tempDir } from './helpers'
@@ -196,14 +198,208 @@ describe('Injection de défauts Modbus', () => {
   })
 })
 
-describe('Scénarios', () => {
+describe('Flux', () => {
   const variables = OPCUA_CONFIG.variables.map((v) => ({ ...v, simulation: 'none' }))
+  let runtime, debug, fake
 
-  it('enchaîne écritures, attente, rampe et défaut, puis arrête ses défauts', async () => {
+  /** Module factice : points en mémoire, défaut « delay » accepté. */
+  function fakePeer() {
+    const values = { a: 0, b: 0, s: '' }
+    const faults = []
+    return {
+      values,
+      faults,
+      peer: {
+        id: 'fake',
+        api: {
+          name: 'Fake',
+          points: () => Object.keys(values).map((id) => ({ id, group: 'server', name: id, writable: true })),
+          read: (ids) => Object.fromEntries(ids.map((id) => [id, values[id]])),
+          async write(id, value) {
+            if (!(id in values)) throw new Error(`inconnu : ${id}`)
+            values[id] = value
+          },
+          faultTypes: () => [{ type: 'delay' }],
+          setFaults: (list) => faults.splice(0, faults.length, ...list)
+        }
+      }
+    }
+  }
+
+  /** Flux à partir de nœuds { id, type, config } et de fils 'a>b' ou 'a:1>b' (sortie 1). */
+  const flow = (nodes, wires, extra = {}) => ({
+    id: 'f',
+    name: 'test',
+    nodes: nodes.map((n) => ({ ...createNode(n.type, 0, 0, n.config), id: n.id })),
+    wires: wires.map((w) => {
+      const [from, target] = w.split('>')
+      const [source, port = '0'] = from.split(':')
+      return { id: w, source, port: Number(port), target }
+    }),
+    ...extra
+  })
+
+  beforeEach(() => {
+    fake = fakePeer()
+    peers.push(fake.peer)
+    debug = []
+    runtime = new FlowRuntime({
+      engine,
+      faults: () => [fault('fake', 'delay', { id: 'd', params: { ms: 10 } })],
+      onDebug: (messages) => debug.push(...messages)
+    })
+  })
+
+  afterEach(async () => {
+    await runtime.dispose()
+    peers.splice(peers.indexOf(fake.peer), 1)
+  })
+
+  const values = () => debug.filter((m) => m.level === 'info').map((m) => m.value)
+
+  it('fait circuler les messages : déclencheur, fonction, aiguillage, échelle, compteur et filtre', async () => {
+    await runtime.deploy([
+      flow(
+        [
+          { id: 'in', type: 'inject', config: { payloadType: 'number', payload: '30' } },
+          { id: 'fn', type: 'function', config: { code: 'msg.payload = msg.payload * 2\nreturn msg' } },
+          { id: 'sw', type: 'switch' }, // > 50 sur la sortie 0, sinon sortie 1
+          { id: 'sc', type: 'scale', config: { inMin: 0, inMax: 100, outMin: 0, outMax: 10 } },
+          { id: 'ct', type: 'counter' },
+          { id: 'ft', type: 'filter' },
+          { id: 'dbg', type: 'debug' }
+        ],
+        ['in>fn', 'fn>sw', 'sw:0>sc', 'sw:1>ct', 'sc>ft', 'ct>ft', 'ft>dbg']
+      )
+    ])
+    runtime.inject('in') // 60 > 50 → échelle → 6
+    await waitFor(() => values().length === 1)
+    expect(values()).toEqual([6])
+
+    await runtime.deploy([
+      flow(
+        [
+          { id: 'in', type: 'inject', config: { payloadType: 'number', payload: '10' } },
+          { id: 'sw', type: 'switch' },
+          { id: 'ct', type: 'counter' },
+          { id: 'ft', type: 'filter' },
+          { id: 'dbg', type: 'debug' }
+        ],
+        ['in>sw', 'sw:1>ct', 'ct>ft', 'ft>dbg']
+      )
+    ])
+    debug = []
+    for (let i = 0; i < 3; i++) runtime.inject('in')
+    await waitFor(() => values().length === 3)
+    expect(values()).toEqual([1, 2, 3])
+    expect(runtime.nodeStatuses().ct).toMatchObject({ text: '3' })
+  })
+
+  it('recopie un point dans un autre à chaque changement (passerelle)', async () => {
+    await runtime.deploy([
+      flow(
+        [
+          { id: 'w', type: 'watch', config: { point: 'fake/a', interval: 50 } },
+          { id: 'sc', type: 'scale', config: { inMin: 0, inMax: 10, outMin: 0, outMax: 100, round: true } },
+          { id: 'out', type: 'write', config: { point: 'fake/b' } }
+        ],
+        ['w>sc', 'sc>out']
+      )
+    ])
+    fake.values.a = 4.2
+    await waitFor(() => fake.values.b === 42)
+    fake.values.a = 1
+    await waitFor(() => fake.values.b === 10)
+  })
+
+  it('génère des valeurs en continu jusqu’au redéploiement, et met en pause sur un message faux', async () => {
+    await runtime.deploy([
+      flow(
+        [
+          { id: 'g', type: 'generator', config: { simulation: 'ramp', period: 1, min: 0, max: 100, interval: 50 } },
+          { id: 'out', type: 'write', config: { point: 'fake/a' } },
+          { id: 'off', type: 'inject', config: { payloadType: 'boolean', payload: 'false' } }
+        ],
+        ['g>out', 'off>g']
+      )
+    ])
+    await waitFor(() => fake.values.a > 20)
+    runtime.inject('off')
+    await sleep(100)
+    const paused = fake.values.a
+    await sleep(200)
+    expect(fake.values.a).toBe(paused)
+    expect(runtime.nodeStatuses().g.text).toBe(t('simulator.status.paused'))
+
+    await runtime.stop()
+    expect(runtime.state()).toMatchObject({ running: false })
+    expect(runtime.nodeStatuses()).toEqual({})
+  })
+
+  it('active un défaut, et l’arrête au redéploiement', async () => {
+    await runtime.deploy([
+      flow(
+        [
+          { id: 'in', type: 'inject' },
+          { id: 'fl', type: 'fault', config: { fault: 'd', action: 'on' } }
+        ],
+        ['in>fl']
+      )
+    ])
+    runtime.inject('in')
+    await waitFor(() => fake.faults.length === 1)
+    expect(engine.status().faults.map((f) => f.id)).toEqual(['d'])
+    await runtime.deploy([])
+    expect(fake.faults).toEqual([])
+    expect(engine.status().faults).toEqual([])
+  })
+
+  it('signale les erreurs sur le nœud : code invalide, boucle infinie, point inconnu', async () => {
+    await runtime.deploy([
+      flow(
+        [
+          { id: 'bad', type: 'function', config: { code: 'return (' } },
+          { id: 'in', type: 'inject' },
+          { id: 'loop', type: 'function', config: { code: 'while (true) {}' } },
+          { id: 'w', type: 'write', config: { point: 'fake/inconnu' } }
+        ],
+        ['in>loop', 'in>w']
+      )
+    ])
+    expect(runtime.nodeStatuses().bad).toMatchObject({ fill: 'red' })
+    runtime.inject('in')
+    await waitFor(() => runtime.nodeStatuses().loop?.fill === 'red' && runtime.nodeStatuses().w?.fill === 'red')
+    expect(runtime.nodeStatuses().loop.text).toMatch(/timed out/i)
+    expect(runtime.nodeStatuses().w.text).toBe('inconnu : inconnu')
+    await waitFor(() => debug.filter((m) => m.level === 'error').length >= 3)
+    expect(await errorOf(() => runtime.inject('w'))).toBe(t('simulator.errors.notDeployed'))
+  })
+
+  it('ne lance pas un flux désactivé', async () => {
+    await runtime.deploy([
+      flow(
+        [
+          { id: 'g', type: 'generator', config: { interval: 50 } },
+          { id: 'out', type: 'write', config: { point: 'fake/a' } }
+        ],
+        ['g>out'],
+        {
+          disabled: true
+        }
+      )
+    ])
+    await sleep(200)
+    expect(fake.values.a).toBe(0)
+    expect(runtime.state().flows).toHaveLength(1)
+  })
+
+  it('convertit un ancien scénario en flux et le rejoue sur le serveur OPC UA', async () => {
     await startOpcua(variables)
     const delay = fault('opcua', 'delay', { params: { ms: 50 } })
+    runtime.faults = () => [delay]
     const scenario = {
       id: 'sc',
+      name: 'Ancien',
       steps: [
         { type: 'set', point: 'opcua/server:var-5', value: 'A' },
         { type: 'fault', fault: delay.id, action: 'on' },
@@ -212,34 +408,23 @@ describe('Scénarios', () => {
         { type: 'set', point: 'opcua/server:var-5', value: 'B' }
       ]
     }
-    engine.play(scenario, [delay])
-    expect(engine.status().scenario).toMatchObject({ id: 'sc', count: 5 })
+    const config = migrateSimulatorConfig({ faults: [delay], scenarios: [scenario] })
+    expect(config.scenarios).toBeUndefined()
+    expect(config.flows[0]).toMatchObject({ id: 'sc', name: 'Ancien' })
+    expect(config.flows[0].nodes.map((n) => n.type)).toEqual(['inject', 'write', 'fault', 'delay', 'ramp', 'write'])
+    expect(config.flows[0].wires).toHaveLength(5)
+    expect(migrateSimulatorConfig(config)).toBe(config)
+
+    await runtime.deploy(config.flows)
+    runtime.inject(config.flows[0].nodes[0].id)
     await waitFor(() => engine.status().faults.length === 1)
-    await waitFor(() => !engine.status().scenario)
-    expect(engine.status().error).toBeNull()
-    expect(engine.read(['opcua/server:var-5', 'opcua/server:var-3'])).toEqual({
-      'opcua/server:var-5': 'B',
-      'opcua/server:var-3': 10
-    })
+    await waitFor(() => engine.read(['opcua/server:var-5'])['opcua/server:var-5'] === 'B')
+    expect(engine.read(['opcua/server:var-3'])['opcua/server:var-3']).toBe(10)
+    await runtime.stop()
     expect(engine.status().faults).toEqual([])
-    // Valeurs intermédiaires de la rampe vues par l'historique d'avancement.
-    expect(statuses.some((s) => s.scenario?.step === 4)).toBe(true)
   })
 
-  it('boucle jusqu’à l’arrêt et signale une étape en échec', async () => {
-    await startOpcua(variables)
-    engine.play({ id: 'loop', loop: true, steps: [{ type: 'wait', duration: 0.05 }] })
-    await waitFor(() => engine.status().scenario?.iteration >= 3)
-    await engine.stop()
-    expect(engine.status().scenario).toBeNull()
-
-    engine.play({ id: 'bad', steps: [{ type: 'set', point: 'opcua/server:var-1', value: 'abc' }] })
-    await waitFor(() => !engine.status().scenario)
-    expect(engine.status().error).toMatch(/^Step 1|^Étape 1/)
-    expect(await errorOf(() => engine.play({ id: 'empty', steps: [] }))).toBe(t('simulator.errors.emptyScenario'))
-  })
-
-  it('enregistre les évolutions de points et les rejoue', async () => {
+  it('enregistre les évolutions de points dans un flux qui les rejoue', async () => {
     await startOpcua(variables)
     const key = 'opcua/server:var-5'
     opcua.server.setValue('var-5', 'un')
@@ -255,11 +440,12 @@ describe('Scénarios', () => {
     expect(waits[0]).toBeGreaterThan(0.15)
     expect(waits.reduce((a, b) => a + b, 0)).toBeGreaterThan(0.6)
 
+    const recorded = stepsToFlow({ name: 'rec', steps })
     opcua.server.setValue('var-5', 'autre')
-    engine.play({ id: 'rec', steps })
+    await runtime.deploy([recorded])
+    runtime.inject(recorded.nodes[0].id)
     await waitFor(() => engine.read([key])[key] === 'deux')
-    await waitFor(() => !engine.status().scenario)
-    expect(engine.read([key])[key]).toBe('trois')
+    await waitFor(() => engine.read([key])[key] === 'trois')
   })
 })
 

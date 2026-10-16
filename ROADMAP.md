@@ -38,10 +38,13 @@ Make the simulators more useful for testing real equipment and software.
   status codes (OPC UA), to test how clients behave when things go wrong.
 - [x] **Scenarios**: chain value changes over time (scripted or recorded) and replay them (Simulator
   module, like fault injection).
+- [x] **Node flows** in the manner of Node-RED: graphical editor, deployed flows running
+  continuously (triggers, points, ramps, faults, logic, JavaScript function, generators, debug);
+  they replace scenarios, which are converted automatically.
 - [x] **Trends and data logging**: charts of monitored values, CSV export (Trends module).
 - [x] **OPC UA**: arrays and structured types, methods, events and alarms, history read, address space
   import (NodeSet2 XML).
-- [ ] **Modbus**: register explorer on the server side, several Unit IDs on one server (gateway
+- [x] **Modbus**: register explorer on the server side, several Unit IDs on one server (gateway
   simulation), device identification (function 43 / 14), read/write multiple registers (function 23).
 
 ## New modules: IT and supervision
@@ -52,13 +55,16 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 - [ ] **SNMP**: agent and manager, v1 / v2c / v3 (USM authentication and encryption), simulated MIB
   and traps
 - [ ] **Syslog**: server and sender, UDP / TCP / TLS
-- [ ] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
-- [ ] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
+- [x] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
+- [x] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
   certificate validity on equipment
 
 ## New modules: industrial automation
 
 - [ ] **Siemens S7** (S7comm)
+- [ ] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /
+  write tags, points published for the simulator and trends). Windows only: PLCSim Advanced must be
+  installed and the user gives the path to its DLLs (Simulation Runtime API) in the module settings.
 - [ ] **EtherNet/IP (CIP)**: Rockwell / Allen-Bradley controllers
 - [ ] **BACnet/IP**: building automation (HVAC, lighting)
 - [ ] **OPC UA PubSub**: publish / subscribe mode of OPC UA, as an extension of the OPC UA module
@@ -75,6 +81,8 @@ The order within each version will be set according to needs.
 
 - **Links between modules**: map a variable from one module to another (e.g. an OPC UA variable
   mirrored to a Modbus register) to simulate a gateway or a complete installation.
+  Already possible with a simulator flow (*Point change* → *Write a point*); a direct link, without
+  a flow, remains to be offered.
 - **Security hardening**:
   - enable the renderer sandbox;
   - encrypt the saved configurations that contain secrets;

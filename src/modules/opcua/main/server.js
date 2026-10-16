@@ -22,7 +22,7 @@ import {
 } from '../shared/constants'
 import { coerce, coerceArray, coerceStruct, defaultValue, toPlain } from './serialize'
 import { nodesetSources, structuresNodeset, TYPES_NAMESPACE, validateStructures } from './nodesets'
-import { hashPassword, isPasswordHash, verifyPassword } from './passwords'
+import { hashPassword, isPasswordHash, verifyPassword } from '@shared/passwords'
 import { simulate } from '@shared/simulator'
 
 const VALUES_EMIT_INTERVAL = 250

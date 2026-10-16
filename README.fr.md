@@ -24,7 +24,7 @@ npm run format     # mise en forme (Prettier)
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
 (sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP
-et Modbus/TCP Security, injection de défauts, scénarios et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+et Modbus/TCP Security, HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -112,7 +112,9 @@ src/
     │   ├── main/         # Protocole, serveur, client, PKI, sécurité
     │   ├── renderer/     # Interface React du module
     │   └── shared/       # Constantes + encodage des valeurs (codec)
-    ├── simulator/        # Injection de défauts et scénarios (utilise les points des autres modules)
+    ├── http/             # Serveur REST (variables, routes, webhooks) + client HTTP
+    ├── ntp/              # Serveur de temps à horloge simulée + client NTP
+    ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     └── trends/           # Courbes, enregistrement et export CSV (idem)
 ```
 
@@ -217,11 +219,23 @@ configuration par défaut.
 ## Module Modbus TCP
 
 - **Serveur** : les quatre tables (coils, discrete inputs, input registers, holding registers),
-  fonctions 1 à 6, 15 et 16. Points simulés typés (Boolean, UInt16/Int16, UInt32/Int32,
-  Float32, Float64, ordre des mots ABCD / CDAB / BADC / DCBA), modifiables serveur démarré.
-  Liste des clients connectés et journal des événements de sécurité.
+  fonctions 1 à 6, 15, 16, 23 (lecture / écriture multiple) et 43 / 14 (identification de
+  l'équipement). Points simulés typés (Boolean, UInt16/Int16, UInt32/Int32, Float32, Float64, ordre
+  des mots ABCD / CDAB / BADC / DCBA), modifiables serveur démarré. Liste des clients connectés et
+  journal des événements de sécurité.
+  - **Plusieurs équipements** sur un même serveur (simulation de passerelle) : chacun répond à son
+    Unit ID avec sa propre mémoire, ses points et son identification ; un Unit ID non configuré
+    reçoit l'exception 0B, ou est servi par le premier équipement si l'option est cochée.
+    Équipements ajoutés, modifiés ou retirés serveur démarré.
+  - **Identification** (fonction 43 / 14) : objets 00 à 06 (fabricant, code produit, révision, URL,
+    produit, modèle, application) par équipement ; lecture basique, régulière (par flux, réponses
+    découpées si besoin) et par objet ; niveau de conformité 0x82.
+  - **Explorateur de registres** : mémoire brute d'un équipement par pages (UInt16, Int16,
+    hexadécimal, binaire, bits), rafraîchie en continu ; les adresses occupées par un point sont
+    repérées et chaque valeur est modifiable.
 - **Client** : lecture / écriture de toutes les tables avec décodage (UInt16 → Float64, hexadécimal,
-  binaire) et surveillance périodique.
+  binaire), écriture puis lecture en une requête (fonction 23), lecture de l'identification de
+  l'équipement et surveillance périodique.
 - **Sécurité** :
   - **Modbus/TCP Security** (TLS ≥ 1.2, port standard 802) avec authentification mutuelle par
     certificats X.509 épinglés (magasins approuvés / rejetés, approbation depuis l'interface) ;
@@ -235,6 +249,49 @@ configuration par défaut.
 - Ports par défaut 5020 (TCP) / 8020 (TLS) : les ports standards 502 / 802 nécessitent des droits
   administrateur sous Linux.
 
+## Module HTTP / REST
+
+- **Serveur** HTTP ou HTTPS (certificat auto-signé `HTTP@Sulfur`, généré au premier démarrage), port
+  par défaut 8080 :
+  - **variables simulées** (nombre, entier, booléen, texte, JSON ; sinus, rampe, aléatoire,
+    bascule), modifiables serveur démarré, exposées par une API REST intégrée :
+    `GET <base>/variables`, `GET <base>/variables/<nom>`, `PUT | PATCH | POST <base>/variables/<nom>`
+    (corps `{ "value": … }` ou valeur seule) pour les variables modifiables ;
+  - **routes** vérifiées dans l'ordre : méthode, chemin à paramètres (`/api/devices/:id`, `*` en
+    fin), code, en-têtes, délai et gabarit de réponse (`{{var.<nom>}}`, `{{params.<nom>}}`,
+    `{{query.<nom>}}`, `{{headers.<nom>}}`, `{{body.<champ>}}`, `{{now}}`, `{{uuid}}`…) ; une route
+    peut affecter une variable à partir de la requête (ex. `body.value`) ;
+  - **authentification** : Basic (utilisateurs, mots de passe hachés en scrypt dès la saisie), jeton
+    Bearer ou clé d'API dans un en-tête ; en-têtes CORS ;
+  - **webhooks** : appels sortants en JSON à chaque changement des variables choisies (avec un
+    espacement minimal) ou périodiques ;
+  - journal des requêtes reçues et des appels de webhooks, avec leurs corps.
+- **Client** : requêtes de toutes méthodes vers une adresse de base ou une URL complète
+  (authentification, en-têtes communs, certificats non vérifiés acceptés sur demande), réponse
+  lisible (code, durée, en-têtes, JSON indenté) et historique ; **surveillance** d'une valeur JSON
+  (chemin comme `data.value`) interrogée périodiquement et publiée comme point ; avec une méthode
+  d'écriture, le simulateur peut l'écrire. Les mots de passe, jetons et clés du client ne sont pas
+  enregistrés.
+- Défauts du simulateur : délai de réponse, absence de réponse, coupure de connexion, code HTTP forcé
+  (toutes les requêtes ou celles qui concernent les variables choisies), valeurs figées.
+
+## Module NTP
+
+- **Serveur** (UDP, port par défaut 1123 ; le port standard 123 demande des droits administrateur
+  sous Linux) : répond aux requêtes client NTP v1 à v4 avec une **horloge simulée** : décalage par
+  rapport à l'heure réelle (sauts de ±1 min à ±1 an en un clic) ou heure de départ fixée, dérive en
+  ppm ; strate (1 à 16), indicateur de seconde intercalaire, identifiant de référence et précision
+  annoncés. Tout s'applique à chaud. Utile pour tester l'horodatage des équipements et la validité
+  de leurs certificats. Liste des clients récents et journal.
+- **Client** : interrogation unique ou périodique d'un serveur ; écart d'horloge, délai aller-retour,
+  strate, indicateur de seconde intercalaire, référence, précision, délai et dispersion racine ;
+  historique. Une réponse dont le champ Origin ne correspond pas à la requête est ignorée.
+- Points pour le simulateur et les courbes : heure du serveur, décalage (modifiable : un flux peut
+  provoquer des sauts d'heure), dérive, strate et indicateur de seconde intercalaire (modifiables),
+  nombre de requêtes ; écart, délai et strate mesurés par le client.
+- Défauts du simulateur : délai (latence réseau simulée, comptée dans le délai aller-retour),
+  absence de réponse, Kiss-o'-Death (DENY, RSTR, RATE), horloge figée.
+
 ## Module Simulateur
 
 Agit sur les serveurs et clients des autres modules par les points qu'ils publient.
@@ -242,14 +299,33 @@ Agit sur les serveurs et clients des autres modules par les points qu'ils publie
 - **Injection de défauts** : délai de réponse, absence de réponse, coupure de connexion (connexions
   ouvertes fermées, nouvelles refusées), exception Modbus forcée (toutes les requêtes, lectures ou
   écritures), code d'état OPC UA forcé (BadSensorFailure, BadCommunicationError…) et valeurs figées
-  sur les points choisis. Un défaut s'active à la main ou par un scénario, jusqu'à son arrêt ou pour
+  sur les points choisis. Un défaut s'active à la main ou par un flux, jusqu'à son arrêt ou pour
   une durée donnée ; modifier un défaut actif l'applique aussitôt.
-- **Scénarios** : étapes enchaînées dans le temps — écrire une valeur, rampe linéaire, attendre,
-  activer ou arrêter un défaut — jouées une fois ou en boucle. Les défauts activés par un scénario
-  sont arrêtés à sa fin.
+- **Flux** (à la manière de Node-RED) : des nœuds reliés par des fils se transmettent des messages
+  (`msg.payload`), édités sur un canevas (glisser depuis la palette, relier une sortie à une entrée,
+  Suppr efface la sélection). **Déployer** envoie tous les flux au process principal, où ils
+  tournent en continu ; les flux déployés sont relancés au démarrage, **Arrêter** / **Relancer** les
+  suspendent. Un flux peut être désactivé. Nœuds :
+  - déclencheurs : *Déclencheur* (à la main, au déploiement et/ou toutes les n secondes),
+    *Changement de point* ;
+  - points : *Lire un point*, *Écrire un point* (`msg.payload` ou valeur fixe) ;
+  - temps et défauts : *Attendre*, *Rampe* (linéaire, depuis la valeur actuelle ou une valeur
+    donnée), *Défaut* (activer / arrêter un défaut de la table, ou selon `msg.payload`) ; les défauts
+    activés par les flux sont arrêtés au redéploiement ;
+  - logique : *Aiguillage* (une sortie par règle : =, ≠, <, ≤, >, ≥, entre, vrai, faux, sinon),
+    *Mise à l'échelle*, *Compteur*, *Filtre de changement* (avec bande morte) ;
+  - *Fonction* : JavaScript exécuté pour chaque message dans un contexte isolé (`vm`), limité à 1 s,
+    avec `msg`, `node`, `context`, `flow` et `global` ; une ou plusieurs sorties ;
+  - *Générateur* : valeurs sinus, rampe, aléatoire ou bascule, mis en pause / relancé par un message ;
+  - *Débogage* : messages affichés dans l'onglet Débogage, avec les avertissements et erreurs des nœuds.
+  Chaque nœud affiche son statut en dessous (dernière valeur, messages en attente, erreur). Relier un
+  *Changement de point* d'un module à un *Écrire un point* d'un autre simule une passerelle entre
+  protocoles.
 - **Enregistrement** : les évolutions des points choisis (serveurs ou valeurs surveillées par les
-  clients) sont enregistrées dans un nouveau scénario (écritures et attentes), modifiable et
-  rejouable.
+  clients) sont enregistrées dans un nouveau flux (écritures et attentes), modifiable et rejouable.
+- Les scénarios enregistrés par une version antérieure (ou présents dans une configuration importée)
+  sont convertis en flux : un déclencheur manuel suivi d'un nœud par étape, rebouclé pour un scénario
+  en boucle.
 
 ## Module Courbes
 

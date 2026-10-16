@@ -6,6 +6,7 @@ import { ModbusPki } from './pki'
 import { ModbusServer } from './server'
 import { ModbusClient } from './client'
 import { createPointsApi } from './points'
+import { migrateModbusConfig } from '../shared/units'
 import { t } from '../shared/i18n'
 
 let server = null
@@ -14,6 +15,8 @@ let client = null
 /** Partie "main" du module Modbus. Canaux : `modbus:server:*`, `modbus:client:*`, `modbus:certs:*`. */
 export const modbusMainModule = {
   manifest: MODBUS_MODULE,
+
+  migrateConfig: migrateModbusConfig,
 
   activate(ctx) {
     const pki = {
@@ -43,16 +46,27 @@ export const modbusMainModule = {
     ctx.handle('server:values', () => server.values())
     ctx.handle('server:logs', () => server.logs())
     ctx.handle('server:clearLogs', () => server.clearLogs())
-    ctx.handle('server:upsertPoint', (def) => server.upsertPoint(def))
+    ctx.handle('server:upsertPoint', (def, unitId) => server.upsertPoint(def, unitId))
     ctx.handle('server:removePoint', (id) => server.removePoint(id))
     ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
     ctx.handle('server:setUpdateRate', (rate) => server.setUpdateRate(rate))
+    ctx.handle('server:addUnit', (def) => server.addUnit(def))
+    ctx.handle('server:updateUnit', (def) => server.updateUnit(def))
+    ctx.handle('server:removeUnit', (id) => server.removeUnit(id))
+    ctx.handle('server:registers', (unitId, table, address, count) => server.registers(unitId, table, address, count))
+    ctx.handle('server:writeRegister', (unitId, table, address, value) =>
+      server.writeRegister(unitId, table, address, value)
+    )
 
     ctx.handle('client:status', () => client.status())
     ctx.handle('client:connect', (config) => client.connect(config))
     ctx.handle('client:disconnect', () => client.disconnect())
     ctx.handle('client:read', (table, address, quantity) => client.read(table, address, quantity))
     ctx.handle('client:write', (table, address, values) => client.write(table, address, values))
+    ctx.handle('client:readWrite', (readAddress, readQuantity, writeAddress, values) =>
+      client.readWrite(readAddress, readQuantity, writeAddress, values)
+    )
+    ctx.handle('client:identify', (code) => client.readDeviceIdentification(code))
     ctx.handle('client:writeValue', (table, address, value, dataType, wordOrder) =>
       client.writeValue(table, address, value, dataType, wordOrder)
     )

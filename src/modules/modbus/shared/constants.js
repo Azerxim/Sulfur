@@ -53,93 +53,134 @@ export const DEFAULT_SERVER_SECURITY = {
   readOnly: false
 }
 
+/**
+ * Objets d'identification de l'équipement (fonction 43 / MEI 14), par identifiant d'objet.
+ * 0 à 2 : identification basique (obligatoire) ; 3 à 6 : identification régulière (facultative).
+ * Libellés : modbus.identity.*.
+ */
+export const IDENTITY_OBJECTS = [
+  'vendorName',
+  'productCode',
+  'revision',
+  'vendorUrl',
+  'productName',
+  'modelName',
+  'userApplicationName'
+]
+
+export const DEFAULT_IDENTITY = {
+  vendorName: 'Sulfur',
+  productCode: 'SULFUR-MB',
+  revision: '1.0',
+  vendorUrl: 'https://github.com/Azerxim/Sulfur',
+  productName: 'Sulfur Modbus simulator',
+  modelName: 'Virtual device',
+  userApplicationName: ''
+}
+
+/** Unit ID valides sur Modbus TCP. */
+export const MAX_UNIT_ID = 255
+
+/**
+ * Configuration du serveur. Un serveur porte un ou plusieurs équipements (`units`, simulation d'une
+ * passerelle) : chacun a son Unit ID, sa mémoire (quatre tables de `size` adresses), ses points et
+ * son identification. Les identifiants de points sont uniques sur tout le serveur.
+ */
 export const DEFAULT_SERVER_CONFIG = {
   host: '0.0.0.0',
   port: 5020,
-  unitId: 1,
+  /** Unit ID non configuré : servi par le premier équipement plutôt que refusé (exception 0B). */
   anyUnitId: false,
   updateRate: 100,
   wordOrder: 'ABCD',
   size: 10000,
   security: DEFAULT_SERVER_SECURITY,
-  points: [
+  units: [
     {
-      id: 'pt-1',
-      name: 'Temperature',
-      table: 'holdingRegisters',
-      address: 0,
-      dataType: 'Float32',
-      initialValue: 20,
-      simulation: 'sine',
-      period: 10000,
-      min: 15,
-      max: 25,
-      writable: true
-    },
-    {
-      id: 'pt-2',
-      name: 'Setpoint',
-      table: 'holdingRegisters',
-      address: 10,
-      dataType: 'Int16',
-      initialValue: 50,
-      simulation: 'none',
-      period: 1000,
-      min: 0,
-      max: 100,
-      writable: true
-    },
-    {
-      id: 'pt-3',
-      name: 'Counter',
-      table: 'inputRegisters',
-      address: 0,
-      dataType: 'UInt16',
-      initialValue: 0,
-      simulation: 'ramp',
-      period: 10000,
-      min: 0,
-      max: 1000,
-      writable: false
-    },
-    {
-      id: 'pt-4',
-      name: 'Pressure',
-      table: 'inputRegisters',
-      address: 10,
-      dataType: 'Float32',
-      initialValue: 1,
-      simulation: 'random',
-      period: 1000,
-      min: 0.9,
-      max: 1.1,
-      writable: false
-    },
-    {
-      id: 'pt-5',
-      name: 'Running',
-      table: 'coils',
-      address: 0,
-      dataType: 'Boolean',
-      initialValue: true,
-      simulation: 'toggle',
-      period: 5000,
-      min: 0,
-      max: 1,
-      writable: true
-    },
-    {
-      id: 'pt-6',
-      name: 'Alarm',
-      table: 'discreteInputs',
-      address: 0,
-      dataType: 'Boolean',
-      initialValue: false,
-      simulation: 'none',
-      period: 1000,
-      min: 0,
-      max: 1,
-      writable: false
+      id: 'unit-1',
+      unitId: 1,
+      name: '',
+      identity: DEFAULT_IDENTITY,
+      points: [
+        {
+          id: 'pt-1',
+          name: 'Temperature',
+          table: 'holdingRegisters',
+          address: 0,
+          dataType: 'Float32',
+          initialValue: 20,
+          simulation: 'sine',
+          period: 10000,
+          min: 15,
+          max: 25,
+          writable: true
+        },
+        {
+          id: 'pt-2',
+          name: 'Setpoint',
+          table: 'holdingRegisters',
+          address: 10,
+          dataType: 'Int16',
+          initialValue: 50,
+          simulation: 'none',
+          period: 1000,
+          min: 0,
+          max: 100,
+          writable: true
+        },
+        {
+          id: 'pt-3',
+          name: 'Counter',
+          table: 'inputRegisters',
+          address: 0,
+          dataType: 'UInt16',
+          initialValue: 0,
+          simulation: 'ramp',
+          period: 10000,
+          min: 0,
+          max: 1000,
+          writable: false
+        },
+        {
+          id: 'pt-4',
+          name: 'Pressure',
+          table: 'inputRegisters',
+          address: 10,
+          dataType: 'Float32',
+          initialValue: 1,
+          simulation: 'random',
+          period: 1000,
+          min: 0.9,
+          max: 1.1,
+          writable: false
+        },
+        {
+          id: 'pt-5',
+          name: 'Running',
+          table: 'coils',
+          address: 0,
+          dataType: 'Boolean',
+          initialValue: true,
+          simulation: 'toggle',
+          period: 5000,
+          min: 0,
+          max: 1,
+          writable: true
+        },
+        {
+          id: 'pt-6',
+          name: 'Alarm',
+          table: 'discreteInputs',
+          address: 0,
+          dataType: 'Boolean',
+          initialValue: false,
+          simulation: 'none',
+          period: 1000,
+          min: 0,
+          max: 1,
+          writable: false
+        }
+      ]
     }
   ]
 }
