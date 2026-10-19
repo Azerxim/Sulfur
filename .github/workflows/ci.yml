@@ -1,9 +1,11 @@
-# Intégration continue : lint, mise en forme, tests et build sur chaque pull request et tag de version
-# v*. Installeurs et release GitHub : uniquement sur les tags v*.
+# Intégration continue : lint, mise en forme, tests et build sur main, sur chaque pull request et sur
+# les tags de version v*. Installeurs et release GitHub : uniquement sur les tags v*.
 name: CI
 
 on:
   push:
+    # main : état affiché par le badge CI du README.
+    branches: [main]
     tags: ['v*']
   pull_request:
 

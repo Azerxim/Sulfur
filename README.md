@@ -1,6 +1,7 @@
 # Sulfur
 
-[![CI](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml?query=event%3Apush)
+[![CI](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml?query=branch%3Amain)
+[![Release](https://img.shields.io/github/v/release/Azerxim/Sulfur)](https://github.com/Azerxim/Sulfur/releases/latest)
 
 **English** · [Français](README.fr.md)
 
@@ -71,7 +72,7 @@ npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg and dist/Sulfur-<ve
 - The Windows installer lets the user choose the installation folder and creates a desktop shortcut.
   Installers are not code-signed: on macOS, the first launch requires right-click → *Open* (or
   `xattr -cr /Applications/Sulfur.app`).
-- The CI runs lint, tests and build on every pull request. On `v*` version tags, it also builds the
+- The CI runs lint, tests and build on `main` and on every pull request. On `v*` version tags, it also builds the
   Windows, Linux and macOS installers and attaches them to a draft GitHub release, along with the
   `latest*.yml` files used by the update system:
 
