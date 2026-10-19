@@ -120,6 +120,11 @@ export default {
     languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",
     theme: 'Thème',
     themeHint: 'Le thème sombre est utilisé par défaut.',
+    startPage: 'Page de démarrage',
+    startPageHint: "Page affichée au lancement de Sulfur. Chaque module retient aussi son dernier onglet (serveur ou client).",
+    lastPage: 'Dernière page affichée',
+    modules: 'Modules',
+    pages: 'Application',
     themes: {
       dark: 'Sombre',
       light: 'Clair',

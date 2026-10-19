@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Circle, Copy, Play, Plus, Rocket, Square, Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, CommitInput } from '@renderer/components/ui'
+import { Button, Card, Checkbox, CommitInput, useStoredState } from '@renderer/components/ui'
 import { getLocale } from '@shared/i18n'
 import { DEBUG_LIMIT, createNode, nodeOutputs, stepsToFlow } from '../shared/flows'
 import { simulatorApi } from './api'
@@ -55,17 +55,77 @@ function useFlowRuntime() {
   return { state, setState, statuses, debug, setDebug }
 }
 
+const SIDE_KEY = 'sulfur:simulator:sideWidth'
+const SIDE_DEFAULT = 320
+const SIDE_MIN = 256
+/** Largeur minimale laissée à l'éditeur de flux. */
+const EDITOR_MIN = 320
+
+/**
+ * Largeur du panneau latéral (propriétés / débogage), réglable en tirant sa bordure gauche et
+ * mémorisée localement (sans effet si le stockage est indisponible).
+ */
+function useSideWidth(containerRef) {
+  const [width, setWidth] = useState(() => {
+    try {
+      return Number(localStorage.getItem(SIDE_KEY)) || SIDE_DEFAULT
+    } catch {
+      return SIDE_DEFAULT
+    }
+  })
+
+  const startResize = (e) => {
+    e.preventDefault()
+    const handle = e.currentTarget
+    handle.setPointerCapture(e.pointerId)
+    const startX = e.clientX
+    const startWidth = width
+    const max = Math.max(SIDE_MIN, (containerRef.current?.clientWidth ?? 0) - EDITOR_MIN)
+    let next = startWidth
+    const onMove = (ev) => {
+      next = Math.round(Math.min(max, Math.max(SIDE_MIN, startWidth + startX - ev.clientX)))
+      setWidth(next)
+    }
+    const onUp = () => {
+      handle.removeEventListener('pointermove', onMove)
+      handle.removeEventListener('pointerup', onUp)
+      handle.removeEventListener('pointercancel', onUp)
+      try {
+        localStorage.setItem(SIDE_KEY, String(next))
+      } catch {
+        // stockage indisponible : la largeur n'est simplement pas mémorisée
+      }
+    }
+    handle.addEventListener('pointermove', onMove)
+    handle.addEventListener('pointerup', onUp)
+    handle.addEventListener('pointercancel', onUp)
+  }
+
+  const reset = () => {
+    setWidth(SIDE_DEFAULT)
+    try {
+      localStorage.removeItem(SIDE_KEY)
+    } catch {
+      // stockage indisponible
+    }
+  }
+
+  return { width, startResize, reset }
+}
+
 /**
  * Flux de nœuds, à la manière de Node-RED : chaque onglet est un flux ; « Déployer » envoie tous les
  * flux au process principal, où ils tournent en continu (et sont relancés au démarrage).
  */
 export default function FlowsCard({ flows, onChange, faults, points, status, onError }) {
   const { state, setState, statuses, debug, setDebug } = useFlowRuntime()
-  const [currentId, setCurrentId] = useState(flows[0]?.id ?? null)
+  const [currentId, setCurrentId] = useStoredState('sulfur:simulator:flow', flows[0]?.id ?? null)
   const [selectedId, setSelectedId] = useState(null)
   const [side, setSide] = useState('properties')
   const [onlyCurrent, setOnlyCurrent] = useState(false)
   const [recordKeys, setRecordKeys] = useState([])
+  const editorRef = useRef(null)
+  const sideWidth = useSideWidth(editorRef)
   const recording = status.recording
   const call = useCallback((action) => action().catch((err) => onError(err.message)), [onError])
 
@@ -133,11 +193,14 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
       addFlow(stepsToFlow({ name: t('simulator.flows.recordedName', { time }), steps }))
     })
 
-  const selectFromDebug = useCallback((flowId, nodeId) => {
-    setCurrentId(flowId)
-    setSelectedId(nodeId)
-    setSide('properties')
-  }, [])
+  const selectFromDebug = useCallback(
+    (flowId, nodeId) => {
+      setCurrentId(flowId)
+      setSelectedId(nodeId)
+      setSide('properties')
+    },
+    [setCurrentId]
+  )
 
   const stateLabel = dirty
     ? t('simulator.flows.undeployed')
@@ -149,7 +212,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
     <Card
       id="simulator.flows"
       title={t('simulator.flows.title', { count: flows.length })}
-      className="shrink-0"
+      fill
       actions={
         <>
           <span
@@ -189,7 +252,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
         </>
       }
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
         <p className="text-xs text-slate-500">{t('simulator.flows.hint')}</p>
 
         <div className="flex flex-wrap items-center gap-1 border-b border-ink-800">
@@ -288,7 +351,11 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
               </div>
             </div>
 
-            <div className="grid h-[70vh] min-h-[480px] grid-cols-[minmax(0,1fr)_20rem] overflow-hidden rounded-md border border-ink-800">
+            <div
+              ref={editorRef}
+              className="grid min-h-[480px] flex-1 overflow-hidden rounded-md border border-ink-800"
+              style={{ gridTemplateColumns: `minmax(0,1fr) ${sideWidth.width}px` }}
+            >
               <FlowEditor
                 flow={flow}
                 onChange={updateFlow}
@@ -299,7 +366,15 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
                 onSelect={setSelectedId}
                 labelOf={labelOf}
               />
-              <div className="flex min-h-0 flex-col border-l border-ink-800">
+              <div className="relative flex min-h-0 flex-col border-l border-ink-800">
+                <div
+                  role="separator"
+                  aria-orientation="vertical"
+                  title={t('simulator.editor.resize')}
+                  onPointerDown={sideWidth.startResize}
+                  onDoubleClick={sideWidth.reset}
+                  className="absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize transition-colors hover:bg-sulfur-400/40 active:bg-sulfur-400/60"
+                />
                 <div className="flex border-b border-ink-800 text-xs">
                   {['properties', 'debug'].map((tab) => (
                     <button

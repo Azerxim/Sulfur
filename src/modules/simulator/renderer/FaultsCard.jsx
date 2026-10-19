@@ -153,7 +153,7 @@ export default function FaultsCard({ faults, onChange, targets, status, onError 
     <Card
       id="simulator.faults"
       title={t('simulator.faults.title', { count: faults.length })}
-      className="shrink-0"
+      fill
       actions={
         <>
           {status.faults.length > 0 && (

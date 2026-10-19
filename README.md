@@ -23,7 +23,7 @@ npm run format     # formatting (Prettier)
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
-certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), fault injection, node flows and trend recording on both protocols,
+certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), fault injection, node flows and trend recording on both protocols,
 protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
@@ -111,6 +111,8 @@ src/
     │   └── shared/       # Constants + value encoding (codec)
     ├── http/             # REST server (variables, routes, webhooks) + HTTP client
     ├── ntp/              # Time server with a simulated clock + NTP client
+    ├── s7/               # Simulated S7 PLC (S7comm) + S7 client
+    ├── plcsim/           # S7-PLCSIM Advanced virtual PLCs (Windows, PowerShell bridge to the API)
     ├── simulator/        # Fault injection and node flows (uses the points of the other modules)
     └── trends/           # Trends, data logging and CSV export (same)
 ```
@@ -285,12 +287,54 @@ inconsistent configuration), a button restores its default configuration.
 - Simulator faults: delay (simulated network latency, included in the round-trip delay), no
   response, Kiss-o'-Death (DENY, RSTR, RATE), frozen clock.
 
+## Siemens S7 module
+
+- **Simulated PLC** (S7comm over ISO-on-TCP, default port 1102; standard port 102 is often taken on
+  Windows by the Siemens services and needs administrator rights on Linux): inputs (I), outputs (Q),
+  markers (M) and configurable data blocks; **simulated points** at S7 addresses (`DB1.DBD0`,
+  `MW10`, `Q0.0`… in Bool, Byte, Int, DInt, Real, LReal, String… types) with the usual generators;
+  negotiated PDU size (240, 480, 960); CPU identification returned in the system status lists (SZL
+  0x0011, 0x001C) and operating state (0x0424); RUN / STOP by hand or by the clients (PI services);
+  write protection; memory explorer (raw bytes, editable); connected clients and log. Clients
+  connect with any rack and slot. Checked against Snap7.
+- **Client**: connection by rack and slot (PG, OP or S7 basic connection) or explicit TSAPs, PDU
+  negotiation; typed reads and writes by address (international or German notation: `E0.1`, `AW2`);
+  raw byte reads and writes split according to the PDU size; CPU identification (order number,
+  firmware, serial number…), operating state, warm / cold restart and STOP (confirmed); **monitoring**
+  grouped in multi-variable requests, kept across restarts and published as points. S7-1200 / 1500:
+  enable PUT/GET and use data blocks with standard access.
+- Simulator faults: response delay, no response, connection cut, forced item return code (hardware
+  fault, access denied, address out of range… on reads, writes or both), frozen values.
+
+## PLCSim Advanced module (Windows)
+
+Drives the S7-1500 virtual PLCs of **S7-PLCSIM Advanced** through its Simulation Runtime API (.NET
+assembly `Siemens.Simatic.Simulation.Runtime.Api`), loaded by Windows PowerShell 5.1 in a background
+process: no native module to compile. The API folder is detected automatically (latest version in
+`C:\Program Files (x86)\Common Files\Siemens\PLCSIMADV\API\<version>`) or set in the module.
+
+- Connection to the API (optionally when Sulfur starts): API version, Runtime Manager availability,
+  network mode (Softbus or TCP/IP).
+- **Remote PC**: connection to the Runtime Manager of another PC (IP address or name, port opened in
+  the PLCSIM Advanced control panel, 50000 by default); the instances listed and driven are then
+  those of that PC. Connection loss is reported.
+- **Without PLCSIM Advanced installed**: the module asks for the folder containing the API DLLs
+  (copied from a PC where it is installed). The API is a native Windows library (C++/CLI): it cannot
+  be loaded on Linux or macOS, where the module stays unavailable.
+- **Instances**: creation (CPU type), power on / off, RUN / STOP, memory reset, deletion, IP address
+  of each interface. The program is downloaded from TIA Portal.
+- **Variables**: tag table of the downloaded program (filter, arrays expanded), or addresses of the
+  inputs, outputs and markers; **monitoring** of several instances, written from the list and
+  published as points: a simulator flow can drive the inputs of the virtual PLC to simulate the
+  process. Monitored variables are kept across restarts.
+- Real-API test: `SULFUR_PLCSIM_LIVE=1 npm test` (creates, powers on and deletes a test instance).
+
 ## Simulator module
 
 Acts on the servers and clients of the other modules through the points they publish.
 
 - **Fault injection**: response delay, no response, connection cut (open connections closed, new
-  ones refused), forced Modbus exception (all requests, reads or writes), forced OPC UA status code
+  ones refused), forced Modbus exception or S7 return code (all requests, reads or writes), forced OPC UA status code
   (BadSensorFailure, BadCommunicationError…) and frozen values on chosen points. A fault is
   activated by hand or by a flow, until it is stopped or for a given duration; editing an active
   fault applies it immediately.

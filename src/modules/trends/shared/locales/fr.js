@@ -4,7 +4,8 @@ export default {
     description: 'Courbes des valeurs des autres modules, enregistrement et export CSV',
     groups: {
       server: 'Serveur',
-      client: 'Client'
+      client: 'Client',
+      plc: 'Automate'
     },
     chart: {
       title: 'Courbes',

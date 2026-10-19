@@ -61,8 +61,9 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 
 ## New modules: industrial automation
 
-- [ ] **Siemens S7** (S7comm)
-- [ ] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /
+- [x] **Siemens S7** (S7comm): simulated PLC (I / Q / M / DB memory, simulated points,
+  identification, RUN / STOP) and client (rack / slot or TSAP, typed reads / writes, monitoring)
+- [x] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /
   write tags, points published for the simulator and trends). Windows only: PLCSim Advanced must be
   installed and the user gives the path to its DLLs (Simulation Runtime API) in the module settings.
 - [ ] **EtherNet/IP (CIP)**: Rockwell / Allen-Bradley controllers

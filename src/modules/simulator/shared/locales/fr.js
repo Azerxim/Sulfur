@@ -4,7 +4,8 @@ export default {
     description: 'Injection de défauts et flux de nœuds sur les serveurs et clients des autres modules',
     groups: {
       server: 'Serveur',
-      client: 'Client'
+      client: 'Client',
+      plc: 'Automate'
     },
     faults: {
       title: 'Injection de défauts ({count})',
@@ -13,7 +14,7 @@ export default {
         delay: 'Délai de réponse',
         noResponse: 'Absence de réponse',
         cut: 'Coupure de connexion',
-        exception: 'Exception Modbus forcée',
+        exception: 'Exception forcée (Modbus, S7)',
         badStatus: "Code d'état forcé",
         kissOfDeath: "Kiss-o'-Death (NTP)",
         freeze: 'Valeurs figées'
@@ -52,7 +53,8 @@ export default {
       clearAll: 'Tout arrêter',
       newName: 'Défaut {n}'
     },
-    noPoint: 'Aucun point disponible : configurez des variables ou des points dans les modules OPC UA et Modbus.',
+    noPoint:
+      'Aucun point disponible : configurez des variables, des points ou des surveillances dans les modules de protocole (OPC UA, Modbus, S7…).',
     flows: {
       title: 'Flux ({count})',
       hint: 'Comme dans Node-RED, des nœuds reliés par des fils se transmettent des messages (msg.payload). Glissez des nœuds depuis la palette, reliez une sortie (à droite) à une entrée (à gauche), puis déployez : les flux tournent en continu et sont relancés au démarrage. Suppr efface la sélection.',
@@ -84,7 +86,8 @@ export default {
       noSelection: 'Sélectionnez un nœud pour modifier ses réglages.',
       trigger: 'Déclencher',
       output: 'Sortie {n}',
-      duplicateNode: 'Dupliquer le nœud'
+      duplicateNode: 'Dupliquer le nœud',
+      resize: 'Tirer pour redimensionner (double-clic : largeur par défaut)'
     },
     debug: {
       currentFlow: 'Flux affiché seulement',
