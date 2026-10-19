@@ -146,10 +146,11 @@ describe('Agent et manager', () => {
   })
 
   it('simulation, valeurs figées et défauts', async () => {
-    await start({ updateRate: 20, objects: [object({ simulation: 'ramp', period: 500 })] })
+    // Valeur initiale hors de la plage de la rampe (0 à 100) : toute valeur simulée en diffère.
+    await start({ updateRate: 20, objects: [object({ simulation: 'ramp', period: 500, initialValue: -1 })] })
     await sleep(120)
     const points = createPointsApi({ agent, manager })
-    expect(points.read(['server:temp'])['server:temp']).not.toBe(21)
+    expect(points.read(['server:temp'])['server:temp']).not.toBe(-1)
     points.setFaults([{ id: 'f', type: 'freeze', points: ['server:temp'] }])
     const frozen = agent.values().temp
     await sleep(80)
