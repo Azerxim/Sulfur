@@ -20,7 +20,8 @@ function tagAddress(tag) {
  * Variables de l'instance choisie : table des variables du programme (chargé depuis TIA Portal),
  * ou adresse d'entrée, de sortie ou de mémento. « Surveiller » ajoute la variable aux surveillances.
  */
-export default function VariablesCard({ status, instance }) {
+/** Variables de l'instance choisie (liste déroulante de l'en-tête, partagée avec la liste des instances). */
+export default function VariablesCard({ status, instance, onSelect }) {
   const [tags, setTags] = useState(null)
   const [filter, setFilter] = useState('')
   const [busy, setBusy] = useState(false)
@@ -87,6 +88,23 @@ export default function VariablesCard({ status, instance }) {
       id="plcsim.variables"
       title={instance ? t('plcsim.variables.title', { name: instance.name }) : t('plcsim.variables.titleNone')}
       className="shrink-0"
+      actions={
+        connected &&
+        status.instances.length > 1 && (
+          <Select
+            className="h-7! w-56 text-xs"
+            value={instance?.name ?? ''}
+            title={t('plcsim.watches.instance')}
+            onChange={(e) => onSelect(e.target.value)}
+          >
+            {status.instances.map((i) => (
+              <option key={i.id} value={i.name}>
+                {i.name} · {t(`plcsim.states.${i.state}`, null, i.state)}
+              </option>
+            ))}
+          </Select>
+        )
+      }
     >
       {!connected || !instance ? (
         <p className="text-sm text-slate-500">{t('plcsim.variables.noInstance')}</p>

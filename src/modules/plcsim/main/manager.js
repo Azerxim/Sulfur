@@ -1,4 +1,6 @@
+import dns from 'dns'
 import fs from 'fs'
+import net from 'net'
 import path from 'path'
 import { randomUUID } from 'crypto'
 import { resolveAddress } from '@modules/s7/shared/address'
@@ -78,6 +80,25 @@ export function resolveApiPath(input, fsImpl = fs) {
   return found
 }
 
+/**
+ * Runtime Manager distant : { host, ip, port }. L'API n'accepte qu'une adresse IPv4 : un nom de PC
+ * est résolu ici.
+ */
+export async function resolveRemote({ remoteHost, remotePort } = {}, lookup = dns.promises.lookup) {
+  const host = String(remoteHost ?? '').trim()
+  if (!host) throw new Error(t('plcsim.errors.missingHost'))
+  const port = Number(remotePort)
+  if (!Number.isInteger(port) || port < 1 || port > 65535)
+    throw new Error(t('plcsim.errors.invalidPort', { value: remotePort }))
+  if (net.isIPv4(host)) return { host, ip: host, port }
+  try {
+    const { address } = await lookup(host, { family: 4 })
+    return { host, ip: address, port }
+  } catch {
+    throw new Error(t('plcsim.errors.unknownHost', { host }))
+  }
+}
+
 /** Type d'appel par nom d'une variable de la table : type primitif, ou chaîne. */
 export function tagType(tag) {
   if (['String', 'WString'].includes(tag.dataType)) return tag.dataType
@@ -113,6 +134,8 @@ export class PlcsimManager {
   info = null
   instances = []
   apiPath = null
+  /** Runtime Manager distant de la connexion en cours : { host, ip, port }, ou null (local). */
+  remote = null
   connecting = false
   error = null
   watches = new Map()
@@ -130,6 +153,7 @@ export class PlcsimManager {
     scriptSource,
     platform = process.platform,
     createBridge = (options) => new PlcsimBridge(options),
+    lookup,
     onStatus = () => {},
     onData = () => {},
     onWatches = () => {}
@@ -137,7 +161,10 @@ export class PlcsimManager {
     this.dataDir = dataDir
     this.scriptSource = scriptSource
     this.platform = platform
+    // API installée avec PLCSIM Advanced ; sinon, la connexion demande le dossier des DLL.
+    this.apiDetected = platform === 'win32' && !!detectApiPath()
     this.createBridge = createBridge
+    this.lookup = lookup
     this.onStatus = onStatus
     this.onData = onData
     this.onWatches = onWatches
@@ -146,9 +173,11 @@ export class PlcsimManager {
   status() {
     return {
       supported: this.platform === 'win32',
+      apiDetected: this.apiDetected,
       connected: !!this.bridge,
       connecting: this.connecting,
       apiPath: this.apiPath,
+      remote: this.remote,
       info: this.info,
       error: this.error,
       instances: this.instances,
@@ -163,7 +192,11 @@ export class PlcsimManager {
 
   // --- Connexion à l'API --------------------------------------------------------------------
 
-  async connect({ apiPath } = {}) {
+  /**
+   * Connexion à l'API : Runtime Manager de ce PC (`mode: 'local'`), ou celui d'un autre PC dont le
+   * port est ouvert (`mode: 'remote'`, `remoteHost`, `remotePort`).
+   */
+  async connect({ apiPath, mode = 'local', ...options } = {}) {
     if (this.platform !== 'win32') throw new Error(t('plcsim.errors.windowsOnly'))
     if (this.bridge || this.connecting) return this.status()
     this.connecting = true
@@ -171,12 +204,13 @@ export class PlcsimManager {
     this.emit()
     try {
       const resolved = resolveApiPath(apiPath)
+      const remote = mode === 'remote' ? await resolveRemote(options, this.lookup) : null
       // Script du pont écrit avec une marque d'ordre d'octets : Windows PowerShell 5.1 lit sinon un
       // fichier sans BOM dans le jeu de caractères ANSI.
       const scriptPath = path.join(this.dataDir, 'bridge.ps1')
       fs.mkdirSync(this.dataDir, { recursive: true })
       fs.writeFileSync(scriptPath, `\uFEFF${this.scriptSource}`, 'utf8')
-      const bridge = this.createBridge({ scriptPath, apiPath: resolved })
+      const bridge = this.createBridge({ scriptPath, apiPath: resolved, remote })
       this.info = await bridge.start()
       bridge.on('exit', (err) => {
         if (this.bridge !== bridge) return
@@ -186,6 +220,7 @@ export class PlcsimManager {
       })
       this.bridge = bridge
       this.apiPath = resolved
+      this.remote = remote
       await this.refreshInstances().catch(() => {})
       this.instancesTimer = setInterval(() => this.refreshInstances().catch(() => {}), INSTANCES_INTERVAL)
       this.startPolling()
@@ -216,6 +251,7 @@ export class PlcsimManager {
     this.instancesTimer = null
     this.bridge = null
     this.info = null
+    this.remote = null
     this.instances = []
     this.last.clear()
   }

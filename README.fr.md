@@ -326,6 +326,12 @@ automatiquement (version la plus récente dans
 
 - Connexion à l'API (éventuellement au démarrage de Sulfur) : version de l'API, disponibilité du
   Runtime Manager, mode réseau (Softbus ou TCP/IP).
+- **PC distant** : connexion au Runtime Manager d'un autre PC (adresse IP ou nom, port ouvert dans le
+  panneau de contrôle de PLCSIM Advanced, 50000 par défaut) ; les instances listées et pilotées sont
+  alors celles de ce PC. La perte de connexion est signalée.
+- **Sans PLCSIM Advanced installé** : le module demande le dossier qui contient les DLL de l'API
+  (copiées depuis un PC où il est installé). L'API est une bibliothèque Windows native (C++/CLI) :
+  elle ne peut pas être chargée sous Linux ni macOS, où le module reste indisponible.
 - **Instances** : création (type de CPU), mise sous / hors tension, RUN / STOP, effacement général,
   suppression, adresse IP de chaque interface. Le programme se charge depuis TIA Portal.
 - **Variables** : table des variables du programme chargé (filtre, tableaux développés), ou adresses

@@ -1,14 +1,19 @@
 import { useState } from 'react'
-import { Plug, PlugZap } from 'lucide-react'
-import { Button, Card, Checkbox, ErrorBanner, Field, Input, StatusDot } from '@renderer/components/ui'
+import { Monitor, Network, Plug, PlugZap } from 'lucide-react'
+import { Button, Card, Checkbox, ErrorBanner, Field, Input, StatusDot, Tabs } from '@renderer/components/ui'
 import { usePersistentState } from '@renderer/module-config'
-import { DEFAULT_API_ROOT, DEFAULT_SETTINGS } from '../shared/constants'
+import { DEFAULT_API_ROOT, DEFAULT_REMOTE_PORT, DEFAULT_SETTINGS } from '../shared/constants'
 import { plcsimApi } from './api'
 import { t } from '../shared/i18n'
 
-/** Connexion à l'API Simulation Runtime (chemin des DLL, connexion au démarrage). */
+/**
+ * Connexion à l'API Simulation Runtime : Runtime Manager de ce PC ou d'un PC distant, chemin des DLL
+ * (obligatoire si S7-PLCSIM Advanced n'est pas installé sur ce PC), connexion au démarrage.
+ */
 export default function ConnectionCard({ status }) {
-  const [settings, setSettings] = usePersistentState('plcsim', 'settings', DEFAULT_SETTINGS)
+  const [stored, setSettings] = usePersistentState('plcsim', 'settings', DEFAULT_SETTINGS)
+  const settings = { ...DEFAULT_SETTINGS, ...stored }
+  const remote = settings.mode === 'remote'
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const connected = status.connected
@@ -28,6 +33,10 @@ export default function ConnectionCard({ status }) {
 
   const connect = () => run(() => plcsimApi.connect(settings))
   const working = busy || status.connecting
+  const locked = connected || working
+  // Sans installation de PLCSIM Advanced, rien ne peut être chargé tant que les DLL ne sont pas indiquées.
+  const needsDll = status.apiDetected === false && !settings.apiPath.trim()
+  const enter = (e) => e.key === 'Enter' && !connected && !needsDll && connect()
 
   return (
     <Card
@@ -48,15 +57,54 @@ export default function ConnectionCard({ status }) {
       }
     >
       <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-xs text-slate-400">{t('plcsim.connection.mode')}</span>
+          <div className={locked ? 'pointer-events-none opacity-60' : ''}>
+            <Tabs
+              value={settings.mode}
+              onChange={(mode) => setSettings((s) => ({ ...s, mode }))}
+              tabs={[
+                { id: 'local', label: t('plcsim.connection.modes.local'), icon: Monitor },
+                { id: 'remote', label: t('plcsim.connection.modes.remote'), icon: Network }
+              ]}
+            />
+          </div>
+        </div>
+        {remote && (
+          <div className="flex flex-wrap items-end gap-3">
+            <Field className="min-w-64 flex-1" label={t('plcsim.connection.remoteHost')}>
+              <Input
+                className="font-mono"
+                value={settings.remoteHost}
+                placeholder="192.168.0.10"
+                disabled={locked}
+                onChange={(e) => setSettings((s) => ({ ...s, remoteHost: e.target.value }))}
+                onKeyDown={enter}
+              />
+            </Field>
+            <Field className="w-32" label={t('plcsim.connection.remotePort')}>
+              <Input
+                className="font-mono"
+                type="number"
+                min={1}
+                max={65535}
+                value={settings.remotePort}
+                disabled={locked}
+                onChange={(e) => setSettings((s) => ({ ...s, remotePort: e.target.value }))}
+                onKeyDown={enter}
+              />
+            </Field>
+          </div>
+        )}
         <div className="flex items-end gap-3">
           <Field className="flex-1" label={t('plcsim.connection.apiPath')}>
             <Input
               className="font-mono"
               value={settings.apiPath}
-              placeholder={t('plcsim.connection.auto', { path: DEFAULT_API_ROOT })}
-              disabled={connected || working}
+              placeholder={status.apiDetected === false ? '' : t('plcsim.connection.auto', { path: DEFAULT_API_ROOT })}
+              disabled={locked}
               onChange={(e) => setSettings((s) => ({ ...s, apiPath: e.target.value }))}
-              onKeyDown={(e) => e.key === 'Enter' && !connected && connect()}
+              onKeyDown={enter}
             />
           </Field>
           {connected ? (
@@ -64,11 +112,19 @@ export default function ConnectionCard({ status }) {
               <Plug className="size-4" /> {t('ui.disconnect')}
             </Button>
           ) : (
-            <Button variant="primary" disabled={working} onClick={connect}>
+            <Button variant="primary" disabled={working || needsDll} onClick={connect}>
               <PlugZap className="size-4" /> {working ? t('ui.connecting') : t('ui.connect')}
             </Button>
           )}
         </div>
+        {status.apiDetected === false && !connected && (
+          <p className={`text-xs ${needsDll ? 'text-amber-300' : 'text-slate-500'}`}>
+            {t('plcsim.connection.noApi', { path: DEFAULT_API_ROOT })}
+          </p>
+        )}
+        {remote && !connected && (
+          <p className="text-xs text-slate-500">{t('plcsim.connection.remoteHint', { port: DEFAULT_REMOTE_PORT })}</p>
+        )}
         <Checkbox
           label={t('plcsim.connection.autoConnect')}
           checked={!!settings.autoConnect}
@@ -76,6 +132,22 @@ export default function ConnectionCard({ status }) {
         />
         {connected && info ? (
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+            {status.remote && (
+              <>
+                <dt className="text-slate-500">{t('plcsim.connection.remoteComputer')}</dt>
+                <dd className="text-slate-300 select-text">
+                  {info.remote?.computerName || status.remote.host}{' '}
+                  <span className="font-mono text-xs text-slate-400">
+                    ({status.remote.ip}:{status.remote.port})
+                  </span>
+                  {info.remote?.version && (
+                    <span className="ml-2 text-xs text-slate-500">
+                      {t('plcsim.connection.remoteVersion', { version: info.remote.version })}
+                    </span>
+                  )}
+                </dd>
+              </>
+            )}
             <dt className="text-slate-500">{t('plcsim.connection.dll')}</dt>
             <dd className="font-mono text-xs break-all text-slate-300 select-text">
               {info.dll} ({info.bits} bits)

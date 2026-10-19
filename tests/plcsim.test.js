@@ -4,7 +4,7 @@ import { EventEmitter } from 'events'
 import { PassThrough } from 'stream'
 import { afterEach, describe, expect, it } from 'vitest'
 import { PlcsimBridge } from '@modules/plcsim/main/bridge'
-import { PlcsimManager, detectApiPath, resolveApiPath } from '@modules/plcsim/main/manager'
+import { PlcsimManager, detectApiPath, resolveApiPath, resolveRemote } from '@modules/plcsim/main/manager'
 import { createPointsApi } from '@modules/plcsim/main/points'
 import { API_DLL } from '@modules/plcsim/shared/constants'
 import { errorOf, sleep, tempDir } from './helpers'
@@ -86,6 +86,79 @@ describe('Pont PowerShell (protocole)', () => {
     }
     const bridge = new PlcsimBridge({ scriptPath: 's', apiPath: 'a', spawn })
     expect(await errorOf(bridge.start())).toMatch(/DLL not found/)
+  })
+
+  /** Processus qui écrit `messages` puis se termine avec `code` (null : reste ouvert). */
+  const scriptedSpawn =
+    (messages, code = null, calls = []) =>
+    (command, args) => {
+      calls.push(args)
+      const child = new EventEmitter()
+      Object.assign(child, { stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough() })
+      child.kill = () => child.emit('exit', 1)
+      setTimeout(() => {
+        for (const m of messages) child.stdout.write(`${JSON.stringify(m)}\n`)
+        if (code !== null) setTimeout(() => child.emit('exit', code), 5)
+      }, 5)
+      return child
+    }
+  const remote = { host: 'atelier-pc', ip: '192.168.0.20', port: 50000 }
+
+  it('transmet le PC distant au script et traduit un échec de connexion', async () => {
+    const calls = []
+    const fatal = {
+      event: 'fatal',
+      stage: 'remote',
+      error: 'Error Code: -10, ConnectionError',
+      code: 'ConnectionError'
+    }
+    const bridge = new PlcsimBridge({ scriptPath: 's', apiPath: 'a', remote, spawn: scriptedSpawn([fatal], 1, calls) })
+    const message = await errorOf(bridge.start())
+    expect(calls[0].slice(-4)).toEqual(['-RemoteIp', '192.168.0.20', '-RemotePort', '50000'])
+    expect(message).toMatch(/atelier-pc \(192\.168\.0\.20:50000\)/)
+    expect(message).toMatch(/no Runtime Manager reachable/)
+  })
+
+  it('signale la perte de la connexion distante', async () => {
+    const messages = [{ event: 'ready', data: { apiVersion: '8.0' } }, { event: 'lost' }]
+    const bridge = new PlcsimBridge({ scriptPath: 's', apiPath: 'a', remote, spawn: scriptedSpawn(messages, 3) })
+    await bridge.start()
+    const exited = new Promise((resolve) => bridge.once('exit', resolve))
+    expect((await exited).message).toMatch(/Connection to the Runtime Manager of atelier-pc .* lost/)
+  })
+
+  it('lance le pont sans argument distant en local', async () => {
+    const calls = []
+    const bridge = new PlcsimBridge({
+      scriptPath: 's',
+      apiPath: 'a',
+      spawn: scriptedSpawn([{ event: 'ready', data: {} }], null, calls)
+    })
+    await bridge.start()
+    expect(calls[0]).not.toContain('-RemoteIp')
+    bridge.child.emit('exit', 0)
+  })
+})
+
+describe('Runtime Manager distant', () => {
+  it('valide le PC et le port, et résout un nom en adresse IPv4', async () => {
+    const lookup = async (host) => {
+      if (host === 'atelier-pc') return { address: '192.168.0.20', family: 4 }
+      throw new Error('ENOTFOUND')
+    }
+    expect(await resolveRemote({ remoteHost: ' 10.0.0.5 ', remotePort: '50000' }, lookup)).toEqual({
+      host: '10.0.0.5',
+      ip: '10.0.0.5',
+      port: 50000
+    })
+    expect(await resolveRemote({ remoteHost: 'atelier-pc', remotePort: 50001 }, lookup)).toEqual({
+      host: 'atelier-pc',
+      ip: '192.168.0.20',
+      port: 50001
+    })
+    expect(await errorOf(resolveRemote({ remoteHost: '', remotePort: 50000 }, lookup))).toMatch(/remote PC/)
+    expect(await errorOf(resolveRemote({ remoteHost: '10.0.0.5', remotePort: 70000 }, lookup))).toMatch(/70000/)
+    expect(await errorOf(resolveRemote({ remoteHost: 'absent', remotePort: 50000 }, lookup))).toMatch(/absent/)
   })
 })
 
@@ -181,6 +254,29 @@ describe('Gestionnaire PLCSim Advanced', () => {
     expect(events.bridgeOptions.apiPath).toBe(dir)
     expect(manager.status()).toMatchObject({ connected: true, info: { apiVersion: '8.0' } })
     expect(manager.status().instances.map((i) => i.name)).toEqual(['PLC_1'])
+  })
+
+  it('se connecte au Runtime Manager d’un PC distant', async () => {
+    ;({ dir } = await tempDir('plcsim'))
+    fs.writeFileSync(path.join(dir, API_DLL.x64), '')
+    let options
+    manager = new PlcsimManager({
+      dataDir: dir,
+      scriptSource: '',
+      platform: 'win32',
+      lookup: async () => ({ address: '192.168.0.20', family: 4 }),
+      createBridge: (o) => {
+        options = o
+        return new PlcsimBridge({ ...o, spawn: fakeSpawn(fakeRuntime().handler) })
+      }
+    })
+    await manager.connect({ apiPath: dir, mode: 'remote', remoteHost: 'atelier-pc', remotePort: 50000 })
+    const remote = { host: 'atelier-pc', ip: '192.168.0.20', port: 50000 }
+    expect(options.remote).toEqual(remote)
+    expect(manager.status()).toMatchObject({ connected: true, remote })
+    await manager.disconnect()
+    expect(manager.status().remote).toBeNull()
+    expect(await errorOf(manager.connect({ apiPath: dir, mode: 'remote' }))).toMatch(/remote PC/)
   })
 
   it('crée et met sous tension une instance', async () => {

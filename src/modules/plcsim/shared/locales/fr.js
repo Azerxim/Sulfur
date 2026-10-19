@@ -3,7 +3,11 @@ export default {
     name: 'PLCSim Advanced',
     description: 'Automates virtuels S7-1500 de S7-PLCSIM Advanced (Windows)',
     windowsOnly:
-      "S7-PLCSIM Advanced ne fonctionne que sous Windows : ce module n'est pas disponible sur ce système. Le module Siemens S7 peut joindre une instance PLCSim Advanced d'un autre PC par le réseau.",
+      "S7-PLCSIM Advanced ne fonctionne que sous Windows : son API est une bibliothèque Windows native (.NET Framework et C++), que Linux et macOS ne peuvent pas charger, même avec les DLL. Ce module n'est donc pas disponible sur ce système. Le module Siemens S7 peut joindre une instance PLCSim Advanced d'un autre PC par le réseau (PUT/GET).",
+    tabs: {
+      config: 'Configuration',
+      variables: 'Variables'
+    },
     connection: {
       title: 'API Simulation Runtime',
       connected: 'Connecté · API {version}',
@@ -11,6 +15,19 @@ export default {
       apiPath: "Dossier de l'API ou DLL (Siemens.Simatic.Simulation.Runtime.Api)",
       auto: 'Automatique : version la plus récente dans {path}',
       autoConnect: 'Se connecter au démarrage de Sulfur',
+      mode: 'Runtime Manager',
+      modes: {
+        local: 'Ce PC',
+        remote: 'PC distant'
+      },
+      remoteHost: 'PC distant (adresse IP ou nom)',
+      remotePort: 'Port',
+      remoteComputer: 'PC distant',
+      remoteVersion: 'Runtime Manager {version}',
+      remoteHint:
+        'Sur le PC distant, ouvrez le port du Runtime Manager dans le panneau de contrôle de PLCSIM Advanced (« Runtime Manager Port », {port} par défaut) et autorisez-le dans son pare-feu. Les instances listées et pilotées sont alors celles du PC distant.',
+      noApi:
+        "S7-PLCSIM Advanced n'est pas installé sur ce PC : indiquez le dossier qui contient les DLL de l'API (Siemens.Simatic.Simulation.Runtime.Api.x64.dll), copiées depuis le dossier API d'un PC où il est installé ({path}\\<version>). Utilisez la même version que le PC distant.",
       dll: 'DLL',
       runtime: 'Runtime Manager',
       runtimeAvailable: 'Disponible',
@@ -116,11 +133,19 @@ export default {
       ApiNotInitialized: 'API non initialisée',
       StoragePathAlreadyInUse: 'Le dossier de stockage est déjà utilisé par une autre instance',
       AnotherVariantOfPlcsimRunning: 'Une autre variante de PLCSIM est en cours d’exécution',
-      NotSupported: 'Non pris en charge par cette instance'
+      NotSupported: 'Non pris en charge par cette instance',
+      ConnectionError: 'pas de Runtime Manager joignable à cette adresse et ce port'
     },
     errors: {
       windowsOnly: "S7-PLCSIM Advanced n'est disponible que sous Windows",
-      apiNotFound: 'API Simulation Runtime introuvable dans {path} : S7-PLCSIM Advanced est-il installé ?',
+      apiNotFound:
+        'API Simulation Runtime introuvable dans {path} : installez S7-PLCSIM Advanced, ou indiquez le dossier qui contient ses DLL (Siemens.Simatic.Simulation.Runtime.Api.x64.dll)',
+      missingHost: "Indiquez l'adresse IP ou le nom du PC distant",
+      invalidPort: 'Port invalide : {value}',
+      unknownHost: 'PC distant introuvable : {host}',
+      remoteConnect:
+        "Connexion au Runtime Manager de {target} impossible : {message}. Vérifiez que son port est ouvert dans le panneau de contrôle de PLCSIM Advanced et que le pare-feu l'autorise.",
+      remoteLost: 'Connexion au Runtime Manager de {target} perdue',
       pathNotFound: 'Chemin introuvable : {path}',
       startTimeout: "L'API n'a pas répondu en 60 s",
       apiLoad: "Échec du chargement de l'API : {message}",

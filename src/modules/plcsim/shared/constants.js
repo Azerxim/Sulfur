@@ -47,9 +47,19 @@ export const OPERATION_TIMEOUTS = {
   memoryReset: 60_000
 }
 
+/** Port du Runtime Manager ouvert aux connexions distantes (panneau de contrôle de PLCSIM Advanced). */
+export const DEFAULT_REMOTE_PORT = 50000
+
+/** Mode de connexion : Runtime Manager de ce PC, ou celui d'un autre PC (connexion distante). */
+export const CONNECTION_MODES = ['local', 'remote']
+
 export const DEFAULT_SETTINGS = {
   /** Dossier de l'API ou chemin de la DLL ; vide = version la plus récente installée. */
   apiPath: '',
+  mode: 'local',
+  /** PC distant (adresse IP ou nom) et port de son Runtime Manager. */
+  remoteHost: '',
+  remotePort: DEFAULT_REMOTE_PORT,
   /** Connexion à l'API au démarrage de Sulfur. */
   autoConnect: false
 }

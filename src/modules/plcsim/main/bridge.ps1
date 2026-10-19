@@ -2,6 +2,10 @@
 #
 # Lancé par le process principal avec Windows PowerShell 5.1 :
 #   powershell.exe -NoProfile -ExecutionPolicy Bypass -File bridge.ps1 -ApiPath <dossier ou DLL>
+#     [-RemoteIp <IPv4> -RemotePort <port>]
+#
+# Avec -RemoteIp, le pont se connecte au Runtime Manager d'un autre PC (port ouvert dans le panneau de
+# contrôle de PLCSIM Advanced) : les instances listées et pilotées sont alors celles de ce PC.
 #
 # Protocole : une requête JSON par ligne sur l'entrée standard, { id, method, params } ; une réponse
 # par ligne sur la sortie standard, { id, ok, result } ou { id, ok: false, error, code }. Au démarrage,
@@ -10,7 +14,11 @@
 # Toute sortie non capturée d'une commande PowerShell partirait sur la sortie standard et casserait le
 # protocole : les gestionnaires écrivent leur résultat dans $script:Result et leur sortie est ignorée.
 
-param([Parameter(Mandatory = $true)] [string] $ApiPath)
+param(
+  [Parameter(Mandatory = $true)] [string] $ApiPath,
+  [string] $RemoteIp = '',
+  [int] $RemotePort = 0
+)
 
 $ErrorActionPreference = 'Stop'
 $Utf8 = New-Object System.Text.UTF8Encoding $false
@@ -55,17 +63,76 @@ function Safe([scriptblock] $Block) {
   try { & $Block } catch { $null }
 }
 
+# --- Runtime Manager (local ou distant) --------------------------------------------------------
+
+# Interface IRemoteRuntimeManager d'un autre PC, ou $null : les appels passent alors par les membres
+# statiques de SimulationRuntimeManager (Runtime Manager de ce PC).
+$Remote = $null
+if ($RemoteIp) {
+  try {
+    $parts = @($RemoteIp.Split('.') | ForEach-Object { [byte]$_ })
+    $Remote = $Manager::RemoteConnect($parts[0], $parts[1], $parts[2], $parts[3], [uint16]$RemotePort)
+    # Perte de connexion relevée sans attente à chaque liste des instances (WaitForOnConnectionLostEvent).
+    Safe { $Remote.RegisterOnConnectionLostEvent() } | Out-Null
+  } catch {
+    $failure = Describe-Error $_
+    Send @{ event = 'fatal'; stage = 'remote'; error = $failure.error; code = $failure.code }
+    exit 1
+  }
+}
+
+function Rt-InstanceInfos {
+  if ($Remote) { return $Remote.RegisteredInstanceInfo }
+  $Manager::RegisteredInstanceInfo
+}
+
+function Rt-CreateInterface([int] $Id) {
+  if ($Remote) { return $Remote.CreateInterface($Id) }
+  $Manager::CreateInterface($Id)
+}
+
+function Rt-RegisterInstance([string] $Name, [string] $CpuType) {
+  if ($CpuType) {
+    $type = [Siemens.Simatic.Simulation.Runtime.ECPUType]$CpuType
+    if ($Remote) { return $Remote.RegisterInstance($type, $Name) }
+    return $Manager::RegisterInstance($type, $Name)
+  }
+  if ($Remote) { return $Remote.RegisterInstance($Name) }
+  $Manager::RegisterInstance($Name)
+}
+
+# Connexion distante perdue : le pont le signale puis s'arrête (le process principal l'affiche).
+function Assert-Remote {
+  if ($Remote -and (Safe { $Remote.WaitForOnConnectionLostEvent([uint32]0) })) {
+    Send @{ event = 'lost' }
+    exit 3
+  }
+}
+
 function Get-Info {
   $version = [uint32]$Manager::Version
-  @{
+  $info = @{
     apiVersion = '{0}.{1}' -f ($version -shr 16), ($version -band 0xFFFF)
     dll = $Dll
     bits = $(if ([Environment]::Is64BitProcess) { 64 } else { 32 })
-    runtimeAvailable = [bool](Safe { $Manager::IsRuntimeManagerAvailable })
-    networkMode = [string](Safe { $Manager::NetworkMode })
-    storagePath = [string](Safe { $Manager::DefaultStoragePath })
     cpuTypes = @([Enum]::GetNames([Type]"$Ns.ECPUType"))
   }
+  if ($Remote) {
+    $remoteVersion = [uint32](Safe { $Remote.Version })
+    $info.runtimeAvailable = $true
+    $info.networkMode = [string](Safe { $Remote.NetworkMode })
+    $info.storagePath = [string](Safe { $Remote.DefaultStoragePath })
+    $info.remote = @{
+      computerName = [string](Safe { $Remote.RemoteComputerName })
+      version = '{0}.{1}' -f ($remoteVersion -shr 16), ($remoteVersion -band 0xFFFF)
+      security = [string](Safe { $Remote.SecurityMode })
+    }
+  } else {
+    $info.runtimeAvailable = [bool](Safe { $Manager::IsRuntimeManagerAvailable })
+    $info.networkMode = [string](Safe { $Manager::NetworkMode })
+    $info.storagePath = [string](Safe { $Manager::DefaultStoragePath })
+  }
+  $info
 }
 
 # --- Instances ---------------------------------------------------------------------------------
@@ -74,7 +141,7 @@ $Instances = @{}
 
 function Get-Instance($Id) {
   $key = [int]$Id
-  if (-not $Instances.ContainsKey($key)) { $Instances[$key] = $Manager::CreateInterface($key) }
+  if (-not $Instances.ContainsKey($key)) { $Instances[$key] = Rt-CreateInterface $key }
   $Instances[$key]
 }
 
@@ -96,7 +163,8 @@ function Describe-Instance($Info) {
 }
 
 function List-Instances {
-  $infos = @(Safe { $Manager::RegisteredInstanceInfo })
+  Assert-Remote
+  $infos = @(Safe { Rt-InstanceInfos })
   $ids = @($infos | ForEach-Object { [int]$_.ID })
   foreach ($key in @($Instances.Keys)) { if ($ids -notcontains $key) { $Instances.Remove($key) } }
   # La virgule préserve le tableau (PowerShell déroule les tableaux renvoyés par une fonction).
@@ -249,11 +317,7 @@ $Handlers = @{
   instances = { param($p) $script:Result = List-Instances }
   create = {
     param($p)
-    if ($p.cpuType) {
-      $inst = $Manager::RegisterInstance([Siemens.Simatic.Simulation.Runtime.ECPUType][string]$p.cpuType, [string]$p.name)
-    } else {
-      $inst = $Manager::RegisterInstance([string]$p.name)
-    }
+    $inst = Rt-RegisterInstance ([string]$p.name) ([string]$p.cpuType)
     $Instances[[int]$inst.ID] = $inst
     $script:Result = [int]$inst.ID
   }
@@ -321,3 +385,4 @@ while ($true) {
 }
 
 foreach ($inst in $Instances.Values) { Safe { $inst.Dispose() } | Out-Null }
+if ($Remote) { Safe { $Remote.Disconnect() } | Out-Null }

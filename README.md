@@ -315,6 +315,12 @@ process: no native module to compile. The API folder is detected automatically (
 
 - Connection to the API (optionally when Sulfur starts): API version, Runtime Manager availability,
   network mode (Softbus or TCP/IP).
+- **Remote PC**: connection to the Runtime Manager of another PC (IP address or name, port opened in
+  the PLCSIM Advanced control panel, 50000 by default); the instances listed and driven are then
+  those of that PC. Connection loss is reported.
+- **Without PLCSIM Advanced installed**: the module asks for the folder containing the API DLLs
+  (copied from a PC where it is installed). The API is a native Windows library (C++/CLI): it cannot
+  be loaded on Linux or macOS, where the module stays unavailable.
 - **Instances**: creation (CPU type), power on / off, RUN / STOP, memory reset, deletion, IP address
   of each interface. The program is downloaded from TIA Portal.
 - **Variables**: tag table of the downloaded program (filter, arrays expanded), or addresses of the

@@ -23,11 +23,15 @@ export class PlcsimBridge extends EventEmitter {
   seq = 0
   pending = new Map()
   stderr = []
+  /** Connexion au Runtime Manager distant perdue (signalée par le pont avant son arrêt). */
+  lost = false
 
-  constructor({ scriptPath, apiPath, spawn = spawnProcess, command = powershellPath() }) {
+  /** `remote` : Runtime Manager d'un autre PC ({ host, ip, port }), ou null pour celui de ce PC. */
+  constructor({ scriptPath, apiPath, remote = null, spawn = spawnProcess, command = powershellPath() }) {
     super()
     this.scriptPath = scriptPath
     this.apiPath = apiPath
+    this.remote = remote
     this.spawn = spawn
     this.command = command
   }
@@ -53,7 +57,8 @@ export class PlcsimBridge extends EventEmitter {
           '-File',
           this.scriptPath,
           '-ApiPath',
-          this.apiPath
+          this.apiPath,
+          ...(this.remote ? ['-RemoteIp', this.remote.ip, '-RemotePort', String(this.remote.port)] : [])
         ],
         { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] }
       )
@@ -79,8 +84,8 @@ export class PlcsimBridge extends EventEmitter {
             continue
           }
           if (message.event === 'ready') settle(resolve, message.data)
-          else if (message.event === 'fatal')
-            settle(reject, new Error(t('plcsim.errors.apiLoad', { message: message.error })))
+          else if (message.event === 'fatal') settle(reject, this.fatalError(message))
+          else if (message.event === 'lost') this.lost = true
           else this.onResponse(message)
         }
       })
@@ -94,7 +99,9 @@ export class PlcsimBridge extends EventEmitter {
       child.on('exit', (code) => {
         this.child = null
         const detail = this.stderr.join(' ').slice(0, 500)
-        const error = new Error(t('plcsim.errors.bridgeExited', { code: code ?? '—', detail: detail || '—' }))
+        const error = this.lost
+          ? new Error(t('plcsim.errors.remoteLost', { target: this.target() }))
+          : new Error(t('plcsim.errors.bridgeExited', { code: code ?? '—', detail: detail || '—' }))
         settle(reject, error)
         for (const p of this.pending.values()) {
           clearTimeout(p.timer)
@@ -104,6 +111,19 @@ export class PlcsimBridge extends EventEmitter {
         this.emit('exit', error)
       })
     })
+  }
+
+  /** PC distant, pour les messages : « nom (ip:port) » ou « ip:port ». */
+  target() {
+    const { host, ip, port } = this.remote ?? {}
+    return host && host !== ip ? `${host} (${ip}:${port})` : `${ip}:${port}`
+  }
+
+  /** Échec au démarrage : chargement de l'API, ou connexion au Runtime Manager distant. */
+  fatalError({ stage, error, code }) {
+    const message = code ? t(`plcsim.runtimeErrors.${code}`, null, error) : error
+    if (stage === 'remote') return new Error(t('plcsim.errors.remoteConnect', { target: this.target(), message }))
+    return new Error(t('plcsim.errors.apiLoad', { message }))
   }
 
   onResponse(message) {
