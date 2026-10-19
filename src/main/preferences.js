@@ -28,6 +28,6 @@ export function savePreferences(patch) {
 
 /** Applique le thème aux éléments natifs et retourne le thème effectif ('dark' | 'light'). */
 export function applyNativeTheme(theme) {
-  nativeTheme.themeSource = THEMES.includes(theme) ? theme : 'dark'
+  nativeTheme.themeSource = THEMES.includes(theme) ? theme : 'system'
   return nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
 }

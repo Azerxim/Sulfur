@@ -5,7 +5,7 @@
 **English** · [Français](README.fr.md)
 
 Modular simulator application — Electron + React (JavaScript) + TailwindCSS v4.
-English (default) and French interface, dark (default) or light theme.
+English (default) and French interface, light or dark theme (follows the system by default).
 See the [roadmap](ROADMAP.md) for what comes next. License: [Apache-2.0](LICENSE).
 
 ## Getting started
@@ -23,7 +23,7 @@ npm run format     # formatting (Prettier)
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
-certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), fault injection, node flows and trend recording on both protocols,
+certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), fault injection, node flows and trend recording on both protocols,
 protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
@@ -59,18 +59,19 @@ npm run lint && npm run format:check && npm test && npm run build
 ## Packaging
 
 ```bash
-npm run dist:linux   # AppImage → dist/Sulfur-<version>-x86_64.AppImage
+npm run dist:linux   # AppImage and .deb → dist/Sulfur-<version>-x86_64.AppImage, dist/sulfur_<version>_amd64.deb
 npm run dist:win     # NSIS installer → dist/Sulfur-Setup-<version>.exe (on Windows)
+npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg and dist/Sulfur-<version>-arm64.dmg (on macOS)
 ```
 
 - Configuration in `electron-builder.yml`. Application icon: `resources/icon.png` (1024 px, Linux and
-  window icon) and `resources/icon.ico` (Windows). `resources/` is packaged with the application;
+  window icon, converted to .icns for macOS) and `resources/icon.ico` (Windows). `resources/` is packaged with the application;
   `build/` is reserved for packaging-only resources.
 - The Windows installer lets the user choose the installation folder and creates a desktop shortcut.
-  Installers are not code-signed.
-- The CI builds both installers on `main`, on `v*` tags and on manual runs (*Actions → CI → Run
-  workflow*); they are downloadable as artifacts of the run. On a `v*` tag, a draft GitHub release is
-  created with the installers attached:
+  Installers are not code-signed: on macOS, the first launch requires right-click → *Open* (or
+  `xattr -cr /Applications/Sulfur.app`).
+- The CI only runs on `v*` version tags: lint, tests, build, then the Windows, Linux and macOS
+  installers, attached to a draft GitHub release:
 
 ```bash
 npm version patch          # bumps package.json and creates the vX.Y.Z tag
@@ -93,12 +94,13 @@ src/
 │   └── src/
 │       ├── App.jsx       # Shell (sidebar + active module)
 │       ├── components/   # Shared UI components (Card, CertificatesDialog…)
-│       ├── pages/        # Application pages (Information, Settings)
+│       ├── pages/        # Application pages (Home, Information, Settings)
 │       ├── preferences.jsx # Language and theme (useI18n, usePreferences)
 │       ├── module-config.js # Saved module settings (usePersistentState)
 │       └── modules.js    # ← list of "renderer" modules
 ├── shared/               # Code shared by main/renderer (i18n, languages, simulator…)
 │   ├── points.js         # Data points shared between modules (contract)
+│   ├── certificate.js    # Self-signed TLS certificates of the servers (main process)
 │   └── locales/          # Common strings (en.js, fr.js)
 └── modules/              # Simulation modules
     ├── opcua/
@@ -113,6 +115,9 @@ src/
     ├── ntp/              # Time server with a simulated clock + NTP client
     ├── s7/               # Simulated S7 PLC (S7comm) + S7 client
     ├── plcsim/           # S7-PLCSIM Advanced virtual PLCs (Windows, PowerShell bridge to the API)
+    ├── mqtt/             # MQTT broker (simulated topics) + MQTT client
+    ├── snmp/             # SNMP agent (simulated MIB, notifications) + manager and trap receiver
+    ├── syslog/           # Syslog server (UDP / TCP / TLS) + message sender
     ├── simulator/        # Fault injection and node flows (uses the points of the other modules)
     └── trends/           # Trends, data logging and CSV export (same)
 ```
@@ -121,7 +126,7 @@ src/
 
 Language and theme are chosen in **Settings** (remembered, including by the main process so the window
 opens directly in the right theme). The language applies to the interface and to the messages produced
-by the main process (errors, server logs). Defaults: English, dark theme.
+by the main process (errors, server logs). Defaults: English, theme of the operating system.
 
 - Strings are stored per dictionary: `src/shared/locales/` (application) and
   `src/modules/<id>/shared/locales/` (each module, keys prefixed with the module identifier).
@@ -328,6 +333,70 @@ process: no native module to compile. The API folder is detected automatically (
   published as points: a simulator flow can drive the inputs of the virtual PLC to simulate the
   process. Monitored variables are kept across restarts.
 - Real-API test: `SULFUR_PLCSIM_LIVE=1 npm test` (creates, powers on and deletes a test instance).
+
+## MQTT module
+
+- **Broker** (MQTT 3.1, 3.1.1 and 5.0, default port 1883; TLS on 8883 with a self-signed certificate
+  `MQTT@Sulfur` generated on first start): persistent sessions and session expiry, QoS 0 / 1 / 2,
+  retained messages, last will (with delay in 5.0), topic aliases, 5.0 subscription options (no local,
+  retain as published, retain handling, subscription identifiers) and message properties forwarded to
+  5.0 clients; shared subscriptions and enhanced authentication are not supported. **simulated topics** published by the broker itself
+  (number, integer, boolean or text value; sine, ramp, random or toggle generator), periodically or
+  at each change, as a value alone or JSON `{"value": …, "timestamp": …}`, with chosen QoS and
+  retain flag. A settable topic accepts a new value published on `<topic>/set`. Optional
+  authentication (users with hashed passwords; anonymous connections can be refused). List of the
+  connected clients and their subscriptions, topic explorer (last content of each topic), message
+  log with a topic filter (`+` and `#` wildcards) and connection events.
+- **Client** (mqtt.js, MQTT 3.1, 3.1.1 or 5.0, TCP or TLS): client ID, user, clean session, keep
+  alive, automatic reconnection, last will message; subscriptions with QoS and an optional JSON field
+  (`value`, `data.temp`…) whose last value is shown; publication (topic, content, QoS, retain); log
+  of the received messages.
+- Points for the simulator and trends: simulated topics (writable: publishes the new value), number
+  of clients and messages of the broker; last value of each client subscription (a subscription
+  without wildcard is writable: the value is published on its topic).
+- Simulator faults: delay (incoming publications), no response (CONNECT left unanswered, messages
+  no longer delivered), connection cut (clients disconnected and refused), frozen values.
+
+## SNMP module
+
+- **Agent** (net-snmp, UDP, default port 1161; standard port 161 needs administrator rights on
+  Linux): SNMPv1, v2c and v3. Read community and read / write community, SNMPv3 users (USM: MD5 or
+  SHA-1 / SHA-2 authentication, DES or AES encryption), engine ID chosen or generated. System group
+  of MIB-II (sysDescr, sysObjectID, sysUpTime, sysContact, sysName, sysLocation, sysServices) and
+  **simulated objects** (Integer, Counter32, Gauge32, TimeTicks, OctetString, IpAddress, OID;
+  sine, ramp, random or toggle generator), writable by SetRequest if declared so. Get, GetNext,
+  GetBulk and Set requests, request log.
+- **Notifications**: the agent sends a notification (chosen OID, chosen objects attached) to
+  destinations in SNMPv1 (trap), SNMPv2c or SNMPv3 (trap or acknowledged inform); an SNMPv3
+  notification uses one of the agent users and the agent engine ID.
+- **Manager**: Get, GetNext, GetBulk, Walk and Set requests in v1, v2c or v3 (several OIDs at once,
+  typed values for Set); monitored OIDs read periodically; **notification receiver** (default port
+  1162; all communities accepted, SNMPv3 traps and informs with the manager user) with the list of received traps
+  and informs.
+- Points for the simulator and trends: simulated objects (writable), request count, notifications
+  sent (writing sends the notification); monitored OIDs (writable: sends a SetRequest with the type of
+  the last read), notifications received.
+- Simulator faults: delay, no response, forced error (genErr, tooBig, noSuchName, badValue,
+  noAccess, resourceUnavailable, authorizationError — on all requests, reads or writes), frozen
+  values.
+
+## Syslog module
+
+- **Server**: receives Syslog messages over UDP and TCP (default port 1514; standard port 514 needs
+  administrator rights on Linux) and TLS (port 6514, self-signed certificate `Syslog@Sulfur`). On
+  TCP / TLS, each message is read with its own framing (RFC 6587): length prefix (octet counting) or
+  end of line. Messages are parsed in RFC 5424 (timestamp, host, application, process, message ID,
+  structured data) or RFC 3164 (BSD) format, free text otherwise; the last 2,000 are kept. Counts
+  per severity, filter by minimum severity and text, details of each message (structured data, raw
+  message), pause of the display.
+- **Sender**: messages in RFC 5424 or RFC 3164 format over UDP, TCP (length prefix or end of line) or
+  TLS; facility, severity, host name, application, process, message ID, structured data; text with
+  `{n}` (message number) and `{time}`; burst of several messages per send, periodic sending, preview
+  of the raw message, history.
+- Points for the simulator and trends: message count, errors (severity ≤ 3), last severity and last
+  message received, open connections; messages sent, and a `send message` point: writing a text
+  sends a message with the sender settings.
+- Simulator fault: connection cut (TCP / TLS connections closed and refused).
 
 ## Simulator module
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { rendererModules } from './modules'
+import { moduleGroups, rendererModules } from './modules'
 import { appPages } from './pages'
 import { useI18n, useManifestText, usePreferences } from './preferences'
 import { useStoredState } from './components/ui'
@@ -14,7 +14,7 @@ export default function App() {
   const text = useManifestText()
   const { prefs } = usePreferences()
   // Au démarrage : la page choisie dans les paramètres, sinon la dernière page affichée.
-  const [lastId, setLastId] = useStoredState('sulfur:lastPage', pageIds[0], pageIds)
+  const [lastId, setLastId] = useStoredState('sulfur:lastPage', 'home', pageIds)
   const [activeId, setActiveId] = useState(() => (pageIds.includes(prefs.startPage) ? prefs.startPage : lastId))
   const active = allPages.find((m) => m.manifest.id === activeId)
   const select = (id) => {
@@ -24,7 +24,7 @@ export default function App() {
 
   return (
     <div className="flex h-full">
-      <Sidebar modules={rendererModules} pages={appPages} activeId={activeId} onSelect={select} />
+      <Sidebar groups={moduleGroups} pages={appPages} activeId={activeId} onSelect={select} />
       <main className="flex min-w-0 flex-1 flex-col">
         {active ? (
           <>
@@ -40,7 +40,7 @@ export default function App() {
                 key={active.manifest.id}
                 moduleId={rendererModules.includes(active) ? active.manifest.id : null}
               >
-                <active.Component />
+                <active.Component onNavigate={select} />
               </ModuleErrorBoundary>
             </div>
           </>

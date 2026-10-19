@@ -63,9 +63,10 @@ export const DEFAULT_SERVER_SECURITY = {
   autoAcceptCertificates: true
 }
 
+/** Client : politique de sécurité la plus récente (OPC UA 1.04), signature et chiffrement. */
 export const DEFAULT_CLIENT_SECURITY = {
-  mode: 'None',
-  policy: 'None',
+  mode: 'SignAndEncrypt',
+  policy: 'Aes256_Sha256_RsaPss',
   auth: 'anonymous',
   username: '',
   password: '',

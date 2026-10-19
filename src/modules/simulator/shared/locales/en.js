@@ -14,7 +14,7 @@ export default {
         delay: 'Response delay',
         noResponse: 'No response',
         cut: 'Connection cut',
-        exception: 'Forced exception (Modbus, S7)',
+        exception: 'Forced exception (Modbus, S7, SNMP)',
         badStatus: 'Forced status code',
         kissOfDeath: "Kiss-o'-Death (NTP)",
         freeze: 'Frozen values'

@@ -71,13 +71,13 @@ export const PDU_SIZES = [240, 480, 960]
 
 /** Identité de la CPU simulée, renvoyée dans les listes d'état système (SZL 0x0011 et 0x001C). */
 export const DEFAULT_IDENTITY = {
-  orderCode: '6ES7 315-2EH14-0AB0',
-  moduleName: 'CPU 315-2 PN/DP',
-  moduleType: 'CPU 315-2 PN/DP',
+  orderCode: '6ES7 516-3AN02-0AB0',
+  moduleName: 'CPU 1516-3 PN/DP',
+  moduleType: 'CPU 1516-3 PN/DP',
   plantId: 'Sulfur',
   serialNumber: 'S C-SULFUR0001',
   copyright: 'Original Siemens Equipment',
-  version: 'V3.2.6'
+  version: 'V3.1.0'
 }
 
 export const DEFAULT_SERVER_CONFIG = {
@@ -85,7 +85,7 @@ export const DEFAULT_SERVER_CONFIG = {
   // 102 est le port standard (droits administrateur requis sous Linux, souvent pris sous Windows
   // par les services Siemens).
   port: 1102,
-  pduSize: 480,
+  pduSize: 960,
   updateRate: 100,
   /** Refuse toute écriture des clients (protection en écriture de la CPU). */
   readOnly: false,
@@ -160,11 +160,12 @@ export const DEFAULT_CLIENT_CONFIG = {
   port: 1102,
   /** Adressage : par rack / emplacement ('rackSlot') ou par TSAP explicites ('tsap'). */
   addressing: 'rackSlot',
+  // S7-1500 : rack 0, emplacement 1 (S7-300 : emplacement 2).
   rack: 0,
-  slot: 2,
+  slot: 1,
   connectionType: 'PG',
   localTsap: '0100',
-  remoteTsap: '0102',
+  remoteTsap: '0101',
   pduSize: 960,
   timeout: 3000,
   pollInterval: 500

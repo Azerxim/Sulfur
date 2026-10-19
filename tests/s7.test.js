@@ -79,10 +79,10 @@ describe('Serveur et client S7', () => {
     expect(status.pduSize).toBe(240)
     expect(status.tsap).toEqual({ local: '01.00', remote: '01.02' })
     expect(status.identity).toMatchObject({
-      orderCode: '6ES7 315-2EH14-0AB0',
-      moduleName: 'CPU 315-2 PN/DP',
+      orderCode: '6ES7 516-3AN02-0AB0',
+      moduleName: 'CPU 1516-3 PN/DP',
       serialNumber: 'S C-SULFUR0001',
-      version: 'V3.2.6'
+      version: 'V3.1.0'
     })
     expect(status.cpuState).toBe('run')
     expect(server.status().connections[0].tsap.remote).toBe('01.02')

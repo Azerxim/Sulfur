@@ -1,3 +1,4 @@
+// Certificats TLS des serveurs (HTTPS, MQTT, Syslog) : process principal uniquement.
 import 'reflect-metadata'
 import * as x509 from '@peculiar/x509'
 import { X509Certificate, webcrypto } from 'crypto'
@@ -21,7 +22,7 @@ export function describeCertificate(pem) {
 }
 
 /**
- * Certificat auto-signé du serveur HTTPS (`<dir>/certificate.pem`, `<dir>/private_key.pem`),
+ * Certificat auto-signé d'un serveur TLS (`<dir>/certificate.pem`, `<dir>/private_key.pem`),
  * généré au premier démarrage, ou s'il a expiré ou changé de nom. Noms alternatifs : nom de la
  * machine, localhost et ses adresses IP. Retourne { cert, key, info }.
  */

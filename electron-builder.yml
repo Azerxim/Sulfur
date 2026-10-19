@@ -1,4 +1,4 @@
-appId: com.azerxim.sulfur
+appId: fr.topazdev.sulfur
 productName: Sulfur
 copyright: Copyright © 2026 Maxime MALLET
 directories:
@@ -26,10 +26,23 @@ nsis:
   createDesktopShortcut: true
   artifactName: ${productName}-Setup-${version}.${ext}
 linux:
-  target: AppImage
+  target:
+    - AppImage
+    - deb
   icon: resources/icon.png
   category: Development
   syncDesktopName: true
-  synopsis: Modular industrial protocol simulator (OPC UA, Modbus TCP, S7, HTTP, NTP)
+  synopsis: Modular industrial protocol simulator (OPC UA, Modbus TCP, S7, MQTT, SNMP, HTTP, NTP, Syslog)
 appImage:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+deb:
+  artifactName: ${name}_${version}_${arch}.${ext}
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  # icon.png (1024 px) est converti en .icns par electron-builder.
+  icon: resources/icon.png
+  category: public.app-category.developer-tools
+dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}

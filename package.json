@@ -1,10 +1,10 @@
 {
   "name": "sulfur",
-  "version": "0.2.0",
+  "version": "0.3.0-dev",
   "description": "Sulfur - application de simulation modulaire (Electron + React + TailwindCSS)",
   "main": "./out/main/index.js",
   "desktopName": "sulfur.desktop",
-  "author": "Maxime MALLET",
+  "author": "Maxime MALLET <mallet.maxime@topazdev.fr>",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
@@ -18,11 +18,15 @@
     "format:check": "prettier --check .",
     "dist": "npm run build && electron-builder --publish never",
     "dist:linux": "npm run build && electron-builder --linux --publish never",
-    "dist:win": "npm run build && electron-builder --win --publish never"
+    "dist:win": "npm run build && electron-builder --win --publish never",
+    "dist:mac": "npm run build && electron-builder --mac --publish never"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
     "@peculiar/x509": "^2.1.0",
+    "mqtt": "^5.16.0",
+    "mqtt-packet": "^9.0.2",
+    "net-snmp": "^3.29.1",
     "node-opcua": "^2.186.17",
     "node-opcua-crypto": "^6.1.4",
     "reflect-metadata": "^0.2.2"

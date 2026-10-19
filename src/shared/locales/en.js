@@ -2,7 +2,11 @@
 export default {
   app: {
     tagline: 'Modular simulator',
-    modules: 'Modules',
+    groups: {
+      tools: 'Tools',
+      automation: 'Industrial automation',
+      it: 'IT and supervision'
+    },
     noModule: 'No module loaded',
     moduleError: 'This page could not be displayed.',
     resetModuleConfig: 'Restore the module default configuration',
@@ -98,6 +102,39 @@ export default {
     validUntil: 'valid until {date}',
     confirmRemove: 'Delete certificate “{name}”?'
   },
+  home: {
+    name: 'Home',
+    description: 'Overview of Sulfur and its modules',
+    headline: 'Modular simulator of industrial and IT protocols',
+    intro:
+      'Sulfur simulates the servers and clients of the protocols found in automation and supervision: OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Test devices, supervision software and integrations without the real installation, and reproduce faults on demand.',
+    stepsTitle: 'Getting started',
+    steps: {
+      start: {
+        title: 'Start a module',
+        text: 'Choose a protocol, start its simulated server or connect its client to a real device.'
+      },
+      simulate: {
+        title: 'Simulate',
+        text: 'Inject faults (delay, cut, error codes) and build node flows that drive the values.'
+      },
+      record: {
+        title: 'Record',
+        text: 'Follow the values of every module on charts and export them to CSV.'
+      },
+      save: {
+        title: 'Save and share',
+        text: 'Settings are saved automatically; export them to JSON to share a test setup.'
+      }
+    },
+    groups: {
+      tools: 'Work on the data points of every protocol module.',
+      automation: 'Industrial protocols and PLCs.',
+      it: 'Network services, messaging and supervision.'
+    },
+    license: 'Apache License 2.0 — © 2026 Maxime MALLET',
+    repository: 'Source code and documentation'
+  },
   info: {
     name: 'Information',
     description: 'IP addresses and system information of this PC',
@@ -118,7 +155,7 @@ export default {
     language: 'Language',
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',
-    themeHint: 'The dark theme is used by default.',
+    themeHint: 'By default, the theme follows the operating system setting.',
     startPage: 'Startup page',
     startPageHint: 'Page shown when Sulfur starts. Each module also remembers its last tab (server or client).',
     lastPage: 'Last page viewed',
@@ -130,9 +167,9 @@ export default {
       system: 'System'
     },
     themeDescriptions: {
-      dark: 'Dark interface (default)',
+      dark: 'Dark interface',
       light: 'Light interface',
-      system: 'Follows the operating system setting'
+      system: 'Follows the operating system setting (default)'
     },
     configurations: {
       title: 'Configurations',
