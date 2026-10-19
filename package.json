@@ -1,11 +1,11 @@
 {
   "name": "sulfur",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Sulfur - application de simulation modulaire (Electron + React + TailwindCSS)",
   "main": "./out/main/index.js",
   "desktopName": "sulfur.desktop",
-  "author": "Azerxim",
-  "license": "UNLICENSED",
+  "author": "Maxime MALLET",
+  "license": "Apache-2.0",
   "private": true,
   "scripts": {
     "dev": "electron-vite dev",

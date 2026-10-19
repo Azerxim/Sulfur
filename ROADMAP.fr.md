@@ -50,11 +50,55 @@ Rendre les simulateurs plus utiles pour tester des équipements et logiciels ré
   (simulation de passerelle), identification de l'équipement (fonction 43 / 14), lecture/écriture
   multiple (fonction 23).
 
+## Éditions standard et premium
+
+Sulfur est distribué sous [licence Apache 2.0](LICENSE). L'application et les modules **standard**
+restent gratuits et open source dans ce dépôt ; les modules **premium**, marqués *(premium)* dans
+cette roadmap, seront développés dans un dépôt privé et distribués à part sous licence commerciale.
+Les modules sans marque sont standard.
+
+| Édition | Modules |
+| --- | --- |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, Siemens S7, PLCSim Advanced, Simulateur, Courbes, puis MQTT, SNMP, Syslog |
+| **Premium** (licence commerciale) | Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
+
+Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
+premier module premium :
+
+- [x] **Licence** : Apache-2.0 pour l'application et les modules standard, [CLA](CLA.md) des
+  contributeurs signé à la première pull request (pour que les contributions puissent aussi servir
+  dans l'édition premium).
+- [ ] **Manifeste de module** : identifiant, version, édition (`standard` / `premium`), version de
+  l'API de module requise et version minimale de Sulfur ; un module incompatible est refusé avec un
+  message clair.
+- [ ] **SDK de module** : publier le contrat de module (`ctx.handle` / `emit` / `expose` / `peers`,
+  `src/shared/points.js`, outils de traduction, composants d'interface communs) sous forme de paquet
+  versionné, pour développer les modules premium hors de ce dépôt. L'API de module suit le
+  versionnage sémantique.
+- [ ] **Modules externes** : `src/main/modules.js` et `src/renderer/src/modules.js` deviennent un
+  registre alimenté par les modules intégrés et par les paquets de modules installés dans le dossier
+  des données utilisateur. L'interface d'un module externe est chargée dynamiquement (protocole
+  dédié) et partage React et les composants d'interface via le SDK au lieu de les embarquer à
+  nouveau.
+- [ ] **Paquets de modules** : archives signées (Ed25519), signature vérifiée avant le chargement :
+  seuls les modules signés par l'éditeur sont chargés, puisqu'un module s'exécute avec les droits
+  du process principal. Installation, mise à jour et suppression des modules depuis une page
+  *Modules* des Paramètres.
+- [ ] **Licences** : fichier de licence signé, vérifié hors ligne avec une clé publique intégrée à
+  l'application (titulaire, date d'expiration, modules premium couverts) ; page *Licence* dans les
+  Paramètres. Sans licence valide, un module premium est listé mais verrouillé.
+- [ ] **Configurations** : à l'import, les sections d'un module premium non installé ou sans licence
+  sont conservées et signalées (elles sont ignorées aujourd'hui).
+- [ ] **Dépôt premium** : dépôt privé avec sa propre CI (build avec le SDK, tests, signature des
+  paquets), contrat de licence utilisateur final (EULA), publication des paquets en même temps que
+  les installeurs de l'application.
+
 ## Nouveaux modules : informatique et supervision
 
 Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer des équipements.
 
-- [ ] **MQTT** : broker et client, TLS, simulation de topics ; **Sparkplug B** au-dessus de MQTT
+- [ ] **MQTT** : broker et client, TLS, simulation de topics
+- [ ] **Sparkplug B** *(premium)* : au-dessus du module MQTT
 - [ ] **SNMP** : agent et manager, v1 / v2c / v3 (authentification et chiffrement USM), MIB simulée
   et traps
 - [ ] **Syslog** : serveur et émetteur, UDP / TCP / TLS
@@ -71,16 +115,17 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
   d'instances, lecture / écriture des variables, points publiés pour le simulateur et les courbes).
   Disponible sous Windows uniquement : PLCSim Advanced doit être installé et l'utilisateur indique
   le chemin de ses DLL (API Simulation Runtime) dans les réglages du module.
-- [ ] **EtherNet/IP (CIP)** : automates Rockwell / Allen-Bradley
-- [ ] **BACnet/IP** : gestion technique du bâtiment (CVC, éclairage)
-- [ ] **OPC UA PubSub** : mode publication / abonnement d'OPC UA, en extension du module OPC UA
+- [ ] **EtherNet/IP (CIP)** *(premium)* : automates Rockwell / Allen-Bradley
+- [ ] **BACnet/IP** *(premium)* : gestion technique du bâtiment (CVC, éclairage)
+- [ ] **OPC UA PubSub** *(premium)* : mode publication / abonnement d'OPC UA, en extension du module OPC UA
 
 ## Nouveaux modules : énergie et transport
 
-- [ ] **IEC 60870-5-104** et **DNP3** : téléconduite
-- [ ] **IEC 61850** (MMS, GOOSE) : postes électriques ; nécessite une bibliothèque native (libiec61850)
+- [ ] **IEC 60870-5-104** et **DNP3** *(premium)* : téléconduite
+- [ ] **IEC 61850** (MMS, GOOSE) *(premium)* : postes électriques ; nécessite une bibliothèque native (libiec61850)
 
-Chaque nouveau module suit le contrat existant (main / renderer / shared, ses propres traductions).
+Chaque nouveau module suit le contrat existant (main / renderer / shared, ses propres traductions) ;
+les modules premium utilisent le SDK de module et sont distribués en paquets signés.
 L'ordre au sein de chaque version sera fixé selon les besoins.
 
 ## Plus tard
@@ -104,4 +149,4 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
   l'interface.
 - Au tout premier lancement après avoir choisi le thème clair dans une version antérieure, la fenêtre
   peut s'ouvrir une fois en sombre.
-- Le code de l'interface est volumineux (≈ 830 ko) et n'a pas encore été optimisé.
+- Le code de l'interface est volumineux (≈ 1,9 Mo) et n'a pas encore été optimisé.

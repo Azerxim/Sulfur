@@ -6,7 +6,7 @@
 
 Application de simulateur modulaire — Electron + React (JavaScript) + TailwindCSS v4.
 Interface en anglais (par défaut) et en français, thème sombre (par défaut) ou clair.
-Voir la [roadmap](ROADMAP.fr.md) pour la suite.
+Voir la [roadmap](ROADMAP.fr.md) pour la suite. Licence : [Apache-2.0](LICENSE).
 
 ## Démarrage
 
@@ -159,7 +159,7 @@ version ultérieure garde sa valeur par défaut.
 un seul fichier JSON, pour partager un banc de test :
 
 ```json
-{ "format": "sulfur-config", "version": 1, "appVersion": "0.1.0", "exportedAt": "…",
+{ "format": "sulfur-config", "version": 1, "appVersion": "0.2.0", "exportedAt": "…",
   "modules": { "opcua": { "server": { … } }, "modbus": { "client": { … } } } }
 ```
 
@@ -387,3 +387,12 @@ Agit sur les serveurs et clients des autres modules par les points qu'ils publie
   claire et sombre.
 - Tableau des points avec la valeur au curseur (ou la dernière), le minimum et le maximum.
 - **Export CSV** (séparateur `;`, horodatage ISO, point ou virgule décimale), une colonne par point.
+
+## Licence
+
+Sulfur est distribué sous [licence Apache 2.0](LICENSE) — Copyright © 2026 Maxime MALLET. Les modules
+de ce dépôt forment l'édition **standard**, gratuite ; des modules **premium**, distribués à part sous
+licence commerciale, sont prévus (voir la [roadmap](ROADMAP.fr.md#éditions-standard-et-premium)).
+
+Les contributions sont les bienvenues : voir [CONTRIBUTING.fr.md](CONTRIBUTING.fr.md). Chaque
+contributeur signe une fois le [Contributor License Agreement](CLA.md), à sa première pull request.

@@ -1,6 +1,6 @@
 appId: com.azerxim.sulfur
 productName: Sulfur
-copyright: Copyright © Azerxim
+copyright: Copyright © 2026 Maxime MALLET
 directories:
   buildResources: build
   output: dist
@@ -11,7 +11,7 @@ files:
   - '!tests/*'
   - '!{electron.vite.config,vitest.config,eslint.config}.*'
   - '!{.editorconfig,.prettierrc.json,.prettierignore,jsconfig.json}'
-  - '!{README.md,README.fr.md,ROADMAP.md,ROADMAP.fr.md,CLAUDE.md}'
+  - '!{README.md,README.fr.md,ROADMAP.md,ROADMAP.fr.md,CLAUDE.md,CLA.md,CONTRIBUTING.md,CONTRIBUTING.fr.md}'
 asarUnpack:
   - resources/**
 # Les installeurs sont publiés par la CI (artefacts / release GitHub), pas par electron-builder.
@@ -30,6 +30,6 @@ linux:
   icon: resources/icon.png
   category: Development
   syncDesktopName: true
-  synopsis: Modular industrial protocol simulator (OPC UA, Modbus TCP)
+  synopsis: Modular industrial protocol simulator (OPC UA, Modbus TCP, S7, HTTP, NTP)
 appImage:
   artifactName: ${productName}-${version}-${arch}.${ext}

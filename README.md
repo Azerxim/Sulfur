@@ -6,7 +6,7 @@
 
 Modular simulator application — Electron + React (JavaScript) + TailwindCSS v4.
 English (default) and French interface, dark (default) or light theme.
-See the [roadmap](ROADMAP.md) for what comes next.
+See the [roadmap](ROADMAP.md) for what comes next. License: [Apache-2.0](LICENSE).
 
 ## Getting started
 
@@ -155,7 +155,7 @@ value is completed with the defaults, so settings added in a later version keep 
 file to share a test setup:
 
 ```json
-{ "format": "sulfur-config", "version": 1, "appVersion": "0.1.0", "exportedAt": "…",
+{ "format": "sulfur-config", "version": 1, "appVersion": "0.2.0", "exportedAt": "…",
   "modules": { "opcua": { "server": { … } }, "modbus": { "client": { … } } } }
 ```
 
@@ -370,3 +370,12 @@ Acts on the servers and clients of the other modules through the points they pub
   for points on different scales. Colorblind-safe palette, light and dark variants.
 - Table of the points with the value at the cursor (or the last one), min and max.
 - **CSV export** (`;` separator, ISO timestamps, decimal point or comma), one column per point.
+
+## License
+
+Sulfur is distributed under the [Apache License 2.0](LICENSE) — Copyright © 2026 Maxime MALLET. The
+modules of this repository form the free **standard** edition; **premium** modules, distributed
+separately under a commercial license, are planned (see the [roadmap](ROADMAP.md#standard-and-premium-editions)).
+
+Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Each contributor signs the
+[Contributor License Agreement](CLA.md) once, on their first pull request.

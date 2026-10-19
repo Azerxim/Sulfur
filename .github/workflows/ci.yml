@@ -3,7 +3,8 @@ name: CI
 
 on:
   push:
-    branches: ['**']
+    # cla-signatures ne contient que les signatures du CLA (voir cla.yml).
+    branches: ['**', '!cla-signatures']
     tags: ['v*']
   pull_request:
   workflow_dispatch:
