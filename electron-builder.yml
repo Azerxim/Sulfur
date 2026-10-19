@@ -40,7 +40,8 @@ linux:
 appImage:
   artifactName: ${productName}-${version}-${arch}.${ext}
 deb:
-  artifactName: ${name}_${version}_${arch}.${ext}
+  # Nom du fichier seulement : le paquet Debian lui-même reste « sulfur » (minuscules imposées).
+  artifactName: ${productName}_${version}_${arch}.${ext}
 mac:
   target:
     - target: dmg

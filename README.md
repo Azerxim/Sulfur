@@ -59,7 +59,7 @@ npm run lint && npm run format:check && npm test && npm run build
 ## Packaging
 
 ```bash
-npm run dist:linux   # AppImage and .deb → dist/Sulfur-<version>-x86_64.AppImage, dist/sulfur_<version>_amd64.deb
+npm run dist:linux   # AppImage and .deb → dist/Sulfur-<version>-x86_64.AppImage, dist/Sulfur_<version>_amd64.deb
 npm run dist:win     # NSIS installer → dist/Sulfur-Setup-<version>.exe (on Windows)
 npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg and dist/Sulfur-<version>-arm64.dmg (on macOS)
 ```
