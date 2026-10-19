@@ -154,6 +154,6 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 - Au tout premier lancement après avoir choisi le thème clair dans une version antérieure, la fenêtre
   peut s'ouvrir une fois en sombre.
 - Le code de l'interface est volumineux (≈ 2,1 Mo) et n'a pas encore été optimisé.
-- Le broker MQTT n'accepte que les clients MQTT 3.1 et 3.1.1 (MQTT 5.0 n'est pas pris en charge par
-  aedes) ; le client MQTT prend en charge la 5.0.
+- Le broker MQTT ne gère pas les abonnements partagés (`$share/…`) ni l'authentification étendue de
+  MQTT 5.0 (paquet AUTH).
 - L'agent SNMP envoie ses notifications en SNMPv1 et SNMPv2c uniquement (pas de notification SNMPv3).

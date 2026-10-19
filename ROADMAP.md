@@ -144,6 +144,6 @@ The order within each version will be set according to needs.
 - On the very first launch after choosing the light theme in an older version, the window may open
   dark once.
 - The interface bundle is large (≈ 2.1 MB); it has not been optimized yet.
-- The MQTT broker accepts MQTT 3.1 and 3.1.1 clients only (MQTT 5.0 is not supported by aedes); the
-  MQTT client supports 5.0.
+- The MQTT broker does not support shared subscriptions (`$share/…`) nor MQTT 5.0 enhanced
+  authentication (AUTH packet).
 - The SNMP agent sends its notifications in SNMPv1 and SNMPv2c only (no SNMPv3 notifications).

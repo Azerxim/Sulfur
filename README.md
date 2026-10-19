@@ -335,8 +335,11 @@ process: no native module to compile. The API folder is detected automatically (
 
 ## MQTT module
 
-- **Broker** (aedes, MQTT 3.1 / 3.1.1, default port 1883; TLS on 8883 with a self-signed certificate
-  `MQTT@Sulfur` generated on first start): **simulated topics** published by the broker itself
+- **Broker** (MQTT 3.1, 3.1.1 and 5.0, default port 1883; TLS on 8883 with a self-signed certificate
+  `MQTT@Sulfur` generated on first start): persistent sessions and session expiry, QoS 0 / 1 / 2,
+  retained messages, last will (with delay in 5.0), topic aliases, 5.0 subscription options (no local,
+  retain as published, retain handling, subscription identifiers) and message properties forwarded to
+  5.0 clients; shared subscriptions and enhanced authentication are not supported. **simulated topics** published by the broker itself
   (number, integer, boolean or text value; sine, ramp, random or toggle generator), periodically or
   at each change, as a value alone or JSON `{"value": …, "timestamp": …}`, with chosen QoS and
   retain flag. A settable topic accepts a new value published on `<topic>/set`. Optional

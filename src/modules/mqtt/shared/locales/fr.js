@@ -23,7 +23,7 @@ export default {
       host: "Interface d'écoute",
       port: 'Port',
       tls: 'TLS (mqtts)',
-      portsHint: 'Ports standard : 1883 (MQTT) et 8883 (TLS). Clients MQTT 3.1 et 3.1.1.',
+      portsHint: 'Ports standard : 1883 (MQTT) et 8883 (TLS). Clients MQTT 3.1, 3.1.1 et 5.0.',
       certificate: 'certificat {name}',
       cut: 'connexions coupées (défaut injecté)'
     },

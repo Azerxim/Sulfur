@@ -347,8 +347,12 @@ automatiquement (version la plus récente dans
 
 ## Module MQTT
 
-- **Broker** (aedes, MQTT 3.1 / 3.1.1, port par défaut 1883 ; TLS sur 8883 avec un certificat
-  auto-signé `MQTT@Sulfur` généré au premier démarrage) : **topics simulés** publiés par le broker
+- **Broker** (MQTT 3.1, 3.1.1 et 5.0, port par défaut 1883 ; TLS sur 8883 avec un certificat
+  auto-signé `MQTT@Sulfur` généré au premier démarrage) : sessions persistantes et expiration de
+  session, QoS 0 / 1 / 2, messages retenus, dernière volonté (avec délai en 5.0), alias de topic,
+  options d'abonnement 5.0 (no local, retain as published, retain handling, identifiants
+  d'abonnement) et propriétés des messages transmises aux clients 5.0 ; abonnements partagés et
+  authentification étendue non pris en charge. **topics simulés** publiés par le broker
   lui-même (valeur nombre, entier, booléen ou texte ; générateur sinus, rampe, aléatoire ou
   bascule), périodiquement ou à chaque changement, en valeur seule ou en JSON
   `{"value": …, "timestamp": …}`, avec QoS et indicateur « retenu » choisis. Un topic modifiable

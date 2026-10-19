@@ -1,7 +1,7 @@
 import net from 'net'
 import tls from 'tls'
 import { randomUUID } from 'crypto'
-import { Aedes } from 'aedes'
+import { MqttBroker } from './broker'
 import { simulate } from '@shared/simulator'
 import { hashPassword, isPasswordHash, verifyPassword } from '@shared/passwords'
 import {
@@ -21,10 +21,6 @@ import { t } from '../shared/i18n'
 
 const EMIT_INTERVAL = 200
 const STATUS_INTERVAL = 1000
-
-/** Codes de retour CONNACK (MQTT 3.1.1) : identifiants refusés, connexion non autorisée. */
-const BAD_CREDENTIALS = 4
-const NOT_AUTHORIZED = 5
 
 /** Convertit une valeur saisie ou reçue dans le type du topic. */
 export function convertValue(dataType, raw) {
@@ -80,7 +76,7 @@ function preview(payload) {
 }
 
 /**
- * Broker MQTT (aedes, MQTT 3.1 / 3.1.1) en TCP ou TLS :
+ * Broker MQTT 3.1 / 3.1.1 / 5.0 (voir `./broker`) en TCP ou TLS :
  *  - topics simulés publiés périodiquement ou à chaque changement (valeur seule ou JSON), modifiables
  *    par une publication sur `<topic>/set` ;
  *  - authentification facultative (utilisateurs, mots de passe hachés) ;
@@ -187,7 +183,7 @@ export class MqttServer {
     if (!config.auth.anonymous && !config.auth.users.length) throw new Error(t('mqtt.errors.noUser'))
     if (config.tls) this.certificate = await this.getCertificate()
 
-    const broker = await Aedes.createBroker({ heartbeatInterval: 3_600_000, drainTimeout: 10_000 })
+    const broker = new MqttBroker()
     this.setupBroker(broker)
     const host = config.host || '0.0.0.0'
     const listener = config.tls
@@ -202,7 +198,7 @@ export class MqttServer {
         })
       })
     } catch (err) {
-      await new Promise((resolve) => broker.close(resolve))
+      broker.close()
       if (err.code === 'EACCES') throw new Error(t('mqtt.errors.portPrivileged', { port }), { cause: err })
       if (err.code === 'EADDRINUSE') throw new Error(t('mqtt.errors.portInUse', { port }), { cause: err })
       throw err
@@ -236,9 +232,10 @@ export class MqttServer {
     this.broker = null
     this.listener = null
     if (broker) {
-      // Les connexions sont fermées par le broker ; le serveur cesse d'en accepter.
-      listener.close()
-      await new Promise((resolve) => broker.close(resolve))
+      // Le serveur cesse d'accepter des connexions ; le broker ferme celles qui sont ouvertes.
+      const closed = new Promise((resolve) => listener.close(() => resolve()))
+      broker.close()
+      await closed
     }
     this.flush()
     this.clients.clear()
@@ -249,47 +246,31 @@ export class MqttServer {
   // --- Broker -------------------------------------------------------------------------
 
   setupBroker(broker) {
-    broker.preConnect = (client, packet, callback) => {
-      if (this.fault('cut')) return callback(null, false)
-      // Absence de réponse : le CONNECT reste sans CONNACK, le client atteint son délai.
-      if (this.fault('noResponse')) return
-      callback(null, true)
-    }
+    // Coupure : connexion fermée ; absence de réponse : le CONNECT reste sans CONNACK.
+    broker.preConnect = () => (this.fault('cut') ? false : this.fault('noResponse') ? null : true)
 
-    broker.authenticate = (client, username, password, callback) => {
+    broker.authenticate = async (connection, username, password) => {
       const { auth } = this.config ?? { auth: DEFAULT_SERVER_AUTH }
-      if (!username) {
-        if (auth.anonymous) return callback(null, true)
-        return callback(Object.assign(new Error('not authorized'), { returnCode: NOT_AUTHORIZED }), false)
-      }
+      if (!username) return auth.anonymous ? true : 'notAuthorized'
       const user = auth.users.find((u) => u.username === username)
-      const refuse = () => callback(Object.assign(new Error('bad credentials'), { returnCode: BAD_CREDENTIALS }), false)
-      if (!user) return refuse()
-      verifyPassword(password?.toString('utf8') ?? '', user.passwordHash).then(
-        (ok) => {
-          if (!ok) return refuse()
-          client.sulfurUser = username
-          callback(null, true)
-        },
-        () => refuse()
-      )
+      if (!user) return 'badCredentials'
+      const ok = await verifyPassword(password?.toString('utf8') ?? '', user.passwordHash).catch(() => false)
+      return ok ? true : 'badCredentials'
     }
 
-    broker.authorizePublish = (client, packet, callback) => {
-      if (packet.topic.startsWith('$SYS/')) return callback(new Error(t('mqtt.errors.reservedTopic')))
+    broker.authorizePublish = async () => {
       const delay = Number(this.fault('delay')?.params?.ms) || 0
-      if (delay > 0) setTimeout(() => callback(null), delay)
-      else callback(null)
+      if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay))
     }
 
     // Absence de réponse : les messages ne sont plus distribués aux abonnés.
-    broker.authorizeForward = (client, packet) => (this.fault('noResponse') ? null : packet)
+    broker.authorizeForward = () => !this.fault('noResponse')
 
     broker.on('clientReady', (client) => {
       this.clients.set(client.id, {
         id: client.id,
-        address: client.conn?.remoteAddress?.replace(/^::ffff:/, '') ?? '',
-        username: client.sulfurUser ?? '',
+        address: client.address,
+        username: client.username,
         version: client.version,
         connectedAt: new Date().toISOString(),
         subscriptions: []
@@ -398,17 +379,12 @@ export class MqttServer {
     if (!variable || !this.broker) return
     variable.lastPublished = Date.now()
     variable.dirty = false
-    this.broker.publish(
-      {
-        cmd: 'publish',
-        topic: variable.def.topic,
-        payload: Buffer.from(encodePayload(variable.def, variable.value, variable.timestamp)),
-        qos: Number(variable.def.qos),
-        retain: !!variable.def.retain,
-        dup: false
-      },
-      () => {}
-    )
+    this.broker.publish({
+      topic: variable.def.topic,
+      payload: encodePayload(variable.def, variable.value, variable.timestamp),
+      qos: Number(variable.def.qos),
+      retain: !!variable.def.retain
+    })
   }
 
   /** Nouvelle valeur d'un topic simulé (interface, point, publication `<topic>/set`). */
@@ -499,7 +475,7 @@ export class MqttServer {
   setFaults(faults = []) {
     this.faults = faults
     if (this.fault('cut') && this.broker) {
-      for (const client of Object.values(this.broker.clients)) client.close()
+      this.broker.disconnectAll()
     }
     if (this.running) this.onStatus(this.status())
   }

@@ -1,3 +1,4 @@
+import { connect as mqttConnect, connectAsync } from 'mqtt'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { MqttServer, convertValue, encodePayload } from '@modules/mqtt/main/server'
 import { MqttClient } from '@modules/mqtt/main/client'
@@ -168,5 +169,146 @@ describe('Broker et client', () => {
     expect(await errorOf(server.start({ port, auth: { anonymous: false, users: [] } }))).toMatch(/Add a user/)
     expect(server.running).toBe(false)
     expect(await errorOf(connect({ subscriptions: [{ id: 'x', topic: 'a/#/b', qos: 0 }] }))).toMatch(/filter/)
+  })
+})
+
+describe('Protocole du broker (3.1, 3.1.1, 5.0)', () => {
+  const clients = []
+  /** Client mqtt.js brut (fermé après chaque test). */
+  async function raw(options = {}) {
+    const c = await connectAsync({ host: '127.0.0.1', port, reconnectPeriod: 0, connectTimeout: 2000, ...options })
+    clients.push(c)
+    return c
+  }
+  /** Prochain message reçu par un client. */
+  const next = (c) =>
+    new Promise((resolve) =>
+      c.once('message', (topic, payload, packet) => resolve({ topic, payload: payload.toString(), packet }))
+    )
+
+  afterEach(async () => {
+    await Promise.all(clients.splice(0).map((c) => c.endAsync(true).catch(() => {})))
+  })
+
+  it('MQTT 5.0 : propriétés transmises, identifiant attribué, identifiant d’abonnement', async () => {
+    await start({ topics: [] })
+    const sub = await raw({ protocolVersion: 5, clientId: '' })
+    expect(server.status().clients[0].id).toMatch(/^sulfur_[0-9a-f]{12}$/)
+    await sub.subscribeAsync('v5/#', { qos: 1, properties: { subscriptionIdentifier: 7 } })
+    const pub = await raw({ protocolVersion: 5 })
+    const received = next(sub)
+    await pub.publishAsync('v5/a', 'x', {
+      qos: 1,
+      properties: { userProperties: { site: 'A' }, contentType: 'text/plain', messageExpiryInterval: 60 }
+    })
+    const { packet } = await received
+    expect(packet.properties).toMatchObject({
+      userProperties: { site: 'A' },
+      contentType: 'text/plain',
+      subscriptionIdentifier: 7
+    })
+    expect(packet.properties.messageExpiryInterval).toBeLessThanOrEqual(60)
+    expect(
+      server
+        .status()
+        .clients.map((c) => c.version)
+        .sort()
+    ).toEqual([5, 5])
+  })
+
+  it('MQTT 5.0 : alias de topic, no local, retain handling', async () => {
+    await start({ topics: [] })
+    const c = await raw({ protocolVersion: 5 })
+    await c.subscribeAsync('alias/#', { qos: 0, nl: true })
+    const other = await raw({ protocolVersion: 5 })
+    await other.subscribeAsync('alias/#')
+    let got = next(other)
+    await c.publishAsync('alias/t', '1', { properties: { topicAlias: 3 } })
+    expect((await got).topic).toBe('alias/t')
+    got = next(other)
+    await c.publishAsync('', '2', { properties: { topicAlias: 3 } })
+    expect(await got).toMatchObject({ topic: 'alias/t', payload: '2' })
+    // no local : `c` ne reçoit pas ses propres messages.
+    let own = 0
+    c.on('message', () => own++)
+    await sleep(100)
+    expect(own).toBe(0)
+
+    await other.publishAsync('keep/me', 'R', { retain: true, qos: 1 })
+    const late = await raw({ protocolVersion: 5 })
+    let retained = 0
+    late.on('message', () => retained++)
+    await late.subscribeAsync('keep/#', { rh: 2 })
+    await sleep(100)
+    expect(retained).toBe(0)
+    await late.subscribeAsync('keep/me', { rh: 0 })
+    await sleep(100)
+    expect(retained).toBe(1)
+  })
+
+  it('session persistante : messages QoS 1 conservés pendant la déconnexion', async () => {
+    await start({ topics: [] })
+    const first = await raw({
+      protocolVersion: 5,
+      clientId: 'persist',
+      clean: false,
+      properties: { sessionExpiryInterval: 60 }
+    })
+    await first.subscribeAsync('queue/#', { qos: 1 })
+    await first.endAsync()
+    const pub = await raw()
+    await pub.publishAsync('queue/a', 'while offline', { qos: 1 })
+    // Écouteurs posés avant la connexion : le message en attente arrive juste après le CONNACK.
+    const again = mqttConnect({
+      host: '127.0.0.1',
+      port,
+      reconnectPeriod: 0,
+      protocolVersion: 5,
+      clientId: 'persist',
+      clean: false,
+      properties: { sessionExpiryInterval: 60 }
+    })
+    clients.push(again)
+    const connack = new Promise((resolve) => again.once('connect', resolve))
+    const got = new Promise((resolve) => again.once('message', (topic, payload) => resolve(payload.toString())))
+    expect((await connack).sessionPresent).toBe(true)
+    expect(await got).toBe('while offline')
+  })
+
+  it('QoS 2 de bout en bout, MQTT 3.1 et 3.1.1', async () => {
+    await start({ topics: [] })
+    const v31 = await raw({ protocolVersion: 3, protocolId: 'MQIsdp', clientId: 'old-client' })
+    await v31.subscribeAsync('q2/#', { qos: 2 })
+    const pub = await raw({ protocolVersion: 4 })
+    const got = next(v31)
+    await pub.publishAsync('q2/x', 'exactly once', { qos: 2 })
+    expect(await got).toMatchObject({ payload: 'exactly once', packet: { qos: 2 } })
+    expect(server.status().clients.find((c) => c.id === 'old-client').version).toBe(3)
+  })
+
+  it('dernière volonté (délai MQTT 5.0) et reprise de session par un autre client', async () => {
+    await start({ topics: [] })
+    const watcher = await raw({ protocolVersion: 5 })
+    await watcher.subscribeAsync('will/#')
+    const dying = await raw({
+      protocolVersion: 5,
+      clientId: 'dying',
+      will: {
+        topic: 'will/dying',
+        payload: Buffer.from('gone'),
+        qos: 0,
+        retain: false,
+        properties: { willDelayInterval: 0 }
+      }
+    })
+    const got = next(watcher)
+    dying.stream.destroy()
+    expect(await got).toMatchObject({ topic: 'will/dying', payload: 'gone' })
+
+    const a = await raw({ clientId: 'same' })
+    const closed = new Promise((resolve) => a.once('close', resolve))
+    await raw({ clientId: 'same' })
+    await closed
+    expect(server.status().clients.filter((c) => c.id === 'same')).toHaveLength(1)
   })
 })
