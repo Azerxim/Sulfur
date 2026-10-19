@@ -1,4 +1,6 @@
 import { useI18n, useManifestText } from '../preferences'
+// Seul le champ `version` est intégré au build (import nommé d'un fichier JSON).
+import { version } from '../../../../package.json'
 
 function NavItem({ item: { manifest, icon: Icon }, active, onSelect }) {
   const text = useManifestText()
@@ -41,7 +43,7 @@ export default function Sidebar({ modules, pages = [], activeId, onSelect }) {
           <NavItem key={p.manifest.id} item={p} active={p.manifest.id === activeId} onSelect={onSelect} />
         ))}
       </nav>
-      <div className="px-5 py-3 text-[11px] text-slate-600">v0.1.0</div>
+      <div className="px-5 py-3 text-[11px] text-slate-600">v{version}</div>
     </aside>
   )
 }
