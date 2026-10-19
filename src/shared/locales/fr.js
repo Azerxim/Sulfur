@@ -10,7 +10,9 @@ export default {
     noModule: 'Aucun module chargé',
     moduleError: "Cette page n'a pas pu être affichée.",
     resetModuleConfig: 'Rétablir la configuration par défaut du module',
-    retry: 'Réessayer'
+    retry: 'Réessayer',
+    updateAvailable: 'Mise à jour disponible : v{version}',
+    updateReady: 'Mise à jour prête : v{version}'
   },
   ui: {
     expand: 'Déplier',
@@ -152,7 +154,7 @@ export default {
   },
   settings: {
     name: 'Paramètres',
-    description: 'Langue, apparence et configurations',
+    description: 'Langue, apparence, configurations et mises à jour',
     language: 'Langue',
     languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",
     theme: 'Thème',
@@ -183,6 +185,26 @@ export default {
       exported: 'Configuration exportée dans {path}',
       imported: 'Configuration importée depuis {path}',
       ignored: 'Modules ignorés (absents de cette version) : {modules}'
+    },
+    updates: {
+      title: 'Mises à jour',
+      hint: 'Les nouvelles versions sont publiées sous forme de releases GitHub.',
+      autoCheck: 'Rechercher automatiquement les mises à jour',
+      autoCheckHint: 'Au démarrage, puis toutes les 6 heures.',
+      current: 'Version installée : v{version}',
+      unsupported: "Les mises à jour ne sont disponibles que dans l'application installée.",
+      check: 'Rechercher maintenant',
+      checking: 'Recherche des mises à jour…',
+      upToDate: 'Sulfur est à jour (dernière vérification : {time}).',
+      available: 'La version {version} est disponible.',
+      download: 'Télécharger et installer',
+      openDownload: 'Ouvrir la page de téléchargement',
+      macHint: "Sous macOS, téléchargez la nouvelle version depuis la page de la release et remplacez l'application.",
+      releaseNotes: 'Notes de version',
+      downloading: 'Téléchargement… {progress} %',
+      downloaded: 'La version {version} est prête à être installée.',
+      downloadedHint: 'Sinon, elle sera installée à la fermeture de Sulfur.',
+      install: 'Redémarrer et installer'
     }
   }
 }

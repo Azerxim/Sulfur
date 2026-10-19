@@ -1,4 +1,6 @@
+import { Download } from 'lucide-react'
 import { useI18n, useManifestText } from '../preferences'
+import { useUpdater } from '../updater'
 // Seul le champ `version` est intégré au build (import nommé d'un fichier JSON).
 import { version } from '../../../../package.json'
 
@@ -13,6 +15,22 @@ function NavItem({ item: { manifest, icon: Icon }, active, onSelect }) {
     >
       <Icon className={`size-4 ${active ? 'text-sulfur-400' : ''}`} />
       {text(manifest).name}
+    </button>
+  )
+}
+
+/** Rappel discret d'une mise à jour disponible ou prête, qui ouvre les paramètres. */
+function UpdateNotice({ onSelect }) {
+  const { t } = useI18n()
+  const { state } = useUpdater()
+  if (!state || !['available', 'downloading', 'downloaded'].includes(state.status)) return null
+  return (
+    <button
+      onClick={() => onSelect('settings')}
+      className="mx-2 mt-2 flex items-center gap-2 rounded-md bg-sulfur-400/10 px-3 py-2 text-left text-xs text-sulfur-300 hover:bg-sulfur-400/20"
+    >
+      <Download className="size-3.5 shrink-0" />
+      {t(state.status === 'downloaded' ? 'app.updateReady' : 'app.updateAvailable', { version: state.version })}
     </button>
   )
 }
@@ -51,6 +69,7 @@ export default function Sidebar({ groups, pages = [], activeId, onSelect }) {
           <NavItem key={p.manifest.id} item={p} active={p.manifest.id === activeId} onSelect={onSelect} />
         ))}
       </nav>
+      <UpdateNotice onSelect={onSelect} />
       <div className="px-5 py-3 text-[11px] text-slate-600">v{version}</div>
     </aside>
   )

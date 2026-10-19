@@ -71,12 +71,19 @@ npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg and dist/Sulfur-<ve
   Installers are not code-signed: on macOS, the first launch requires right-click → *Open* (or
   `xattr -cr /Applications/Sulfur.app`).
 - The CI runs lint, tests and build on every pull request. On `v*` version tags, it also builds the
-  Windows, Linux and macOS installers and attaches them to a draft GitHub release:
+  Windows, Linux and macOS installers and attaches them to a draft GitHub release, along with the
+  `latest*.yml` files used by the update system:
 
 ```bash
 npm version patch          # bumps package.json and creates the vX.Y.Z tag
 git push --follow-tags
 ```
+
+- Updates (`src/main/updater.js`, electron-updater): the application checks the GitHub releases at
+  startup, then every 6 hours; this can be turned off in *Settings → Updates*. Draft releases are
+  ignored: an update is offered once its release is published. Installation is automatic on Windows,
+  AppImage and .deb; on macOS (unsigned application), the new version is only reported, with a link to
+  its release.
 
 ## Architecture
 

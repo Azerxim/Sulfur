@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Check, Download, Monitor, Moon, Sun, Upload } from 'lucide-react'
+import { Check, Download, ExternalLink, Monitor, Moon, RefreshCw, RotateCcw, Sun, Upload } from 'lucide-react'
 import { LANGUAGES } from '@shared/languages'
-import { Button, Card, ErrorBanner, Select } from '../components/ui'
+import { Button, Card, Checkbox, ErrorBanner, Select } from '../components/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
 import { rendererModules } from '../modules'
 import { appPages } from '../pages'
 import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences'
+import { useUpdater } from '../updater'
 
 const THEME_ICONS = { dark: Moon, light: Sun, system: Monitor }
 
@@ -80,7 +81,86 @@ function ConfigurationsCard() {
   )
 }
 
-/** Paramètres de l'application : langue, thème et configurations. */
+/** Mises à jour depuis les releases GitHub : recherche automatique (désactivable), téléchargement, installation. */
+function UpdatesCard() {
+  const { t, locale } = useI18n()
+  const { state, check, download, install, openReleases, setAutoCheck } = useUpdater()
+  if (!state) return null
+  const { supported, canInstall, status } = state
+  const busy = ['checking', 'downloading'].includes(status)
+
+  return (
+    <Card id="settings.updates" title={t('settings.updates.title')}>
+      <p className="mb-3 text-xs text-slate-500">{t('settings.updates.hint')}</p>
+      <div className="flex flex-col gap-3">
+        <div>
+          <Checkbox
+            label={t('settings.updates.autoCheck')}
+            checked={state.autoCheck}
+            disabled={!supported}
+            onChange={(e) => setAutoCheck(e.target.checked)}
+          />
+          <p className="ml-6 text-xs text-slate-500">{t('settings.updates.autoCheckHint')}</p>
+        </div>
+
+        <p className="text-sm text-slate-300">{t('settings.updates.current', { version: state.currentVersion })}</p>
+
+        {!supported && <p className="text-sm text-slate-500">{t('settings.updates.unsupported')}</p>}
+        {status === 'checking' && <p className="text-sm text-slate-400">{t('settings.updates.checking')}</p>}
+        {status === 'not-available' && state.checkedAt && (
+          <p className="text-sm text-emerald-300">
+            {t('settings.updates.upToDate', { time: new Date(state.checkedAt).toLocaleString(locale) })}
+          </p>
+        )}
+        {status === 'available' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-sulfur-300">{t('settings.updates.available', { version: state.version })}</p>
+            {!canInstall && <p className="text-xs text-slate-500">{t('settings.updates.macHint')}</p>}
+          </div>
+        )}
+        {status === 'downloading' && (
+          <p className="text-sm text-slate-300">
+            {t('settings.updates.downloading', { progress: state.progress ?? 0 })}
+          </p>
+        )}
+        {status === 'downloaded' && (
+          <div>
+            <p className="text-sm text-emerald-300">{t('settings.updates.downloaded', { version: state.version })}</p>
+            <p className="text-xs text-slate-500">{t('settings.updates.downloadedHint')}</p>
+          </div>
+        )}
+        {status === 'error' && <ErrorBanner error={state.error} />}
+
+        <div className="flex flex-wrap gap-2">
+          {status === 'available' && (
+            <Button variant="primary" onClick={download}>
+              {canInstall ? <Download className="size-4" /> : <ExternalLink className="size-4" />}
+              {canInstall ? t('settings.updates.download') : t('settings.updates.openDownload')}
+            </Button>
+          )}
+          {status === 'downloaded' && (
+            <Button variant="primary" onClick={install}>
+              <RotateCcw className="size-4" /> {t('settings.updates.install')}
+            </Button>
+          )}
+          {['available', 'downloading', 'downloaded'].includes(status) && (
+            <Button onClick={openReleases}>
+              <ExternalLink className="size-4" /> {t('settings.updates.releaseNotes')}
+            </Button>
+          )}
+          {supported && !['available', 'downloading', 'downloaded'].includes(status) && (
+            <Button disabled={busy} onClick={check}>
+              <RefreshCw className={`size-4 ${status === 'checking' ? 'animate-spin' : ''}`} />{' '}
+              {t('settings.updates.check')}
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+/** Paramètres de l'application : langue, thème, configurations et mises à jour. */
 export default function SettingsPage() {
   const { t } = useI18n()
   const { prefs, update } = usePreferences()
@@ -141,6 +221,8 @@ export default function SettingsPage() {
       </Card>
 
       <ConfigurationsCard />
+
+      <UpdatesCard />
     </div>
   )
 }

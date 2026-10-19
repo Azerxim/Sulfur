@@ -8,6 +8,7 @@ import { registerConfigTransfer } from './config-transfer'
 import { mainModules } from './modules'
 import { WINDOW_BACKGROUNDS, applyNativeTheme, loadPreferences } from './preferences'
 import { systemMainModule } from './system-info'
+import { updaterMainModule } from './updater'
 import icon from '../../resources/icon.png?asset'
 
 const host = new ModuleHost()
@@ -55,7 +56,7 @@ app.whenReady().then(async () => {
 
   // Langue des messages du process principal dès le démarrage (avant le chargement de l'interface).
   setLanguage(loadPreferences().language)
-  await host.load([systemMainModule, ...mainModules])
+  await host.load([systemMainModule, updaterMainModule, ...mainModules])
   registerConfigTransfer(
     host,
     mainModules.map((mod) => mod.manifest.id)

@@ -52,14 +52,21 @@ jobs:
             files: |
               dist/*.AppImage
               dist/*.deb
+              dist/latest-linux.yml
           - name: Windows
             os: windows-latest
             script: dist:win
-            files: dist/*.exe
+            files: |
+              dist/*.exe
+              dist/*.exe.blockmap
+              dist/latest.yml
           - name: macOS
             os: macos-latest
             script: dist:mac
-            files: dist/*.dmg
+            files: |
+              dist/*.dmg
+              dist/*.zip
+              dist/latest-mac.yml
     runs-on: ${{ matrix.os }}
     env:
       # Pas de certificat de signature de code : installeurs non signés.

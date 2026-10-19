@@ -32,6 +32,9 @@ Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 - [X] **Lint et formatage** : ESLint + Prettier avec une configuration commune.
 - [X] **Packaging** : icône de l'application, installeurs Windows (NSIS), Linux (AppImage, .deb) et
   macOS (DMG) produits par la CI.
+- [X] **Mises à jour** : nouvelles versions détectées depuis les releases GitHub, téléchargées et
+  installées depuis les paramètres (Windows, AppImage, .deb ; sous macOS, lien vers la release).
+  Recherche automatique désactivable.
 
 ## Fonctions de simulation
 
@@ -146,7 +149,6 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
     plus de l'épinglage ;
   - jetons utilisateur X.509 pour OPC UA.
 - **Interface** : plusieurs fenêtres, raccourcis clavier, revue d'accessibilité, nouvelles langues.
-- **Mises à jour** : mise à jour automatique de l'application.
 
 ## Limites connues
 

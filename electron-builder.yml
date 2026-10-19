@@ -14,8 +14,12 @@ files:
   - '!{README.md,README.fr.md,ROADMAP.md,ROADMAP.fr.md,CLAUDE.md,CLA.md,CONTRIBUTING.md,CONTRIBUTING.fr.md}'
 asarUnpack:
   - resources/**
-# Les installeurs sont publiés par la CI (artefacts / release GitHub), pas par electron-builder.
-publish: null
+# Source des mises à jour (electron-updater) : releases GitHub. Les builds restent en --publish never :
+# c'est la CI qui joint installeurs, latest*.yml et .blockmap à la release.
+publish:
+  provider: github
+  owner: Azerxim
+  repo: Sulfur
 win:
   target: nsis
   icon: resources/icon.ico
@@ -40,6 +44,9 @@ deb:
 mac:
   target:
     - target: dmg
+      arch: [x64, arm64]
+    # Le zip produit latest-mac.yml, utilisé pour signaler les nouvelles versions sous macOS.
+    - target: zip
       arch: [x64, arm64]
   # icon.png (1024 px) est converti en .icns par electron-builder.
   icon: resources/icon.png
