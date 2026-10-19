@@ -2,7 +2,11 @@
 export default {
   app: {
     tagline: 'Modular simulator',
-    modules: 'Modules',
+    groups: {
+      tools: 'Tools',
+      automation: 'Industrial automation',
+      it: 'IT and supervision'
+    },
     noModule: 'No module loaded',
     moduleError: 'This page could not be displayed.',
     resetModuleConfig: 'Restore the module default configuration',

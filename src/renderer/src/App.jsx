@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { rendererModules } from './modules'
+import { moduleGroups, rendererModules } from './modules'
 import { appPages } from './pages'
 import { useI18n, useManifestText, usePreferences } from './preferences'
 import { useStoredState } from './components/ui'
@@ -24,7 +24,7 @@ export default function App() {
 
   return (
     <div className="flex h-full">
-      <Sidebar modules={rendererModules} pages={appPages} activeId={activeId} onSelect={select} />
+      <Sidebar groups={moduleGroups} pages={appPages} activeId={activeId} onSelect={select} />
       <main className="flex min-w-0 flex-1 flex-col">
         {active ? (
           <>

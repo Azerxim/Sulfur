@@ -10,5 +10,14 @@ import syslog from '@modules/syslog/renderer'
 import simulator from '@modules/simulator/renderer'
 import trends from '@modules/trends/renderer'
 
-/** Modules affichés dans l'interface. Ajouter les nouveaux modules ici. */
-export const rendererModules = [opcua, modbus, http, ntp, s7, plcsim, mqtt, snmp, syslog, simulator, trends]
+/**
+ * Modules affichés dans l'interface, par groupe (libellés : app.groups.*), dans l'ordre de la barre
+ * latérale. Ajouter les nouveaux modules ici.
+ */
+export const moduleGroups = [
+  { id: 'tools', modules: [simulator, trends] },
+  { id: 'automation', modules: [opcua, modbus, s7, plcsim] },
+  { id: 'it', modules: [http, ntp, mqtt, snmp, syslog] }
+]
+
+export const rendererModules = moduleGroups.flatMap((group) => group.modules)

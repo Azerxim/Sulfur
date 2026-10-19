@@ -17,7 +17,7 @@ function NavItem({ item: { manifest, icon: Icon }, active, onSelect }) {
   )
 }
 
-export default function Sidebar({ modules, pages = [], activeId, onSelect }) {
+export default function Sidebar({ groups, pages = [], activeId, onSelect }) {
   const { t } = useI18n()
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-ink-800 bg-ink-900">
@@ -29,12 +29,16 @@ export default function Sidebar({ modules, pages = [], activeId, onSelect }) {
         </div>
       </div>
 
-      <div className="px-5 pt-2 pb-2 text-[11px] font-medium tracking-wider text-slate-500 uppercase">
-        {t('app.modules')}
-      </div>
-      <nav className="flex flex-col gap-0.5 px-2">
-        {modules.map((m) => (
-          <NavItem key={m.manifest.id} item={m} active={m.manifest.id === activeId} onSelect={onSelect} />
+      <nav className="flex min-h-0 flex-col gap-3 overflow-y-auto px-2 pb-2">
+        {groups.map((group) => (
+          <div key={group.id} className="flex flex-col gap-0.5">
+            <div className="px-3 pt-2 pb-1 text-[11px] font-medium tracking-wider text-slate-500 uppercase">
+              {t(`app.groups.${group.id}`)}
+            </div>
+            {group.modules.map((m) => (
+              <NavItem key={m.manifest.id} item={m} active={m.manifest.id === activeId} onSelect={onSelect} />
+            ))}
+          </div>
         ))}
       </nav>
 
