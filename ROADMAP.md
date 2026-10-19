@@ -57,7 +57,7 @@ commercial license. Unmarked modules are standard.
 | Edition | Modules |
 | --- | --- |
 | **Standard** (free, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, Siemens S7, PLCSim Advanced, Simulator, Trends, then MQTT, SNMP, Syslog |
-| **Premium** (commercial license) | Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
+| **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
 premium module:
@@ -107,6 +107,9 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 - [x] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /
   write tags, points published for the simulator and trends). Windows only: PLCSim Advanced must be
   installed and the user gives the path to its DLLs (Simulation Runtime API) in the module settings.
+- [ ] **Siemens S7 Enhanced** *(premium)*: S7CommPlus protocol of the S7-1200 / S7-1500 (firmware
+  V4 and later): symbolic access to optimized data blocks (no PUT / GET to enable), browsing of the
+  PLC tags, secure communication (TLS) of recent firmware; extends the Siemens S7 module
 - [ ] **EtherNet/IP (CIP)** *(premium)*: Rockwell / Allen-Bradley controllers
 - [ ] **BACnet/IP** *(premium)*: building automation (HVAC, lighting)
 - [ ] **OPC UA PubSub** *(premium)*: publish / subscribe mode of OPC UA, as an extension of the OPC UA module
