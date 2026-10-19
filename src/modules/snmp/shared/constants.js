@@ -50,13 +50,14 @@ export const MAX_LOG = 500
 export const MAX_TRAPS = 500
 export const MAX_WALK = 5000
 
+/** Utilisateur SNMPv3 par défaut de l'agent et du manager (banc de test : clés connues). */
 export const DEFAULT_USER = {
   name: 'sulfur',
   level: 'authPriv',
-  authProtocol: 'sha',
-  authKey: '',
+  authProtocol: 'sha256',
+  authKey: 'sulfur-auth-key',
   privProtocol: 'aes',
-  privKey: ''
+  privKey: 'sulfur-priv-key'
 }
 
 export const DEFAULT_AGENT_CONFIG = {
@@ -66,7 +67,7 @@ export const DEFAULT_AGENT_CONFIG = {
   readCommunity: 'public',
   writeCommunity: 'private',
   /** Utilisateurs SNMPv3 (accès en lecture et écriture). Les clés sont enregistrées en clair. */
-  users: [],
+  users: [DEFAULT_USER],
   /** Vide : identifiant de moteur SNMPv3 généré au démarrage. */
   engineId: '',
   updateRate: 100,
@@ -127,7 +128,7 @@ export const DEFAULT_AGENT_CONFIG = {
 export const DEFAULT_MANAGER_CONFIG = {
   host: '127.0.0.1',
   port: 1161,
-  version: 'v2c',
+  version: 'v3',
   community: 'public',
   user: DEFAULT_USER,
   timeout: 2000,

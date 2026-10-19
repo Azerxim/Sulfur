@@ -155,7 +155,7 @@ export default {
     language: 'Language',
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',
-    themeHint: 'The dark theme is used by default.',
+    themeHint: 'By default, the theme follows the operating system setting.',
     startPage: 'Startup page',
     startPageHint: 'Page shown when Sulfur starts. Each module also remembers its last tab (server or client).',
     lastPage: 'Last page viewed',
@@ -167,9 +167,9 @@ export default {
       system: 'System'
     },
     themeDescriptions: {
-      dark: 'Dark interface (default)',
+      dark: 'Dark interface',
       light: 'Light interface',
-      system: 'Follows the operating system setting'
+      system: 'Follows the operating system setting (default)'
     },
     configurations: {
       title: 'Configurations',

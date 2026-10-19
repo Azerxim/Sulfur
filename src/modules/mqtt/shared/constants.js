@@ -18,8 +18,8 @@ export const PAYLOAD_FORMATS = ['plain', 'json']
 
 export const QOS_LEVELS = [0, 1, 2]
 
-/** Versions du protocole côté client : 3.1, 3.1.1, 5.0 (libellés : mqtt.versions.*). */
-export const PROTOCOL_VERSIONS = [4, 5, 3]
+/** Versions du protocole côté client : 5.0, 3.1.1, 3.1 (libellés : mqtt.versions.*). */
+export const PROTOCOL_VERSIONS = [5, 4, 3]
 
 /** Suffixe d'écriture : publier sur `<topic>/set` modifie la valeur d'un topic simulé modifiable. */
 export const SET_SUFFIX = '/set'
@@ -88,7 +88,7 @@ export const DEFAULT_CLIENT_CONFIG = {
   tls: false,
   /** TLS : refuser un certificat serveur non reconnu (auto-signé). */
   rejectUnauthorized: false,
-  protocolVersion: 4,
+  protocolVersion: 5,
   /** Vide : identifiant aléatoire. */
   clientId: '',
   username: '',

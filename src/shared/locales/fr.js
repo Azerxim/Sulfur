@@ -156,7 +156,7 @@ export default {
     language: 'Langue',
     languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",
     theme: 'Thème',
-    themeHint: 'Le thème sombre est utilisé par défaut.',
+    themeHint: "Par défaut, le thème suit le réglage du système d'exploitation.",
     startPage: 'Page de démarrage',
     startPageHint:
       'Page affichée au lancement de Sulfur. Chaque module retient aussi son dernier onglet (serveur ou client).',
@@ -169,9 +169,9 @@ export default {
       system: 'Système'
     },
     themeDescriptions: {
-      dark: 'Interface sombre (par défaut)',
+      dark: 'Interface sombre',
       light: 'Interface claire',
-      system: "Suit le réglage du système d'exploitation"
+      system: "Suit le réglage du système d'exploitation (par défaut)"
     },
     configurations: {
       title: 'Configurations',

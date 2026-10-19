@@ -5,7 +5,7 @@
 **English** · [Français](README.fr.md)
 
 Modular simulator application — Electron + React (JavaScript) + TailwindCSS v4.
-English (default) and French interface, dark (default) or light theme.
+English (default) and French interface, light or dark theme (follows the system by default).
 See the [roadmap](ROADMAP.md) for what comes next. License: [Apache-2.0](LICENSE).
 
 ## Getting started
@@ -125,7 +125,7 @@ src/
 
 Language and theme are chosen in **Settings** (remembered, including by the main process so the window
 opens directly in the right theme). The language applies to the interface and to the messages produced
-by the main process (errors, server logs). Defaults: English, dark theme.
+by the main process (errors, server logs). Defaults: English, theme of the operating system.
 
 - Strings are stored per dictionary: `src/shared/locales/` (application) and
   `src/modules/<id>/shared/locales/` (each module, keys prefixed with the module identifier).

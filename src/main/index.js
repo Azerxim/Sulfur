@@ -15,7 +15,7 @@ const host = new ModuleHost()
 function createWindow() {
   // Thème mémorisé appliqué dès l'ouverture : fond de fenêtre et page (via le preload) sans flash.
   const prefs = loadPreferences()
-  const theme = applyNativeTheme(prefs.theme ?? 'dark')
+  const theme = applyNativeTheme(prefs.theme ?? 'system')
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
