@@ -8,7 +8,8 @@ export const THEMES = ['dark', 'light', 'system']
 
 export function loadPreferences() {
   // Par défaut : anglais et thème sombre, ou les préférences connues du process principal.
-  const defaults = { language: DEFAULT_LANGUAGE, theme: 'dark', ...window.sulfur?.initialPreferences }
+  // Page de démarrage : 'last' (dernière page affichée) ou l'identifiant d'un module / d'une page.
+  const defaults = { language: DEFAULT_LANGUAGE, theme: 'dark', startPage: 'last', ...window.sulfur?.initialPreferences }
   try {
     return { ...defaults, ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') }
   } catch {

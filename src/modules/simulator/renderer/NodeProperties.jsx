@@ -26,7 +26,7 @@ function RulesEditor({ rules, onChange }) {
       {rules.map((rule, i) => (
         <div key={i} className="flex items-center gap-1.5">
           <span className="w-4 shrink-0 text-right text-[11px] text-slate-500 tabular-nums">{i + 1}</span>
-          <Select className="w-28 shrink-0" value={rule.op} onChange={(e) => update(i, { op: e.target.value })}>
+          <Select className="w-28! shrink-0 px-2!" value={rule.op} onChange={(e) => update(i, { op: e.target.value })}>
             {SWITCH_OPERATORS.map((op) => (
               <option key={op} value={op}>
                 {t(`simulator.operators.${op}`)}

@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Check, Download, Monitor, Moon, Sun, Upload } from 'lucide-react'
 import { LANGUAGES } from '@shared/languages'
-import { Button, Card, ErrorBanner } from '../components/ui'
+import { Button, Card, ErrorBanner, Select } from '../components/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
-import { THEMES, useI18n, usePreferences } from '../preferences'
+import { rendererModules } from '../modules'
+import { appPages } from '../pages'
+import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences'
 
 const THEME_ICONS = { dark: Moon, light: Sun, system: Monitor }
 
@@ -82,6 +84,7 @@ function ConfigurationsCard() {
 export default function SettingsPage() {
   const { t } = useI18n()
   const { prefs, update } = usePreferences()
+  const text = useManifestText()
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -114,6 +117,31 @@ export default function SettingsPage() {
             />
           ))}
         </div>
+      </Card>
+
+      <Card id="settings.startPage" title={t('settings.startPage')}>
+        <p className="mb-3 text-xs text-slate-500">{t('settings.startPageHint')}</p>
+        <Select
+          className="max-w-sm"
+          value={prefs.startPage}
+          onChange={(e) => update({ startPage: e.target.value })}
+        >
+          <option value="last">{t('settings.lastPage')}</option>
+          <optgroup label={t('settings.modules')}>
+            {rendererModules.map(({ manifest }) => (
+              <option key={manifest.id} value={manifest.id}>
+                {text(manifest).name}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label={t('settings.pages')}>
+            {appPages.map(({ manifest }) => (
+              <option key={manifest.id} value={manifest.id}>
+                {text(manifest).name}
+              </option>
+            ))}
+          </optgroup>
+        </Select>
       </Card>
 
       <ConfigurationsCard />
