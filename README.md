@@ -70,8 +70,8 @@ npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg and dist/Sulfur-<ve
 - The Windows installer lets the user choose the installation folder and creates a desktop shortcut.
   Installers are not code-signed: on macOS, the first launch requires right-click → *Open* (or
   `xattr -cr /Applications/Sulfur.app`).
-- The CI only runs on `v*` version tags: lint, tests, build, then the Windows, Linux and macOS
-  installers, attached to a draft GitHub release:
+- The CI runs lint, tests and build on every pull request. On `v*` version tags, it also builds the
+  Windows, Linux and macOS installers and attaches them to a draft GitHub release:
 
 ```bash
 npm version patch          # bumps package.json and creates the vX.Y.Z tag
