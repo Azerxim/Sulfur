@@ -1,6 +1,6 @@
 # Sulfur
 
-[![CI](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml/badge.svg)](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml)
+[![CI](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml?query=event%3Apush)
 
 [English](README.md) · **Français**
 
