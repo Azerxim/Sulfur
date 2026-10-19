@@ -62,18 +62,19 @@ npm run lint && npm run format:check && npm test && npm run build
 ## Packaging
 
 ```bash
-npm run dist:linux   # AppImage → dist/Sulfur-<version>-x86_64.AppImage
+npm run dist:linux   # AppImage et .deb → dist/Sulfur-<version>-x86_64.AppImage, dist/sulfur_<version>_amd64.deb
 npm run dist:win     # installeur NSIS → dist/Sulfur-Setup-<version>.exe (sous Windows)
+npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg et dist/Sulfur-<version>-arm64.dmg (sous macOS)
 ```
 
 - Configuration dans `electron-builder.yml`. Icône de l'application : `resources/icon.png` (1024 px,
-  Linux et icône de fenêtre) et `resources/icon.ico` (Windows). `resources/` est embarqué avec
+  Linux, icône de fenêtre, convertie en .icns pour macOS) et `resources/icon.ico` (Windows). `resources/` est embarqué avec
   l'application ; `build/` est réservé aux ressources propres au packaging.
 - L'installeur Windows laisse choisir le dossier d'installation et crée un raccourci sur le bureau.
-  Les installeurs ne sont pas signés.
-- La CI produit les deux installeurs sur `main`, sur les tags `v*` et à la demande (*Actions → CI → Run
-  workflow*) ; ils sont téléchargeables dans les artefacts de l'exécution. Sur un tag `v*`, une release
-  GitHub en brouillon est créée avec les installeurs joints :
+  Les installeurs ne sont pas signés : sous macOS, le premier lancement se fait par clic droit →
+  *Ouvrir* (ou `xattr -cr /Applications/Sulfur.app`).
+- La CI ne se lance que sur les tags de version `v*` : lint, tests, build, puis installeurs Windows,
+  Linux et macOS, joints à une release GitHub en brouillon :
 
 ```bash
 npm version patch          # incrémente package.json et crée le tag vX.Y.Z

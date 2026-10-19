@@ -59,18 +59,19 @@ npm run lint && npm run format:check && npm test && npm run build
 ## Packaging
 
 ```bash
-npm run dist:linux   # AppImage → dist/Sulfur-<version>-x86_64.AppImage
+npm run dist:linux   # AppImage and .deb → dist/Sulfur-<version>-x86_64.AppImage, dist/sulfur_<version>_amd64.deb
 npm run dist:win     # NSIS installer → dist/Sulfur-Setup-<version>.exe (on Windows)
+npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg and dist/Sulfur-<version>-arm64.dmg (on macOS)
 ```
 
 - Configuration in `electron-builder.yml`. Application icon: `resources/icon.png` (1024 px, Linux and
-  window icon) and `resources/icon.ico` (Windows). `resources/` is packaged with the application;
+  window icon, converted to .icns for macOS) and `resources/icon.ico` (Windows). `resources/` is packaged with the application;
   `build/` is reserved for packaging-only resources.
 - The Windows installer lets the user choose the installation folder and creates a desktop shortcut.
-  Installers are not code-signed.
-- The CI builds both installers on `main`, on `v*` tags and on manual runs (*Actions → CI → Run
-  workflow*); they are downloadable as artifacts of the run. On a `v*` tag, a draft GitHub release is
-  created with the installers attached:
+  Installers are not code-signed: on macOS, the first launch requires right-click → *Open* (or
+  `xattr -cr /Applications/Sulfur.app`).
+- The CI only runs on `v*` version tags: lint, tests, build, then the Windows, Linux and macOS
+  installers, attached to a draft GitHub release:
 
 ```bash
 npm version patch          # bumps package.json and creates the vX.Y.Z tag

@@ -50,7 +50,7 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
-  electronApp.setAppUserModelId('com.azerxim.sulfur')
+  electronApp.setAppUserModelId('fr.topazdev.sulfur')
   app.on('browser-window-created', (_, window) => optimizer.watchWindowShortcuts(window))
 
   // Langue des messages du process principal dès le démarrage (avant le chargement de l'interface).
