@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MonitorSmartphone, Server } from 'lucide-react'
-import { Tabs } from '@renderer/components/ui'
+import { Tabs, useStoredState } from '@renderer/components/ui'
 import { s7Api } from './api'
 import ServerPanel from './ServerPanel'
 import ClientPanel from './ClientPanel'
@@ -9,7 +9,7 @@ import { t } from '../shared/i18n'
 const dot = (on) => <span className={`size-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-slate-600'}`} />
 
 export default function S7View() {
-  const [tab, setTab] = useState('server')
+  const [tab, setTab] = useStoredState('sulfur:tab:s7', 'server', ['server', 'client'])
   const [serverStatus, setServerStatus] = useState({ running: false, connections: [] })
   const [clientStatus, setClientStatus] = useState({ connected: false, watches: [] })
 

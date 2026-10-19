@@ -86,7 +86,8 @@ export default {
       noSelection: 'Select a node to edit its settings.',
       trigger: 'Trigger',
       output: 'Output {n}',
-      duplicateNode: 'Duplicate the node'
+      duplicateNode: 'Duplicate the node',
+      resize: 'Drag to resize (double-click: default width)'
     },
     debug: {
       currentFlow: 'Displayed flow only',

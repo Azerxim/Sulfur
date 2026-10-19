@@ -21,6 +21,30 @@ export function Button({ variant = 'secondary', size = 'md', className = '', ...
   )
 }
 
+/**
+ * Valeur texte mémorisée localement sous `key` (ex : onglet sélectionné). Une valeur enregistrée
+ * absente de `allowed` est ignorée (sans effet si le stockage est indisponible).
+ */
+export function useStoredState(key, initial, allowed) {
+  const [value, setValue] = useState(() => {
+    try {
+      const saved = localStorage.getItem(key)
+      return saved !== null && (!allowed || allowed.includes(saved)) ? saved : initial
+    } catch {
+      return initial
+    }
+  })
+  const update = (next) => {
+    setValue(next)
+    try {
+      localStorage.setItem(key, next)
+    } catch {
+      // stockage indisponible : la valeur vaut pour la session
+    }
+  }
+  return [value, update]
+}
+
 /** État replié d'une section, mémorisé localement par identifiant (sans effet si le stockage est indisponible). */
 function useCollapsed(id, initial) {
   const key = id && `sulfur:collapsed:${id}`

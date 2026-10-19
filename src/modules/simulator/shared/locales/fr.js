@@ -86,7 +86,8 @@ export default {
       noSelection: 'Sélectionnez un nœud pour modifier ses réglages.',
       trigger: 'Déclencher',
       output: 'Sortie {n}',
-      duplicateNode: 'Dupliquer le nœud'
+      duplicateNode: 'Dupliquer le nœud',
+      resize: 'Tirer pour redimensionner (double-clic : largeur par défaut)'
     },
     debug: {
       currentFlow: 'Flux affiché seulement',

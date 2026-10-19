@@ -119,6 +119,11 @@ export default {
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',
     themeHint: 'The dark theme is used by default.',
+    startPage: 'Startup page',
+    startPageHint: 'Page shown when Sulfur starts. Each module also remembers its last tab (server or client).',
+    lastPage: 'Last page viewed',
+    modules: 'Modules',
+    pages: 'Application',
     themes: {
       dark: 'Dark',
       light: 'Light',
