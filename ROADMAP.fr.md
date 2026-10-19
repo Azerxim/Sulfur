@@ -22,31 +22,31 @@ sans date fixée. Plus un élément est bas dans la liste, moins il est certain 
 
 Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 
-- [x] **Sauvegarde des configurations** : aujourd'hui, les réglages des serveurs et des clients sont
+- [X] **Sauvegarde des configurations** : aujourd'hui, les réglages des serveurs et des clients sont
   perdus à la fermeture. Les enregistrer par module et les restaurer au démarrage.
-- [x] **Import / export** des configurations en JSON, pour partager un banc de test.
-- [x] **Tests automatisés dans le dépôt** : tests OPC UA, Modbus et traductions avec Vitest
+- [X] **Import / export** des configurations en JSON, pour partager un banc de test.
+- [X] **Tests automatisés dans le dépôt** : tests OPC UA, Modbus et traductions avec Vitest
   (`npm test`).
-- [x] **Intégration continue** (GitHub Actions) : build, tests et lint à chaque push.
-- [x] **Lint et formatage** : ESLint + Prettier avec une configuration commune.
-- [x] **Packaging** : icône de l'application, installeurs Windows (NSIS) et Linux (AppImage) produits
+- [X] **Intégration continue** (GitHub Actions) : build, tests et lint à chaque push.
+- [X] **Lint et formatage** : ESLint + Prettier avec une configuration commune.
+- [X] **Packaging** : icône de l'application, installeurs Windows (NSIS) et Linux (AppImage) produits
   par la CI.
 
 ## Fonctions de simulation
 
 Rendre les simulateurs plus utiles pour tester des équipements et logiciels réels.
 
-- [x] **Injection de défauts** : délais de réponse, coupures de connexion, exceptions forcées (Modbus) ou
+- [X] **Injection de défauts** : délais de réponse, coupures de connexion, exceptions forcées (Modbus) ou
   codes d'état d'erreur (OPC UA), pour tester le comportement des clients en cas de problème.
-- [x] **Scénarios** : enchaîner des évolutions de valeurs dans le temps (scriptées ou enregistrées) et
+- [X] **Scénarios** : enchaîner des évolutions de valeurs dans le temps (scriptées ou enregistrées) et
   les rejouer (module Simulateur, comme l'injection de défauts).
-- [x] **Flux de nœuds** à la manière de Node-RED : éditeur graphique, flux déployés qui tournent en
+- [X] **Flux de nœuds** à la manière de Node-RED : éditeur graphique, flux déployés qui tournent en
   continu (déclencheurs, points, rampes, défauts, logique, fonction JavaScript, générateurs,
   débogage) ; remplacent les scénarios, convertis automatiquement.
-- [x] **Courbes et enregistrement** : graphiques des valeurs surveillées, export CSV (module Courbes).
-- [x] **OPC UA** : tableaux et types structurés, méthodes, événements et alarmes, lecture d'historique,
+- [X] **Courbes et enregistrement** : graphiques des valeurs surveillées, export CSV (module Courbes).
+- [X] **OPC UA** : tableaux et types structurés, méthodes, événements et alarmes, lecture d'historique,
   import d'espace d'adressage (NodeSet2 XML).
-- [x] **Modbus** : explorateur de registres côté serveur, plusieurs Unit ID sur un même serveur
+- [X] **Modbus** : explorateur de registres côté serveur, plusieurs Unit ID sur un même serveur
   (simulation de passerelle), identification de l'équipement (fonction 43 / 14), lecture/écriture
   multiple (fonction 23).
 
@@ -57,15 +57,15 @@ restent gratuits et open source dans ce dépôt ; les modules **premium**, marqu
 cette roadmap, seront développés dans un dépôt privé et distribués à part sous licence commerciale.
 Les modules sans marque sont standard.
 
-| Édition | Modules |
-| --- | --- |
-| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Siemens S7, PLCSim Advanced, Simulateur, Courbes |
-| **Premium** (licence commerciale) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
+| Édition                                  | Modules                                                                                                         |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Siemens S7, PLCSim Advanced, Simulateur, Courbes      |
+| **Premium** (licence commerciale)   | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
 
 Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
 premier module premium :
 
-- [x] **Licence** : Apache-2.0 pour l'application et les modules standard, [CLA](CLA.md) des
+- [X] **Licence** : Apache-2.0 pour l'application et les modules standard, [CLA](CLA.md) des
   contributeurs signé à la première pull request (pour que les contributions puissent aussi servir
   dans l'édition premium).
 - [ ] **Manifeste de module** : identifiant, version, édition (`standard` / `premium`), version de
@@ -97,21 +97,21 @@ premier module premium :
 
 Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer des équipements.
 
-- [x] **MQTT** : broker et client, TLS, simulation de topics
+- [X] **MQTT** : broker et client, TLS, simulation de topics
 - [ ] **Sparkplug B** *(premium)* : au-dessus du module MQTT
-- [x] **SNMP** : agent et manager, v1 / v2c / v3 (authentification et chiffrement USM), MIB simulée
+- [X] **SNMP** : agent et manager, v1 / v2c / v3 (authentification et chiffrement USM), MIB simulée
   et traps
-- [x] **Syslog** : serveur et émetteur, UDP / TCP / TLS
-- [x] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
-- [x] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
+- [X] **Syslog** : serveur et émetteur, UDP / TCP / TLS
+- [X] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
+- [X] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
   l'horodatage et la validité des certificats sur les équipements
 
 ## Nouveaux modules : automatismes industriels
 
-- [x] **Siemens S7** (S7comm) : automate simulé (mémoire I / Q / M / DB, points simulés,
+- [X] **Siemens S7** (S7comm) : automate simulé (mémoire I / Q / M / DB, points simulés,
   identification, RUN / STOP) et client (rack / emplacement ou TSAP, lecture / écriture typées,
   surveillance)
-- [x] **Siemens PLCSim Advanced** : piloter des automates virtuels S7-1500 (création et démarrage
+- [X] **Siemens PLCSim Advanced** : piloter des automates virtuels S7-1500 (création et démarrage
   d'instances, lecture / écriture des variables, points publiés pour le simulateur et les courbes).
   Disponible sous Windows uniquement : PLCSim Advanced doit être installé et l'utilisateur indique
   le chemin de ses DLL (API Simulation Runtime) dans les réglages du module.
@@ -151,8 +151,6 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 
 - Les champs numériques utilisent le séparateur décimal du système, quelle que soit la langue de
   l'interface.
-- Au tout premier lancement après avoir choisi le thème clair dans une version antérieure, la fenêtre
-  peut s'ouvrir une fois en sombre.
 - Le code de l'interface est volumineux (≈ 2,1 Mo) et n'a pas encore été optimisé.
 - Le broker MQTT ne gère pas les abonnements partagés (`$share/…`) ni l'authentification étendue de
   MQTT 5.0 (paquet AUTH).

@@ -21,30 +21,30 @@ dates. Items further down are less certain and may change.
 
 Make what exists reliable before adding features.
 
-- [x] **Save configurations**: today, server and client settings are lost when the app closes. Save them
+- [X] **Save configurations**: today, server and client settings are lost when the app closes. Save them
   per module and restore them on start.
-- [x] **Import / export** configurations as JSON files, to share a test setup.
+- [X] **Import / export** configurations as JSON files, to share a test setup.
 - [X] **Automated tests in the repository**: OPC UA, Modbus and translation tests with Vitest
   (`npm test`).
-- [x] **Continuous integration** (GitHub Actions): build, tests and lint on every push.
-- [x] **Lint and formatting**: ESLint + Prettier with a shared configuration.
-- [x] **Packaging**: application icon, Windows (NSIS) and Linux (AppImage) installers produced by the CI.
+- [X] **Continuous integration** (GitHub Actions): build, tests and lint on every push.
+- [X] **Lint and formatting**: ESLint + Prettier with a shared configuration.
+- [X] **Packaging**: application icon, Windows (NSIS) and Linux (AppImage) installers produced by the CI.
 
 ## Simulation features
 
 Make the simulators more useful for testing real equipment and software.
 
-- [x] **Fault injection**: response delays, dropped connections, forced exceptions (Modbus) or bad
+- [X] **Fault injection**: response delays, dropped connections, forced exceptions (Modbus) or bad
   status codes (OPC UA), to test how clients behave when things go wrong.
-- [x] **Scenarios**: chain value changes over time (scripted or recorded) and replay them (Simulator
+- [X] **Scenarios**: chain value changes over time (scripted or recorded) and replay them (Simulator
   module, like fault injection).
-- [x] **Node flows** in the manner of Node-RED: graphical editor, deployed flows running
+- [X] **Node flows** in the manner of Node-RED: graphical editor, deployed flows running
   continuously (triggers, points, ramps, faults, logic, JavaScript function, generators, debug);
   they replace scenarios, which are converted automatically.
-- [x] **Trends and data logging**: charts of monitored values, CSV export (Trends module).
-- [x] **OPC UA**: arrays and structured types, methods, events and alarms, history read, address space
+- [X] **Trends and data logging**: charts of monitored values, CSV export (Trends module).
+- [X] **OPC UA**: arrays and structured types, methods, events and alarms, history read, address space
   import (NodeSet2 XML).
-- [x] **Modbus**: register explorer on the server side, several Unit IDs on one server (gateway
+- [X] **Modbus**: register explorer on the server side, several Unit IDs on one server (gateway
   simulation), device identification (function 43 / 14), read/write multiple registers (function 23).
 
 ## Standard and premium editions
@@ -54,15 +54,15 @@ modules stay free and open source in this repository; **premium** modules, marke
 this roadmap, will be developed in a private repository and distributed separately under a
 commercial license. Unmarked modules are standard.
 
-| Edition | Modules |
-| --- | --- |
-| **Standard** (free, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Siemens S7, PLCSim Advanced, Simulator, Trends |
+| Edition                                | Modules                                                                                                         |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Standard** (free, Apache-2.0)  | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Siemens S7, PLCSim Advanced, Simulator, Trends        |
 | **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
 premium module:
 
-- [x] **License**: Apache-2.0 for the application and the standard modules, contributors'
+- [X] **License**: Apache-2.0 for the application and the standard modules, contributors'
   [CLA](CLA.md) signed on the first pull request (so that contributions can also be used in the
   premium edition).
 - [ ] **Module manifest**: id, version, edition (`standard` / `premium`), required module API
@@ -91,20 +91,20 @@ premium module:
 
 Simpler protocols, quick to deliver, useful to supervise and integrate equipment.
 
-- [x] **MQTT**: broker and client, TLS, topic simulation
+- [X] **MQTT**: broker and client, TLS, topic simulation
 - [ ] **Sparkplug B** *(premium)*: on top of the MQTT module
-- [x] **SNMP**: agent and manager, v1 / v2c / v3 (USM authentication and encryption), simulated MIB
+- [X] **SNMP**: agent and manager, v1 / v2c / v3 (USM authentication and encryption), simulated MIB
   and traps
-- [x] **Syslog**: server and sender, UDP / TCP / TLS
-- [x] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
-- [x] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
+- [X] **Syslog**: server and sender, UDP / TCP / TLS
+- [X] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
+- [X] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
   certificate validity on equipment
 
 ## New modules: industrial automation
 
-- [x] **Siemens S7** (S7comm): simulated PLC (I / Q / M / DB memory, simulated points,
+- [X] **Siemens S7** (S7comm): simulated PLC (I / Q / M / DB memory, simulated points,
   identification, RUN / STOP) and client (rack / slot or TSAP, typed reads / writes, monitoring)
-- [x] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /
+- [X] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /
   write tags, points published for the simulator and trends). Windows only: PLCSim Advanced must be
   installed and the user gives the path to its DLLs (Simulation Runtime API) in the module settings.
 - [ ] **Siemens S7 Enhanced** *(premium)*: S7CommPlus protocol of the S7-1200 / S7-1500 (firmware
@@ -141,8 +141,6 @@ The order within each version will be set according to needs.
 ## Known limitations
 
 - Number fields use the operating system's decimal separator, whatever the interface language.
-- On the very first launch after choosing the light theme in an older version, the window may open
-  dark once.
 - The interface bundle is large (≈ 2.1 MB); it has not been optimized yet.
 - The MQTT broker does not support shared subscriptions (`$share/…`) nor MQTT 5.0 enhanced
   authentication (AUTH packet).
