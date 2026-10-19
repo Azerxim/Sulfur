@@ -10,7 +10,9 @@ export default {
     noModule: 'No module loaded',
     moduleError: 'This page could not be displayed.',
     resetModuleConfig: 'Restore the module default configuration',
-    retry: 'Retry'
+    retry: 'Retry',
+    updateAvailable: 'Update available: v{version}',
+    updateReady: 'Update ready: v{version}'
   },
   ui: {
     expand: 'Expand',
@@ -151,7 +153,7 @@ export default {
   },
   settings: {
     name: 'Settings',
-    description: 'Language, appearance and configurations',
+    description: 'Language, appearance, configurations and updates',
     language: 'Language',
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',
@@ -181,6 +183,26 @@ export default {
       exported: 'Configuration exported to {path}',
       imported: 'Configuration imported from {path}',
       ignored: 'Ignored modules (not available in this version): {modules}'
+    },
+    updates: {
+      title: 'Updates',
+      hint: 'New versions are published as GitHub releases.',
+      autoCheck: 'Check for updates automatically',
+      autoCheckHint: 'At startup, then every 6 hours.',
+      current: 'Installed version: v{version}',
+      unsupported: 'Updates are only available in the installed application.',
+      check: 'Check now',
+      checking: 'Checking for updates…',
+      upToDate: 'Sulfur is up to date (last checked {time}).',
+      available: 'Version {version} is available.',
+      download: 'Download and install',
+      openDownload: 'Open the download page',
+      macHint: 'On macOS, download the new version from its release page and replace the application.',
+      releaseNotes: 'Release notes',
+      downloading: 'Downloading… {progress} %',
+      downloaded: 'Version {version} is ready to install.',
+      downloadedHint: 'Otherwise, it will be installed when Sulfur closes.',
+      install: 'Restart and install'
     }
   }
 }

@@ -74,12 +74,19 @@ npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg et dist/Sulfur-<ver
   Les installeurs ne sont pas signés : sous macOS, le premier lancement se fait par clic droit →
   *Ouvrir* (ou `xattr -cr /Applications/Sulfur.app`).
 - La CI exécute lint, tests et build sur chaque pull request. Sur les tags de version `v*`, elle
-  produit en plus les installeurs Windows, Linux et macOS, joints à une release GitHub en brouillon :
+  produit en plus les installeurs Windows, Linux et macOS, joints à une release GitHub en brouillon avec
+  les fichiers `latest*.yml` utilisés par les mises à jour :
 
 ```bash
 npm version patch          # incrémente package.json et crée le tag vX.Y.Z
 git push --follow-tags
 ```
+
+- Mises à jour (`src/main/updater.js`, electron-updater) : l'application consulte les releases GitHub
+  au démarrage, puis toutes les 6 heures ; désactivable dans *Paramètres → Mises à jour*. Les releases
+  en brouillon sont ignorées : une mise à jour n'est proposée qu'une fois sa release publiée.
+  L'installation est automatique sous Windows, en AppImage et en .deb ; sous macOS (application non
+  signée), la nouvelle version est seulement signalée, avec un lien vers sa release.
 
 ## Architecture
 

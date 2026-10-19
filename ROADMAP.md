@@ -31,6 +31,8 @@ Make what exists reliable before adding features.
 - [X] **Lint and formatting**: ESLint + Prettier with a shared configuration.
 - [X] **Packaging**: application icon, Windows (NSIS), Linux (AppImage, .deb)
   and macOS (DMG) installers produced by the CI.
+- [X] **Updates**: new versions detected from the GitHub releases, downloaded and installed from the
+  settings (Windows, AppImage, .deb; on macOS, link to the release). Automatic check can be turned off.
 
 ## Simulation features
 
@@ -138,7 +140,6 @@ The order within each version will be set according to needs.
     pinning;
   - OPC UA X.509 user tokens.
 - **Interface**: several windows, keyboard shortcuts, accessibility review, more languages.
-- **Updates**: automatic application updates.
 
 ## Known limitations
 

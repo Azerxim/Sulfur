@@ -1,6 +1,6 @@
 {
   "name": "sulfur",
-  "version": "0.3.0-dev",
+  "version": "0.3.0",
   "description": "Sulfur - application de simulation modulaire (Electron + React + TailwindCSS)",
   "main": "./out/main/index.js",
   "desktopName": "sulfur.desktop",
@@ -24,6 +24,7 @@
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
     "@peculiar/x509": "^2.1.0",
+    "electron-updater": "^6.8.9",
     "mqtt": "^5.16.0",
     "mqtt-packet": "^9.0.2",
     "net-snmp": "^3.29.1",
