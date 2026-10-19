@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Circle, Copy, Play, Plus, Rocket, Square, Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, CommitInput } from '@renderer/components/ui'
+import { Button, Card, Checkbox, CommitInput, useStoredState } from '@renderer/components/ui'
 import { getLocale } from '@shared/i18n'
 import { DEBUG_LIMIT, createNode, nodeOutputs, stepsToFlow } from '../shared/flows'
 import { simulatorApi } from './api'
@@ -119,7 +119,7 @@ function useSideWidth(containerRef) {
  */
 export default function FlowsCard({ flows, onChange, faults, points, status, onError }) {
   const { state, setState, statuses, debug, setDebug } = useFlowRuntime()
-  const [currentId, setCurrentId] = useState(flows[0]?.id ?? null)
+  const [currentId, setCurrentId] = useStoredState('sulfur:simulator:flow', flows[0]?.id ?? null)
   const [selectedId, setSelectedId] = useState(null)
   const [side, setSide] = useState('properties')
   const [onlyCurrent, setOnlyCurrent] = useState(false)
@@ -193,11 +193,14 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
       addFlow(stepsToFlow({ name: t('simulator.flows.recordedName', { time }), steps }))
     })
 
-  const selectFromDebug = useCallback((flowId, nodeId) => {
-    setCurrentId(flowId)
-    setSelectedId(nodeId)
-    setSide('properties')
-  }, [])
+  const selectFromDebug = useCallback(
+    (flowId, nodeId) => {
+      setCurrentId(flowId)
+      setSelectedId(nodeId)
+      setSide('properties')
+    },
+    [setCurrentId]
+  )
 
   const stateLabel = dirty
     ? t('simulator.flows.undeployed')
@@ -209,7 +212,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
     <Card
       id="simulator.flows"
       title={t('simulator.flows.title', { count: flows.length })}
-      className="shrink-0"
+      fill
       actions={
         <>
           <span
@@ -249,7 +252,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
         </>
       }
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
         <p className="text-xs text-slate-500">{t('simulator.flows.hint')}</p>
 
         <div className="flex flex-wrap items-center gap-1 border-b border-ink-800">
@@ -350,7 +353,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
 
             <div
               ref={editorRef}
-              className="grid h-[70vh] min-h-[480px] overflow-hidden rounded-md border border-ink-800"
+              className="grid min-h-[480px] flex-1 overflow-hidden rounded-md border border-ink-800"
               style={{ gridTemplateColumns: `minmax(0,1fr) ${sideWidth.width}px` }}
             >
               <FlowEditor

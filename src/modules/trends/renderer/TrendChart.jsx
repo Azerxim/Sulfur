@@ -20,6 +20,9 @@ function chromeColors(el) {
   return { text: style.color, grid: style.borderColor }
 }
 
+/** Hauteur minimale d'un graphique qui occupe la hauteur disponible (`height: 'fill'`). */
+const MIN_FILL_HEIGHT = 240
+
 /**
  * Graphique temporel (uPlot) : un seul axe vertical, réticule et info-bulle listant toutes les
  * courbes, zoom par glisser (qui suspend le suivi), curseur synchronisé entre graphiques (`syncKey`).
@@ -28,6 +31,7 @@ function chromeColors(el) {
  *  - data   : [instants (s), ...valeurs par courbe]
  *  - range  : { min, max } (s) imposé quand le suivi est actif, sinon null
  *  - paused : échelle de temps figée (zoom de l'utilisateur) ; sinon, tout l'enregistrement
+ *  - height : hauteur en px, ou 'fill' pour occuper la hauteur du conteneur (colonne flex)
  */
 export default function TrendChart({ series, data, range, paused, theme, height = 320, syncKey, onZoom, onCursor }) {
   const root = useRef(null)
@@ -39,9 +43,12 @@ export default function TrendChart({ series, data, range, paused, theme, height 
 
   const shape = series.map((s) => `${s.key}:${s.slot}:${s.hidden ? 0 : 1}`).join() + `|${theme}|${height}`
 
+  const fill = height === 'fill'
+
   // (Re)création du graphique quand les courbes, le thème ou la taille changent.
   useLayoutEffect(() => {
     const el = root.current
+    const plotHeight = () => (fill ? Math.max(MIN_FILL_HEIGHT, el.clientHeight) : height)
     const { text, grid } = chromeColors(el)
     const axis = {
       stroke: text,
@@ -53,7 +60,7 @@ export default function TrendChart({ series, data, range, paused, theme, height 
     const u = new uPlot(
       {
         width: el.clientWidth || 600,
-        height,
+        height: plotHeight(),
         legend: { show: false },
         scales: { x: { time: true } },
         cursor: {
@@ -112,7 +119,7 @@ export default function TrendChart({ series, data, range, paused, theme, height 
     )
     chart.current = u
     if (latest.current.range) u.setScale('x', latest.current.range)
-    const observer = new ResizeObserver(() => u.setSize({ width: el.clientWidth, height }))
+    const observer = new ResizeObserver(() => u.setSize({ width: el.clientWidth, height: plotHeight() }))
     observer.observe(el)
     return () => {
       observer.disconnect()
@@ -137,7 +144,11 @@ export default function TrendChart({ series, data, range, paused, theme, height 
 
   const time = tip ? data[0][tip.idx] : null
   return (
-    <div className="relative border-ink-800 text-slate-400" ref={root}>
+    <div
+      className={`relative border-ink-800 text-slate-400 ${fill ? 'min-h-0 flex-1 overflow-hidden' : ''}`}
+      style={fill ? { minHeight: MIN_FILL_HEIGHT } : undefined}
+      ref={root}
+    >
       <div ref={plot} />
       {tip && time !== undefined && (
         <div

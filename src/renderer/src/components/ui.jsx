@@ -1,6 +1,6 @@
 /** Composants d'interface partagés par tous les modules. */
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { t } from '@shared/i18n'
 
@@ -34,14 +34,17 @@ export function useStoredState(key, initial, allowed) {
       return initial
     }
   })
-  const update = (next) => {
-    setValue(next)
-    try {
-      localStorage.setItem(key, next)
-    } catch {
-      // stockage indisponible : la valeur vaut pour la session
-    }
-  }
+  const update = useCallback(
+    (next) => {
+      setValue(next)
+      try {
+        localStorage.setItem(key, next)
+      } catch {
+        // stockage indisponible : la valeur vaut pour la session
+      }
+    },
+    [key]
+  )
   return [value, update]
 }
 
@@ -72,14 +75,27 @@ function useCollapsed(id, initial) {
  * Section à en-tête. Elle peut être repliée par un clic sur l'en-tête (`collapsible`, actif par défaut) ;
  * `id` permet de mémoriser cet état entre deux lancements.
  */
-export function Card({ id, title, actions, className = '', collapsible = true, defaultCollapsed = false, children }) {
+/**
+ * Section titrée, repliable. `fill` : seule section de la page, qui en occupe toute la hauteur (non
+ * repliable, contenu en colonne flex qui défile au besoin).
+ */
+export function Card({
+  id,
+  title,
+  actions,
+  className = '',
+  collapsible = true,
+  defaultCollapsed = false,
+  fill = false,
+  children
+}) {
   const [collapsed, toggle] = useCollapsed(id, defaultCollapsed)
-  const canCollapse = collapsible && !!title
+  const canCollapse = collapsible && !fill && !!title
   const isCollapsed = canCollapse && collapsed
 
   return (
     <section
-      className={`flex min-h-0 flex-col rounded-lg border border-ink-800 bg-ink-900 ${className} ${
+      className={`flex min-h-0 flex-col rounded-lg border border-ink-800 bg-ink-900 ${fill ? 'flex-1' : ''} ${className} ${
         isCollapsed ? 'h-fit min-h-0! flex-none!' : ''
       }`}
     >
@@ -112,7 +128,9 @@ export function Card({ id, title, actions, className = '', collapsible = true, d
           </div>
         </div>
       )}
-      {!isCollapsed && <div className="min-h-0 flex-1 p-4">{children}</div>}
+      {!isCollapsed && (
+        <div className={`min-h-0 flex-1 p-4 ${fill ? 'flex flex-col overflow-auto' : ''}`}>{children}</div>
+      )}
     </section>
   )
 }

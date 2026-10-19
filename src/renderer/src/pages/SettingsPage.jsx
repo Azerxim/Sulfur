@@ -121,11 +121,7 @@ export default function SettingsPage() {
 
       <Card id="settings.startPage" title={t('settings.startPage')}>
         <p className="mb-3 text-xs text-slate-500">{t('settings.startPageHint')}</p>
-        <Select
-          className="max-w-sm"
-          value={prefs.startPage}
-          onChange={(e) => update({ startPage: e.target.value })}
-        >
+        <Select className="max-w-sm" value={prefs.startPage} onChange={(e) => update({ startPage: e.target.value })}>
           <option value="last">{t('settings.lastPage')}</option>
           <optgroup label={t('settings.modules')}>
             {rendererModules.map(({ manifest }) => (
