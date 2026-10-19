@@ -366,10 +366,11 @@ process: no native module to compile. The API folder is detected automatically (
   sine, ramp, random or toggle generator), writable by SetRequest if declared so. Get, GetNext,
   GetBulk and Set requests, request log.
 - **Notifications**: the agent sends a notification (chosen OID, chosen objects attached) to
-  destinations in SNMPv1 (trap), SNMPv2c (trap or acknowledged inform).
+  destinations in SNMPv1 (trap), SNMPv2c or SNMPv3 (trap or acknowledged inform); an SNMPv3
+  notification uses one of the agent users and the agent engine ID.
 - **Manager**: Get, GetNext, GetBulk, Walk and Set requests in v1, v2c or v3 (several OIDs at once,
   typed values for Set); monitored OIDs read periodically; **notification receiver** (default port
-  1162; all communities accepted, SNMPv3 with the manager user) with the list of received traps
+  1162; all communities accepted, SNMPv3 traps and informs with the manager user) with the list of received traps
   and informs.
 - Points for the simulator and trends: simulated objects (writable), request count, notifications
   sent (writing sends the notification); monitored OIDs (writable: sends a SetRequest with the type of

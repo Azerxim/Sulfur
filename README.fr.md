@@ -381,10 +381,11 @@ automatiquement (version la plus récente dans
   ou bascule), modifiables par SetRequest s'ils sont déclarés en écriture. Requêtes Get, GetNext,
   GetBulk et Set, journal des requêtes.
 - **Notifications** : l'agent envoie une notification (OID choisi, objets choisis joints) à des
-  destinataires en SNMPv1 (trap) ou SNMPv2c (trap ou inform acquitté).
+  destinataires en SNMPv1 (trap), SNMPv2c ou SNMPv3 (trap ou inform acquitté) ; une notification
+  SNMPv3 utilise l'un des utilisateurs de l'agent et l'identifiant de moteur de l'agent.
 - **Manager** : requêtes Get, GetNext, GetBulk, Walk et Set en v1, v2c ou v3 (plusieurs OID à la
   fois, valeurs typées pour Set) ; OID surveillés lus périodiquement ; **récepteur de
-  notifications** (port par défaut 1162 ; toutes les communautés acceptées, SNMPv3 avec
+  notifications** (port par défaut 1162 ; toutes les communautés acceptées, traps et informs SNMPv3 avec
   l'utilisateur du manager) avec la liste des traps et informs reçus.
 - Points pour le simulateur et les courbes : objets simulés (modifiables), nombre de requêtes,
   notifications envoyées (l'écrire envoie la notification) ; OID surveillés (modifiables : envoie un

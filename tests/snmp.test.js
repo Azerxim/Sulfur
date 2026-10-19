@@ -181,7 +181,7 @@ describe('Agent et manager', () => {
     expect(points.read(['client:m1'])['client:m1']).toBe(33)
   })
 
-  it('notifications v2c, inform et v1 reçues par le récepteur', async () => {
+  it('notifications v1, v2c et v3 (traps et informs) reçues par le récepteur', async () => {
     const trapPort = await freeUdpPort()
     await start({
       traps: {
@@ -190,20 +190,27 @@ describe('Agent et manager', () => {
         targets: [
           { id: 'a', host: '127.0.0.1', port: trapPort, version: 'v2c', community: 'public', inform: false },
           { id: 'b', host: '127.0.0.1', port: trapPort, version: 'v2c', community: 'public', inform: true },
-          { id: 'c', host: '127.0.0.1', port: trapPort, version: 'v1', community: 'public', inform: false }
+          { id: 'c', host: '127.0.0.1', port: trapPort, version: 'v1', community: 'public', inform: false },
+          { id: 'd', host: '127.0.0.1', port: trapPort, version: 'v3', user: 'admin', inform: false },
+          { id: 'e', host: '127.0.0.1', port: trapPort, version: 'v3', user: 'admin', inform: true },
+          { id: 'f', host: '127.0.0.1', port: trapPort, version: 'v3', user: 'nobody', inform: false }
         ]
       }
     })
-    await manager.startReceiver({ receiver: { host: '127.0.0.1', port: trapPort } })
+    await manager.startReceiver({ receiver: { host: '127.0.0.1', port: trapPort }, user: USER })
     const results = await agent.sendTrap()
-    expect(results.every((r) => r.ok)).toBe(true)
-    for (let i = 0; i < 50 && manager.traps.length < 3; i++) await sleep(20)
+    expect(results.map((r) => r.ok)).toEqual([true, true, true, true, true, false])
+    expect(results[5].error).toMatch(/nobody/)
+    for (let i = 0; i < 50 && manager.traps.length < 5; i++) await sleep(20)
     const byType = manager.traps.map((n) => `${n.version}/${n.type}`).sort()
-    expect(byType).toEqual(['v1/trap', 'v2c/inform', 'v2c/trap'])
+    expect(byType).toEqual(['v1/trap', 'v2c/inform', 'v2c/trap', 'v3/inform', 'v3/trap'])
+    const v3 = manager.traps.find((n) => n.version === 'v3' && n.type === 'trap')
+    expect(v3).toMatchObject({ user: 'admin', trapOid: `${BASE}.0.1` })
+    expect(v3.varbinds).toEqual([{ oid: `${BASE}.1.0`, type: 'Integer', value: 21 }])
     const v2 = manager.traps.find((n) => n.version === 'v2c')
     expect(v2.trapOid).toBe(`${BASE}.0.1`)
     expect(v2.varbinds).toEqual([{ oid: `${BASE}.1.0`, type: 'Integer', value: 21 }])
-    expect(agent.status().trapsSent).toBe(3)
+    expect(agent.status().trapsSent).toBe(5)
   })
 
   it('port occupé et configuration invalide', async () => {

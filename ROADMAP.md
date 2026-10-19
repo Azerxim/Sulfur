@@ -146,4 +146,3 @@ The order within each version will be set according to needs.
 - The interface bundle is large (≈ 2.1 MB); it has not been optimized yet.
 - The MQTT broker does not support shared subscriptions (`$share/…`) nor MQTT 5.0 enhanced
   authentication (AUTH packet).
-- The SNMP agent sends its notifications in SNMPv1 and SNMPv2c only (no SNMPv3 notifications).

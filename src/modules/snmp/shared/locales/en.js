@@ -73,13 +73,14 @@ export default {
       port: 'Port',
       version: 'Version',
       community: 'Community',
+      user: 'SNMPv3 user of the agent',
       inform: 'Inform',
-      informHint: 'Acknowledged notification (SNMPv2c): the destination must answer',
+      informHint: 'Acknowledged notification (SNMPv2c / v3): the destination must answer',
       send: 'Send the notification',
       sent: 'Sent to {destination}',
       failed: '{destination}: {error}',
       noTarget: 'No destination.',
-      hint: 'SNMPv1 traps are enterprise-specific traps; SNMPv2c notifications carry sysUpTime and snmpTrapOID. Writing the “traps sent” point of a flow sends the notification.'
+      hint: 'SNMPv1 traps are enterprise-specific traps; SNMPv2c and v3 notifications carry sysUpTime and snmpTrapOID. SNMPv3 notifications use a user of the agent and its engine ID. Writing the “traps sent” point of a flow sends the notification.'
     },
     log: {
       title: 'Requests ({count})',
@@ -166,6 +167,7 @@ export default {
       invalidIp: 'Invalid IPv4 address: {value}',
       outOfRange: 'Value out of range for this type: {value}',
       unknownObject: 'Unknown simulated object',
+      unknownTrapUser: 'SNMPv3 notification: unknown agent user “{name}”',
       noTarget: 'Add a destination for the notification',
       invalidTarget: 'Invalid notification destination',
       missingHost: 'Enter the agent to query',

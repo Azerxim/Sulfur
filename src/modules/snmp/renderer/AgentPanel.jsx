@@ -133,7 +133,7 @@ function SystemCard({ system, locked, onChange }) {
   )
 }
 
-function TrapsCard({ traps, objects, status, running, onChange, onError }) {
+function TrapsCard({ traps, objects, users, status, running, onChange, onError }) {
   const [results, setResults] = useState(null)
   const [sending, setSending] = useState(false)
   const set = (patch) => onChange({ ...traps, ...patch })
@@ -196,8 +196,9 @@ function TrapsCard({ traps, objects, status, running, onChange, onError }) {
                       id: crypto.randomUUID(),
                       host: '127.0.0.1',
                       port: 1162,
-                      version: 'v2c',
+                      version: 'v3',
                       community: 'public',
+                      user: users[0]?.name ?? '',
                       inform: false
                     }
                   ]
@@ -227,18 +228,34 @@ function TrapsCard({ traps, objects, status, running, onChange, onError }) {
                   title={t('snmp.traps.version')}
                   onChange={(e) => setTarget(tg.id, { version: e.target.value })}
                 >
-                  {VERSIONS.filter((v) => v !== 'v3').map((v) => (
+                  {VERSIONS.map((v) => (
                     <option key={v} value={v}>
                       {t(`snmp.versions.${v}`)}
                     </option>
                   ))}
                 </Select>
-                <Input
-                  placeholder={t('snmp.traps.community')}
-                  title={t('snmp.traps.community')}
-                  value={tg.community}
-                  onChange={(e) => setTarget(tg.id, { community: e.target.value })}
-                />
+                {tg.version === 'v3' ? (
+                  <Select
+                    value={tg.user ?? ''}
+                    title={t('snmp.traps.user')}
+                    className={users.some((u) => u.name === tg.user) ? '' : 'border-red-500/60'}
+                    onChange={(e) => setTarget(tg.id, { user: e.target.value })}
+                  >
+                    {!users.some((u) => u.name === tg.user) && <option value={tg.user ?? ''}>{tg.user || '—'}</option>}
+                    {users.map((u) => (
+                      <option key={u.name} value={u.name}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </Select>
+                ) : (
+                  <Input
+                    placeholder={t('snmp.traps.community')}
+                    title={t('snmp.traps.community')}
+                    value={tg.community}
+                    onChange={(e) => setTarget(tg.id, { community: e.target.value })}
+                  />
+                )}
                 <span title={t('snmp.traps.informHint')}>
                   <Checkbox
                     label={t('snmp.traps.inform')}
@@ -687,6 +704,7 @@ export default function AgentPanel({ status }) {
       <TrapsCard
         traps={traps}
         objects={config.objects}
+        users={config.users ?? []}
         status={status}
         running={running}
         onChange={setTraps}

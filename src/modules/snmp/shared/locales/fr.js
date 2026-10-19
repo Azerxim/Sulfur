@@ -73,13 +73,14 @@ export default {
       port: 'Port',
       version: 'Version',
       community: 'Communauté',
+      user: "Utilisateur SNMPv3 de l'agent",
       inform: 'Inform',
-      informHint: 'Notification acquittée (SNMPv2c) : le destinataire doit répondre',
+      informHint: 'Notification acquittée (SNMPv2c / v3) : le destinataire doit répondre',
       send: 'Envoyer la notification',
       sent: 'Envoyée à {destination}',
       failed: '{destination} : {error}',
       noTarget: 'Aucun destinataire.',
-      hint: 'Les traps SNMPv1 sont des traps spécifiques à l’entreprise ; les notifications SNMPv2c portent sysUpTime et snmpTrapOID. Écrire le point « traps sent » depuis un flux envoie la notification.'
+      hint: 'Les traps SNMPv1 sont des traps spécifiques à l’entreprise ; les notifications SNMPv2c et v3 portent sysUpTime et snmpTrapOID. Les notifications SNMPv3 utilisent un utilisateur de l’agent et son identifiant de moteur. Écrire le point « traps sent » depuis un flux envoie la notification.'
     },
     log: {
       title: 'Requêtes ({count})',
@@ -166,6 +167,7 @@ export default {
       invalidIp: 'Adresse IPv4 invalide : {value}',
       outOfRange: 'Valeur hors limites pour ce type : {value}',
       unknownObject: 'Objet simulé inconnu',
+      unknownTrapUser: "Notification SNMPv3 : utilisateur de l'agent « {name} » inconnu",
       noTarget: 'Ajoutez un destinataire à la notification',
       invalidTarget: 'Destinataire de notification invalide',
       missingHost: "Indiquez l'agent à interroger",

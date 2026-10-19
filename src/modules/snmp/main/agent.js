@@ -466,7 +466,13 @@ export class SnmpAgent {
         try {
           await this.notify(target, oid, varbinds)
           this.trapsSent++
-          this.log({ level: 'info', operation: target.inform ? 'inform' : 'trap', address: destination, oids: [oid] })
+          this.log({
+            level: 'info',
+            operation: target.inform && target.version !== 'v1' ? 'inform' : 'trap',
+            version: target.version,
+            address: destination,
+            oids: [oid]
+          })
           return { destination, ok: true }
         } catch (err) {
           this.log({ level: 'error', operation: 'trap', address: destination, message: err.message })
@@ -483,13 +489,24 @@ export class SnmpAgent {
     if (!String(target.host ?? '').trim() || !Number.isInteger(port) || port < 1 || port > 65535) {
       return Promise.reject(new Error(t('snmp.errors.invalidTarget')))
     }
-    const session = snmp.createSession(target.host.trim(), target.community || 'public', {
-      trapPort: port,
-      port,
-      version: target.version === 'v1' ? snmp.Version1 : snmp.Version2c,
-      timeout: 2000,
-      retries: 1
-    })
+    const options = { trapPort: port, port, timeout: 2000, retries: 1 }
+    let session
+    if (target.version === 'v3') {
+      // Utilisateur de l'agent ; les notifications portent l'identifiant de moteur de l'agent.
+      const users = this.config.users ?? []
+      const user = target.user ? users.find((u) => u.name === target.user) : users[0]
+      if (!user) return Promise.reject(new Error(t('snmp.errors.unknownTrapUser', { name: target.user ?? '' })))
+      session = snmp.createV3Session(target.host.trim(), snmpUser(user), {
+        ...options,
+        version: snmp.Version3,
+        engineID: this.agent.engine.engineID.toString('hex')
+      })
+    } else {
+      session = snmp.createSession(target.host.trim(), target.community || 'public', {
+        ...options,
+        version: target.version === 'v1' ? snmp.Version1 : snmp.Version2c
+      })
+    }
     session.on('error', () => {})
     return new Promise((resolve, reject) => {
       const done = (err) => {

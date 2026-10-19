@@ -242,7 +242,8 @@ export class SnmpManager {
       if (err.code === 'EADDRINUSE') throw new Error(t('snmp.errors.portInUse', { port }), { cause: err })
       throw err
     }
-    if (input?.version === 'v3') {
+    // Utilisateur SNMPv3 du manager, quelle que soit la version de ses requêtes.
+    if (input?.user) {
       try {
         receiver.getAuthorizer().addUser(snmpUser({ ...DEFAULT_MANAGER_CONFIG.user, ...input.user }))
       } catch {
@@ -276,7 +277,7 @@ export class SnmpManager {
       time: new Date().toISOString(),
       address: rinfo.address.replace(/^::ffff:/, ''),
       type: NOTIFICATION_NAMES[pdu.type] ?? String(pdu.type),
-      version: pdu.type === snmp.PduType.Trap ? 'v1' : pdu.scoped ? 'v3' : 'v2c',
+      version: pdu.type === snmp.PduType.Trap ? 'v1' : pdu.user ? 'v3' : 'v2c',
       community: pdu.community ?? rinfo.community ?? '',
       user: pdu.user ?? '',
       trapOid,

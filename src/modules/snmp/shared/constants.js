@@ -121,7 +121,10 @@ export const DEFAULT_AGENT_CONFIG = {
     oid: `${ENTERPRISE_OID}.0.1`,
     /** Objets joints à la notification (identifiants). */
     objects: ['temperature'],
-    targets: [{ id: 'local', host: '127.0.0.1', port: 1162, version: 'v2c', community: 'public', inform: false }]
+    /** `user` : utilisateur de l'agent pour une notification SNMPv3. */
+    targets: [
+      { id: 'local', host: '127.0.0.1', port: 1162, version: 'v3', community: 'public', user: 'sulfur', inform: false }
+    ]
   }
 }
 
