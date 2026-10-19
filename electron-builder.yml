@@ -30,6 +30,6 @@ linux:
   icon: resources/icon.png
   category: Development
   syncDesktopName: true
-  synopsis: Modular industrial protocol simulator (OPC UA, Modbus TCP, S7, HTTP, NTP)
+  synopsis: Modular industrial protocol simulator (OPC UA, Modbus TCP, S7, MQTT, SNMP, HTTP, NTP, Syslog)
 appImage:
   artifactName: ${productName}-${version}-${arch}.${ext}

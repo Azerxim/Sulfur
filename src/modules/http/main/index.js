@@ -4,7 +4,7 @@ import { HTTP_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { HttpServer, SERVER_COMMON_NAME } from './server'
 import { HttpClient } from './client'
-import { ensureCertificate } from './certificate'
+import { ensureCertificate } from '@shared/certificate'
 import { createPointsApi } from './points'
 
 let server = null

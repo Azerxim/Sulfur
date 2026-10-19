@@ -23,6 +23,9 @@
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
     "@peculiar/x509": "^2.1.0",
+    "aedes": "^1.2.0",
+    "mqtt": "^5.16.0",
+    "net-snmp": "^3.29.1",
     "node-opcua": "^2.186.17",
     "node-opcua-crypto": "^6.1.4",
     "reflect-metadata": "^0.2.2"

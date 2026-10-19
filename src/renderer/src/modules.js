@@ -4,8 +4,11 @@ import http from '@modules/http/renderer'
 import ntp from '@modules/ntp/renderer'
 import s7 from '@modules/s7/renderer'
 import plcsim from '@modules/plcsim/renderer'
+import mqtt from '@modules/mqtt/renderer'
+import snmp from '@modules/snmp/renderer'
+import syslog from '@modules/syslog/renderer'
 import simulator from '@modules/simulator/renderer'
 import trends from '@modules/trends/renderer'
 
 /** Modules affichés dans l'interface. Ajouter les nouveaux modules ici. */
-export const rendererModules = [opcua, modbus, http, ntp, s7, plcsim, simulator, trends]
+export const rendererModules = [opcua, modbus, http, ntp, s7, plcsim, mqtt, snmp, syslog, simulator, trends]

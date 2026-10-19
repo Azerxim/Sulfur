@@ -24,7 +24,7 @@ npm run format     # mise en forme (Prettier)
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
 (sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP
-et Modbus/TCP Security, HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+et Modbus/TCP Security, HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -102,6 +102,7 @@ src/
 │       └── modules.js    # ← liste des modules "renderer"
 ├── shared/               # Code commun main/renderer (i18n, langues, simulateur…)
 │   ├── points.js         # Points de données partagés entre modules (contrat)
+│   ├── certificate.js    # Certificats TLS auto-signés des serveurs (process principal)
 │   └── locales/          # Textes communs (fr.js, en.js)
 └── modules/              # Modules de simulation
     ├── opcua/
@@ -116,6 +117,9 @@ src/
     ├── ntp/              # Serveur de temps à horloge simulée + client NTP
     ├── s7/               # Automate S7 simulé (S7comm) + client S7
     ├── plcsim/           # Automates virtuels S7-PLCSIM Advanced (Windows, pont PowerShell vers l'API)
+    ├── mqtt/             # Broker MQTT (topics simulés) + client MQTT
+    ├── snmp/             # Agent SNMP (MIB simulée, notifications) + manager et récepteur de traps
+    ├── syslog/           # Serveur Syslog (UDP / TCP / TLS) + émetteur de messages
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     └── trends/           # Courbes, enregistrement et export CSV (idem)
 ```
@@ -340,6 +344,69 @@ automatiquement (version la plus récente dans
   pour simuler le procédé. Les variables surveillées sont conservées au redémarrage.
 - Test sur l'API réelle : `SULFUR_PLCSIM_LIVE=1 npm test` (crée, met sous tension puis supprime une
   instance de test).
+
+## Module MQTT
+
+- **Broker** (aedes, MQTT 3.1 / 3.1.1, port par défaut 1883 ; TLS sur 8883 avec un certificat
+  auto-signé `MQTT@Sulfur` généré au premier démarrage) : **topics simulés** publiés par le broker
+  lui-même (valeur nombre, entier, booléen ou texte ; générateur sinus, rampe, aléatoire ou
+  bascule), périodiquement ou à chaque changement, en valeur seule ou en JSON
+  `{"value": …, "timestamp": …}`, avec QoS et indicateur « retenu » choisis. Un topic modifiable
+  accepte une nouvelle valeur publiée sur `<topic>/set`. Authentification facultative (utilisateurs
+  avec mots de passe hachés ; les connexions anonymes peuvent être refusées). Liste des clients
+  connectés et de leurs abonnements, explorateur de topics (dernier contenu de chaque topic), journal
+  des messages avec filtre de topic (jokers `+` et `#`) et événements de connexion.
+- **Client** (mqtt.js, MQTT 3.1, 3.1.1 ou 5.0, TCP ou TLS) : identifiant, utilisateur, session
+  propre, keep alive, reconnexion automatique, message de dernière volonté ; abonnements avec QoS et
+  champ JSON facultatif (`value`, `data.temp`…) dont la dernière valeur est affichée ; publication
+  (topic, contenu, QoS, retenu) ; journal des messages reçus.
+- Points pour le simulateur et les courbes : topics simulés (modifiables : publie la nouvelle
+  valeur), nombres de clients et de messages du broker ; dernière valeur de chaque abonnement du
+  client (un abonnement sans joker est modifiable : la valeur est publiée sur son topic).
+- Défauts du simulateur : délai (publications reçues), absence de réponse (CONNECT sans réponse,
+  messages plus distribués), coupure (clients déconnectés et refusés), valeurs figées.
+
+## Module SNMP
+
+- **Agent** (net-snmp, UDP, port par défaut 1161 ; le port standard 161 demande des droits
+  administrateur sous Linux) : SNMPv1, v2c et v3. Communauté en lecture et communauté en lecture /
+  écriture, utilisateurs SNMPv3 (USM : authentification MD5 ou SHA-1 / SHA-2, chiffrement DES ou
+  AES), identifiant de moteur choisi ou généré. Groupe système de la MIB-II (sysDescr, sysObjectID,
+  sysUpTime, sysContact, sysName, sysLocation, sysServices) et **objets simulés** (Integer,
+  Counter32, Gauge32, TimeTicks, OctetString, IpAddress, OID ; générateur sinus, rampe, aléatoire
+  ou bascule), modifiables par SetRequest s'ils sont déclarés en écriture. Requêtes Get, GetNext,
+  GetBulk et Set, journal des requêtes.
+- **Notifications** : l'agent envoie une notification (OID choisi, objets choisis joints) à des
+  destinataires en SNMPv1 (trap) ou SNMPv2c (trap ou inform acquitté).
+- **Manager** : requêtes Get, GetNext, GetBulk, Walk et Set en v1, v2c ou v3 (plusieurs OID à la
+  fois, valeurs typées pour Set) ; OID surveillés lus périodiquement ; **récepteur de
+  notifications** (port par défaut 1162 ; toutes les communautés acceptées, SNMPv3 avec
+  l'utilisateur du manager) avec la liste des traps et informs reçus.
+- Points pour le simulateur et les courbes : objets simulés (modifiables), nombre de requêtes,
+  notifications envoyées (l'écrire envoie la notification) ; OID surveillés (modifiables : envoie un
+  SetRequest avec le type de la dernière lecture), notifications reçues.
+- Défauts du simulateur : délai, absence de réponse, erreur forcée (genErr, tooBig, noSuchName,
+  badValue, noAccess, resourceUnavailable, authorizationError — sur toutes les requêtes, les
+  lectures ou les écritures), valeurs figées.
+
+## Module Syslog
+
+- **Serveur** : reçoit les messages Syslog en UDP et TCP (port par défaut 1514 ; le port standard
+  514 demande des droits administrateur sous Linux) et TLS (port 6514, certificat auto-signé
+  `Syslog@Sulfur`). En TCP / TLS, chaque message est lu selon sa propre délimitation (RFC 6587) :
+  longueur en tête (octet counting) ou fin de ligne. Les messages sont analysés au format RFC 5424
+  (horodatage, hôte, application, processus, identifiant, données structurées) ou RFC 3164 (BSD),
+  en texte libre sinon ; les 2 000 derniers sont conservés. Compteurs par gravité, filtre par gravité
+  minimale et par texte, détail de chaque message (données structurées, message brut), pause de
+  l'affichage.
+- **Émetteur** : messages au format RFC 5424 ou RFC 3164 en UDP, TCP (longueur en tête ou fin de
+  ligne) ou TLS ; facilité, gravité, nom d'hôte, application, processus, identifiant, données
+  structurées ; texte avec `{n}` (numéro du message) et `{time}` ; rafale de plusieurs messages par
+  envoi, envoi périodique, aperçu du message brut, historique.
+- Points pour le simulateur et les courbes : nombre de messages, erreurs (gravité ≤ 3), dernière
+  gravité et dernier message reçus, connexions ouvertes ; messages envoyés, et un point
+  `send message` : écrire un texte envoie un message avec les réglages de l'émetteur.
+- Défaut du simulateur : coupure (connexions TCP / TLS fermées et refusées).
 
 ## Module Simulateur
 

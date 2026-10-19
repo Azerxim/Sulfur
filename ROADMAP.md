@@ -56,7 +56,7 @@ commercial license. Unmarked modules are standard.
 
 | Edition | Modules |
 | --- | --- |
-| **Standard** (free, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, Siemens S7, PLCSim Advanced, Simulator, Trends, then MQTT, SNMP, Syslog |
+| **Standard** (free, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Siemens S7, PLCSim Advanced, Simulator, Trends |
 | **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
@@ -91,11 +91,11 @@ premium module:
 
 Simpler protocols, quick to deliver, useful to supervise and integrate equipment.
 
-- [ ] **MQTT**: broker and client, TLS, topic simulation
+- [x] **MQTT**: broker and client, TLS, topic simulation
 - [ ] **Sparkplug B** *(premium)*: on top of the MQTT module
-- [ ] **SNMP**: agent and manager, v1 / v2c / v3 (USM authentication and encryption), simulated MIB
+- [x] **SNMP**: agent and manager, v1 / v2c / v3 (USM authentication and encryption), simulated MIB
   and traps
-- [ ] **Syslog**: server and sender, UDP / TCP / TLS
+- [x] **Syslog**: server and sender, UDP / TCP / TLS
 - [x] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
 - [x] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
   certificate validity on equipment
@@ -143,4 +143,7 @@ The order within each version will be set according to needs.
 - Number fields use the operating system's decimal separator, whatever the interface language.
 - On the very first launch after choosing the light theme in an older version, the window may open
   dark once.
-- The interface bundle is large (≈ 1.9 MB); it has not been optimized yet.
+- The interface bundle is large (≈ 2.1 MB); it has not been optimized yet.
+- The MQTT broker accepts MQTT 3.1 and 3.1.1 clients only (MQTT 5.0 is not supported by aedes); the
+  MQTT client supports 5.0.
+- The SNMP agent sends its notifications in SNMPv1 and SNMPv2c only (no SNMPv3 notifications).

@@ -59,7 +59,7 @@ Les modules sans marque sont standard.
 
 | Édition | Modules |
 | --- | --- |
-| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, Siemens S7, PLCSim Advanced, Simulateur, Courbes, puis MQTT, SNMP, Syslog |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Siemens S7, PLCSim Advanced, Simulateur, Courbes |
 | **Premium** (licence commerciale) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
 
 Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
@@ -97,11 +97,11 @@ premier module premium :
 
 Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer des équipements.
 
-- [ ] **MQTT** : broker et client, TLS, simulation de topics
+- [x] **MQTT** : broker et client, TLS, simulation de topics
 - [ ] **Sparkplug B** *(premium)* : au-dessus du module MQTT
-- [ ] **SNMP** : agent et manager, v1 / v2c / v3 (authentification et chiffrement USM), MIB simulée
+- [x] **SNMP** : agent et manager, v1 / v2c / v3 (authentification et chiffrement USM), MIB simulée
   et traps
-- [ ] **Syslog** : serveur et émetteur, UDP / TCP / TLS
+- [x] **Syslog** : serveur et émetteur, UDP / TCP / TLS
 - [x] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
 - [x] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
   l'horodatage et la validité des certificats sur les équipements
@@ -153,4 +153,7 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
   l'interface.
 - Au tout premier lancement après avoir choisi le thème clair dans une version antérieure, la fenêtre
   peut s'ouvrir une fois en sombre.
-- Le code de l'interface est volumineux (≈ 1,9 Mo) et n'a pas encore été optimisé.
+- Le code de l'interface est volumineux (≈ 2,1 Mo) et n'a pas encore été optimisé.
+- Le broker MQTT n'accepte que les clients MQTT 3.1 et 3.1.1 (MQTT 5.0 n'est pas pris en charge par
+  aedes) ; le client MQTT prend en charge la 5.0.
+- L'agent SNMP envoie ses notifications en SNMPv1 et SNMPv2c uniquement (pas de notification SNMPv3).

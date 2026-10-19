@@ -18,14 +18,46 @@ import s7En from '@modules/s7/shared/locales/en'
 import s7Fr from '@modules/s7/shared/locales/fr'
 import plcsimEn from '@modules/plcsim/shared/locales/en'
 import plcsimFr from '@modules/plcsim/shared/locales/fr'
+import mqttEn from '@modules/mqtt/shared/locales/en'
+import mqttFr from '@modules/mqtt/shared/locales/fr'
+import snmpEn from '@modules/snmp/shared/locales/en'
+import snmpFr from '@modules/snmp/shared/locales/fr'
+import syslogEn from '@modules/syslog/shared/locales/en'
+import syslogFr from '@modules/syslog/shared/locales/fr'
 import simulatorEn from '@modules/simulator/shared/locales/en'
 import simulatorFr from '@modules/simulator/shared/locales/fr'
 import trendsEn from '@modules/trends/shared/locales/en'
 import trendsFr from '@modules/trends/shared/locales/fr'
 
 const dictionaries = {
-  en: { ...coreEn, ...opcuaEn, ...modbusEn, ...httpEn, ...ntpEn, ...s7En, ...plcsimEn, ...simulatorEn, ...trendsEn },
-  fr: { ...coreFr, ...opcuaFr, ...modbusFr, ...httpFr, ...ntpFr, ...s7Fr, ...plcsimFr, ...simulatorFr, ...trendsFr }
+  en: {
+    ...coreEn,
+    ...opcuaEn,
+    ...modbusEn,
+    ...httpEn,
+    ...ntpEn,
+    ...s7En,
+    ...plcsimEn,
+    ...mqttEn,
+    ...snmpEn,
+    ...syslogEn,
+    ...simulatorEn,
+    ...trendsEn
+  },
+  fr: {
+    ...coreFr,
+    ...opcuaFr,
+    ...modbusFr,
+    ...httpFr,
+    ...ntpFr,
+    ...s7Fr,
+    ...plcsimFr,
+    ...mqttFr,
+    ...snmpFr,
+    ...syslogFr,
+    ...simulatorFr,
+    ...trendsFr
+  }
 }
 
 const flatten = (obj, prefix = '') =>
