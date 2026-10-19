@@ -66,7 +66,8 @@ npm run dist:mac     # DMG → dist/Sulfur-<version>-x64.dmg and dist/Sulfur-<ve
 
 - Configuration in `electron-builder.yml`. Application icon: `resources/icon.png` (1024 px, Linux and
   window icon, converted to .icns for macOS) and `resources/icon.ico` (Windows). `resources/` is packaged with the application;
-  `build/` is reserved for packaging-only resources.
+  `build/` is reserved for packaging-only resources, such as `build/icons/` (Linux icon in each standard
+  size, generated from `resources/icon.png`).
 - The Windows installer lets the user choose the installation folder and creates a desktop shortcut.
   Installers are not code-signed: on macOS, the first launch requires right-click → *Open* (or
   `xattr -cr /Applications/Sulfur.app`).

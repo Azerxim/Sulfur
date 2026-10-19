@@ -33,7 +33,9 @@ linux:
   target:
     - AppImage
     - deb
-  icon: resources/icon.png
+  # Une image par taille standard (générées depuis resources/icon.png) : le thème d'icônes hicolor
+  # n'a pas de dossier 1024x1024, une icône unique à cette taille n'est pas trouvée par le bureau.
+  icon: build/icons
   category: Development
   syncDesktopName: true
   synopsis: Modular industrial protocol simulator (OPC UA, Modbus TCP, S7, MQTT, SNMP, HTTP, NTP, Syslog)
