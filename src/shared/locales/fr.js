@@ -103,6 +103,39 @@ export default {
     validUntil: "valide jusqu'au {date}",
     confirmRemove: 'Supprimer le certificat « {name} » ?'
   },
+  home: {
+    name: 'Accueil',
+    description: 'Présentation de Sulfur et de ses modules',
+    headline: 'Simulateur modulaire de protocoles industriels et informatiques',
+    intro:
+      "Sulfur simule les serveurs et les clients des protocoles de l'automatisme et de la supervision : OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Testez des équipements, des logiciels de supervision et des intégrations sans l'installation réelle, et reproduisez les pannes à la demande.",
+    stepsTitle: 'Prise en main',
+    steps: {
+      start: {
+        title: 'Démarrer un module',
+        text: 'Choisissez un protocole, démarrez son serveur simulé ou connectez son client à un équipement réel.'
+      },
+      simulate: {
+        title: 'Simuler',
+        text: 'Injectez des défauts (délai, coupure, codes d’erreur) et créez des flux de nœuds qui pilotent les valeurs.'
+      },
+      record: {
+        title: 'Enregistrer',
+        text: 'Suivez les valeurs de tous les modules sur des courbes et exportez-les en CSV.'
+      },
+      save: {
+        title: 'Enregistrer et partager',
+        text: 'Les réglages sont enregistrés automatiquement ; exportez-les en JSON pour partager un banc de test.'
+      }
+    },
+    groups: {
+      tools: 'Travaillent sur les points de données de tous les modules de protocole.',
+      automation: 'Protocoles industriels et automates.',
+      it: 'Services réseau, messagerie et supervision.'
+    },
+    license: 'Licence Apache 2.0 — © 2026 Maxime MALLET',
+    repository: 'Code source et documentation'
+  },
   info: {
     name: 'Informations',
     description: 'Adresses IP et informations système du PC',

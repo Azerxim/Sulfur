@@ -14,7 +14,7 @@ export default function App() {
   const text = useManifestText()
   const { prefs } = usePreferences()
   // Au démarrage : la page choisie dans les paramètres, sinon la dernière page affichée.
-  const [lastId, setLastId] = useStoredState('sulfur:lastPage', pageIds[0], pageIds)
+  const [lastId, setLastId] = useStoredState('sulfur:lastPage', 'home', pageIds)
   const [activeId, setActiveId] = useState(() => (pageIds.includes(prefs.startPage) ? prefs.startPage : lastId))
   const active = allPages.find((m) => m.manifest.id === activeId)
   const select = (id) => {
@@ -40,7 +40,7 @@ export default function App() {
                 key={active.manifest.id}
                 moduleId={rendererModules.includes(active) ? active.manifest.id : null}
               >
-                <active.Component />
+                <active.Component onNavigate={select} />
               </ModuleErrorBoundary>
             </div>
           </>

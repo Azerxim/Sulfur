@@ -21,13 +21,17 @@ export default function Sidebar({ groups, pages = [], activeId, onSelect }) {
   const { t } = useI18n()
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-ink-800 bg-ink-900">
-      <div className="flex items-center gap-2 px-5 py-5">
+      <button
+        onClick={() => onSelect('home')}
+        title={t('home.name')}
+        className="flex items-center gap-2 px-5 py-5 text-left"
+      >
         <div className="grid size-8 place-items-center rounded-md bg-sulfur-400 font-bold text-on-accent">S</div>
         <div>
           <div className="text-sm font-semibold tracking-wide text-slate-100">Sulfur</div>
           <div className="text-[11px] text-slate-500">{t('app.tagline')}</div>
         </div>
-      </div>
+      </button>
 
       <nav className="flex min-h-0 flex-col gap-3 overflow-y-auto px-2 pb-2">
         {groups.map((group) => (

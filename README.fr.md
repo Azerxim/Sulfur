@@ -96,7 +96,7 @@ src/
 │   └── src/
 │       ├── App.jsx       # Shell (sidebar + module actif)
 │       ├── components/   # Composants UI partagés (Card, CertificatesDialog…)
-│       ├── pages/        # Pages de l'application (Informations, Paramètres)
+│       ├── pages/        # Pages de l'application (Accueil, Informations, Paramètres)
 │       ├── preferences.jsx # Langue et thème (useI18n, usePreferences)
 │       ├── module-config.js # Réglages enregistrés des modules (usePersistentState)
 │       └── modules.js    # ← liste des modules "renderer"
