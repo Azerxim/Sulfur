@@ -30,6 +30,10 @@ import trendsEn from '@modules/trends/shared/locales/en'
 import trendsFr from '@modules/trends/shared/locales/fr'
 import caEn from '@modules/ca/shared/locales/en'
 import caFr from '@modules/ca/shared/locales/fr'
+import dnsEn from '@modules/dns/shared/locales/en'
+import dnsFr from '@modules/dns/shared/locales/fr'
+import explorerEn from '@modules/explorer/shared/locales/en'
+import explorerFr from '@modules/explorer/shared/locales/fr'
 
 const dictionaries = {
   en: {
@@ -45,7 +49,9 @@ const dictionaries = {
     ...syslogEn,
     ...simulatorEn,
     ...trendsEn,
-    ...caEn
+    ...caEn,
+    ...dnsEn,
+    ...explorerEn
   },
   fr: {
     ...coreFr,
@@ -60,7 +66,9 @@ const dictionaries = {
     ...syslogFr,
     ...simulatorFr,
     ...trendsFr,
-    ...caFr
+    ...caFr,
+    ...dnsFr,
+    ...explorerFr
   }
 }
 
