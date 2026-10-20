@@ -4,12 +4,14 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { ensureCertificate } from '@shared/certificate'
 import { LdapServer, buildDirectory, checkPassword, matches } from '@modules/ldap/main/server'
 import { LdapClient } from '@modules/ldap/main/client'
-import { DEFAULT_LDIF, DEFAULT_SERVER_CONFIG } from '@modules/ldap/shared/constants'
+import { DEFAULT_CLIENT_CONFIG, DEFAULT_LDIF, DEFAULT_SERVER_CONFIG } from '@modules/ldap/shared/constants'
 import { normalizeDn, parseLdif } from '@modules/ldap/shared/ldif'
 import { errorOf, freePort, tempDir } from './helpers'
 
 const BASE = 'dc=sulfur,dc=local'
 const OPERATOR = `uid=operator,ou=people,${BASE}`
+/** Serveur en LDAP simple (LDAPS par défaut). */
+const PLAIN = { ...DEFAULT_SERVER_CONFIG, security: 'plain' }
 const ENGINEER = `uid=engineer,ou=people,${BASE}`
 
 describe('LDIF et annuaire', () => {
@@ -63,11 +65,11 @@ describe('Serveur LDAP', () => {
     tmp = await tempDir('ldap')
     port = await freePort()
     server = new LdapServer(() => ensureCertificate(`${tmp.dir}/pki`, 'LDAP@Sulfur'))
-    await server.start({ ...DEFAULT_SERVER_CONFIG, port })
+    await server.start({ ...PLAIN, port })
   })
   afterEach(() => {
     server.setFaults([])
-    server.update({ ...DEFAULT_SERVER_CONFIG, port })
+    server.update({ ...PLAIN, port })
   })
   afterAll(async () => {
     await server.stop()
@@ -107,7 +109,7 @@ describe('Serveur LDAP', () => {
   })
 
   it('applique la limite de taille et refuse les écritures', async () => {
-    server.update({ ...DEFAULT_SERVER_CONFIG, port, sizeLimit: 2 })
+    server.update({ ...PLAIN, port, sizeLimit: 2 })
     const c = client()
     expect(await errorOf(c.search(BASE, { filter: '(objectClass=*)' }))).toMatch(/0x4\b/)
     await c.bind(OPERATOR, 'operator')
@@ -116,7 +118,7 @@ describe('Serveur LDAP', () => {
   })
 
   it('exige une liaison quand l’accès anonyme est désactivé', async () => {
-    server.update({ ...DEFAULT_SERVER_CONFIG, port, allowAnonymous: false })
+    server.update({ ...PLAIN, port, allowAnonymous: false })
     expect(await errorOf(client().search(BASE, { filter: '(uid=*)' }))).toMatch(/bind required Code: 0x32/)
     // Le rootDSE reste lisible.
     const root = await client().search('', { scope: 'base', filter: '(objectClass=*)' })
@@ -137,10 +139,12 @@ describe('Serveur LDAP', () => {
     expect(await errorOf(client().bind(OPERATOR, 'operator'))).toMatch(/0x34\b/)
   })
 
-  it('sert en LDAPS et alimente le client du module', async () => {
+  it('sert en LDAPS (par défaut) et alimente le client du module', async () => {
+    expect(DEFAULT_SERVER_CONFIG).toMatchObject({ security: 'ldaps', port: 1636 })
+    expect(DEFAULT_CLIENT_CONFIG.url).toBe('ldaps://127.0.0.1:1636')
     const ldapsPort = await freePort()
     const secure = new LdapServer(() => ensureCertificate(`${tmp.dir}/pki`, 'LDAP@Sulfur'))
-    await secure.start({ ...DEFAULT_SERVER_CONFIG, port: ldapsPort, security: 'ldaps' })
+    await secure.start({ ...DEFAULT_SERVER_CONFIG, port: ldapsPort })
     try {
       const module = new LdapClient()
       const url = `ldaps://127.0.0.1:${ldapsPort}`

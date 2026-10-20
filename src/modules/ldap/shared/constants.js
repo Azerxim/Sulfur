@@ -66,8 +66,9 @@ member: uid=engineer,ou=people,dc=sulfur,dc=local
 export const DEFAULT_SERVER_CONFIG = {
   host: '0.0.0.0',
   /** Ports standards 389 (LDAP) et 636 (LDAPS) : droits administrateur requis sous Linux. */
-  port: 1389,
-  security: 'plain',
+  /** LDAPS par défaut (TLS dès la connexion) ; en LDAP simple, port 1389. */
+  port: 1636,
+  security: 'ldaps',
   /** Passage en TLS d'une connexion LDAP (opération étendue StartTLS). */
   startTls: true,
   /** Liaison anonyme et recherche sans authentification. */
@@ -78,7 +79,7 @@ export const DEFAULT_SERVER_CONFIG = {
 }
 
 export const DEFAULT_CLIENT_CONFIG = {
-  url: 'ldap://127.0.0.1:1389',
+  url: 'ldaps://127.0.0.1:1636',
   startTls: false,
   /** TLS : refuser un certificat serveur non reconnu (auto-signé). */
   rejectUnauthorized: false,

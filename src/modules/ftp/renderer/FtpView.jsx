@@ -23,7 +23,7 @@ function useStatus(api, initial) {
 }
 
 export default function FtpView() {
-  const [tab, setTab] = useStoredState('sulfur:tab:ftp', 'ftpServer', TABS)
+  const [tab, setTab] = useStoredState('sulfur:tab:ftp', 'sftpServer', TABS)
   const ftpServer = useStatus(ftpApi.server, { running: false })
   const ftpClient = useStatus(ftpApi.client, { connected: false })
   const sftpServer = useStatus(sftpApi.server, { running: false })

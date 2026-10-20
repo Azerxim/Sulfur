@@ -473,8 +473,8 @@ Test DHCP server for an **isolated network, restricted to the private networks**
 
 ## LDAP module
 
-- **Server** LDAP v3 (default port 1389, LDAPS 1636; standard ports 389 / 636 with administrator
-  rights on Linux) on a read-only test directory, to check the centralized login of switches,
+- **Server** LDAP v3, **LDAPS by default** (port 1636; plain LDAP on 1389; standard ports 389 /
+  636 with administrator rights on Linux) on a read-only test directory, to check the centralized login of switches,
   firewalls, HMIs or applications:
   - directory written in **LDIF** (example directory with users and groups), edited while the
     server is running; `userPassword` in clear text or hashed ({SSHA}, {SHA}, {SSHA256}, {SSHA512});
@@ -497,7 +497,7 @@ Test DHCP server for an **isolated network, restricted to the private networks**
 
 One module for the two file transfer protocols, in four tabs (FTP server and client, SFTP server
 and client). Both servers serve the same folder by default (`<userData>/modules/ftp/files`) and can
-run at the same time; the simulator faults apply to both.
+run at the same time; the simulator faults apply to both. The module opens on the SFTP server tab.
 
 ### FTP / FTPS
 

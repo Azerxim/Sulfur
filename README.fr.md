@@ -494,8 +494,8 @@ Serveur DHCP de test pour un **réseau isolé, limité aux réseaux privés** (1
 
 ## Module LDAP
 
-- **Serveur** LDAP v3 (port 1389 par défaut, LDAPS 1636 ; ports standards 389 / 636 avec droits
-  administrateur sous Linux) sur un annuaire de test en lecture seule, pour vérifier
+- **Serveur** LDAP v3, **LDAPS par défaut** (port 1636 ; LDAP simple sur 1389 ; ports standards
+  389 / 636 avec droits administrateur sous Linux) sur un annuaire de test en lecture seule, pour vérifier
   l'authentification centralisée de switchs, pare-feux, IHM ou applications :
   - annuaire saisi en **LDIF** (annuaire d'exemple avec utilisateurs et groupes), modifiable serveur
     démarré ; `userPassword` en clair ou haché ({SSHA}, {SHA}, {SSHA256}, {SSHA512}) ; `memberOf`
@@ -519,7 +519,7 @@ Serveur DHCP de test pour un **réseau isolé, limité aux réseaux privés** (1
 Un seul module pour les deux protocoles de transfert de fichiers, en quatre onglets (serveur et
 client FTP, serveur et client SFTP). Les deux serveurs servent par défaut le même dossier
 (`<userData>/modules/ftp/files`) et peuvent fonctionner en même temps ; les défauts du simulateur
-s'appliquent aux deux.
+s'appliquent aux deux. Le module s'ouvre sur l'onglet du serveur SFTP.
 
 ### FTP / FTPS
 
