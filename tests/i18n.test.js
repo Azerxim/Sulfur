@@ -36,6 +36,8 @@ import explorerEn from '@modules/explorer/shared/locales/en'
 import explorerFr from '@modules/explorer/shared/locales/fr'
 import ldapEn from '@modules/ldap/shared/locales/en'
 import ldapFr from '@modules/ldap/shared/locales/fr'
+import sftpEn from '@modules/sftp/shared/locales/en'
+import sftpFr from '@modules/sftp/shared/locales/fr'
 
 const dictionaries = {
   en: {
@@ -54,7 +56,8 @@ const dictionaries = {
     ...caEn,
     ...dnsEn,
     ...explorerEn,
-    ...ldapEn
+    ...ldapEn,
+    ...sftpEn
   },
   fr: {
     ...coreFr,
@@ -72,7 +75,8 @@ const dictionaries = {
     ...caFr,
     ...dnsFr,
     ...explorerFr,
-    ...ldapFr
+    ...ldapFr,
+    ...sftpFr
   }
 }
 

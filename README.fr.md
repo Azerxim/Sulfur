@@ -132,6 +132,7 @@ src/
     ├── syslog/           # Serveur Syslog (UDP / TCP / TLS) + émetteur de messages
     ├── dns/              # Serveur DNS faisant autorité (zone locale, relais) + client DNS
     ├── ldap/             # Annuaire LDAP / LDAPS (LDIF, protocole BER) + client LDAP
+    ├── sftp/             # Serveur SFTP (dossier confiné, utilisateurs, clés) + client SFTP
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     ├── trends/           # Courbes, enregistrement et export CSV (idem)
     └── ca/               # Autorité de certification : autorités, émission, CSR, révocation (CRL), PKCS#12
@@ -478,6 +479,24 @@ automatiquement (version la plus récente dans
   portée, filtre, attributs, limite) et historique.
 - Le serveur implémente lui-même le codage BER et le protocole LDAP (la bibliothèque ldapjs a été
   abandonnée).
+
+## Module SFTP
+
+- **Serveur** SFTP (bibliothèque ssh2, port 2222 par défaut) servant un dossier, pour tester les
+  mises à jour de firmware et les sauvegardes de configuration des équipements :
+  - sous-système SFTP uniquement (ni shell ni commande) ; clients confinés au dossier servi, liens
+    symboliques compris ;
+  - utilisateurs authentifiés par mot de passe (seule l'empreinte scrypt est conservée) et/ou par
+    clés publiques autorisées (format OpenSSH), utilisateurs en lecture seule ; utilisateurs
+    modifiables serveur démarré ;
+  - clé d'hôte Ed25519 générée au premier démarrage (`<userData>/modules/sftp/hostkey`), empreinte
+    SHA256 affichée pour la vérifier ou l'épingler sur les clients ;
+  - journal des connexions, transferts (chemin et taille), créations de dossiers, suppressions et
+    renommages ; compteurs ; défauts injectés par le simulateur (délai, coupure de connexion).
+- **Client** : mot de passe ou clé privée (OpenSSH / PEM, phrase secrète), empreinte attendue de la
+  clé d'hôte (connexion refusée si elle a changé), navigation dans les dossiers, téléchargement et
+  envoi avec choix du fichier, création de dossier, renommage et suppression. Mots de passe et clés
+  ne sont pas enregistrés.
 
 ## Module Simulateur
 
