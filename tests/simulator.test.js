@@ -97,7 +97,7 @@ const fault = (module, type, extra = {}) => ({
 describe('Points publiés par les modules', () => {
   it('listent les points du serveur même arrêté, puis lisent et écrivent', async () => {
     const points = engine.targets()
-    expect(points.map((p) => p.name)).toEqual(['OPC UA', 'Modbus TCP'])
+    expect(points.map((p) => p.name)).toEqual(['OPC UA', 'Modbus'])
     expect(points[0].points.find((p) => p.id === 'server:var-1')).toMatchObject({ name: 'Temperature', numeric: true })
     expect(points[0].points.find((p) => p.id === 'server:var-6')).toMatchObject({
       dataType: 'Double[]',

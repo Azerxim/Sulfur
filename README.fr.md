@@ -24,8 +24,8 @@ npm run format     # mise en forme (Prettier)
 ## Tests
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
-(sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP
-et Modbus/TCP Security, HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+(sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP,
+Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -120,7 +120,7 @@ src/
     │   ├── renderer/     # Interface React du module
     │   └── shared/       # Constantes partagées
     ├── modbus/
-    │   ├── main/         # Protocole, serveur, client, PKI, sécurité
+    │   ├── main/         # Protocole, trames (MBAP, RTU, ASCII), liaison série, serveur, client, PKI
     │   ├── renderer/     # Interface React du module
     │   └── shared/       # Constantes + encodage des valeurs (codec)
     ├── http/             # Serveur REST (variables, routes, webhooks) + client HTTP
@@ -232,13 +232,27 @@ configuration par défaut.
     (Linux : `~/.config/sulfur/…`, Windows : `%APPDATA%\sulfur\…`).
   - côté client, « Découvrir les endpoints » liste les couples mode / politique proposés par le serveur.
 
-## Module Modbus TCP
+## Module Modbus
 
+- **Transports** : Modbus TCP (en-tête MBAP), Modbus/TCP Security (TLS), **RTU over TCP** (trames RTU
+  avec CRC dans une connexion TCP, comme celles des passerelles série / Ethernet en mode
+  transparent), et **Modbus RTU** / **Modbus ASCII** sur liaison série (port RS-232 / RS-485,
+  vitesse, bits de données, parité, bits de stop ; ports détectés listés). Les ports série passent
+  par la bibliothèque `serialport`.
+  - Sur une liaison série et en RTU over TCP, les Unit ID vont de 1 à 247 : le serveur ignore les
+    requêtes destinées à un autre Unit ID, comme sur un bus partagé, et applique les écritures en
+    diffusion (Unit ID 0) à tous les équipements sans répondre. Le client envoie une requête à la
+    fois et respecte le silence de 3,5 caractères entre les trames ; le Unit ID 0 envoie des
+    écritures en diffusion.
+  - Les trames RTU sont délimitées par le code fonction (et le nombre d'octets annoncé), puis par un
+    silence pour une fonction inconnue ; les trames invalides (CRC, LRC, parasites) sont comptées
+    dans le journal du serveur. Une erreur de CRC ferme une connexion RTU over TCP ; sur une liaison
+    série, le lecteur se resynchronise.
 - **Serveur** : les quatre tables (coils, discrete inputs, input registers, holding registers),
   fonctions 1 à 6, 15, 16, 23 (lecture / écriture multiple) et 43 / 14 (identification de
   l'équipement). Points simulés typés (Boolean, UInt16/Int16, UInt32/Int32, Float32, Float64, ordre
-  des mots ABCD / CDAB / BADC / DCBA), modifiables serveur démarré. Liste des clients connectés et
-  journal des événements de sécurité.
+  des mots ABCD / CDAB / BADC / DCBA), modifiables serveur démarré. Liste des clients connectés (ou
+  du port série ouvert) et journal des événements de sécurité.
   - **Plusieurs équipements** sur un même serveur (simulation de passerelle) : chacun répond à son
     Unit ID avec sa propre mémoire, ses points et son identification ; un Unit ID non configuré
     reçoit l'exception 0B, ou est servi par le premier équipement si l'option est cochée.
@@ -259,7 +273,7 @@ configuration par défaut.
     `1.3.6.1.4.1.50316.802.1`), droits lecture / écriture par rôle, rôle par défaut ou refus ;
   - liste blanche d'adresses IP (CIDR), nombre maximal de connexions, limite de requêtes par
     seconde (exception 06), mode lecture seule, points protégés en écriture, filtrage du Unit ID
-    (exception 11), fermeture des connexions envoyant des trames invalides ;
+    (exception 11), fermeture des connexions envoyant des trames invalides (transports TCP) ;
   - certificat serveur `MODBUS@Sulfur`, certificat client régénéré avec le rôle choisi ;
     emplacement : `<userData>/modules/modbus/pki/{server,client}`.
 - Ports par défaut 5020 (TCP) / 8020 (TLS) : les ports standards 502 / 802 nécessitent des droits

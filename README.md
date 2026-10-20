@@ -24,7 +24,7 @@ npm run format     # formatting (Prettier)
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
-certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), fault injection, node flows and trend recording on both protocols,
+certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP, Modbus/TCP Security, RTU and ASCII (frames, RTU over TCP, serial link, broadcast), HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), fault injection, node flows and trend recording on both protocols,
 protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
@@ -117,7 +117,7 @@ src/
     │   ├── renderer/     # Module React interface
     │   └── shared/       # Shared constants
     ├── modbus/
-    │   ├── main/         # Protocol, server, client, PKI, security
+    │   ├── main/         # Protocol, framing (MBAP, RTU, ASCII), serial link, server, client, PKI
     │   ├── renderer/     # Module React interface
     │   └── shared/       # Constants + value encoding (codec)
     ├── http/             # REST server (variables, routes, webhooks) + HTTP client
@@ -226,13 +226,24 @@ inconsistent configuration), a button restores its default configuration.
     (Linux: `~/.config/sulfur/…`, Windows: `%APPDATA%\sulfur\…`);
   - on the client side, “Discover endpoints” lists the mode / policy pairs offered by the server.
 
-## Modbus TCP module
+## Modbus module
 
+- **Transports**: Modbus TCP (MBAP header), Modbus/TCP Security (TLS), **RTU over TCP** (RTU frames
+  with CRC in a TCP connection, as sent by serial-to-Ethernet gateways in transparent mode), and
+  **Modbus RTU** / **Modbus ASCII** on a serial link (RS-232 / RS-485 port, baud rate, data bits,
+  parity, stop bits; detected ports listed). Serial ports use the `serialport` library.
+  - On a serial link and in RTU over TCP, Unit IDs go from 1 to 247: the server ignores requests
+    for another Unit ID, as on a shared bus, and applies broadcast writes (Unit ID 0) to every
+    device without replying. The client sends one request at a time and waits for the 3.5
+    character silence between frames; Unit ID 0 sends broadcast writes.
+  - RTU frames are delimited by function code (and announced byte count), then by a silence for an
+    unknown function; invalid frames (CRC, LRC, noise) are counted in the server log. A CRC error
+    closes an RTU over TCP connection; on a serial link the reader resynchronizes.
 - **Server**: the four tables (coils, discrete inputs, input registers, holding registers),
   functions 1 to 6, 15, 16, 23 (read / write multiple) and 43 / 14 (device identification). Typed
   simulated points (Boolean, UInt16/Int16, UInt32/Int32, Float32, Float64, word order ABCD / CDAB /
-  BADC / DCBA), editable while the server is running. List of connected clients and security event
-  log.
+  BADC / DCBA), editable while the server is running. List of connected clients (or the open serial
+  port) and security event log.
   - **Several devices** on one server (gateway simulation): each responds to its Unit ID with its
     own memory, points and identification; an unconfigured Unit ID gets exception 0B, or is served
     by the first device if the option is checked. Devices are added, edited or removed while the
@@ -253,7 +264,7 @@ inconsistent configuration), a button restores its default configuration.
     `1.3.6.1.4.1.50316.802.1`), read / write permissions per role, default role or refusal;
   - IP allow list (CIDR), maximum number of connections, requests-per-second limit (exception 06),
     read-only mode, write-protected points, Unit ID filtering (exception 11), connections sending
-    invalid frames are closed;
+    invalid frames are closed (TCP transports);
   - server certificate `MODBUS@Sulfur`, client certificate regenerated with the selected role;
     location: `<userData>/modules/modbus/pki/{server,client}`.
 - Default ports 5020 (TCP) / 8020 (TLS): the standard ports 502 / 802 require administrator rights

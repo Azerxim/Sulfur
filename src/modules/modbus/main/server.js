@@ -7,22 +7,25 @@ import {
   DEFAULT_IDENTITY,
   DEFAULT_SERVER_SECURITY,
   IDENTITY_OBJECTS,
+  MAX_SERIAL_UNIT_ID,
   MAX_UNIT_ID,
-  TABLES
+  TABLES,
+  TRANSPORTS
 } from '../shared/constants'
 import { decodeValue, encodeValue, pointSize, toBoolean } from '../shared/codec'
 import { normalizeServerConfig, unitLabel } from '../shared/units'
 import { DataStore } from './datastore'
 import {
   EX,
-  FrameReader,
+  FUNCTIONS,
   ModbusException,
   buildIdentificationResponse,
   buildResponse,
-  encodeFrame,
   exceptionPdu,
   parseRequest
 } from './protocol'
+import { createFramer, interFrameDelay, isSerialTransport } from './framing'
+import { normalizeSerial, openSerialPort, serialLabel } from './serial'
 import { RateLimiter, buildAllowList, isAllowed, normalizeIp, resolveRole } from './security'
 import { t } from '../shared/i18n'
 
@@ -48,11 +51,19 @@ export function validatePoint(def, size) {
 /** Nombre maximal d'adresses lues d'un coup par l'explorateur de registres. */
 export const MAX_EXPLORER_COUNT = 500
 
-function validateUnitId(value) {
+/** Unit ID d'un équipement : 0 à 255 en TCP, 1 à 247 sur une liaison série (0 = diffusion). */
+function validateUnitId(value, transport = 'tcp') {
   const unitId = Number(value)
-  if (!Number.isInteger(unitId) || unitId < 0 || unitId > MAX_UNIT_ID) throw new Error(t('modbus.errors.invalidUnitId'))
+  const serial = isSerialTransport(transport) || transport === 'rtuOverTcp'
+  const [min, max] = serial ? [1, MAX_SERIAL_UNIT_ID] : [0, MAX_UNIT_ID]
+  if (!Number.isInteger(unitId) || unitId < min || unitId > max) {
+    throw new Error(serial ? t('modbus.errors.invalidSerialUnitId') : t('modbus.errors.invalidUnitId'))
+  }
   return unitId
 }
+
+/** Adresse de diffusion sur une liaison série : écriture dans tous les équipements, sans réponse. */
+const BROADCAST = 0
 
 /** Objets d'identification d'un équipement (fonction 43 / 14) : Map identifiant → texte. */
 export function identityObjects(identity = {}) {
@@ -70,7 +81,8 @@ const overlaps = (a, b) =>
   a.table === b.table && a.address < b.address + pointSize(b.dataType) && b.address < a.address + pointSize(a.dataType)
 
 /**
- * Serveur Modbus TCP (port 502) ou Modbus/TCP Security (TLS, port 802).
+ * Serveur Modbus TCP (port 502), Modbus/TCP Security (TLS, port 802), RTU over TCP, ou esclave
+ * Modbus RTU / ASCII sur une liaison série.
  *
  * Sécurités appliquées :
  *  - TLS ≥ 1.2 avec authentification mutuelle et certificats épinglés (magasin approuvés / rejetés)
@@ -80,7 +92,9 @@ const overlaps = (a, b) =>
  *  - rejet des trames invalides (connexion fermée)
  *
  * Le serveur porte un ou plusieurs équipements (passerelle) : chacun répond à son Unit ID avec sa
- * propre mémoire, ses points et son identification (fonction 43 / 14).
+ * propre mémoire, ses points et son identification (fonction 43 / 14). Sur une liaison série (et en
+ * RTU over TCP), une requête pour un autre Unit ID est ignorée, comme sur un bus partagé, et une
+ * écriture en diffusion (Unit ID 0) est appliquée à tous les équipements sans réponse.
  */
 export class ModbusServer {
   server = null
@@ -103,21 +117,34 @@ export class ModbusServer {
   /** Défauts injectés par le simulateur : [{ id, type, params, points }] (points : ids de points). */
   faults = []
 
-  constructor(pki, { onStatus, onValues, onLog }) {
+  /** `openSerial(options)` : ouverture d'un port série (remplaçable dans les tests). */
+  constructor(pki, { onStatus, onValues, onLog, openSerial = openSerialPort }) {
     this.pki = pki
     this.onStatus = onStatus
     this.onValues = onValues
     this.onLog = onLog
+    this.openSerial = openSerial
+  }
+
+  /** TLS : uniquement en Modbus TCP (en-tête MBAP). */
+  get secure() {
+    return this.config?.transport === 'tcp' && this.security?.mode === 'tls'
+  }
+
+  endpoint() {
+    if (!this.server) return null
+    const { transport, host, port, serial } = this.config
+    if (isSerialTransport(transport)) return `${transport}://${serial.path} · ${serialLabel(serial)}`
+    const scheme = transport === 'rtuOverTcp' ? 'rtu+tcp' : this.secure ? 'mbaps' : 'mbap'
+    return `${scheme}://${host}:${port}`
   }
 
   status() {
     return {
       running: !!this.server,
-      endpoint: this.server
-        ? `${this.security.mode === 'tls' ? 'mbaps' : 'mbap'}://${this.config.host}:${this.config.port}`
-        : null,
+      endpoint: this.endpoint(),
       config: this.config,
-      certificate: this.server && this.security.mode === 'tls' ? this.certificate : null,
+      certificate: this.server && this.secure ? this.certificate : null,
       connections: [...this.sessions.values()].map((s) => ({
         id: s.id,
         remote: s.remote,
@@ -155,10 +182,16 @@ export class ModbusServer {
   async start(config) {
     if (this.server) throw new Error(t('errors.alreadyStarted'))
     config = normalizeServerConfig(config)
+    const transport = config.transport ?? 'tcp'
+    if (!TRANSPORTS.includes(transport)) throw new Error(t('modbus.errors.unknownTransport', { transport }))
+    const serialLink = isSerialTransport(transport)
     const security = { ...DEFAULT_SERVER_SECURITY, ...config.security }
+    if (transport !== 'tcp') security.mode = 'tcp'
     const port = Number(config.port)
     const size = Number(config.size)
-    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(t('modbus.errors.invalidPort'))
+    const serial = serialLink ? normalizeSerial(config.serial) : { ...config.serial }
+    if (!serialLink && (!Number.isInteger(port) || port < 1 || port > 65535))
+      throw new Error(t('modbus.errors.invalidPort'))
     if (!Number.isInteger(size) || size < 1 || size > 65536) throw new Error(t('modbus.errors.invalidSize'))
     if (!config.units?.length) throw new Error(t('modbus.errors.noUnit'))
     if (security.mode === 'tls' && !(security.roles ?? []).length && !security.defaultRole) {
@@ -168,7 +201,7 @@ export class ModbusServer {
     const units = config.units.map((u) => ({
       ...u,
       id: u.id ?? randomUUID(),
-      unitId: validateUnitId(u.unitId),
+      unitId: validateUnitId(u.unitId, transport),
       name: u.name ?? '',
       identity: { ...DEFAULT_IDENTITY, ...u.identity },
       points: (u.points ?? []).map((p) => ({ ...p, id: p.id ?? randomUUID(), address: Number(p.address) }))
@@ -182,7 +215,7 @@ export class ModbusServer {
     const duplicate = ids.find((id, i) => ids.indexOf(id) !== i)
     if (duplicate) throw new Error(t('modbus.errors.duplicatePointId', { id: duplicate }))
 
-    this.config = { ...config, port, size, security, units }
+    this.config = { ...config, transport, port, size, serial, security, units }
     this.security = security
     this.allowList = allowList
     this.units.clear()
@@ -193,23 +226,7 @@ export class ModbusServer {
       for (const point of points) this.addPoint(point, unit)
     }
 
-    const server =
-      security.mode === 'tls' ? await this.createTlsServer(security) : net.createServer((s) => this.onPlainSocket(s))
-    server.on('error', (err) => this.log('error', t('modbus.log.serverError', { message: err.message })))
-    try {
-      await new Promise((resolve, reject) => {
-        server.once('error', reject)
-        server.listen(port, config.host || '0.0.0.0', () => {
-          server.off('error', reject)
-          resolve()
-        })
-      })
-    } catch (err) {
-      this.reset()
-      if (err.code === 'EACCES') throw new Error(t('modbus.errors.portPrivileged', { port }), { cause: err })
-      if (err.code === 'EADDRINUSE') throw new Error(t('modbus.errors.portInUse', { port }), { cause: err })
-      throw err
-    }
+    const server = serialLink ? await this.openSerialServer(serial) : await this.listen(security, port, config.host)
 
     this.server = server
     this.t0 = Date.now()
@@ -225,21 +242,81 @@ export class ModbusServer {
     }, VALUES_EMIT_INTERVAL)
     this.log(
       'info',
-      t('modbus.log.started', {
-        address: `${config.host || '0.0.0.0'}:${port}`,
-        transport:
-          security.mode === 'tls'
-            ? t('modbus.log.tlsTransport', { version: security.minTlsVersion })
-            : t('modbus.log.plainTransport')
-      })
+      serialLink
+        ? t('modbus.log.startedSerial', {
+            path: serial.path,
+            settings: serialLabel(serial),
+            transport: t(`modbus.transports.${transport}`)
+          })
+        : t('modbus.log.started', {
+            address: `${config.host || '0.0.0.0'}:${port}`,
+            transport:
+              transport === 'rtuOverTcp'
+                ? t('modbus.transports.rtuOverTcp')
+                : security.mode === 'tls'
+                  ? t('modbus.log.tlsTransport', { version: security.minTlsVersion })
+                  : t('modbus.log.plainTransport')
+          })
     )
     this.onStatus(this.status())
     return this.status()
   }
 
+  /** Serveur TCP (ou TLS) à l'écoute. */
+  async listen(security, port, host) {
+    const server =
+      security.mode === 'tls' ? await this.createTlsServer(security) : net.createServer((s) => this.onPlainSocket(s))
+    server.on('error', (err) => this.log('error', t('modbus.log.serverError', { message: err.message })))
+    try {
+      await new Promise((resolve, reject) => {
+        server.once('error', reject)
+        server.listen(port, host || '0.0.0.0', () => {
+          server.off('error', reject)
+          resolve()
+        })
+      })
+    } catch (err) {
+      this.reset()
+      if (err.code === 'EACCES') throw new Error(t('modbus.errors.portPrivileged', { port }), { cause: err })
+      if (err.code === 'EADDRINUSE') throw new Error(t('modbus.errors.portInUse', { port }), { cause: err })
+      throw err
+    }
+    return server
+  }
+
+  /**
+   * Esclave sur une liaison série : une seule « connexion », le port, ouverte pendant toute la
+   * marche du serveur. Retourne un objet { close(cb) } à la manière d'un serveur TCP.
+   */
+  async openSerialServer(serial) {
+    let port
+    try {
+      port = await this.openSerial(serial)
+    } catch (err) {
+      this.reset()
+      throw err
+    }
+    const session = this.openSession(port, null, { read: true, write: true }, { remote: serial.path })
+    port.on('error', (err) => this.log('error', t('modbus.log.serialError', { message: err.message })))
+    port.on('close', () => {
+      // Port retiré (adaptateur USB débranché) : le serveur s'arrête.
+      if (this.server && this.sessions.has(session.id)) {
+        this.log('error', t('modbus.log.serialClosed', { path: serial.path }))
+        this.stop()
+      }
+    })
+    return {
+      close: (callback) => {
+        if (!port.isOpen) return callback()
+        port.close(() => callback())
+      }
+    }
+  }
+
   async stop() {
     const server = this.server
-    for (const s of this.sessions.values()) s.socket.destroy()
+    const serialLink = isSerialTransport(this.config?.transport)
+    if (!serialLink) for (const s of this.sessions.values()) s.socket.destroy()
     this.reset()
     if (server) {
       await new Promise((resolve) => server.close(() => resolve()))
@@ -252,6 +329,7 @@ export class ModbusServer {
   reset() {
     clearInterval(this.simTimer)
     clearInterval(this.emitTimer)
+    for (const s of this.sessions.values()) clearTimeout(s.flushTimer)
     this.simTimer = this.emitTimer = null
     this.server = null
     this.sessions.clear()
@@ -345,13 +423,14 @@ export class ModbusServer {
     }
   }
 
-  openSession(socket, tlsInfo, permissions) {
-    const ip = normalizeIp(socket.remoteAddress)
+  /** `remote` : libellé de la connexion (adresse IP et port, ou port série). */
+  openSession(socket, tlsInfo, permissions, { remote } = {}) {
     const rate = Number(this.security.maxRequestsPerSecond) || 0
+    const serialLink = isSerialTransport(this.config.transport)
     const session = {
       id: ++this.sessionSeq,
       socket,
-      remote: `${ip}:${socket.remotePort}`,
+      remote: remote ?? `${normalizeIp(socket.remoteAddress)}:${socket.remotePort}`,
       since: new Date().toISOString(),
       tls: tlsInfo,
       permissions,
@@ -359,45 +438,94 @@ export class ModbusServer {
       denied: 0,
       limiter: rate > 0 ? new RateLimiter(rate) : null,
       lastThrottleLog: 0,
-      reader: new FrameReader()
+      framer: createFramer(this.config.transport, 'request'),
+      flushTimer: null,
+      lastData: 0
     }
     this.sessions.set(session.id, session)
-    socket.setNoDelay(true)
+    socket.setNoDelay?.(true)
     socket.on('error', () => {})
     socket.on('data', (chunk) => this.onData(session, chunk))
-    socket.on('close', () => {
-      if (this.sessions.delete(session.id)) {
-        this.log('info', t('modbus.log.disconnected', { remote: session.remote, count: session.requests }))
-        this.onStatus(this.status())
-      }
-    })
+    if (!serialLink) {
+      socket.on('close', () => {
+        clearTimeout(session.flushTimer)
+        if (this.sessions.delete(session.id)) {
+          this.log('info', t('modbus.log.disconnected', { remote: session.remote, count: session.requests }))
+          this.onStatus(this.status())
+        }
+      })
+    }
     this.log(
       'info',
-      tlsInfo
-        ? t('modbus.log.connectedTls', {
-            remote: session.remote,
-            protocol: tlsInfo.protocol,
-            name: tlsInfo.commonName ?? t('modbus.log.noCertificate'),
-            role: tlsInfo.role
-          })
-        : t('modbus.log.connectedPlain', { remote: session.remote })
+      serialLink
+        ? t('modbus.log.serialOpened', { path: session.remote })
+        : tlsInfo
+          ? t('modbus.log.connectedTls', {
+              remote: session.remote,
+              protocol: tlsInfo.protocol,
+              name: tlsInfo.commonName ?? t('modbus.log.noCertificate'),
+              role: tlsInfo.role
+            })
+          : t('modbus.log.connectedPlain', { remote: session.remote })
     )
     this.onStatus(this.status())
+    return session
   }
 
   onData(session, chunk) {
+    session.lastData = Date.now()
+    const { reader } = session.framer
+    const errors = reader.errors
     let frames
     try {
-      frames = session.reader.push(chunk)
+      frames = reader.push(chunk)
     } catch (err) {
       this.log('warn', t('modbus.log.invalidFrame', { remote: session.remote, message: err.message }))
       return session.socket.destroy()
     }
+    if (reader.errors > errors) this.logDropped(session, reader.errors - errors)
+    this.process(session, frames)
+    this.scheduleFlush(session)
+  }
+
+  /**
+   * Trames RTU sans longueur connue (fonction non prise en charge) : terminées par un silence sur la
+   * ligne. Le lecteur décide s'il garde une trame incomplète (latence des adaptateurs USB).
+   */
+  scheduleFlush(session) {
+    clearTimeout(session.flushTimer)
+    if (!session.framer.reader.pending) return
+    const gap = isSerialTransport(this.config.transport) ? Math.max(20, interFrameDelay(this.config.serial)) : 50
+    session.flushTimer = setTimeout(() => {
+      if (!this.sessions.has(session.id)) return
+      const { reader } = session.framer
+      const errors = reader.errors
+      let frames
+      try {
+        frames = reader.flush(Date.now() - session.lastData)
+      } catch (err) {
+        this.log('warn', t('modbus.log.invalidFrame', { remote: session.remote, message: err.message }))
+        return session.socket.destroy()
+      }
+      if (reader.errors > errors) this.logDropped(session, reader.errors - errors)
+      this.process(session, frames)
+      if (reader.pending) session.flushTimer = setTimeout(() => this.scheduleFlush(session), 250)
+    }, gap)
+  }
+
+  logDropped(session, count) {
+    const now = Date.now()
+    if (now - (session.lastDropLog ?? 0) < 1000) return
+    session.lastDropLog = now
+    this.log('warn', t('modbus.log.droppedFrames', { remote: session.remote, count }))
+  }
+
+  process(session, frames) {
     for (const frame of frames) {
       const pdu = this.handle(session, frame)
       if (!pdu || this.fault('noResponse')) continue
       const send = () => {
-        if (!session.socket.destroyed) session.socket.write(encodeFrame(frame.transactionId, frame.unitId, pdu))
+        if (!session.socket.destroyed) session.socket.write(session.framer.encode({ ...frame, pdu }))
       }
       const delay = Number(this.fault('delay')?.params?.ms) || 0
       if (delay > 0) setTimeout(send, delay)
@@ -411,9 +539,18 @@ export class ModbusServer {
     return exceptionPdu(fc, code)
   }
 
-  /** Traite une requête et retourne le PDU de réponse. */
+  /** Traite une requête et retourne le PDU de réponse (null : pas de réponse). */
   handle(session, { unitId, pdu }) {
     const fc = pdu[0]
+    const bus = !session.framer.framed
+    if (bus && unitId === BROADCAST) {
+      // Diffusion : écriture appliquée à chaque équipement, lectures ignorées, jamais de réponse.
+      session.requests++
+      if (FUNCTIONS[fc]?.write) for (const unit of this.units.values()) this.execute(session, unit, pdu)
+      return null
+    }
+    // Bus série : un autre esclave est interrogé, on se tait.
+    if (bus && !this.byUnitId.has(unitId) && !this.config.anyUnitId) return null
     session.requests++
 
     if (session.limiter && !session.limiter.take()) {
@@ -431,7 +568,12 @@ export class ModbusServer {
         t('modbus.log.unknownUnit', { unitId, expected: [...this.byUnitId.keys()].join(', ') })
       )
     }
+    return this.execute(session, unit, pdu)
+  }
 
+  /** Exécute une requête sur un équipement et retourne le PDU de réponse (ou d'exception). */
+  execute(session, unit, pdu) {
+    const fc = pdu[0]
     let req
     try {
       req = parseRequest(pdu)
@@ -583,7 +725,7 @@ export class ModbusServer {
     this.requireRunning()
     const next = {
       id: def.id ?? randomUUID(),
-      unitId: validateUnitId(def.unitId),
+      unitId: validateUnitId(def.unitId, this.config.transport),
       name: def.name ?? '',
       identity: { ...DEFAULT_IDENTITY, ...def.identity }
     }
@@ -599,7 +741,7 @@ export class ModbusServer {
     const unit = this.unit(def.id)
     const next = {
       ...unit.def,
-      unitId: validateUnitId(def.unitId ?? unit.def.unitId),
+      unitId: validateUnitId(def.unitId ?? unit.def.unitId, this.config.transport),
       name: def.name ?? unit.def.name,
       identity: { ...unit.def.identity, ...def.identity }
     }

@@ -12,6 +12,9 @@ export default function ModbusView() {
   const [tab, setTab] = useStoredState('sulfur:tab:modbus', 'server', ['server', 'client'])
   const [serverStatus, setServerStatus] = useState({ running: false, connections: [] })
   const [clientStatus, setClientStatus] = useState({ connected: false, watches: [] })
+  // Serveur local joignable en TCP : le client peut s'y aligner (port, transport, TLS).
+  const serverTransport = serverStatus.running ? serverStatus.config?.transport : null
+  const networkServer = serverTransport === 'tcp' || serverTransport === 'rtuOverTcp'
 
   useEffect(() => {
     modbusApi.server.status().then(setServerStatus)
@@ -37,8 +40,9 @@ export default function ModbusView() {
       <div className={tab === 'client' ? 'contents' : 'hidden'}>
         <ClientPanel
           status={clientStatus}
-          serverPort={serverStatus.running ? serverStatus.config?.port : null}
-          serverMode={serverStatus.config?.security?.mode}
+          serverPort={networkServer ? serverStatus.config?.port : null}
+          serverMode={networkServer ? serverStatus.config?.security?.mode : null}
+          serverTransport={networkServer ? serverTransport : null}
         />
       </div>
     </div>

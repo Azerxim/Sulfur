@@ -1,7 +1,29 @@
 export default {
   modbus: {
-    name: 'Modbus TCP',
-    description: 'Modbus TCP / Modbus/TCP Security (TLS) server and client',
+    name: 'Modbus',
+    description: 'Modbus TCP, Modbus/TCP Security (TLS), RTU and ASCII server and client',
+    transports: {
+      tcp: 'Modbus TCP',
+      rtuOverTcp: 'RTU over TCP',
+      rtu: 'Modbus RTU (serial)',
+      ascii: 'Modbus ASCII (serial)'
+    },
+    serial: {
+      transport: 'Transport',
+      port: 'Serial port',
+      portPlaceholder: 'COM3, /dev/ttyUSB0…',
+      refresh: 'Refresh the list of serial ports',
+      noPorts: 'No serial port detected',
+      baudRate: 'Baud rate',
+      dataBits: 'Data bits',
+      parity: 'Parity',
+      parities: { none: 'None', even: 'Even', odd: 'Odd' },
+      stopBits: 'Stop bits',
+      hint: 'Serial link: Unit IDs 1 to 247; requests for another Unit ID are ignored, as on a shared bus, and broadcast writes (Unit ID 0) are applied without a response.',
+      rtuOverTcpHint:
+        'RTU frames (with CRC) carried over TCP, as sent by serial-to-Ethernet gateways in transparent mode. TLS is only available with Modbus TCP.',
+      clientHint: 'Unit ID 0 sends broadcast writes: no slave replies, reads are impossible.'
+    },
     transport: {
       tcp: 'Modbus TCP (unencrypted)',
       tls: 'Modbus/TCP Security (TLS)'
@@ -50,7 +72,7 @@ export default {
         'Each device responds to its Unit ID with its own memory, points and identification: several devices simulate a gateway.',
       addUnit: 'Device',
       removeUnit: 'Delete the device',
-      unitIdInvalid: 'Unit ID already used or outside the 0 to 255 range',
+      unitIdInvalid: 'Unit ID already used or outside the {min} to {max} range',
       unitNamePlaceholder: 'Optional',
       identification: 'Device identification (function 43 / 14)',
       identificationHint:
@@ -177,6 +199,11 @@ export default {
       }
     },
     log: {
+      startedSerial: 'Server started on {path} ({settings}) — {transport}',
+      serialOpened: 'Serial port {path} open, waiting for requests',
+      serialError: 'Serial port error: {message}',
+      serialClosed: 'Serial port {path} closed (adapter unplugged?): server stopped',
+      droppedFrames: '{remote}: {count} invalid frame(s) ignored (CRC, noise or wrong settings)',
       faultCut: 'Connection from {ip} refused: simulated connection cut',
       faultCutAll: 'Simulated connection cut: connections closed',
       started: 'Server started on {address} — {transport}',
@@ -212,6 +239,21 @@ export default {
       protectedPoint: 'write refused: point “{name}” is write-protected'
     },
     errors: {
+      badCrc: 'invalid CRC',
+      incompleteFrame: 'incomplete frame',
+      unknownTransport: 'Unknown transport: {transport}',
+      invalidSerialUnitId: 'Unit ID out of range (1 to 247 on a serial link or in RTU over TCP)',
+      invalidSerialClientUnitId: 'Unit ID out of range (0 to 247, 0 = broadcast)',
+      serialUnavailable: 'Serial ports unavailable on this system: {message}',
+      missingSerialPort: 'Choose a serial port',
+      invalidBaudRate: 'Invalid baud rate: {value}',
+      invalidDataBits: 'Data bits: 7 or 8',
+      invalidStopBits: 'Stop bits: 1 or 2',
+      invalidParity: 'Invalid parity',
+      serialBusy: 'Serial port {path} is already in use by another application',
+      serialOpen: 'Cannot open serial port {path}: {message}',
+      serialClosed: 'Serial port closed',
+      broadcastRead: 'Broadcast (Unit ID 0): writes only, no slave replies to a read',
       unknownWatch: 'Unknown monitored item',
       emptyPointName: 'The point name is empty',
       unknownTable: 'Unknown table: {table}',

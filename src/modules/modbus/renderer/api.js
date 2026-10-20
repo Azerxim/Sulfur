@@ -3,6 +3,7 @@ const invoke = (action, ...args) => window.sulfur.invoke(`modbus:${action}`, ...
 const on = (event, listener) => window.sulfur.on(`modbus:${event}`, listener)
 
 export const modbusApi = {
+  serialPorts: () => invoke('serial:list'),
   server: {
     status: () => invoke('server:status'),
     start: (config) => invoke('server:start', config),
