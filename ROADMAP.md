@@ -60,8 +60,8 @@ commercial license. Unmarked modules are standard.
 
 | Edition                                | Modules                                                                                                         |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (free, Apache-2.0)  | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, TCP / UDP proxy, Siemens S7, PLCSim Advanced, Simulator, Trends |
-| **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
+| **Standard** (free, Apache-2.0)  | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, TCP / UDP proxy, DHCP / DNS, TFTP / FTP / SFTP, RADIUS / LDAP, CoAP / LwM2M, Modbus RTU / ASCII, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
+| **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
 premium module:
@@ -91,6 +91,17 @@ premium module:
   package signature), end user license agreement (EULA), release of the packages alongside the
   application installers.
 
+## New modules: tools
+
+Cross-cutting tools that serve every module and make it easier to set up a test bench.
+
+- [ ] **Certificate authority**: generate and sign certificates (authority, servers, clients) for
+  OPC UA, Modbus/TCP Security, MQTT, HTTPS and Syslog TLS, without going through OpenSSL
+- [ ] **Network explorer**: scan an IP address range and identify devices by reusing the existing
+  modules (Modbus 43 / 14, S7 identification, OPC UA FindServers, SNMP `sysDescr`)
+- [ ] **Serial terminal**: RS-232 / RS-485 links, hexadecimal log, serial ↔ TCP gateway; paves the
+  way for the Modbus RTU module
+
 ## New modules: IT and supervision
 
 Simpler protocols, quick to deliver, useful to supervise and integrate equipment.
@@ -107,9 +118,18 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
   local port → remote host:port), hexadecimal log of the exchanges with export, and fault injection
   on the traffic (latency, packet loss, disconnections, frame corruption) to test devices without
   modifying them
+- [ ] **DHCP / DNS**: DHCP server (address assignment, reservations) and simulated DNS, to
+  commission devices on an isolated network
+- [ ] **TFTP / FTP / SFTP**: file server for firmware updates and configuration backups of network
+  devices and PLCs
+- [ ] **RADIUS / LDAP**: simulated authentication server, to test centralized login on switches,
+  firewalls and HMIs
+- [ ] **CoAP / LwM2M**: server and client for constrained IoT sensors, alongside MQTT
 
 ## New modules: industrial automation
 
+- [ ] **Modbus RTU / ASCII**: server and client over serial links and RTU over TCP, reusing the
+  Modbus TCP module
 - [X] **Siemens S7** (S7comm): simulated PLC (I / Q / M / DB memory, simulated points,
   identification, RUN / STOP) and client (rack / slot or TSAP, typed reads / writes, monitoring)
 - [X] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /
@@ -121,11 +141,19 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 - [ ] **EtherNet/IP (CIP)** *(premium)*: Rockwell / Allen-Bradley controllers
 - [ ] **BACnet/IP** *(premium)*: building automation (HVAC, lighting)
 - [ ] **OPC UA PubSub** *(premium)*: publish / subscribe mode of OPC UA, as an extension of the OPC UA module
+- [ ] **Mitsubishi MC / SLMP** and **Omron FINS** *(premium)*: Mitsubishi MELSEC and Omron PLCs
+- [ ] **Beckhoff ADS** *(premium)*: TwinCAT PLCs, symbolic access to variables
+- [ ] **KNX/IP** *(premium)*: building automation, alongside BACnet/IP
+- [ ] **PROFINET DCP** *(premium)*: device discovery, naming and addressing (without the cyclic
+  real-time exchange, which requires a dedicated driver)
 
-## New modules: energy and transport
+## New modules: energy, metering and transport
 
 - [ ] **IEC 60870-5-104** and **DNP3** *(premium)*: telecontrol
 - [ ] **IEC 61850** (MMS, GOOSE) *(premium)*: electrical substations; requires a native library (libiec61850)
+- [ ] **DLMS/COSEM** (IEC 62056) and **M-Bus** *(premium)*: energy and water meter reading
+- [ ] **PTP** (IEEE 1588) *(premium)*: precise time synchronization, alongside NTP (used in
+  IEC 61850 substations); limited accuracy without hardware timestamping
 
 Each new module follows the existing module contract (main / renderer / shared, its own translations);
 premium modules use the module SDK and are distributed as signed packages.
