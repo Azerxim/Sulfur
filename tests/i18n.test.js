@@ -34,6 +34,8 @@ import dnsEn from '@modules/dns/shared/locales/en'
 import dnsFr from '@modules/dns/shared/locales/fr'
 import explorerEn from '@modules/explorer/shared/locales/en'
 import explorerFr from '@modules/explorer/shared/locales/fr'
+import ldapEn from '@modules/ldap/shared/locales/en'
+import ldapFr from '@modules/ldap/shared/locales/fr'
 
 const dictionaries = {
   en: {
@@ -51,7 +53,8 @@ const dictionaries = {
     ...trendsEn,
     ...caEn,
     ...dnsEn,
-    ...explorerEn
+    ...explorerEn,
+    ...ldapEn
   },
   fr: {
     ...coreFr,
@@ -68,7 +71,8 @@ const dictionaries = {
     ...trendsFr,
     ...caFr,
     ...dnsFr,
-    ...explorerFr
+    ...explorerFr,
+    ...ldapFr
   }
 }
 

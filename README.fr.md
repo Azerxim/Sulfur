@@ -131,6 +131,7 @@ src/
     ├── snmp/             # Agent SNMP (MIB simulée, notifications) + manager et récepteur de traps
     ├── syslog/           # Serveur Syslog (UDP / TCP / TLS) + émetteur de messages
     ├── dns/              # Serveur DNS faisant autorité (zone locale, relais) + client DNS
+    ├── ldap/             # Annuaire LDAP / LDAPS (LDIF, protocole BER) + client LDAP
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     ├── trends/           # Courbes, enregistrement et export CSV (idem)
     └── ca/               # Autorité de certification : autorités, émission, CSR, révocation (CRL), PKCS#12
@@ -455,6 +456,28 @@ automatiquement (version la plus récente dans
 - **Client** : requête de tout type (ANY compris) en UDP ou TCP (nouvel essai automatique en TCP si
   la réponse est tronquée), indicateur de récursion, PTR à partir d'une adresse IP ; code de réponse,
   indicateurs, sections réponse, autorité et additionnelle avec leur TTL, durée et historique.
+
+## Module LDAP
+
+- **Serveur** LDAP v3 (port 1389 par défaut, LDAPS 1636 ; ports standards 389 / 636 avec droits
+  administrateur sous Linux) sur un annuaire de test en lecture seule, pour vérifier
+  l'authentification centralisée de switchs, pare-feux, IHM ou applications :
+  - annuaire saisi en **LDIF** (annuaire d'exemple avec utilisateurs et groupes), modifiable serveur
+    démarré ; `userPassword` en clair ou haché ({SSHA}, {SHA}, {SSHA256}, {SSHA512}) ; `memberOf`
+    déduit des groupes (`member`, `uniqueMember`) ;
+  - liaison simple (DN et mot de passe) ou anonyme (désactivable), recherche avec portées base / un
+    niveau / sous-arbre et filtres RFC 4515 (et, ou, non, égalité, sous-chaînes, ≥, ≤, présence),
+    limite de taille, comparaison, rootDSE (contextes de nommage), opération étendue « Who am I » ;
+    les mots de passe ne sont jamais renvoyés et les écritures sont refusées (unwillingToPerform) ;
+  - **LDAPS** ou **StartTLS** avec le certificat auto-signé `LDAP@Sulfur`
+    (`<userData>/modules/ldap/pki/own`) ;
+  - journal des événements (liaisons et motif d'échec, recherches avec leur filtre) et compteurs ;
+    défauts injectés par le simulateur (délai, absence de réponse, code de résultat forcé).
+- **Client** (bibliothèque ldapts) : URL `ldap://` ou `ldaps://`, StartTLS, DN et mot de passe de
+  liaison (mot de passe non enregistré), test d'authentification avec « Who am I », recherche (base,
+  portée, filtre, attributs, limite) et historique.
+- Le serveur implémente lui-même le codage BER et le protocole LDAP (la bibliothèque ldapjs a été
+  abandonnée).
 
 ## Module Simulateur
 

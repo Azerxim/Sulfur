@@ -128,6 +128,7 @@ src/
     ├── snmp/             # SNMP agent (simulated MIB, notifications) + manager and trap receiver
     ├── syslog/           # Syslog server (UDP / TCP / TLS) + message sender
     ├── dns/              # Authoritative DNS server (local zone, forwarding) + DNS client
+    ├── ldap/             # LDAP / LDAPS directory (LDIF, BER protocol) + LDAP client
     ├── simulator/        # Fault injection and node flows (uses the points of the other modules)
     ├── trends/           # Trends, data logging and CSV export (same)
     └── ca/               # Certificate authority: authorities, issuance, CSR, revocation (CRL), PKCS#12
@@ -436,6 +437,28 @@ process: no native module to compile. The API folder is detected automatically (
 - **Client**: query of any type (ANY included) over UDP or TCP (automatic retry over TCP when the
   answer is truncated), recursion flag, PTR from an IP address; response code, flags, answer,
   authority and additional sections with their TTL, duration and history.
+
+## LDAP module
+
+- **Server** LDAP v3 (default port 1389, LDAPS 1636; standard ports 389 / 636 with administrator
+  rights on Linux) on a read-only test directory, to check the centralized login of switches,
+  firewalls, HMIs or applications:
+  - directory written in **LDIF** (example directory with users and groups), edited while the
+    server is running; `userPassword` in clear text or hashed ({SSHA}, {SHA}, {SSHA256}, {SSHA512});
+    `memberOf` deduced from the groups (`member`, `uniqueMember`);
+  - simple bind (DN and password) or anonymous (can be disabled), search with base / one level /
+    subtree scopes and RFC 4515 filters (and, or, not, equality, substrings, ≥, ≤, presence), size
+    limit, compare, rootDSE (naming contexts), “Who am I” extended operation; passwords are never
+    returned and writes are refused (unwillingToPerform);
+  - **LDAPS** or **StartTLS** with the self-signed certificate `LDAP@Sulfur`
+    (`<userData>/modules/ldap/pki/own`);
+  - event log (binds and their failure reason, searches with their filter) and counters; faults
+    injected by the simulator (delay, no response, forced result code).
+- **Client** (ldapts library): `ldap://` or `ldaps://` URL, StartTLS, bind DN and password
+  (password not saved), authentication test with “Who am I”, search (base, scope, filter,
+  attributes, limit) and history.
+- The server implements the BER encoding and the LDAP protocol itself (the ldapjs library has been
+  decommissioned).
 
 ## Simulator module
 
