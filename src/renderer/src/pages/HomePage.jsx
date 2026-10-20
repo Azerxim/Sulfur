@@ -1,6 +1,6 @@
 import { ArrowRight, BookOpen, ChartLine, FlaskConical, Play, Save, Scale } from 'lucide-react'
 import { Card } from '../components/ui'
-import { moduleGroups } from '../modules'
+import { useEnabledModules } from '../enabled-modules'
 import { useI18n, useManifestText } from '../preferences'
 // Seul le champ `version` est intégré au build (import nommé d'un fichier JSON).
 import { version } from '../../../../package.json'
@@ -18,6 +18,7 @@ const STEPS = [
 /** Page d'accueil : présentation de Sulfur, prise en main et accès aux modules par groupe. */
 export default function HomePage({ onNavigate = () => {} }) {
   const { t } = useI18n()
+  const { groups } = useEnabledModules()
   const text = useManifestText()
 
   return (
@@ -56,7 +57,7 @@ export default function HomePage({ onNavigate = () => {} }) {
         </div>
       </Card>
 
-      {moduleGroups.map((group) => (
+      {groups.map((group) => (
         <section key={group.id} className="flex flex-col gap-3">
           <div>
             <h3 className="text-[11px] font-medium tracking-wider text-slate-500 uppercase">

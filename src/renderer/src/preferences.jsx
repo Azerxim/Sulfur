@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { getLocale, moduleT, setLanguage, t } from '@shared/i18n'
 import { DEFAULT_LANGUAGE } from '@shared/languages'
 
-/** Préférences de l'utilisateur (langue, thème), mémorisées localement. */
+/** Préférences de l'utilisateur (langue, thème, page de démarrage), mémorisées localement. */
 const STORAGE_KEY = 'sulfur:preferences'
 export const THEMES = ['dark', 'light', 'system']
 
@@ -15,10 +15,12 @@ export function loadPreferences() {
     startPage: 'last',
     ...window.sulfur?.initialPreferences
   }
+  // Modules désactivés : tenus par le process principal (lus au démarrage, voir main.jsx).
+  const disabledModules = window.sulfur?.initialPreferences?.disabledModules ?? []
   try {
-    return { ...defaults, ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') }
+    return { ...defaults, ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'), disabledModules }
   } catch {
-    return defaults
+    return { ...defaults, disabledModules }
   }
 }
 

@@ -99,6 +99,7 @@ src/
 │   ├── module-host.js    # Chargement des modules, IPC
 │   ├── config-store.js   # Configurations enregistrées des modules (config.json)
 │   ├── config-transfer.js # Import / export des configurations (canaux config:*)
+│   ├── module-switch.js  # Modules activés / désactivés (canaux modules:*)
 │   ├── system-info.js    # Infos PC (IP, système) — canal system:info
 │   └── modules.js        # ← liste des modules "main"
 ├── preload/index.js      # Pont sécurisé : window.sulfur.invoke / on
@@ -189,6 +190,16 @@ version sont ignorés et signalés). Il est refusé tant qu'un serveur tourne ou
 (un module le signale par une fonction `busy()` facultative dans sa partie main). Si l'interface d'un
 module ne peut pas s'afficher (configuration incohérente par exemple), un bouton rétablit sa
 configuration par défaut.
+
+### Activer et désactiver des modules
+
+**Paramètres → Modules activés** liste tous les modules avec une case à cocher. Un module désactivé
+est masqué de la barre latérale, de l'accueil et du choix de la page de démarrage ; il est arrêté
+aussitôt (ses canaux et ses points pour le simulateur et les courbes sont retirés) et n'est plus
+chargé au démarrage suivant. Sa configuration enregistrée est conservée, et toujours exportée et
+importée. Désactiver un module dont le serveur est démarré ou le client connecté est refusé :
+arrêtez-le d'abord. Un module réactivé est chargé immédiatement. La liste est tenue par le process
+principal dans `<userData>/preferences.json` (`disabledModules`).
 
 ### Ajouter un module
 

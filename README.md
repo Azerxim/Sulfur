@@ -96,6 +96,7 @@ src/
 │   ├── module-host.js    # Module loading, IPC
 │   ├── config-store.js   # Saved module configurations (config.json)
 │   ├── config-transfer.js # Configuration import / export (config:* channels)
+│   ├── module-switch.js  # Enabled / disabled modules (modules:* channels)
 │   ├── system-info.js    # PC information (IP, system) — system:info channel
 │   └── modules.js        # ← list of "main" modules
 ├── preload/index.js      # Secure bridge: window.sulfur.invoke / on
@@ -184,6 +185,16 @@ Importing replaces the configuration of the modules present in the file (modules
 are ignored and listed). It is refused while a server is running or a client is connected (a module
 reports this through an optional `busy()` in its main part). If a module interface fails to display (e.g.
 inconsistent configuration), a button restores its default configuration.
+
+### Enabling and disabling modules
+
+**Settings → Enabled modules** lists every module with a checkbox. A disabled module is hidden from
+the sidebar, the home page and the startup page choices; it is stopped at once (its channels and its
+points for the simulator and the trends are removed) and is no longer loaded at the next start.
+Its saved configuration is kept, and still exported and imported. Disabling a module whose server
+is running or whose client is connected is refused: stop it first. A re-enabled module is loaded
+immediately. The list is kept by the main process in `<userData>/preferences.json`
+(`disabledModules`).
 
 ### Adding a module
 

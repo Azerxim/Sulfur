@@ -68,6 +68,7 @@ export default {
     alreadyStarted: 'The server is already running',
     notStarted: 'The server is not running',
     notConnected: 'Client not connected',
+    modulesBusy: 'Stop the servers and clients of these modules before disabling them: {modules}',
     minPeriod: 'Minimum period: {min} ms',
     unknownStore: 'Unknown certificate store: {name}',
     certNotFound: 'Certificate not found',
@@ -162,6 +163,12 @@ export default {
     startPageHint: 'Page shown when Sulfur starts. Each module also remembers its last tab (server or client).',
     lastPage: 'Last page viewed',
     modules: 'Modules',
+    moduleSwitch: {
+      title: 'Enabled modules',
+      hint: 'A disabled module is hidden from the sidebar and the home page, stopped, and no longer loaded at startup. Its settings are kept. Stop its servers and clients before disabling it.',
+      summary: '{enabled} of {total} modules enabled',
+      enableAll: 'Enable all'
+    },
     pages: 'Application',
     themes: {
       dark: 'Dark',
