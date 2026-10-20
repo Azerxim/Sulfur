@@ -60,7 +60,7 @@ commercial license. Unmarked modules are standard.
 
 | Edition                                | Modules                                                                                                         |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (free, Apache-2.0)  | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, TCP / UDP proxy, DHCP / DNS, TFTP / FTP / SFTP, RADIUS / LDAP, CoAP / LwM2M, Modbus RTU / ASCII, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
+| **Standard** (free, Apache-2.0)  | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, TCP / UDP proxy, DHCP / DNS, TFTP / FTP / SFTP, RADIUS / LDAP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
 | **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
@@ -95,8 +95,11 @@ premium module:
 
 Cross-cutting tools that serve every module and make it easier to set up a test bench.
 
-- [ ] **Certificate authority**: generate and sign certificates (authority, servers, clients) for
-  OPC UA, Modbus/TCP Security, MQTT, HTTPS and Syslog TLS, without going through OpenSSL
+- [X] **Certificate authority**: root and intermediate authorities (ECDSA, RSA), import of an
+  existing authority, issuance by profile (TLS server / client, OPC UA application, Modbus/TCP
+  Security with role), CSR signing, revocation and CRL, PEM / DER / chain / PKCS#12 export, without
+  going through OpenSSL
+  - [ ] direct installation of the issued certificates in the stores of the Sulfur modules
 - [ ] **Network explorer**: scan an IP address range and identify devices by reusing the existing
   modules (Modbus 43 / 14, S7 identification, OPC UA FindServers, SNMP `sysDescr`)
 - [ ] **Serial terminal**: RS-232 / RS-485 links, hexadecimal log, serial ↔ TCP gateway; paves the
@@ -128,8 +131,8 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 
 ## New modules: industrial automation
 
-- [ ] **Modbus RTU / ASCII**: server and client over serial links and RTU over TCP, reusing the
-  Modbus TCP module
+- [X] **Modbus RTU / ASCII**: transports added to the Modbus module: RTU and ASCII over serial links
+  (slave and master, Unit IDs 1 to 247, broadcast writes) and RTU over TCP
 - [X] **Siemens S7** (S7comm): simulated PLC (I / Q / M / DB memory, simulated points,
   identification, RUN / STOP) and client (rack / slot or TSAP, typed reads / writes, monitoring)
 - [X] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /

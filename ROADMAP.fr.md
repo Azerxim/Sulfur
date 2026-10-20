@@ -63,7 +63,7 @@ Les modules sans marque sont standard.
 
 | Édition                                  | Modules                                                                                                         |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Proxy TCP / UDP, DHCP / DNS, TFTP / FTP / SFTP, RADIUS / LDAP, CoAP / LwM2M, Modbus RTU / ASCII, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, Proxy TCP / UDP, DHCP / DNS, TFTP / FTP / SFTP, RADIUS / LDAP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
 | **Premium** (licence commerciale)   | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
@@ -101,8 +101,11 @@ premier module premium :
 
 Outils transverses qui servent à tous les modules et facilitent la mise en place d'un banc de test.
 
-- [ ] **Autorité de certification** : générer et signer des certificats (autorité, serveurs,
-  clients) pour OPC UA, Modbus/TCP Security, MQTT, HTTPS et Syslog TLS, sans passer par OpenSSL
+- [X] **Autorité de certification** : autorités racines et intermédiaires (ECDSA, RSA), import
+  d'une autorité existante, émission par profil (serveur / client TLS, application OPC UA,
+  Modbus/TCP Security avec rôle), signature de CSR, révocation et CRL, export PEM / DER / chaîne /
+  PKCS#12, sans passer par OpenSSL
+  - [ ] installation directe des certificats émis dans les magasins des modules de Sulfur
 - [ ] **Explorateur réseau** : scanner une plage d'adresses IP et identifier les équipements en
   réutilisant les modules existants (Modbus 43 / 14, identification S7, OPC UA FindServers, SNMP
   `sysDescr`)
@@ -135,8 +138,8 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
 
 ## Nouveaux modules : automatismes industriels
 
-- [ ] **Modbus RTU / ASCII** : serveur et client sur liaison série et en RTU over TCP, en
-  réutilisant le module Modbus TCP
+- [X] **Modbus RTU / ASCII** : transports ajoutés au module Modbus : RTU et ASCII sur liaison série
+  (esclave et maître, Unit ID 1 à 247, écritures en diffusion) et RTU over TCP
 - [X] **Siemens S7** (S7comm) : automate simulé (mémoire I / Q / M / DB, points simulés,
   identification, RUN / STOP) et client (rack / emplacement ou TSAP, lecture / écriture typées,
   surveillance)
