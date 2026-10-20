@@ -60,7 +60,7 @@ commercial license. Unmarked modules are standard.
 
 | Edition                                | Modules                                                                                                         |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (free, Apache-2.0)  | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Siemens S7, PLCSim Advanced, Simulator, Trends        |
+| **Standard** (free, Apache-2.0)  | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, TCP / UDP proxy, Siemens S7, PLCSim Advanced, Simulator, Trends |
 | **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
@@ -103,6 +103,10 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 - [X] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
 - [X] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
   certificate validity on equipment
+- [ ] **TCP / UDP proxy**: relay placed between a real client and a real device (several forwards,
+  local port → remote host:port), hexadecimal log of the exchanges with export, and fault injection
+  on the traffic (latency, packet loss, disconnections, frame corruption) to test devices without
+  modifying them
 
 ## New modules: industrial automation
 

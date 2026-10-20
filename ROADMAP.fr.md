@@ -63,7 +63,7 @@ Les modules sans marque sont standard.
 
 | Édition                                  | Modules                                                                                                         |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Siemens S7, PLCSim Advanced, Simulateur, Courbes      |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Proxy TCP / UDP, Siemens S7, PLCSim Advanced, Simulateur, Courbes |
 | **Premium** (licence commerciale)   | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, IEC 60870-5-104, DNP3, IEC 61850 |
 
 Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
@@ -109,6 +109,10 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
 - [X] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
 - [X] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
   l'horodatage et la validité des certificats sur les équipements
+- [ ] **Proxy TCP / UDP** : relais placé entre un client et un équipement réels (plusieurs
+  redirections port local → hôte:port distant), journal des échanges en hexadécimal et export, et
+  injection de défauts sur le trafic (latence, perte de paquets, coupures, altération de trames)
+  pour tester des équipements sans les modifier
 
 ## Nouveaux modules : automatismes industriels
 
