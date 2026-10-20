@@ -126,11 +126,14 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
   - [X] **DNS**: authoritative server (local zone, wildcards, automatic PTR, forwarding to upstream
     servers, UDP and TCP) and client
   - [ ] **DHCP**
-- [ ] **TFTP / FTP / SFTP**: file server for firmware updates and configuration backups of network
+- [X] **TFTP / FTP / SFTP**: file server for firmware updates and configuration backups of network
   devices and PLCs
   - [X] **SFTP**: server (confined folder, password and public keys, read-only users, Ed25519 host
     key) and client (browsing, transfers, pinned fingerprint)
-  - [ ] **TFTP**, **FTP**
+  - [X] **TFTP**: server (blksize, tsize and timeout options, octet and netascii modes, uploads
+    allowed or not) and client (GET / PUT, progress, retransmissions)
+  - [X] **FTP / FTPS**: server (explicit and implicit FTPS, passive and active modes, resume,
+    read-only anonymous login) and client (browsing, transfers, command dialog)
 - [ ] **RADIUS / LDAP**: simulated authentication server, to test centralized login on switches,
   firewalls and HMIs
   - [X] **LDAP / LDAPS**: read-only LDIF directory (bind, search, StartTLS, LDAPS, memberOf) and

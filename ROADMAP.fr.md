@@ -133,11 +133,14 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
   - [X] **DNS** : serveur faisant autorité (zone locale, jokers, PTR automatiques, relais vers des
     serveurs amont, UDP et TCP) et client
   - [ ] **DHCP**
-- [ ] **TFTP / FTP / SFTP** : serveur de fichiers pour les mises à jour de firmware et les
+- [X] **TFTP / FTP / SFTP** : serveur de fichiers pour les mises à jour de firmware et les
   sauvegardes de configuration des équipements réseau et des automates
   - [X] **SFTP** : serveur (dossier confiné, mot de passe et clés publiques, lecture seule, clé
     d'hôte Ed25519) et client (parcours, transferts, empreinte épinglée)
-  - [ ] **TFTP**, **FTP**
+  - [X] **TFTP** : serveur (options blksize, tsize et timeout, modes octet et netascii, envois
+    autorisés ou non) et client (GET / PUT, progression, retransmissions)
+  - [X] **FTP / FTPS** : serveur (FTPS explicite et implicite, modes passif et actif, reprise,
+    connexion anonyme en lecture seule) et client (parcours, transferts, dialogue de commandes)
 - [ ] **RADIUS / LDAP** : serveur d'authentification simulé, pour tester la connexion centralisée
   des switchs, pare-feux et IHM
   - [X] **LDAP / LDAPS** : annuaire LDIF en lecture seule (liaison, recherche, StartTLS, LDAPS,
