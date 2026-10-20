@@ -10,6 +10,8 @@ import syslog from '@modules/syslog/renderer'
 import dns from '@modules/dns/renderer'
 import ldap from '@modules/ldap/renderer'
 import sftp from '@modules/sftp/renderer'
+import tftp from '@modules/tftp/renderer'
+import ftp from '@modules/ftp/renderer'
 import simulator from '@modules/simulator/renderer'
 import trends from '@modules/trends/renderer'
 import ca from '@modules/ca/renderer'
@@ -21,7 +23,7 @@ import ca from '@modules/ca/renderer'
 export const moduleGroups = [
   { id: 'tools', modules: [simulator, trends, ca] },
   { id: 'automation', modules: [opcua, modbus, s7, plcsim] },
-  { id: 'it', modules: [http, ntp, mqtt, snmp, syslog, dns, ldap, sftp] }
+  { id: 'it', modules: [http, ntp, mqtt, snmp, syslog, dns, ldap, sftp, ftp, tftp] }
 ]
 
 export const rendererModules = moduleGroups.flatMap((group) => group.modules)

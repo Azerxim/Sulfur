@@ -10,6 +10,8 @@ import { syslogMainModule } from '@modules/syslog/main'
 import { dnsMainModule } from '@modules/dns/main'
 import { ldapMainModule } from '@modules/ldap/main'
 import { sftpMainModule } from '@modules/sftp/main'
+import { tftpMainModule } from '@modules/tftp/main'
+import { ftpMainModule } from '@modules/ftp/main'
 import { simulatorMainModule } from '@modules/simulator/main'
 import { trendsMainModule } from '@modules/trends/main'
 import { caMainModule } from '@modules/ca/main'
@@ -32,6 +34,8 @@ export const mainModules = [
   dnsMainModule,
   ldapMainModule,
   sftpMainModule,
+  tftpMainModule,
+  ftpMainModule,
   simulatorMainModule,
   trendsMainModule,
   caMainModule

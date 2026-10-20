@@ -130,6 +130,8 @@ src/
     ├── dns/              # Authoritative DNS server (local zone, forwarding) + DNS client
     ├── ldap/             # LDAP / LDAPS directory (LDIF, BER protocol) + LDAP client
     ├── sftp/             # SFTP server (confined folder, users, keys) + SFTP client
+    ├── ftp/              # FTP / FTPS server (confined folder, users) + FTP client
+    ├── tftp/             # TFTP server (confined folder, options) + TFTP client
     ├── simulator/        # Fault injection and node flows (uses the points of the other modules)
     ├── trends/           # Trends, data logging and CSV export (same)
     └── ca/               # Certificate authority: authorities, issuance, CSR, revocation (CRL), PKCS#12
@@ -476,6 +478,36 @@ process: no native module to compile. The API folder is detected automatically (
 - **Client**: password or private key (OpenSSH / PEM, passphrase), expected host key fingerprint
   (connection refused if it changed), folder browsing, download and upload with a file dialog,
   folder creation, rename and delete. Passwords and keys are not saved.
+
+## FTP module
+
+- **Server** FTP (default port 2121) serving a folder, to test PLC backups, recipes and logs:
+  - plain FTP, explicit FTPS (AUTH TLS, optionally required) or implicit FTPS, with the server
+    self-signed certificate;
+  - passive mode (port range and announced address configurable) and active mode, which only
+    connects back to the client address; resume (REST), append, MLSD / MLST, SIZE, MDTM, ASCII
+    and binary types;
+  - users authenticated by password (only the scrypt hash is kept), read-only users, optional
+    read-only anonymous login; clients confined to the served folder, symbolic links included;
+  - log of logins and transfers, optional command log (passwords masked); counters; faults injected
+    by the simulator (delay, no response, connection cut, forced reply on transfers).
+- **Client** (basic-ftp library, passive mode): plain FTP or FTPS, optional certificate check,
+  folder browsing, transfers, folder creation, rename and delete, and display of the command
+  dialog. The password is not saved.
+
+## TFTP module
+
+- **Server** TFTP (default port 6969) serving a folder, to test firmware downloads and
+  configuration backups of network devices:
+  - octet and netascii modes, blksize, tsize and timeout options (RFC 2347 to 2349), block number
+    rollover beyond 65535 blocks;
+  - uploads allowed or not, existing files replaced or not; files written at once before the last
+    acknowledgement; paths confined to the served folder;
+  - timeout, retransmissions and maximum block size changed while running; log of transfers
+    (size, rate, retransmissions); faults injected by the simulator (delay, no response, forced
+    error).
+- **Client**: download (GET) and upload (PUT) with a file dialog, block size and file size
+  negotiation, progress, abort and history.
 
 ## Simulator module
 

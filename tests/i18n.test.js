@@ -38,6 +38,10 @@ import ldapEn from '@modules/ldap/shared/locales/en'
 import ldapFr from '@modules/ldap/shared/locales/fr'
 import sftpEn from '@modules/sftp/shared/locales/en'
 import sftpFr from '@modules/sftp/shared/locales/fr'
+import tftpEn from '@modules/tftp/shared/locales/en'
+import tftpFr from '@modules/tftp/shared/locales/fr'
+import ftpEn from '@modules/ftp/shared/locales/en'
+import ftpFr from '@modules/ftp/shared/locales/fr'
 
 const dictionaries = {
   en: {
@@ -57,7 +61,9 @@ const dictionaries = {
     ...dnsEn,
     ...explorerEn,
     ...ldapEn,
-    ...sftpEn
+    ...sftpEn,
+    ...tftpEn,
+    ...ftpEn
   },
   fr: {
     ...coreFr,
@@ -76,7 +82,9 @@ const dictionaries = {
     ...dnsFr,
     ...explorerFr,
     ...ldapFr,
-    ...sftpFr
+    ...sftpFr,
+    ...tftpFr,
+    ...ftpFr
   }
 }
 

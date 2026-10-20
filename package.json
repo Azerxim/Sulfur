@@ -24,6 +24,7 @@
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
     "@peculiar/x509": "^2.1.0",
+    "basic-ftp": "6.2.1",
     "dns-packet": "^5.6.1",
     "electron-updater": "^6.8.9",
     "ldapts": "^9.2.0",

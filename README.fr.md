@@ -133,6 +133,8 @@ src/
     ├── dns/              # Serveur DNS faisant autorité (zone locale, relais) + client DNS
     ├── ldap/             # Annuaire LDAP / LDAPS (LDIF, protocole BER) + client LDAP
     ├── sftp/             # Serveur SFTP (dossier confiné, utilisateurs, clés) + client SFTP
+    ├── ftp/              # Serveur FTP / FTPS (dossier confiné, utilisateurs) + client FTP
+    ├── tftp/             # Serveur TFTP (dossier confiné, options) + client TFTP
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     ├── trends/           # Courbes, enregistrement et export CSV (idem)
     └── ca/               # Autorité de certification : autorités, émission, CSR, révocation (CRL), PKCS#12
@@ -497,6 +499,39 @@ automatiquement (version la plus récente dans
   clé d'hôte (connexion refusée si elle a changé), navigation dans les dossiers, téléchargement et
   envoi avec choix du fichier, création de dossier, renommage et suppression. Mots de passe et clés
   ne sont pas enregistrés.
+
+## Module FTP
+
+- **Serveur** FTP (port 2121 par défaut) servant un dossier, pour tester les sauvegardes, recettes et
+  journaux d'automates :
+  - FTP en clair, FTPS explicite (AUTH TLS, exigé au choix) ou FTPS implicite, avec le certificat
+    auto-signé du serveur ;
+  - mode passif (plage de ports et adresse annoncée configurables) et mode actif, qui ne se
+    connecte qu'à l'adresse du client ; reprise (REST), ajout, MLSD / MLST, SIZE, MDTM, types
+    ASCII et binaire ;
+  - utilisateurs authentifiés par mot de passe (seule l'empreinte scrypt est conservée),
+    utilisateurs en lecture seule, connexion anonyme facultative en lecture seule ; clients
+    confinés au dossier servi, liens symboliques compris ;
+  - journal des connexions et des transferts, journal des commandes facultatif (mots de passe
+    masqués) ; compteurs ; défauts injectés par le simulateur (délai, absence de réponse, coupure,
+    réponse forcée sur les transferts).
+- **Client** (bibliothèque basic-ftp, mode passif) : FTP en clair ou FTPS, vérification facultative
+  du certificat, navigation dans les dossiers, transferts, création de dossier, renommage,
+  suppression et affichage du dialogue de commandes. Le mot de passe n'est pas enregistré.
+
+## Module TFTP
+
+- **Serveur** TFTP (port 6969 par défaut) servant un dossier, pour tester les téléchargements de
+  firmware et les sauvegardes de configuration des équipements réseau :
+  - modes octet et netascii, options blksize, tsize et timeout (RFC 2347 à 2349), retour à zéro du
+    numéro de bloc au-delà de 65535 blocs ;
+  - envois autorisés ou non, fichiers existants remplacés ou non ; fichiers écrits d'un bloc avant
+    le dernier acquittement ; chemins confinés au dossier servi ;
+  - délai d'attente, retransmissions et taille de bloc maximale modifiables serveur démarré ;
+    journal des transferts (taille, débit, retransmissions) ; défauts injectés par le simulateur
+    (délai, absence de réponse, erreur forcée).
+- **Client** : téléchargement (GET) et envoi (PUT) avec choix du fichier, négociation de la taille
+  de bloc et de la taille du fichier, progression, interruption et historique.
 
 ## Module Simulateur
 
