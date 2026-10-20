@@ -1,8 +1,8 @@
 import path from 'path'
 import { randomUUID } from 'crypto'
 import { Client, FileType } from 'basic-ftp'
-import { DEFAULT_CLIENT_CONFIG, MAX_LOG, TLS_MODES } from '../shared/constants'
-import { t } from '../shared/i18n'
+import { DEFAULT_CLIENT_CONFIG, MAX_LOG, TLS_MODES } from '../../shared/constants'
+import { t } from '../../shared/i18n'
 
 const TYPES = { [FileType.Directory]: 'dir', [FileType.SymbolicLink]: 'link' }
 

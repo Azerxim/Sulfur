@@ -132,8 +132,7 @@ src/
     ├── syslog/           # Serveur Syslog (UDP / TCP / TLS) + émetteur de messages
     ├── dns/              # Serveur DNS faisant autorité (zone locale, relais) + client DNS
     ├── ldap/             # Annuaire LDAP / LDAPS (LDIF, protocole BER) + client LDAP
-    ├── sftp/             # Serveur SFTP (dossier confiné, utilisateurs, clés) + client SFTP
-    ├── ftp/              # Serveur FTP / FTPS (dossier confiné, utilisateurs) + client FTP
+    ├── ftp/              # Serveurs FTP / FTPS et SFTP (dossier confiné, utilisateurs) + clients
     ├── tftp/             # Serveur TFTP (dossier confiné, options) + client TFTP
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     ├── trends/           # Courbes, enregistrement et export CSV (idem)
@@ -482,25 +481,14 @@ automatiquement (version la plus récente dans
 - Le serveur implémente lui-même le codage BER et le protocole LDAP (la bibliothèque ldapjs a été
   abandonnée).
 
-## Module SFTP
+## Module FTP / SFTP
 
-- **Serveur** SFTP (bibliothèque ssh2, port 2222 par défaut) servant un dossier, pour tester les
-  mises à jour de firmware et les sauvegardes de configuration des équipements :
-  - sous-système SFTP uniquement (ni shell ni commande) ; clients confinés au dossier servi, liens
-    symboliques compris ;
-  - utilisateurs authentifiés par mot de passe (seule l'empreinte scrypt est conservée) et/ou par
-    clés publiques autorisées (format OpenSSH), utilisateurs en lecture seule ; utilisateurs
-    modifiables serveur démarré ;
-  - clé d'hôte Ed25519 générée au premier démarrage (`<userData>/modules/sftp/hostkey`), empreinte
-    SHA256 affichée pour la vérifier ou l'épingler sur les clients ;
-  - journal des connexions, transferts (chemin et taille), créations de dossiers, suppressions et
-    renommages ; compteurs ; défauts injectés par le simulateur (délai, coupure de connexion).
-- **Client** : mot de passe ou clé privée (OpenSSH / PEM, phrase secrète), empreinte attendue de la
-  clé d'hôte (connexion refusée si elle a changé), navigation dans les dossiers, téléchargement et
-  envoi avec choix du fichier, création de dossier, renommage et suppression. Mots de passe et clés
-  ne sont pas enregistrés.
+Un seul module pour les deux protocoles de transfert de fichiers, en quatre onglets (serveur et
+client FTP, serveur et client SFTP). Les deux serveurs servent par défaut le même dossier
+(`<userData>/modules/ftp/files`) et peuvent fonctionner en même temps ; les défauts du simulateur
+s'appliquent aux deux.
 
-## Module FTP
+### FTP / FTPS
 
 - **Serveur** FTP (port 2121 par défaut) servant un dossier, pour tester les sauvegardes, recettes et
   journaux d'automates :
@@ -518,6 +506,24 @@ automatiquement (version la plus récente dans
 - **Client** (bibliothèque basic-ftp, mode passif) : FTP en clair ou FTPS, vérification facultative
   du certificat, navigation dans les dossiers, transferts, création de dossier, renommage,
   suppression et affichage du dialogue de commandes. Le mot de passe n'est pas enregistré.
+
+### SFTP
+
+- **Serveur** SFTP (bibliothèque ssh2, port 2222 par défaut) servant un dossier, pour tester les
+  mises à jour de firmware et les sauvegardes de configuration des équipements :
+  - sous-système SFTP uniquement (ni shell ni commande) ; clients confinés au dossier servi, liens
+    symboliques compris ;
+  - utilisateurs authentifiés par mot de passe (seule l'empreinte scrypt est conservée) et/ou par
+    clés publiques autorisées (format OpenSSH), utilisateurs en lecture seule ; utilisateurs
+    modifiables serveur démarré ;
+  - clé d'hôte Ed25519 générée au premier démarrage (`<userData>/modules/ftp/hostkey`), empreinte
+    SHA256 affichée pour la vérifier ou l'épingler sur les clients ;
+  - journal des connexions, transferts (chemin et taille), créations de dossiers, suppressions et
+    renommages ; compteurs ; défauts injectés par le simulateur (délai, coupure de connexion).
+- **Client** : mot de passe ou clé privée (OpenSSH / PEM, phrase secrète), empreinte attendue de la
+  clé d'hôte (connexion refusée si elle a changé), navigation dans les dossiers, téléchargement et
+  envoi avec choix du fichier, création de dossier, renommage et suppression. Mots de passe et clés
+  ne sont pas enregistrés.
 
 ## Module TFTP
 

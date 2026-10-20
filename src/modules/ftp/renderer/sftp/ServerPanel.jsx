@@ -3,9 +3,9 @@ import { Copy, FolderOpen, Play, Plus, Square, Trash2 } from 'lucide-react'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, StatusDot } from '@renderer/components/ui'
 import { formatTime } from '@shared/i18n'
 import { usePersistentState } from '@renderer/module-config'
-import { DEFAULT_SERVER_CONFIG } from '../shared/constants'
-import { sftpApi } from './api'
-import { t } from '../shared/i18n'
+import { DEFAULT_SERVER_CONFIG } from '../../shared/sftp'
+import { sftpApi } from '../api'
+import { t } from '../../shared/i18n'
 
 const MAX_SHOWN = 300
 const LIVE_DEBOUNCE = 500
@@ -79,7 +79,7 @@ function ServerLog() {
 }
 
 export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('sftp', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+  const [config, setConfig] = usePersistentState('ftp', 'sftpServer', status.config ?? DEFAULT_SERVER_CONFIG)
   const [defaultRoot, setDefaultRoot] = useState('')
   const [hostKey, setHostKey] = useState(null)
   const [busy, setBusy] = useState(false)

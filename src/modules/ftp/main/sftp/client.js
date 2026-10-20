@@ -1,8 +1,8 @@
 import path from 'path'
 import ssh2 from 'ssh2'
-import { DEFAULT_CLIENT_CONFIG } from '../shared/constants'
+import { DEFAULT_CLIENT_CONFIG } from '../../shared/sftp'
 import { fingerprint } from './server'
-import { t } from '../shared/i18n'
+import { t } from '../../shared/i18n'
 
 const { Client, utils } = ssh2
 const S_IFMT = 0o170000

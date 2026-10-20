@@ -3,9 +3,9 @@ import path from 'path'
 import ssh2 from 'ssh2'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from '@shared/passwords'
-import { SftpServer, ensureHostKey, fingerprint } from '@modules/sftp/main/server'
-import { SftpClient } from '@modules/sftp/main/client'
-import { DEFAULT_SERVER_CONFIG } from '@modules/sftp/shared/constants'
+import { SftpServer, ensureHostKey, fingerprint } from '@modules/ftp/main/sftp/server'
+import { SftpClient } from '@modules/ftp/main/sftp/client'
+import { DEFAULT_SERVER_CONFIG } from '@modules/ftp/shared/sftp'
 import { errorOf, freePort, tempDir } from './helpers'
 
 let tmp, root, server, port, userKey, hostKey

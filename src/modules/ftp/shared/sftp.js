@@ -1,11 +1,5 @@
-export const SFTP_MODULE = {
-  id: 'sftp',
-  name: 'SFTP',
-  description: 'Serveur SFTP simulé (mises à jour de firmware, sauvegardes) et client'
-}
-
-/** Événements conservés dans le journal du serveur. */
-export const MAX_LOG = 500
+/** Constantes de la partie SFTP du module. */
+export { MAX_LOG } from './constants'
 
 export const DEFAULT_SERVER_CONFIG = {
   host: '0.0.0.0',

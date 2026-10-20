@@ -7,37 +7,73 @@ import {
   Folder,
   FolderPlus,
   Link,
+  Lock,
   Pencil,
   Plug,
   PlugZap,
   RefreshCw,
   Trash2
 } from 'lucide-react'
-import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
+import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
 import { formatDate, formatTime } from '@shared/i18n'
 import { usePersistentState } from '@renderer/module-config'
-import { DEFAULT_CLIENT_CONFIG } from '../shared/constants'
-import { sftpApi } from './api'
-import { t } from '../shared/i18n'
+import { DEFAULT_CLIENT_CONFIG, TLS_MODES } from '../../shared/constants'
+import { formatSize } from '../format'
+import { ftpApi } from '../api'
+import { t } from '../../shared/i18n'
 
 const ICONS = { dir: Folder, file: File, link: Link }
 
-function formatSize(bytes) {
-  if (bytes < 1024) return `${bytes} o`
-  const units = ['Kio', 'Mio', 'Gio']
-  let value = bytes / 1024
-  let i = 0
-  while (value >= 1024 && i < units.length - 1) {
-    value /= 1024
-    i++
-  }
-  return `${value.toFixed(1)} ${units[i]}`
+const DIRECTION_STYLES = { '>': 'text-sulfur-300', '<': 'text-slate-300' }
+
+/** Dialogue de commandes du client (réponses du serveur, commandes envoyées, mots de passe masqués). */
+function Dialog() {
+  const [entries, setEntries] = useState([])
+  useEffect(() => {
+    ftpApi.client.dialog().then(setEntries)
+    return ftpApi.client.onDialog((entry) => setEntries((list) => [...list.slice(-299), entry]))
+  }, [])
+  return (
+    <Card
+      id="ftp.client.dialog"
+      title={t('ftp.client.dialog', { count: entries.length })}
+      className="min-h-48 shrink-0"
+      actions={
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={!entries.length}
+          onClick={() => ftpApi.client.clearDialog().then(setEntries)}
+        >
+          <Trash2 className="size-3.5" /> {t('ftp.server.clearLog')}
+        </Button>
+      }
+    >
+      {entries.length ? (
+        <div className="flex flex-col font-mono text-xs">
+          {[...entries].reverse().map((e) => (
+            <div
+              key={e.id}
+              className="grid grid-cols-[5rem_minmax(0,1fr)] gap-2 border-t border-ink-800 py-0.5 first:border-t-0"
+            >
+              <span className="text-slate-500">{formatTime(e.time)}</span>
+              <span className={`break-all whitespace-pre-wrap ${DIRECTION_STYLES[e.message[0]] ?? 'text-slate-500'}`}>
+                {e.message}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-600">{t('ftp.client.noDialog')}</p>
+      )}
+    </Card>
+  )
 }
 
 export default function ClientPanel({ status, serverPort }) {
-  // Mot de passe, clé privée et phrase secrète ne sont pas enregistrés.
-  const [config, setConfig] = usePersistentState('sftp', 'client', DEFAULT_CLIENT_CONFIG, {
-    persist: (c) => ({ ...c, password: '', privateKey: '', passphrase: '' })
+  // Le mot de passe n'est pas enregistré.
+  const [config, setConfig] = usePersistentState('ftp', 'client', DEFAULT_CLIENT_CONFIG, {
+    persist: (c) => ({ ...c, password: '' })
   })
   const [listing, setListing] = useState(null)
   const [message, setMessage] = useState(null)
@@ -68,10 +104,10 @@ export default function ClientPanel({ status, serverPort }) {
     }
   }
 
-  const refresh = (dir) => run(() => sftpApi.client.list(dir), setListing)
+  const refresh = (dir) => run(() => ftpApi.client.list(dir), setListing)
   const connect = () =>
     run(
-      () => sftpApi.client.connect(config),
+      () => ftpApi.client.connect(config),
       () => refresh()
     )
   const join = (name) => `${listing.path.replace(/\/$/, '')}/${name}`
@@ -81,38 +117,38 @@ export default function ClientPanel({ status, serverPort }) {
   }
   const download = (entry) =>
     run(
-      () => sftpApi.client.download(join(entry.name)),
-      (result) => result && setMessage(t('sftp.client.downloaded', { path: result.local }))
+      () => ftpApi.client.download(join(entry.name)),
+      (result) => result && setMessage(t('ftp.client.downloaded', { path: result.local }))
     )
   const upload = () =>
     run(
-      () => sftpApi.client.upload(),
+      () => ftpApi.client.upload(),
       (result) => {
         if (!result) return
-        setMessage(t('sftp.client.uploaded', { count: result.length }))
+        setMessage(t('ftp.client.uploaded', { count: result.length }))
         refresh(listing.path)
       }
     )
   const mkdir = () => {
-    const name = prompt(t('sftp.client.newFolder'))
+    const name = prompt(t('ftp.client.newFolder'))
     if (name)
       run(
-        () => sftpApi.client.mkdir(join(name)),
+        () => ftpApi.client.mkdir(join(name)),
         () => refresh(listing.path)
       )
   }
   const rename = (entry) => {
-    const name = prompt(t('sftp.client.renameTo'), entry.name)
+    const name = prompt(t('ftp.client.renameTo'), entry.name)
     if (name && name !== entry.name)
       run(
-        () => sftpApi.client.rename(join(entry.name), join(name)),
+        () => ftpApi.client.rename(join(entry.name), join(name)),
         () => refresh(listing.path)
       )
   }
   const remove = (entry) => {
-    if (!confirm(t('sftp.client.confirmRemove', { name: entry.name }))) return
+    if (!confirm(t('ftp.client.confirmRemove', { name: entry.name }))) return
     run(
-      () => sftpApi.client.remove(join(entry.name), entry.type),
+      () => ftpApi.client.remove(join(entry.name), entry.type),
       () => refresh(listing.path)
     )
   }
@@ -120,19 +156,19 @@ export default function ClientPanel({ status, serverPort }) {
   return (
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
       <Card
-        id="sftp.client.connection"
+        id="ftp.client.connection"
         title={t('ui.connection')}
         className="shrink-0"
         actions={
           <StatusDot
             on={connected}
-            label={connected ? t('sftp.client.connectedTo', { endpoint: status.endpoint }) : t('ui.disconnected')}
+            label={connected ? t('ftp.client.connectedTo', { endpoint: status.endpoint }) : t('ui.disconnected')}
           />
         }
       >
         <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-[2fr_7rem_1.4fr_10rem_auto] items-end gap-3">
-            <Field label={t('sftp.client.host')}>
+          <div className="grid grid-cols-[2fr_7rem_1.4fr_1.4fr_auto] items-end gap-3">
+            <Field label={t('ftp.client.host')}>
               <Input
                 className="font-mono"
                 value={config.host}
@@ -140,7 +176,7 @@ export default function ClientPanel({ status, serverPort }) {
                 onChange={(e) => update({ host: e.target.value })}
               />
             </Field>
-            <Field label={t('sftp.server.port')}>
+            <Field label={t('ftp.server.port')}>
               <Input
                 type="number"
                 value={config.port}
@@ -148,35 +184,14 @@ export default function ClientPanel({ status, serverPort }) {
                 onChange={(e) => update({ port: Number(e.target.value) })}
               />
             </Field>
-            <Field label={t('sftp.users.username')}>
+            <Field label={t('ftp.users.username')}>
               <Input
                 value={config.username}
                 disabled={connected || busy}
                 onChange={(e) => update({ username: e.target.value })}
               />
             </Field>
-            <Field label={t('sftp.client.auth')}>
-              <Select
-                value={config.auth}
-                disabled={connected || busy}
-                onChange={(e) => update({ auth: e.target.value })}
-              >
-                <option value="password">{t('sftp.client.auths.password')}</option>
-                <option value="key">{t('sftp.client.auths.key')}</option>
-              </Select>
-            </Field>
-            {connected ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(sftpApi.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
-              </Button>
-            ) : (
-              <Button variant="primary" disabled={busy} onClick={connect}>
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
-              </Button>
-            )}
-          </div>
-          {config.auth === 'password' ? (
-            <Field label={t('sftp.users.password')} className="max-w-sm">
+            <Field label={t('ftp.users.password')}>
               <Input
                 type="password"
                 value={config.password}
@@ -185,58 +200,43 @@ export default function ClientPanel({ status, serverPort }) {
                 onKeyDown={(e) => e.key === 'Enter' && !connected && connect()}
               />
             </Field>
-          ) : (
-            <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-3">
-              <Field label={t('sftp.client.privateKey')}>
-                <textarea
-                  spellCheck={false}
-                  rows={3}
-                  placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
-                  value={config.privateKey}
-                  disabled={connected || busy}
-                  onChange={(e) => update({ privateKey: e.target.value })}
-                  className="w-full rounded-md border border-ink-700 bg-ink-950 px-3 py-1.5 font-mono text-xs text-slate-100 focus:border-sulfur-500 focus:outline-none"
-                />
-                <Button
-                  size="sm"
-                  className="self-start"
-                  disabled={connected || busy}
-                  onClick={() => sftpApi.client.pickKey().then((key) => key && update({ privateKey: key }))}
-                >
-                  {t('sftp.client.pickKey')}
-                </Button>
-              </Field>
-              <Field label={t('sftp.client.passphrase')}>
-                <Input
-                  type="password"
-                  value={config.passphrase}
-                  disabled={connected || busy}
-                  onChange={(e) => update({ passphrase: e.target.value })}
-                />
-              </Field>
-            </div>
-          )}
-          <Field label={t('sftp.client.expectedFingerprint')}>
-            <Input
-              className="font-mono"
-              placeholder="SHA256:…"
-              value={config.hostFingerprint}
-              disabled={connected || busy}
-              onChange={(e) => update({ hostFingerprint: e.target.value })}
+            {connected ? (
+              <Button variant="danger" disabled={busy} onClick={() => run(ftpApi.client.disconnect)}>
+                <Plug className="size-4" /> {t('ui.disconnect')}
+              </Button>
+            ) : (
+              <Button variant="primary" disabled={busy} onClick={connect}>
+                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+              </Button>
+            )}
+          </div>
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+            <Field label={t('ftp.server.tls')} className="w-64">
+              <Select value={config.tls} disabled={connected || busy} onChange={(e) => update({ tls: e.target.value })}>
+                {TLS_MODES.map((mode) => (
+                  <option key={mode} value={mode}>
+                    {t(`ftp.tls.${mode}`)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Checkbox
+              className="pb-2"
+              label={t('ftp.client.verifyCertificate')}
+              checked={config.verifyCertificate}
+              disabled={connected || busy || config.tls === 'none'}
+              onChange={(e) => update({ verifyCertificate: e.target.checked })}
             />
-          </Field>
-          {connected && status.hostFingerprint && (
-            <p className="text-xs text-slate-500">
-              {t('sftp.client.hostKey', { fingerprint: status.hostFingerprint })}
-              {!config.hostFingerprint && (
-                <button
-                  type="button"
-                  className="ml-2 text-sulfur-300 hover:underline"
-                  onClick={() => update({ hostFingerprint: status.hostFingerprint })}
-                >
-                  {t('sftp.client.pin')}
-                </button>
-              )}
+          </div>
+          {connected && status.certificate && (
+            <p className="flex items-center gap-2 text-xs text-slate-500">
+              <Lock className="size-3.5 text-emerald-400" />
+              {t('ftp.client.certificate', {
+                subject: status.certificate.subject,
+                issuer: status.certificate.issuer,
+                protocol: status.certificate.protocol
+              })}
+              <span className="font-mono select-text">{status.certificate.fingerprint}</span>
             </p>
           )}
           <ErrorBanner error={error} onClose={() => setError(null)} />
@@ -245,16 +245,16 @@ export default function ClientPanel({ status, serverPort }) {
 
       {connected && listing && (
         <Card
-          id="sftp.client.files"
-          title={t('sftp.client.files')}
+          id="ftp.client.files"
+          title={t('ftp.client.files')}
           className="shrink-0"
           actions={
             <>
               <Button size="sm" disabled={busy} onClick={mkdir}>
-                <FolderPlus className="size-3.5" /> {t('sftp.client.mkdir')}
+                <FolderPlus className="size-3.5" /> {t('ftp.client.mkdir')}
               </Button>
               <Button size="sm" disabled={busy} onClick={upload}>
-                <FileUp className="size-3.5" /> {t('sftp.client.upload')}
+                <FileUp className="size-3.5" /> {t('ftp.client.upload')}
               </Button>
               <Button size="sm" variant="ghost" disabled={busy} onClick={() => refresh(listing.path)}>
                 <RefreshCw className="size-3.5" /> {t('ui.refresh')}
@@ -266,7 +266,7 @@ export default function ClientPanel({ status, serverPort }) {
             <Button
               size="icon"
               variant="ghost"
-              title={t('sftp.client.up')}
+              title={t('ftp.client.up')}
               disabled={busy || listing.path === '/'}
               onClick={() => refresh(`${listing.path}/..`)}
             >
@@ -280,8 +280,8 @@ export default function ClientPanel({ status, serverPort }) {
               <thead>
                 <tr className="text-xs text-slate-500">
                   <th className="px-2 py-1 font-normal">{t('ui.name')}</th>
-                  <th className="px-2 py-1 text-right font-normal">{t('sftp.client.size')}</th>
-                  <th className="px-2 py-1 font-normal">{t('sftp.client.modified')}</th>
+                  <th className="px-2 py-1 text-right font-normal">{t('ftp.client.size')}</th>
+                  <th className="px-2 py-1 font-normal">{t('ftp.client.modified')}</th>
                   <th />
                 </tr>
               </thead>
@@ -304,7 +304,7 @@ export default function ClientPanel({ status, serverPort }) {
                         {entry.type === 'dir' ? '' : formatSize(entry.size)}
                       </td>
                       <td className="px-2 py-1 text-xs text-slate-400">
-                        {formatDate(entry.mtime)} {formatTime(entry.mtime)}
+                        {entry.mtime && `${formatDate(entry.mtime)} ${formatTime(entry.mtime)}`}
                       </td>
                       <td className="px-2 py-1">
                         <div className="flex justify-end gap-1">
@@ -312,7 +312,7 @@ export default function ClientPanel({ status, serverPort }) {
                             <Button
                               size="icon"
                               variant="ghost"
-                              title={t('sftp.client.download')}
+                              title={t('ftp.client.download')}
                               onClick={() => download(entry)}
                             >
                               <Download className="size-3.5" />
@@ -321,7 +321,7 @@ export default function ClientPanel({ status, serverPort }) {
                           <Button
                             size="icon"
                             variant="ghost"
-                            title={t('sftp.client.rename')}
+                            title={t('ftp.client.rename')}
                             onClick={() => rename(entry)}
                           >
                             <Pencil className="size-3.5" />
@@ -337,10 +337,12 @@ export default function ClientPanel({ status, serverPort }) {
               </tbody>
             </table>
           ) : (
-            <p className="text-sm text-slate-600">{t('sftp.client.empty')}</p>
+            <p className="text-sm text-slate-600">{t('ftp.client.empty')}</p>
           )}
         </Card>
       )}
+
+      <Dialog />
     </div>
   )
 }

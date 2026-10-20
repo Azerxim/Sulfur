@@ -60,7 +60,7 @@ commercial license. Unmarked modules are standard.
 
 | Edition                                | Modules                                                                                                         |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (free, Apache-2.0)  | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP, SFTP, TCP / UDP proxy, DHCP, TFTP / FTP, RADIUS, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
+| **Standard** (free, Apache-2.0)  | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP, FTP / SFTP, TFTP, TCP / UDP proxy, DHCP, RADIUS, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
 | **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
@@ -132,7 +132,7 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
     key) and client (browsing, transfers, pinned fingerprint)
   - [X] **TFTP**: server (blksize, tsize and timeout options, octet and netascii modes, uploads
     allowed or not) and client (GET / PUT, progress, retransmissions)
-  - [X] **FTP / FTPS**: server (explicit and implicit FTPS, passive and active modes, resume,
+  - [X] **FTP / FTPS** (same module as SFTP): server (explicit and implicit FTPS, passive and active modes, resume,
     read-only anonymous login) and client (browsing, transfers, command dialog)
 - [ ] **RADIUS / LDAP**: simulated authentication server, to test centralized login on switches,
   firewalls and HMIs

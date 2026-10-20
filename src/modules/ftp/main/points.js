@@ -1,31 +1,48 @@
 import { FORCED_REPLIES } from '../shared/constants'
 import { t } from '../shared/i18n'
 
-const SERVER_POINTS = [
-  { id: 'server:sessions', name: 'sessions', dataType: 'Int32', numeric: true },
-  { id: 'server:uploads', name: 'uploads', dataType: 'Int32', numeric: true },
-  { id: 'server:downloads', name: 'downloads', dataType: 'Int32', numeric: true },
-  { id: 'server:bytesIn', name: 'bytes received', dataType: 'Int32', numeric: true },
-  { id: 'server:bytesOut', name: 'bytes sent', dataType: 'Int32', numeric: true },
-  { id: 'server:failures', name: 'failed logins', dataType: 'Int32', numeric: true }
+const COUNTERS = [
+  { key: 'uploads', name: 'uploads' },
+  { key: 'downloads', name: 'downloads' },
+  { key: 'bytesIn', name: 'bytes received' },
+  { key: 'bytesOut', name: 'bytes sent' },
+  { key: 'failures', name: 'failed logins' }
 ]
 
-/** Points de données du module FTP (contrat : `@shared/points`) : compteurs du serveur. */
-export function createPointsApi({ server }) {
+/** Points d'un serveur : sessions ouvertes et compteurs, préfixés par le protocole (ftp:…, sftp:…). */
+const serverPoints = (protocol, label) => [
+  { id: `${protocol}:sessions`, name: `${label} sessions` },
+  ...COUNTERS.map(({ key, name }) => ({ id: `${protocol}:${key}`, name: `${label} ${name}` }))
+]
+
+/**
+ * Points de données du module FTP / SFTP (contrat : `@shared/points`) : compteurs des deux serveurs.
+ * Les défauts s'appliquent aux deux serveurs (SFTP : délai et coupure uniquement).
+ */
+export function createPointsApi({ ftpServer, sftpServer }) {
+  const servers = { ftp: ftpServer, sftp: sftpServer }
   return {
-    name: 'FTP',
+    name: 'FTP / SFTP',
 
     points() {
-      return SERVER_POINTS.map((p) => ({ ...p, group: 'server', writable: false }))
+      return [...serverPoints('ftp', 'FTP'), ...serverPoints('sftp', 'SFTP')].map((p) => ({
+        ...p,
+        group: 'server',
+        dataType: 'Int32',
+        numeric: true,
+        writable: false
+      }))
     },
 
     read(ids) {
-      const running = server.running
-      const values = {
-        'server:sessions': server.sessions.size,
-        ...Object.fromEntries(Object.entries(server.counters).map(([k, v]) => [`server:${k}`, v]))
-      }
-      return Object.fromEntries(ids.map((id) => [id, running ? values[id] : undefined]))
+      return Object.fromEntries(
+        ids.map((id) => {
+          const [protocol, key] = id.split(':')
+          const server = servers[protocol]
+          if (!server?.running) return [id, undefined]
+          return [id, key === 'sessions' ? server.sessions.size : server.counters[key]]
+        })
+      )
     },
 
     async write(id) {
@@ -45,7 +62,8 @@ export function createPointsApi({ server }) {
     },
 
     setFaults(faults) {
-      server.setFaults(faults)
+      ftpServer.setFaults(faults)
+      sftpServer.setFaults(faults)
     }
   }
 }

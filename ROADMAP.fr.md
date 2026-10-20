@@ -63,7 +63,7 @@ Les modules sans marque sont standard.
 
 | Édition                                  | Modules                                                                                                         |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP, SFTP, Proxy TCP / UDP, DHCP, TFTP / FTP, RADIUS, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP, FTP / SFTP, TFTP, Proxy TCP / UDP, DHCP, RADIUS, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
 | **Premium** (licence commerciale)   | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
@@ -139,7 +139,7 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
     d'hôte Ed25519) et client (parcours, transferts, empreinte épinglée)
   - [X] **TFTP** : serveur (options blksize, tsize et timeout, modes octet et netascii, envois
     autorisés ou non) et client (GET / PUT, progression, retransmissions)
-  - [X] **FTP / FTPS** : serveur (FTPS explicite et implicite, modes passif et actif, reprise,
+  - [X] **FTP / FTPS** (même module que SFTP) : serveur (FTPS explicite et implicite, modes passif et actif, reprise,
     connexion anonyme en lecture seule) et client (parcours, transferts, dialogue de commandes)
 - [ ] **RADIUS / LDAP** : serveur d'authentification simulé, pour tester la connexion centralisée
   des switchs, pare-feux et IHM

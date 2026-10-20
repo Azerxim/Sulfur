@@ -3,9 +3,9 @@ import { FolderOpen, Lock, Play, Plus, Square, Trash2 } from 'lucide-react'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
 import { formatDate, formatTime } from '@shared/i18n'
 import { usePersistentState } from '@renderer/module-config'
-import { DEFAULT_SERVER_CONFIG, TLS_MODES } from '../shared/constants'
-import { ftpApi } from './api'
-import { t } from '../shared/i18n'
+import { DEFAULT_SERVER_CONFIG, TLS_MODES } from '../../shared/constants'
+import { ftpApi } from '../api'
+import { t } from '../../shared/i18n'
 
 const MAX_SHOWN = 300
 const LIVE_DEBOUNCE = 500

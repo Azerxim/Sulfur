@@ -1,7 +1,7 @@
 export const FTP_MODULE = {
   id: 'ftp',
-  name: 'FTP',
-  description: "Serveur FTP / FTPS simulé (sauvegardes, recettes, journaux d'automates) et client"
+  name: 'FTP / SFTP',
+  description: "Serveurs FTP / FTPS et SFTP simulés (firmware, sauvegardes, recettes d'automates) et clients"
 }
 
 /** Événements conservés dans le journal du serveur et dans le dialogue du client. */
