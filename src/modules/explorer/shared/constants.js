@@ -42,6 +42,9 @@ export const SERVICE_GROUPS = ['automation', 'it', 'remote']
 /** Nombre maximal d'adresses analysées en une fois (un /20). */
 export const MAX_HOSTS = 4096
 
+/** Adresses affichées lors de la vérification des cibles. */
+export const MAX_PREVIEW = 256
+
 export const DEFAULT_SCAN = {
   targets: '192.168.1.0/24',
   /** Par service : activé et ports (texte libre, séparés par des virgules). */

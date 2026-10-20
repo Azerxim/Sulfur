@@ -106,9 +106,10 @@ Outils transverses qui servent à tous les modules et facilitent la mise en plac
   Modbus/TCP Security avec rôle), signature de CSR, révocation et CRL, export PEM / DER / chaîne /
   PKCS#12, sans passer par OpenSSL
   - [ ] installation directe des certificats émis dans les magasins des modules de Sulfur
-- [ ] **Explorateur réseau** : scanner une plage d'adresses IP et identifier les équipements en
-  réutilisant les modules existants (Modbus 43 / 14, identification S7, OPC UA FindServers, SNMP
-  `sysDescr`)
+- [X] **Explorateur réseau** : cibles limitées aux réseaux privés (10.0.0.0/8, 172.16.0.0/12,
+  192.168.0.0/16) : adresses, réseaux CIDR, plages et noms d'hôte vérifiés, réseaux privés du PC
+  proposés. La recherche et l'identification des équipements viendront plus tard (voir
+  [Plus tard](#plus-tard)).
 - [ ] **Terminal série** : liaisons RS-232 / RS-485, journal hexadécimal, passerelle série ↔ TCP ;
   prépare le module Modbus RTU
 
@@ -128,11 +129,15 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
   redirections port local → hôte:port distant), journal des échanges en hexadécimal et export, et
   injection de défauts sur le trafic (latence, perte de paquets, coupures, altération de trames)
   pour tester des équipements sans les modifier
-- [ ] **DHCP / DNS** : serveur DHCP (attribution d'adresses, réservations) et DNS simulé, pour la
-  mise en service d'équipements sur un réseau isolé
-  - [X] **DNS** : serveur faisant autorité (zone locale, jokers, PTR automatiques, relais vers des
-    serveurs amont, UDP et TCP) et client
-  - [ ] **DHCP**
+- [X] **DNS** : serveur faisant autorité (zone locale, jokers, PTR automatiques, relais vers des
+  serveurs amont, UDP et TCP) et client
+- [X] **DHCP** : serveur de test pour un réseau isolé, limité aux réseaux privés (10.0.0.0/8,
+  172.16.0.0/12, 192.168.0.0/16) : interface choisie explicitement dont le sous-réseau est privé,
+  plage contrôlée par rapport à ce sous-réseau, avertissement confirmé avant chaque démarrage, liste
+  facultative d'adresses MAC autorisées, fichier journal de toutes les offres et attributions ;
+  client d'essai (DISCOVER, bail, RELEASE)
+  - [ ] réservations fixes (adresse MAC → adresse IP)
+  - [ ] requêtes transmises par un relais DHCP (giaddr), pour les réseaux de test derrière un routeur
 - [X] **TFTP / FTP / SFTP** : serveur de fichiers pour les mises à jour de firmware et les
   sauvegardes de configuration des équipements réseau et des automates
   - [X] **SFTP** : serveur (dossier confiné, mot de passe et clés publiques, lecture seule, clé
@@ -186,6 +191,9 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 
 ## Plus tard
 
+- **Explorateur réseau : recherche et identification** : trouver les équipements des cibles et les
+  identifier en réutilisant les modules existants (Modbus 43 / 14, identification S7, OPC UA
+  FindServers, SNMP `sysDescr`), toujours dans les seuls réseaux privés.
 - **Liens entre modules** : relier une variable d'un module à un autre (par exemple une variable
   OPC UA recopiée dans un registre Modbus) pour simuler une passerelle ou une installation complète.
   Déjà possible avec un flux du simulateur (*Changement de point* → *Écrire un point*) ; reste à
@@ -205,3 +213,8 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 - Le code de l'interface est volumineux (≈ 2,1 Mo) et n'a pas encore été optimisé.
 - Le broker MQTT ne gère pas les abonnements partagés (`$share/…`) ni l'authentification étendue de
   MQTT 5.0 (paquet AUTH).
+- DHCP : Node.js ne permet pas de lier un socket à une interface (`SO_BINDTODEVICE`). Sous Linux et
+  macOS, les requêtes diffusées sur les autres interfaces parviennent au serveur et à son journal ;
+  ses réponses ne partent que par l'interface choisie. Le filtre MAC limite cet effet sur un PC
+  relié à plusieurs réseaux. Les ports 67 / 68 demandent les droits administrateur (ou la capacité
+  `CAP_NET_BIND_SERVICE`) sous Linux. Non testé sous macOS.

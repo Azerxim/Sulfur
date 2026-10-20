@@ -24,7 +24,7 @@ npm run format     # formatting (Prettier)
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
-certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP, Modbus/TCP Security, RTU and ASCII (frames, RTU over TCP, serial link, broadcast), HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), fault injection, node flows and trend recording on both protocols,
+certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP, Modbus/TCP Security, RTU and ASCII (frames, RTU over TCP, serial link, broadcast), HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), network explorer targets (private networks only), DHCP (packets, pool checked against the interface subnet, private networks only, leases, server and client, MAC filter), fault injection, node flows and trend recording on both protocols,
 protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
@@ -128,12 +128,14 @@ src/
     ├── snmp/             # SNMP agent (simulated MIB, notifications) + manager and trap receiver
     ├── syslog/           # Syslog server (UDP / TCP / TLS) + message sender
     ├── dns/              # Authoritative DNS server (local zone, forwarding) + DNS client
+    ├── dhcp/             # Test DHCP server for an isolated private network + DHCP client
     ├── ldap/             # LDAP / LDAPS directory (LDIF, BER protocol) + LDAP client
     ├── ftp/              # FTP / FTPS and SFTP servers (confined folder, users) + clients
     ├── tftp/             # TFTP server (confined folder, options) + TFTP client
     ├── simulator/        # Fault injection and node flows (uses the points of the other modules)
     ├── trends/           # Trends, data logging and CSV export (same)
-    └── ca/               # Certificate authority: authorities, issuance, CSR, revocation (CRL), PKCS#12
+    ├── ca/               # Certificate authority: authorities, issuance, CSR, revocation (CRL), PKCS#12
+    └── explorer/         # Network explorer: targets restricted to the private networks
 ```
 
 ## Languages and theme
@@ -440,6 +442,35 @@ process: no native module to compile. The API folder is detected automatically (
   answer is truncated), recursion flag, PTR from an IP address; response code, flags, answer,
   authority and additional sections with their TTL, duration and history.
 
+## DHCP module
+
+Test DHCP server for an **isolated network, restricted to the private networks** (10.0.0.0/8,
+172.16.0.0/12, 192.168.0.0/16), to commission devices on a bench.
+
+- **Server** (RFC 2131, ports 67 / 68), with safeguards:
+  - **stopped by default**, never started automatically (neither at launch nor by an imported
+    configuration); every start shows a **warning** that must be confirmed (the main process refuses
+    a start without this confirmation);
+  - **interface chosen explicitly** (none by default, never 0.0.0.0): its subnet must be entirely
+    private. The server sends from the address of this interface, so its broadcast replies only
+    leave through it; on Linux and macOS, it also listens on 255.255.255.255 to receive the
+    broadcasts of the clients without an address;
+  - **pool checked** against the subnet of the interface (host addresses only, server address
+    excluded, 256 addresses at most); gateway inside the subnet, announced DNS servers private;
+  - option **only answer the listed MAC addresses**; requests forwarded by a relay (giaddr) are
+    ignored;
+  - **log** of every request, offer, assignment (ACK), refusal (NAK), release and conflict
+    (DECLINE), also written to `<userData>/modules/dhcp/logs/server.log`; table of the leases
+    (offered, assigned, declined) with their expiry.
+- **Client**: on an interface with a private address, with the MAC address of the interface or
+  another one (random button, locally administered address): DISCOVER (lists the offers of every
+  server), full lease (DISCOVER, OFFER, REQUEST, ACK) and RELEASE. It never changes the
+  configuration of the interface; offers outside the private networks are ignored.
+- On Linux, ports 67 and 68 require administrator rights or the `CAP_NET_BIND_SERVICE` capability.
+  Node.js cannot bind a socket to an interface: on Linux and macOS, the broadcasts of the other
+  interfaces reach the server (and its log), but its replies only leave through the chosen interface;
+  use the MAC filter on a PC connected to several networks.
+
 ## LDAP module
 
 - **Server** LDAP v3 (default port 1389, LDAPS 1636; standard ports 389 / 636 with administrator
@@ -579,6 +610,21 @@ HTTPS, Syslog TLS, or real devices.
   (decoded fields, SHA-256 / SHA-1 thumbprints, PEM to copy).
 - Storage: `<userData>/modules/ca/authorities/<id>` (private keys with 600 rights). Authorities are
   not part of the exported configuration.
+
+## Network explorer module
+
+Prepares the exploration of a test network, **restricted to the private networks** (RFC 1918):
+10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16.
+
+- **Targets**: addresses (`192.168.1.10`), CIDR networks (`192.168.1.0/24`, without the network and
+  broadcast addresses), ranges (`10.0.0.10-50` or `10.0.0.10-10.0.0.50`) and host names, separated
+  by commas, spaces or line breaks; 4,096 addresses at most. The main process checks every entry: an
+  entry that leaves the private networks, even partly, is refused as a whole, as is a host name that
+  resolves outside them (`localhost` included).
+- The private networks of the PC are proposed (limited to their /24); the addresses covered by the
+  entry are listed as it is typed.
+- Searching for and identifying the devices at these addresses is planned for a later version (see
+  the [roadmap](ROADMAP.md#later)).
 
 ## License
 

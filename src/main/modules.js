@@ -8,12 +8,14 @@ import { mqttMainModule } from '@modules/mqtt/main'
 import { snmpMainModule } from '@modules/snmp/main'
 import { syslogMainModule } from '@modules/syslog/main'
 import { dnsMainModule } from '@modules/dns/main'
+import { dhcpMainModule } from '@modules/dhcp/main'
 import { ldapMainModule } from '@modules/ldap/main'
 import { tftpMainModule } from '@modules/tftp/main'
 import { ftpMainModule } from '@modules/ftp/main'
 import { simulatorMainModule } from '@modules/simulator/main'
 import { trendsMainModule } from '@modules/trends/main'
 import { caMainModule } from '@modules/ca/main'
+import { explorerMainModule } from '@modules/explorer/main'
 
 /**
  * Modules chargés côté process principal. Ajouter les nouveaux modules ici.
@@ -31,10 +33,12 @@ export const mainModules = [
   snmpMainModule,
   syslogMainModule,
   dnsMainModule,
+  dhcpMainModule,
   ldapMainModule,
   tftpMainModule,
   ftpMainModule,
   simulatorMainModule,
   trendsMainModule,
-  caMainModule
+  caMainModule,
+  explorerMainModule
 ]

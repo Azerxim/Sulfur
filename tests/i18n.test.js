@@ -32,6 +32,8 @@ import caEn from '@modules/ca/shared/locales/en'
 import caFr from '@modules/ca/shared/locales/fr'
 import dnsEn from '@modules/dns/shared/locales/en'
 import dnsFr from '@modules/dns/shared/locales/fr'
+import dhcpEn from '@modules/dhcp/shared/locales/en'
+import dhcpFr from '@modules/dhcp/shared/locales/fr'
 import explorerEn from '@modules/explorer/shared/locales/en'
 import explorerFr from '@modules/explorer/shared/locales/fr'
 import ldapEn from '@modules/ldap/shared/locales/en'
@@ -57,6 +59,7 @@ const dictionaries = {
     ...trendsEn,
     ...caEn,
     ...dnsEn,
+    ...dhcpEn,
     ...explorerEn,
     ...ldapEn,
     ...tftpEn,
@@ -77,6 +80,7 @@ const dictionaries = {
     ...trendsFr,
     ...caFr,
     ...dnsFr,
+    ...dhcpFr,
     ...explorerFr,
     ...ldapFr,
     ...tftpFr,

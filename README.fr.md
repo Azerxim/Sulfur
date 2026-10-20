@@ -25,7 +25,7 @@ npm run format     # mise en forme (Prettier)
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
 (sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP,
-Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), cibles de l’explorateur réseau (réseaux privés uniquement), DHCP (paquets, plage contrôlée par rapport au sous-réseau de l’interface, réseaux privés uniquement, baux, serveur et client, filtre MAC), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -131,12 +131,14 @@ src/
     ├── snmp/             # Agent SNMP (MIB simulée, notifications) + manager et récepteur de traps
     ├── syslog/           # Serveur Syslog (UDP / TCP / TLS) + émetteur de messages
     ├── dns/              # Serveur DNS faisant autorité (zone locale, relais) + client DNS
+    ├── dhcp/             # Serveur DHCP de test pour un réseau privé isolé + client DHCP
     ├── ldap/             # Annuaire LDAP / LDAPS (LDIF, protocole BER) + client LDAP
     ├── ftp/              # Serveurs FTP / FTPS et SFTP (dossier confiné, utilisateurs) + clients
     ├── tftp/             # Serveur TFTP (dossier confiné, options) + client TFTP
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     ├── trends/           # Courbes, enregistrement et export CSV (idem)
-    └── ca/               # Autorité de certification : autorités, émission, CSR, révocation (CRL), PKCS#12
+    ├── ca/               # Autorité de certification : autorités, émission, CSR, révocation (CRL), PKCS#12
+    └── explorer/         # Explorateur réseau : cibles limitées aux réseaux privés
 ```
 
 ## Langues et thème
@@ -459,6 +461,37 @@ automatiquement (version la plus récente dans
   la réponse est tronquée), indicateur de récursion, PTR à partir d'une adresse IP ; code de réponse,
   indicateurs, sections réponse, autorité et additionnelle avec leur TTL, durée et historique.
 
+## Module DHCP
+
+Serveur DHCP de test pour un **réseau isolé, limité aux réseaux privés** (10.0.0.0/8,
+172.16.0.0/12, 192.168.0.0/16), pour mettre en service des équipements sur un banc.
+
+- **Serveur** (RFC 2131, ports 67 / 68), avec des garde-fous :
+  - **arrêté par défaut**, jamais démarré automatiquement (ni au lancement, ni par une
+    configuration importée) ; chaque démarrage affiche un **avertissement** à confirmer (le process
+    principal refuse un démarrage sans cette confirmation) ;
+  - **interface choisie explicitement** (aucune par défaut, jamais 0.0.0.0) : son sous-réseau doit
+    être entièrement privé. Le serveur émet depuis l'adresse de cette interface, ses réponses
+    diffusées ne sortent donc que par elle ; sous Linux et macOS, il écoute aussi 255.255.255.255
+    pour recevoir les diffusions des clients sans adresse ;
+  - **plage contrôlée** par rapport au sous-réseau de l'interface (adresses d'hôte seulement, adresse
+    du serveur exclue, 256 adresses au maximum) ; passerelle dans le sous-réseau, serveurs DNS
+    annoncés privés ;
+  - option **répondre seulement aux adresses MAC listées** ; les requêtes transmises par un relais
+    (giaddr) sont ignorées ;
+  - **journal** de toutes les requêtes, offres, attributions (ACK), refus (NAK), libérations et
+    conflits (DECLINE), écrit aussi dans `<userData>/modules/dhcp/logs/server.log` ; tableau des
+    baux (offerts, attribués, refusés) avec leur échéance.
+- **Client** : sur une interface à adresse privée, avec l'adresse MAC de l'interface ou une autre
+  (bouton aléatoire, adresse administrée localement) : DISCOVER (liste les offres de tous les
+  serveurs), bail complet (DISCOVER, OFFER, REQUEST, ACK) et RELEASE. Il ne modifie jamais la
+  configuration de l'interface ; les offres hors des réseaux privés sont ignorées.
+- Sous Linux, les ports 67 et 68 demandent les droits administrateur ou la capacité
+  `CAP_NET_BIND_SERVICE`. Node.js ne permet pas de lier un socket à une interface : sous Linux et
+  macOS, les diffusions des autres interfaces parviennent au serveur (et à son journal), mais ses
+  réponses ne partent que par l'interface choisie ; activez le filtre MAC sur un PC relié à
+  plusieurs réseaux.
+
 ## Module LDAP
 
 - **Serveur** LDAP v3 (port 1389 par défaut, LDAPS 1636 ; ports standards 389 / 636 avec droits
@@ -609,6 +642,21 @@ HTTPS, Syslog TLS, ou pour des équipements réels.
   (champs décodés, empreintes SHA-256 / SHA-1, PEM à copier).
 - Stockage : `<userData>/modules/ca/authorities/<id>` (clés privées en droits 600). Les autorités ne
   font pas partie de la configuration exportée.
+
+## Module Explorateur réseau
+
+Prépare l'exploration d'un réseau de test, **limitée aux réseaux privés** (RFC 1918) :
+10.0.0.0/8, 172.16.0.0/12 et 192.168.0.0/16.
+
+- **Cibles** : adresses (`192.168.1.10`), réseaux CIDR (`192.168.1.0/24`, sans les adresses de
+  réseau et de diffusion), plages (`10.0.0.10-50` ou `10.0.0.10-10.0.0.50`) et noms d'hôte, séparés
+  par des virgules, des espaces ou des retours à la ligne ; 4 096 adresses au maximum. Le process
+  principal vérifie chaque saisie : une saisie qui sort des réseaux privés, même en partie, est
+  refusée en entier, tout comme un nom d'hôte qui se résout en dehors (`localhost` compris).
+- Les réseaux privés du PC sont proposés (limités à leur /24) ; les adresses désignées par la
+  saisie sont listées au fil de la frappe.
+- La recherche et l'identification des équipements de ces adresses sont prévues dans une prochaine
+  version (voir la [roadmap](ROADMAP.fr.md#plus-tard)).
 
 ## Licence
 

@@ -100,8 +100,10 @@ Cross-cutting tools that serve every module and make it easier to set up a test 
   Security with role), CSR signing, revocation and CRL, PEM / DER / chain / PKCS#12 export, without
   going through OpenSSL
   - [ ] direct installation of the issued certificates in the stores of the Sulfur modules
-- [ ] **Network explorer**: scan an IP address range and identify devices by reusing the existing
-  modules (Modbus 43 / 14, S7 identification, OPC UA FindServers, SNMP `sysDescr`)
+- [X] **Network explorer**: targets restricted to the private networks (10.0.0.0/8,
+  172.16.0.0/12, 192.168.0.0/16): addresses, CIDR networks, ranges and host names are checked, the
+  private networks of the PC are proposed. Searching for and identifying devices comes later (see
+  [Later](#later)).
 - [ ] **Serial terminal**: RS-232 / RS-485 links, hexadecimal log, serial ↔ TCP gateway; paves the
   way for the Modbus RTU module
 
@@ -121,11 +123,14 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
   local port → remote host:port), hexadecimal log of the exchanges with export, and fault injection
   on the traffic (latency, packet loss, disconnections, frame corruption) to test devices without
   modifying them
-- [ ] **DHCP / DNS**: DHCP server (address assignment, reservations) and simulated DNS, to
-  commission devices on an isolated network
-  - [X] **DNS**: authoritative server (local zone, wildcards, automatic PTR, forwarding to upstream
-    servers, UDP and TCP) and client
-  - [ ] **DHCP**
+- [X] **DNS**: authoritative server (local zone, wildcards, automatic PTR, forwarding to upstream
+  servers, UDP and TCP) and client
+- [X] **DHCP**: test server for an isolated network, restricted to the private networks
+  (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16): explicitly chosen interface with a private subnet,
+  pool checked against that subnet, warning confirmed before every start, optional MAC allow list,
+  log file of every offer and assignment; test client (DISCOVER, lease, RELEASE)
+  - [ ] fixed reservations (MAC address → IP address)
+  - [ ] requests forwarded by a DHCP relay (giaddr), for test networks behind a router
 - [X] **TFTP / FTP / SFTP**: file server for firmware updates and configuration backups of network
   devices and PLCs
   - [X] **SFTP**: server (confined folder, password and public keys, read-only users, Ed25519 host
@@ -176,6 +181,9 @@ The order within each version will be set according to needs.
 
 ## Later
 
+- **Network explorer: search and identification**: find the devices at the targets and identify
+  them by reusing the existing modules (Modbus 43 / 14, S7 identification, OPC UA FindServers, SNMP
+  `sysDescr`), still within the private networks only.
 - **Links between modules**: map a variable from one module to another (e.g. an OPC UA variable
   mirrored to a Modbus register) to simulate a gateway or a complete installation.
   Already possible with a simulator flow (*Point change* → *Write a point*); a direct link, without
@@ -194,3 +202,8 @@ The order within each version will be set according to needs.
 - The interface bundle is large (≈ 2.1 MB); it has not been optimized yet.
 - The MQTT broker does not support shared subscriptions (`$share/…`) nor MQTT 5.0 enhanced
   authentication (AUTH packet).
+- DHCP: Node.js cannot bind a socket to an interface (`SO_BINDTODEVICE`). On Linux and macOS, the
+  requests broadcast on the other interfaces reach the server and its log; its replies only leave
+  through the chosen interface. The MAC filter limits this on a PC connected to several networks.
+  Ports 67 / 68 require administrator rights (or the `CAP_NET_BIND_SERVICE` capability) on Linux.
+  Not tested on macOS.
