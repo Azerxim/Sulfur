@@ -63,7 +63,7 @@ Les modules sans marque sont standard.
 
 | Édition                                  | Modules                                                                                                         |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, Proxy TCP / UDP, DHCP / DNS, TFTP / FTP / SFTP, RADIUS / LDAP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP, SFTP, Proxy TCP / UDP, DHCP, TFTP / FTP, RADIUS, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
 | **Premium** (licence commerciale)   | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
@@ -130,10 +130,19 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
   pour tester des équipements sans les modifier
 - [ ] **DHCP / DNS** : serveur DHCP (attribution d'adresses, réservations) et DNS simulé, pour la
   mise en service d'équipements sur un réseau isolé
+  - [X] **DNS** : serveur faisant autorité (zone locale, jokers, PTR automatiques, relais vers des
+    serveurs amont, UDP et TCP) et client
+  - [ ] **DHCP**
 - [ ] **TFTP / FTP / SFTP** : serveur de fichiers pour les mises à jour de firmware et les
   sauvegardes de configuration des équipements réseau et des automates
+  - [X] **SFTP** : serveur (dossier confiné, mot de passe et clés publiques, lecture seule, clé
+    d'hôte Ed25519) et client (parcours, transferts, empreinte épinglée)
+  - [ ] **TFTP**, **FTP**
 - [ ] **RADIUS / LDAP** : serveur d'authentification simulé, pour tester la connexion centralisée
   des switchs, pare-feux et IHM
+  - [X] **LDAP / LDAPS** : annuaire LDIF en lecture seule (liaison, recherche, StartTLS, LDAPS,
+    memberOf) et client
+  - [ ] **RADIUS**
 - [ ] **CoAP / LwM2M** : serveur et client pour capteurs IoT contraints, en complément de MQTT
 
 ## Nouveaux modules : automatismes industriels

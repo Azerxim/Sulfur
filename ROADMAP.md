@@ -60,7 +60,7 @@ commercial license. Unmarked modules are standard.
 
 | Edition                                | Modules                                                                                                         |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (free, Apache-2.0)  | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, TCP / UDP proxy, DHCP / DNS, TFTP / FTP / SFTP, RADIUS / LDAP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
+| **Standard** (free, Apache-2.0)  | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP, SFTP, TCP / UDP proxy, DHCP, TFTP / FTP, RADIUS, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
 | **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
@@ -123,10 +123,19 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
   modifying them
 - [ ] **DHCP / DNS**: DHCP server (address assignment, reservations) and simulated DNS, to
   commission devices on an isolated network
+  - [X] **DNS**: authoritative server (local zone, wildcards, automatic PTR, forwarding to upstream
+    servers, UDP and TCP) and client
+  - [ ] **DHCP**
 - [ ] **TFTP / FTP / SFTP**: file server for firmware updates and configuration backups of network
   devices and PLCs
+  - [X] **SFTP**: server (confined folder, password and public keys, read-only users, Ed25519 host
+    key) and client (browsing, transfers, pinned fingerprint)
+  - [ ] **TFTP**, **FTP**
 - [ ] **RADIUS / LDAP**: simulated authentication server, to test centralized login on switches,
   firewalls and HMIs
+  - [X] **LDAP / LDAPS**: read-only LDIF directory (bind, search, StartTLS, LDAPS, memberOf) and
+    client
+  - [ ] **RADIUS**
 - [ ] **CoAP / LwM2M**: server and client for constrained IoT sensors, alongside MQTT
 
 ## New modules: industrial automation
