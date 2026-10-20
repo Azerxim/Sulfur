@@ -9,13 +9,14 @@ import snmp from '@modules/snmp/renderer'
 import syslog from '@modules/syslog/renderer'
 import simulator from '@modules/simulator/renderer'
 import trends from '@modules/trends/renderer'
+import ca from '@modules/ca/renderer'
 
 /**
  * Modules affichés dans l'interface, par groupe (libellés : app.groups.*), dans l'ordre de la barre
  * latérale. Ajouter les nouveaux modules ici.
  */
 export const moduleGroups = [
-  { id: 'tools', modules: [simulator, trends] },
+  { id: 'tools', modules: [simulator, trends, ca] },
   { id: 'automation', modules: [opcua, modbus, s7, plcsim] },
   { id: 'it', modules: [http, ntp, mqtt, snmp, syslog] }
 ]

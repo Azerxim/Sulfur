@@ -28,6 +28,8 @@ import simulatorEn from '@modules/simulator/shared/locales/en'
 import simulatorFr from '@modules/simulator/shared/locales/fr'
 import trendsEn from '@modules/trends/shared/locales/en'
 import trendsFr from '@modules/trends/shared/locales/fr'
+import caEn from '@modules/ca/shared/locales/en'
+import caFr from '@modules/ca/shared/locales/fr'
 
 const dictionaries = {
   en: {
@@ -42,7 +44,8 @@ const dictionaries = {
     ...snmpEn,
     ...syslogEn,
     ...simulatorEn,
-    ...trendsEn
+    ...trendsEn,
+    ...caEn
   },
   fr: {
     ...coreFr,
@@ -56,7 +59,8 @@ const dictionaries = {
     ...snmpFr,
     ...syslogFr,
     ...simulatorFr,
-    ...trendsFr
+    ...trendsFr,
+    ...caFr
   }
 }
 

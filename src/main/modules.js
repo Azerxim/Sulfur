@@ -9,6 +9,7 @@ import { snmpMainModule } from '@modules/snmp/main'
 import { syslogMainModule } from '@modules/syslog/main'
 import { simulatorMainModule } from '@modules/simulator/main'
 import { trendsMainModule } from '@modules/trends/main'
+import { caMainModule } from '@modules/ca/main'
 
 /**
  * Modules chargés côté process principal. Ajouter les nouveaux modules ici.
@@ -26,5 +27,6 @@ export const mainModules = [
   snmpMainModule,
   syslogMainModule,
   simulatorMainModule,
-  trendsMainModule
+  trendsMainModule,
+  caMainModule
 ]
