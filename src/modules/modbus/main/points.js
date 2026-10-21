@@ -26,7 +26,7 @@ export function createPointsApi({ server, client, savedConfig = () => ({}) }) {
     allPoints(server.status().config ?? normalizeServerConfig(savedConfig().server) ?? DEFAULT_SERVER_CONFIG)
 
   return {
-    name: 'Modbus TCP',
+    name: 'Modbus',
 
     points() {
       const list = points()

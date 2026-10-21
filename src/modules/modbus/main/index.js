@@ -6,13 +6,17 @@ import { ModbusPki } from './pki'
 import { ModbusServer } from './server'
 import { ModbusClient } from './client'
 import { createPointsApi } from './points'
+import { listSerialPorts } from './serial'
 import { migrateModbusConfig } from '../shared/units'
 import { t } from '../shared/i18n'
 
 let server = null
 let client = null
 
-/** Partie "main" du module Modbus. Canaux : `modbus:server:*`, `modbus:client:*`, `modbus:certs:*`. */
+/**
+ * Partie "main" du module Modbus. Canaux : `modbus:server:*`, `modbus:client:*`, `modbus:certs:*`,
+ * `modbus:serial:list`.
+ */
 export const modbusMainModule = {
   manifest: MODBUS_MODULE,
 
@@ -73,6 +77,8 @@ export const modbusMainModule = {
     ctx.handle('client:addWatch', (item) => client.addWatch(item))
     ctx.handle('client:removeWatch', (id) => client.removeWatch(id))
     ctx.handle('client:setPollInterval', (ms) => client.setPollInterval(ms))
+
+    ctx.handle('serial:list', () => listSerialPorts())
 
     ctx.handle('certs:list', (which) => store(which).list())
     ctx.handle('certs:trust', (which, thumbprint) => store(which).trust(thumbprint))

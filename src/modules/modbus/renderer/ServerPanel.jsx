@@ -16,6 +16,7 @@ import {
   DEFAULT_IDENTITY,
   DEFAULT_SERVER_CONFIG,
   IDENTITY_OBJECTS,
+  MAX_SERIAL_UNIT_ID,
   MAX_UNIT_ID,
   REGISTER_TYPES,
   SIMULATIONS,
@@ -29,6 +30,7 @@ import { modbusApi } from './api'
 import ServerSecurity, { securityProblems } from './ServerSecurity'
 import ServerActivity from './ServerActivity'
 import RegisterExplorer from './RegisterExplorer'
+import { BaudRateField, SerialFormatFields, SerialPortField, TransportSelect, isSerial } from './SerialSettings'
 import { t } from '../shared/i18n'
 
 /** Délai avant d'envoyer au serveur les paramètres modifiés pendant qu'il tourne. */
@@ -111,6 +113,9 @@ export default function ServerPanel({ status }) {
   const running = status.running
   const units = config.units
   const unit = units.find((u) => u.id === selectedUnit) ?? units[0]
+  const serial = isSerial(config.transport)
+  // Bus série et RTU over TCP : adresses d'esclave 1 à 247.
+  const [minUnitId, maxUnitId] = config.transport === 'tcp' ? [0, MAX_UNIT_ID] : [1, MAX_SERIAL_UNIT_ID]
 
   // Le serveur est la source de vérité quand il tourne : on reprend sa configuration au démarrage.
   useEffect(() => {
@@ -233,15 +238,15 @@ export default function ServerPanel({ status }) {
   }
   const unitIds = units.map((u) => Number(u.unitId))
   const badUnitIds = new Set(
-    unitIds.filter((id, i) => unitIds.indexOf(id) !== i || !Number.isInteger(id) || id < 0 || id > MAX_UNIT_ID)
+    unitIds.filter((id, i) => unitIds.indexOf(id) !== i || !Number.isInteger(id) || id < minUnitId || id > maxUnitId)
   )
   const unitInvalid = (u) => {
     const p = problemsOf(u)
     return badUnitIds.has(Number(u.unitId)) || p.duplicates.length > 0 || p.overlapping.size > 0 || p.empty
   }
   const { duplicates, overlapping } = problemsOf(unit)
-  const problems = securityProblems(config.security)
-  const invalid = units.some(unitInvalid) || problems.length > 0
+  const problems = config.transport === 'tcp' ? securityProblems(config.security) : []
+  const invalid = units.some(unitInvalid) || problems.length > 0 || (serial && !config.serial?.path?.trim())
 
   const headers = [
     t('ui.name'),
@@ -287,22 +292,42 @@ export default function ServerPanel({ status }) {
         }
       >
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-5 gap-4">
-            <Field label={t('modbus.server.host')}>
-              <Input
-                value={config.host}
-                disabled={running || busy}
-                onChange={(e) => update({ host: e.target.value })}
-              />
+          <div className="grid grid-cols-6 gap-4">
+            <Field label={t('modbus.serial.transport')}>
+              <TransportSelect config={config} disabled={running || busy} onChange={update} />
             </Field>
-            <Field label={t('modbus.server.port')}>
-              <Input
-                type="number"
-                value={config.port}
-                disabled={running || busy}
-                onChange={(e) => update({ port: Number(e.target.value) })}
-              />
-            </Field>
+            {serial ? (
+              <>
+                <SerialPortField
+                  value={config.serial.path}
+                  disabled={running || busy}
+                  onChange={(path) => update({ serial: { ...config.serial, path } })}
+                />
+                <BaudRateField
+                  value={config.serial.baudRate}
+                  disabled={running || busy}
+                  onChange={(baudRate) => update({ serial: { ...config.serial, baudRate } })}
+                />
+              </>
+            ) : (
+              <>
+                <Field label={t('modbus.server.host')}>
+                  <Input
+                    value={config.host}
+                    disabled={running || busy}
+                    onChange={(e) => update({ host: e.target.value })}
+                  />
+                </Field>
+                <Field label={t('modbus.server.port')}>
+                  <Input
+                    type="number"
+                    value={config.port}
+                    disabled={running || busy}
+                    onChange={(e) => update({ port: Number(e.target.value) })}
+                  />
+                </Field>
+              </>
+            )}
             <Field label={t('modbus.server.wordOrder')}>
               <Select
                 value={config.wordOrder}
@@ -338,6 +363,13 @@ export default function ServerPanel({ status }) {
                 }}
               />
             </Field>
+            {serial && (
+              <SerialFormatFields
+                serial={config.serial}
+                disabled={running || busy}
+                onChange={(next) => update({ serial: next })}
+              />
+            )}
           </div>
           <div className="flex items-center gap-6">
             <Checkbox
@@ -347,12 +379,20 @@ export default function ServerPanel({ status }) {
               checked={!!config.anyUnitId}
               onChange={(e) => update({ anyUnitId: e.target.checked })}
             />
-            <span className="text-xs text-slate-500">{t('modbus.server.portsHint')}</span>
+            <span className="text-xs text-slate-500">
+              {serial
+                ? t('modbus.serial.hint')
+                : config.transport === 'rtuOverTcp'
+                  ? t('modbus.serial.rtuOverTcpHint')
+                  : t('modbus.server.portsHint')}
+            </span>
           </div>
 
           {status.endpoint && (
             <div className="flex items-center gap-2 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
-              {config.security?.mode === 'tls' && <Lock className="size-3.5 text-emerald-400" />}
+              {config.transport === 'tcp' && config.security?.mode === 'tls' && (
+                <Lock className="size-3.5 text-emerald-400" />
+              )}
               {status.endpoint}
               {status.certificate && (
                 <span className="font-sans text-xs text-slate-500">
@@ -375,7 +415,14 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <ServerSecurity value={config.security} locked={running || busy} onChange={setSecurity} />
+      {!serial && (
+        <ServerSecurity
+          value={config.security}
+          locked={running || busy}
+          tlsAvailable={config.transport === 'tcp'}
+          onChange={setSecurity}
+        />
+      )}
 
       <Card
         id="modbus.server.points"
@@ -412,12 +459,16 @@ export default function ServerPanel({ status }) {
           <Field label={t('modbus.server.unitId')}>
             <CommitInput
               type="number"
-              min={0}
-              max={MAX_UNIT_ID}
+              min={minUnitId}
+              max={maxUnitId}
               value={unit.unitId}
               disabled={busy}
               className={badUnitIds.has(Number(unit.unitId)) ? 'border-red-500/60' : ''}
-              title={badUnitIds.has(Number(unit.unitId)) ? t('modbus.server.unitIdInvalid') : undefined}
+              title={
+                badUnitIds.has(Number(unit.unitId))
+                  ? t('modbus.server.unitIdInvalid', { min: minUnitId, max: maxUnitId })
+                  : undefined
+              }
               onCommit={(raw) => updateUnit(unit.id, { unitId: Number(raw) }, { immediate: true })}
             />
           </Field>

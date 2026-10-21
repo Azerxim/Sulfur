@@ -1,0 +1,150 @@
+export default {
+  dhcp: {
+    name: 'DHCP',
+    description: "Serveur DHCP de test pour un réseau privé isolé, et client d'essai",
+    interfaces: {
+      choose: 'Choisir une interface…',
+      absent: '{name} (absente)',
+      option: '{name} · {address} ({cidr})',
+      notPrivate: '{name} · {address} ({cidr}) — réseau non privé'
+    },
+    states: {
+      offered: 'Offerte',
+      bound: 'Attribuée',
+      declined: 'Refusée (conflit)'
+    },
+    modes: {
+      discover: 'DISCOVER',
+      lease: 'Bail',
+      release: 'RELEASE'
+    },
+    reasons: {
+      otherNetwork: 'adresse hors du réseau servi',
+      taken: 'adresse tenue par un autre client',
+      outsidePool: 'adresse hors de la plage'
+    },
+    server: {
+      title: 'Configuration du serveur',
+      running: 'Démarré · {count} bail/baux',
+      interface: 'Interface',
+      pool: 'Plage',
+      poolStart: 'Première adresse',
+      poolEnd: 'Dernière adresse',
+      suggest: 'Proposer',
+      router: 'Passerelle',
+      dns: 'Serveurs DNS',
+      domain: 'Nom de domaine',
+      none: 'aucun',
+      leaseTime: 'Bail (s)',
+      macFilter: 'Ne répondre qu’aux adresses MAC listées',
+      macs: 'Adresses MAC autorisées',
+      hint: 'Réseaux privés uniquement ({networks}) : l’interface doit avoir une adresse dans l’un d’eux, la plage reste dans son sous-réseau ({max} adresses au maximum) et les serveurs DNS annoncés sont privés. Le serveur n’est jamais démarré automatiquement. Les ports 67 et 68 demandent les droits administrateur sous Linux.',
+      linuxHint:
+        'Sous Linux et macOS, les requêtes diffusées sur les autres interfaces parviennent aussi au serveur (et à son journal) : ses réponses ne partent que par l’interface choisie. Activez le filtre MAC sur un PC relié à plusieurs réseaux.',
+      counters:
+        '{discovers} DISCOVER, {offers} OFFER, {requests} REQUEST, {acks} ACK, {naks} NAK, {releases} RELEASE, {ignored} ignoré(s)',
+      leases: 'Baux ({count})',
+      noLease: 'Aucun bail pour l’instant.',
+      log: 'Journal ({count})',
+      logHint: 'Chaque offre et chaque attribution est aussi écrite dans le fichier journal.',
+      openLogFile: 'Fichier journal',
+      clearLog: 'Effacer',
+      noLog: 'Aucun événement pour l’instant.'
+    },
+    lease: {
+      ip: 'Adresse',
+      mac: 'Adresse MAC',
+      hostname: 'Nom d’hôte',
+      state: 'État',
+      expires: 'Échéance'
+    },
+    warning: {
+      title: 'Démarrer le serveur DHCP ?',
+      text: 'Un serveur DHCP répond à tous les équipements du réseau qui demandent une adresse. Sur un réseau de production, il peut donner de mauvaises adresses aux PC, automates ou IHM et les couper du réseau.',
+      effects: 'Ne le démarrez que sur un réseau de test isolé, sans autre serveur DHCP.',
+      filterOn: 'Seulement les adresses MAC listées',
+      filterOff: 'Tous les équipements du réseau',
+      confirm: 'Je confirme que {name} est relié à un réseau de test isolé',
+      cancel: 'Annuler'
+    },
+    client: {
+      title: 'Requête',
+      mac: 'Adresse MAC',
+      macPlaceholder: 'Adresse MAC de l’interface',
+      randomMac: 'Adresse MAC aléatoire (administrée localement)',
+      hostname: 'Nom d’hôte',
+      requestedIp: 'Adresse souhaitée',
+      timeout: 'Délai d’attente (ms)',
+      discover: 'Rechercher les serveurs',
+      lease: 'Obtenir un bail',
+      release: 'Libérer {ip}',
+      abort: 'Interrompre',
+      hint: 'Le client ne modifie jamais la configuration de l’interface : il affiche ce que proposent les serveurs. Les offres hors des réseaux privés sont ignorées. L’interface doit avoir une adresse IPv4 privée.',
+      history: 'Historique ({count})',
+      noHistory: 'Aucune requête pour l’instant.',
+      obtained: 'Bail obtenu',
+      released: '{ip} rendue au serveur {server}',
+      ignored: '{count} offre(s) hors des réseaux privés ignorée(s)'
+    },
+    reply: {
+      server: 'serveur {server}',
+      mask: 'masque {mask}',
+      router: 'passerelle {router}',
+      dns: 'DNS {dns}',
+      domain: 'domaine {domain}',
+      lease: 'bail {seconds} s'
+    },
+    log: {
+      started: 'Serveur démarré sur {interface} ({address}, réseau {cidr}) — plage {start} à {end}',
+      macFilter: 'Seules les {count} adresse(s) MAC listée(s) obtiennent une réponse',
+      stopped: 'Serveur arrêté',
+      invalid: 'Paquet invalide de {remote} ignoré',
+      hardware: 'Requête d’un équipement non Ethernet ignorée',
+      relayed: '{type} relayé par {relay} ignoré : seul le réseau local est servi',
+      notListed: '{type} de {mac} ignoré : adresse MAC non listée',
+      discover: 'DISCOVER de {mac} ({hostname})',
+      exhausted: 'Aucune adresse libre pour {mac} : plage épuisée',
+      offer: 'OFFER {ip} à {mac}',
+      otherServer: '{mac} a choisi le serveur {server} : offre retirée',
+      request: 'REQUEST {ip} de {mac}',
+      nak: 'NAK à {mac} pour {ip} : {reason}',
+      ack: 'ACK {ip} attribuée à {mac} pour {lease} s',
+      decline: 'DECLINE {ip} par {mac} : adresse mise de côté 10 minutes',
+      release: 'RELEASE {ip} par {mac}',
+      releaseUnknown: 'RELEASE {ip} par {mac} ignoré : aucun bail',
+      inform: 'INFORM de {mac} ({ip}) : configuration envoyée'
+    },
+    errors: {
+      noInterface: 'Choisissez une interface',
+      interfaceNotFound: 'Interface {name} introuvable (ou sans adresse IPv4)',
+      interfaceNotPrivate: 'L’interface {name} ({cidr}) n’est pas dans un réseau privé ({networks})',
+      invalidIp: 'Adresse IPv4 invalide : {value}',
+      poolOutsideSubnet: '{value} n’est pas une adresse d’hôte du réseau {cidr}',
+      poolOrder: 'La dernière adresse de la plage précède la première',
+      poolTooLarge: 'Plage trop grande : {max} adresses au maximum',
+      poolIncludesServer: 'La plage contient l’adresse du serveur ({address})',
+      invalidRouter: 'La passerelle {value} n’est pas une adresse d’hôte du réseau {cidr}',
+      routerInPool: 'La passerelle est dans la plage',
+      dnsNotPrivate: 'Serveur DNS hors des réseaux privés refusé : {value} ({networks})',
+      invalidDomain: 'Nom de domaine invalide : {value}',
+      invalidLease: 'Durée de bail invalide ({min} à {max} secondes)',
+      invalidMac: 'Adresse MAC invalide : {value}',
+      emptyMacList: 'La liste des adresses MAC autorisées est vide',
+      noMac: 'L’interface n’a pas d’adresse MAC : saisissez-en une',
+      requestedNotPrivate: 'Adresse souhaitée hors des réseaux privés refusée : {value} ({networks})',
+      invalidTimeout: 'Délai d’attente invalide (200 à 60 000 ms)',
+      invalidPort: 'Port invalide (1 à 65535)',
+      portPrivileged: 'Le port {port} demande les droits administrateur (sous Linux : capacité CAP_NET_BIND_SERVICE)',
+      portInUse: 'Le port {port} est déjà utilisé sur cette interface (autre serveur ou client DHCP ?)',
+      broadcastUnsupported: 'Ce système ne permet pas de recevoir ainsi les diffusions DHCP',
+      notConfirmed: 'Confirmez l’avertissement pour démarrer le serveur',
+      clientBusy: 'Une requête est déjà en cours',
+      invalidMode: 'Mode de requête inconnu',
+      noOffer: 'Aucune offre reçue (délai dépassé)',
+      offersNotPrivate: 'Seules des offres hors des réseaux privés ont été reçues : ignorées',
+      noAck: 'Pas de réponse du serveur {server} à la requête',
+      nak: 'Requête refusée par le serveur {server} (NAK) : {message}',
+      noLease: 'Aucun bail à libérer'
+    }
+  }
+}

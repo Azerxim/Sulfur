@@ -64,13 +64,16 @@ export default function Sidebar({ groups, pages = [], activeId, onSelect }) {
         ))}
       </nav>
 
-      <nav className="mt-auto flex flex-col gap-0.5 border-t border-ink-800 px-2 pt-2">
-        {pages.map((p) => (
-          <NavItem key={p.manifest.id} item={p} active={p.manifest.id === activeId} onSelect={onSelect} />
-        ))}
-      </nav>
-      <UpdateNotice onSelect={onSelect} />
-      <div className="px-5 py-3 text-[11px] text-slate-600">v{version}</div>
+      {/* Pages de l'application : pied de barre sur un fond distinct des modules. */}
+      <div className="mt-auto border-t border-ink-800 bg-ink-950">
+        <nav className="flex flex-col gap-0.5 px-2 pt-2">
+          {pages.map((p) => (
+            <NavItem key={p.manifest.id} item={p} active={p.manifest.id === activeId} onSelect={onSelect} />
+          ))}
+        </nav>
+        <UpdateNotice onSelect={onSelect} />
+        <div className="px-5 py-3 text-[11px] text-slate-600">v{version}</div>
+      </div>
     </aside>
   )
 }

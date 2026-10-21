@@ -32,8 +32,11 @@ export function securityProblems(value) {
   ].filter(Boolean)
 }
 
-/** Paramétrage de la sécurité du serveur Modbus (appliqué au démarrage). */
-export default function ServerSecurity({ value, onChange, locked }) {
+/**
+ * Paramétrage de la sécurité du serveur Modbus (appliqué au démarrage). `tlsAvailable` : faux en
+ * RTU over TCP (Modbus/TCP Security n'existe qu'avec l'en-tête MBAP).
+ */
+export default function ServerSecurity({ value, onChange, locked, tlsAvailable = true }) {
   const security = { ...DEFAULT_SERVER_SECURITY, ...value }
   const [certsOpen, setCertsOpen] = useState(false)
   const ipsText = security.allowedIps.join('\n')
@@ -41,7 +44,7 @@ export default function ServerSecurity({ value, onChange, locked }) {
   useEffect(() => setIpsDraft(ipsText), [ipsText])
   const set = (patch) => onChange({ ...security, ...patch })
   const setRole = (i, patch) => set({ roles: security.roles.map((r, j) => (j === i ? { ...r, ...patch } : r)) })
-  const tlsMode = security.mode === 'tls'
+  const tlsMode = tlsAvailable && security.mode === 'tls'
   const problems = securityProblems(security)
 
   return (
@@ -60,7 +63,11 @@ export default function ServerSecurity({ value, onChange, locked }) {
     >
       <div className="grid grid-cols-3 gap-6">
         <Section title={t('modbus.security.transport')} hint={t('modbus.security.transportHint')}>
-          <Select value={security.mode} disabled={locked} onChange={(e) => set({ mode: e.target.value })}>
+          <Select
+            value={tlsMode ? 'tls' : 'tcp'}
+            disabled={locked || !tlsAvailable}
+            onChange={(e) => set({ mode: e.target.value })}
+          >
             <option value="tcp">{t('modbus.transport.tcp')}</option>
             <option value="tls">{t('modbus.transport.tls')}</option>
           </Select>

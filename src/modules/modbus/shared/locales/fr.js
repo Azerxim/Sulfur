@@ -1,7 +1,30 @@
 export default {
   modbus: {
-    name: 'Modbus TCP',
-    description: 'Serveur et client Modbus TCP / Modbus/TCP Security (TLS)',
+    name: 'Modbus',
+    description: 'Serveur et client Modbus TCP, Modbus/TCP Security (TLS), RTU et ASCII',
+    transports: {
+      tcp: 'Modbus TCP',
+      rtuOverTcp: 'RTU over TCP',
+      rtu: 'Modbus RTU (série)',
+      ascii: 'Modbus ASCII (série)'
+    },
+    serial: {
+      transport: 'Transport',
+      port: 'Port série',
+      portPlaceholder: 'COM3, /dev/ttyUSB0…',
+      refresh: 'Actualiser la liste des ports série',
+      noPorts: 'Aucun port série détecté',
+      baudRate: 'Vitesse (bauds)',
+      dataBits: 'Bits de données',
+      parity: 'Parité',
+      parities: { none: 'Aucune', even: 'Paire', odd: 'Impaire' },
+      stopBits: 'Bits de stop',
+      hint: 'Liaison série : Unit ID de 1 à 247 ; une requête pour un autre Unit ID est ignorée, comme sur un bus partagé, et une écriture en diffusion (Unit ID 0) est appliquée sans réponse.',
+      rtuOverTcpHint:
+        "Trames RTU (avec CRC) transportées dans une connexion TCP, comme celles des passerelles série / Ethernet en mode transparent. Le TLS n'est disponible qu'en Modbus TCP.",
+      clientHint:
+        'Le Unit ID 0 envoie des écritures en diffusion : aucun esclave ne répond, les lectures sont impossibles.'
+    },
     transport: {
       tcp: 'Modbus TCP (non chiffré)',
       tls: 'Modbus/TCP Security (TLS)'
@@ -51,7 +74,7 @@ export default {
         'Chaque équipement répond à son Unit ID avec sa propre mémoire, ses points et son identification : plusieurs équipements simulent une passerelle.',
       addUnit: 'Équipement',
       removeUnit: "Supprimer l'équipement",
-      unitIdInvalid: 'Unit ID déjà utilisé ou hors de la plage 0 à 255',
+      unitIdInvalid: 'Unit ID déjà utilisé ou hors de la plage {min} à {max}',
       unitNamePlaceholder: 'Facultatif',
       identification: "Identification de l'équipement (fonction 43 / 14)",
       identificationHint:
@@ -178,6 +201,11 @@ export default {
       }
     },
     log: {
+      startedSerial: 'Serveur démarré sur {path} ({settings}) — {transport}',
+      serialOpened: 'Port série {path} ouvert, en attente de requêtes',
+      serialError: 'Erreur du port série : {message}',
+      serialClosed: 'Port série {path} fermé (adaptateur débranché ?) : serveur arrêté',
+      droppedFrames: '{remote} : {count} trame(s) invalide(s) ignorée(s) (CRC, parasites ou paramètres de liaison)',
       faultCut: 'Connexion de {ip} refusée : coupure simulée',
       faultCutAll: 'Coupure simulée : connexions fermées',
       started: 'Serveur démarré sur {address} — {transport}',
@@ -213,6 +241,21 @@ export default {
       protectedPoint: 'écriture refusée : le point « {name} » est protégé en écriture'
     },
     errors: {
+      badCrc: 'CRC invalide',
+      incompleteFrame: 'trame incomplète',
+      unknownTransport: 'Transport inconnu : {transport}',
+      invalidSerialUnitId: 'Unit ID hors plage (1 à 247 sur une liaison série ou en RTU over TCP)',
+      invalidSerialClientUnitId: 'Unit ID hors plage (0 à 247, 0 = diffusion)',
+      serialUnavailable: 'Ports série indisponibles sur ce système : {message}',
+      missingSerialPort: 'Choisissez un port série',
+      invalidBaudRate: 'Vitesse invalide : {value}',
+      invalidDataBits: 'Bits de données : 7 ou 8',
+      invalidStopBits: 'Bits de stop : 1 ou 2',
+      invalidParity: 'Parité invalide',
+      serialBusy: 'Le port série {path} est déjà utilisé par une autre application',
+      serialOpen: "Impossible d'ouvrir le port série {path} : {message}",
+      serialClosed: 'Port série fermé',
+      broadcastRead: 'Diffusion (Unit ID 0) : écritures uniquement, aucun esclave ne répond à une lecture',
       unknownWatch: 'Surveillance inconnue',
       emptyPointName: 'Le nom du point est vide',
       unknownTable: 'Table inconnue : {table}',

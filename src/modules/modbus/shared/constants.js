@@ -1,8 +1,28 @@
 export const MODBUS_MODULE = {
   id: 'modbus',
-  name: 'Modbus TCP',
-  description: 'Serveur et client Modbus TCP / Modbus/TCP Security (TLS)'
+  name: 'Modbus',
+  description: 'Serveur et client Modbus TCP, Modbus/TCP Security (TLS), RTU et ASCII'
 }
+
+/**
+ * Transports (libellés : modbus.transports.*) : Modbus TCP (en-tête MBAP, TLS possible),
+ * RTU over TCP (trames RTU dans une connexion TCP, passerelles série), RTU et ASCII sur liaison série.
+ */
+export const TRANSPORTS = ['tcp', 'rtuOverTcp', 'rtu', 'ascii']
+
+/** Paramètres d'une liaison série. ASCII utilise le plus souvent 7 bits de données. */
+export const DEFAULT_SERIAL = {
+  path: '',
+  baudRate: 19200,
+  dataBits: 8,
+  parity: 'even',
+  stopBits: 1
+}
+
+export const BAUD_RATES = [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
+
+/** Adresses d'esclave valides sur une liaison série (0 : diffusion à tous les esclaves). */
+export const MAX_SERIAL_UNIT_ID = 247
 
 /** Les quatre tables Modbus. `prefix` = notation historique (0x, 1x, 3x, 4x). */
 export const TABLES = {
@@ -78,7 +98,7 @@ export const DEFAULT_IDENTITY = {
   userApplicationName: ''
 }
 
-/** Unit ID valides sur Modbus TCP. */
+/** Unit ID valides sur Modbus TCP (sur liaison série : MAX_SERIAL_UNIT_ID). */
 export const MAX_UNIT_ID = 255
 
 /**
@@ -87,8 +107,10 @@ export const MAX_UNIT_ID = 255
  * son identification. Les identifiants de points sont uniques sur tout le serveur.
  */
 export const DEFAULT_SERVER_CONFIG = {
+  transport: 'tcp',
   host: '0.0.0.0',
   port: 5020,
+  serial: DEFAULT_SERIAL,
   /** Unit ID non configuré : servi par le premier équipement plutôt que refusé (exception 0B). */
   anyUnitId: false,
   updateRate: 100,
@@ -186,8 +208,10 @@ export const DEFAULT_SERVER_CONFIG = {
 }
 
 export const DEFAULT_CLIENT_CONFIG = {
+  transport: 'tcp',
   host: '127.0.0.1',
   port: 5020,
+  serial: DEFAULT_SERIAL,
   unitId: 1,
   timeout: 2000,
   pollInterval: 500,

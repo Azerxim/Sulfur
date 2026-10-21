@@ -1,6 +1,6 @@
 {
   "name": "sulfur",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Sulfur - application de simulation modulaire (Electron + React + TailwindCSS)",
   "main": "./out/main/index.js",
   "desktopName": "sulfur.desktop",
@@ -24,13 +24,18 @@
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
     "@peculiar/x509": "^2.1.0",
+    "basic-ftp": "6.2.1",
+    "dns-packet": "^5.6.1",
     "electron-updater": "^6.8.9",
+    "ldapts": "^9.2.0",
     "mqtt": "^5.16.0",
     "mqtt-packet": "^9.0.2",
     "net-snmp": "^3.29.1",
     "node-opcua": "^2.186.17",
     "node-opcua-crypto": "^6.1.4",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "serialport": "^13.0.0",
+    "ssh2": "^1.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -58,6 +63,9 @@
     "electron@44.5.1": true,
     "esbuild@0.25.12": true,
     "esbuild@0.28.2": true,
-    "electron-winstaller@5.4.0": true
+    "electron-winstaller@5.4.0": true,
+    "@serialport/bindings-cpp@13.0.0": true,
+    "ssh2@1.17.0": false,
+    "cpu-features@0.0.10": false
   }
 }

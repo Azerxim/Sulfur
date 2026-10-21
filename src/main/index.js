@@ -5,6 +5,7 @@ import '@shared/locales'
 import { setLanguage } from '@shared/i18n'
 import { ModuleHost } from './module-host'
 import { registerConfigTransfer } from './config-transfer'
+import { registerModuleSwitch } from './module-switch'
 import { mainModules } from './modules'
 import { WINDOW_BACKGROUNDS, applyNativeTheme, loadPreferences } from './preferences'
 import { systemMainModule } from './system-info'
@@ -56,11 +57,12 @@ app.whenReady().then(async () => {
 
   // Langue des messages du process principal dès le démarrage (avant le chargement de l'interface).
   setLanguage(loadPreferences().language)
-  await host.load([systemMainModule, updaterMainModule, ...mainModules])
-  registerConfigTransfer(
-    host,
-    mainModules.map((mod) => mod.manifest.id)
-  )
+  // Modules désactivés dans les Paramètres : configuration chargée, module non activé.
+  const moduleIds = mainModules.map((mod) => mod.manifest.id)
+  const disabled = [].concat(loadPreferences().disabledModules ?? []).filter((id) => moduleIds.includes(id))
+  await host.load([systemMainModule, updaterMainModule, ...mainModules], { disabled })
+  registerConfigTransfer(host, moduleIds)
+  registerModuleSwitch(host, moduleIds)
   createWindow()
 
   app.on('activate', () => {

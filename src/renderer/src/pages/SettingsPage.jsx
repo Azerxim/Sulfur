@@ -3,7 +3,8 @@ import { Check, Download, ExternalLink, Monitor, Moon, RefreshCw, RotateCcw, Sun
 import { LANGUAGES } from '@shared/languages'
 import { Button, Card, Checkbox, ErrorBanner, Select } from '../components/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
-import { rendererModules } from '../modules'
+import { setDisabledModules, useEnabledModules } from '../enabled-modules'
+import { moduleGroups, rendererModules } from '../modules'
 import { appPages } from '../pages'
 import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences'
 import { useUpdater } from '../updater'
@@ -75,6 +76,92 @@ function ConfigurationsCard() {
             {line}
           </p>
         ))}
+        <ErrorBanner error={error} onClose={() => setError(null)} />
+      </div>
+    </Card>
+  )
+}
+
+/**
+ * Modules activés : un module désactivé est masqué, arrêté et n'est plus chargé au démarrage ; sa
+ * configuration est conservée. Le process principal refuse de désactiver un module en marche.
+ */
+function ModulesCard() {
+  const { t } = useI18n()
+  const text = useManifestText()
+  const { prefs, update } = usePreferences()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  const disabled = prefs.disabledModules ?? []
+
+  async function apply(next) {
+    setBusy(true)
+    setError(null)
+    try {
+      await setDisabledModules(next, update)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+  const toggle = (id, enabled) => apply(enabled ? disabled.filter((x) => x !== id) : [...disabled, id])
+
+  return (
+    <Card id="settings.moduleSwitch" title={t('settings.moduleSwitch.title')}>
+      <p className="mb-3 text-xs text-slate-500">{t('settings.moduleSwitch.hint')}</p>
+      <div className="flex flex-col gap-4">
+        {moduleGroups.map((group) => (
+          <div key={group.id} className="flex flex-col gap-2">
+            <div className="text-[11px] font-medium tracking-wider text-slate-500 uppercase">
+              {t(`app.groups.${group.id}`)}
+            </div>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-2">
+              {group.modules.map(({ manifest, icon: Icon }) => {
+                const enabled = !disabled.includes(manifest.id)
+                return (
+                  <label
+                    key={manifest.id}
+                    className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 transition-colors has-disabled:cursor-not-allowed ${
+                      enabled ? 'border-ink-700 bg-ink-850' : 'border-ink-800 opacity-60'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 size-4 accent-sulfur-400"
+                      checked={enabled}
+                      disabled={busy}
+                      onChange={(e) => toggle(manifest.id, e.target.checked)}
+                    />
+                    <Icon className="mt-0.5 size-4 shrink-0 text-sulfur-400" />
+                    <span className="min-w-0">
+                      <span className="block text-sm text-slate-100">{text(manifest).name}</span>
+                      <span className="block text-xs text-slate-500">{text(manifest).description}</span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-xs text-slate-400">
+            {t('settings.moduleSwitch.summary', {
+              enabled: rendererModules.length - disabled.length,
+              total: rendererModules.length
+            })}
+          </span>
+          <Button size="sm" disabled={busy || !disabled.length} onClick={() => apply([])}>
+            {t('settings.moduleSwitch.enableAll')}
+          </Button>
+          <Button
+            size="sm"
+            disabled={busy || disabled.length === rendererModules.length}
+            onClick={() => apply(rendererModules.map((m) => m.manifest.id))}
+          >
+            {t('settings.moduleSwitch.disableAll')}
+          </Button>
+        </div>
         <ErrorBanner error={error} onClose={() => setError(null)} />
       </div>
     </Card>
@@ -160,11 +247,12 @@ function UpdatesCard() {
   )
 }
 
-/** Paramètres de l'application : langue, thème, configurations et mises à jour. */
+/** Paramètres de l'application : langue, thème, page de démarrage, modules, configurations et mises à jour. */
 export default function SettingsPage() {
   const { t } = useI18n()
   const { prefs, update } = usePreferences()
   const text = useManifestText()
+  const { modules } = useEnabledModules()
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -204,7 +292,7 @@ export default function SettingsPage() {
         <Select className="max-w-sm" value={prefs.startPage} onChange={(e) => update({ startPage: e.target.value })}>
           <option value="last">{t('settings.lastPage')}</option>
           <optgroup label={t('settings.modules')}>
-            {rendererModules.map(({ manifest }) => (
+            {modules.map(({ manifest }) => (
               <option key={manifest.id} value={manifest.id}>
                 {text(manifest).name}
               </option>
@@ -219,6 +307,8 @@ export default function SettingsPage() {
           </optgroup>
         </Select>
       </Card>
+
+      <ModulesCard />
 
       <ConfigurationsCard />
 

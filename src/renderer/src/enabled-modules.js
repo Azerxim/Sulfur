@@ -1,0 +1,39 @@
+import { useMemo } from 'react'
+import { moduleGroups, rendererModules } from './modules'
+import { usePreferences } from './preferences'
+
+/** Liste des modules désactivés, tenue par le process principal (lue avant le premier rendu). */
+export async function loadDisabledModules() {
+  try {
+    const list = await window.sulfur.invoke('modules:disabled')
+    return Array.isArray(list) ? list : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Modules activés (Paramètres → Modules) : groupes de la barre latérale sans les modules
+ * désactivés (groupes vides retirés), liste à plat et test d'un identifiant.
+ */
+export function useEnabledModules() {
+  const { prefs } = usePreferences()
+  const disabled = prefs.disabledModules
+  return useMemo(() => {
+    const off = new Set(disabled ?? [])
+    return {
+      groups: moduleGroups
+        .map((group) => ({ ...group, modules: group.modules.filter((m) => !off.has(m.manifest.id)) }))
+        .filter((group) => group.modules.length),
+      modules: rendererModules.filter((m) => !off.has(m.manifest.id)),
+      isDisabled: (id) => off.has(id)
+    }
+  }, [disabled])
+}
+
+/** Désactive les modules de `ids` (les autres sont activés) ; le process principal peut refuser. */
+export async function setDisabledModules(ids, update) {
+  const disabled = await window.sulfur.invoke('modules:setDisabled', ids)
+  update({ disabledModules: disabled })
+  return disabled
+}

@@ -27,7 +27,7 @@ export function registerConfigTransfer(host, moduleIds) {
 
   ctx.handle('import', async () => {
     // Les serveurs et clients en marche ont leur propre configuration : on ne la remplace pas sous leurs pieds.
-    if (host.modules.some((mod) => mod.busy?.())) throw new Error(t('errors.config.busy'))
+    if (host.activeModules().some((mod) => mod.busy?.())) throw new Error(t('errors.config.busy'))
     const { canceled, filePaths } = await dialog.showOpenDialog(window(), {
       title: t('settings.configurations.importTitle'),
       filters,

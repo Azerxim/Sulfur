@@ -63,7 +63,7 @@ Les modules sans marque sont standard.
 
 | Édition                                  | Modules                                                                                                         |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus TCP, HTTP / REST, NTP, MQTT, SNMP, Syslog, Proxy TCP / UDP, DHCP / DNS, TFTP / FTP / SFTP, RADIUS / LDAP, CoAP / LwM2M, Modbus RTU / ASCII, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP / RADIUS, FTP / SFTP, TFTP, Proxy TCP / UDP, DHCP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
 | **Premium** (licence commerciale)   | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
@@ -101,13 +101,20 @@ premier module premium :
 
 Outils transverses qui servent à tous les modules et facilitent la mise en place d'un banc de test.
 
-- [ ] **Autorité de certification** : générer et signer des certificats (autorité, serveurs,
-  clients) pour OPC UA, Modbus/TCP Security, MQTT, HTTPS et Syslog TLS, sans passer par OpenSSL
-- [ ] **Explorateur réseau** : scanner une plage d'adresses IP et identifier les équipements en
-  réutilisant les modules existants (Modbus 43 / 14, identification S7, OPC UA FindServers, SNMP
-  `sysDescr`)
-- [ ] **Terminal série** : liaisons RS-232 / RS-485, journal hexadécimal, passerelle série ↔ TCP ;
-  prépare le module Modbus RTU
+- [X] **Autorité de certification** : autorités racines et intermédiaires (ECDSA, RSA), import
+  d'une autorité existante, émission par profil (serveur / client TLS, application OPC UA,
+  Modbus/TCP Security avec rôle), signature de CSR, révocation et CRL, export PEM / DER / chaîne /
+  PKCS#12, sans passer par OpenSSL
+  - [ ] installation directe des certificats émis dans les magasins des modules de Sulfur
+- [X] **Explorateur réseau** : cibles limitées aux réseaux privés (10.0.0.0/8, 172.16.0.0/12,
+  192.168.0.0/16) : adresses, réseaux CIDR, plages et noms d'hôte vérifiés, réseaux privés du PC
+  proposés. La recherche et l'identification des équipements viendront plus tard (voir
+  [Plus tard](#plus-tard)).
+- [X] **Terminal série** : liaisons RS-232 / RS-485 (tous les réglages de ligne, lignes de contrôle
+  DTR / RTS / CTS / DSR / DCD, BREAK), envoi en texte ou en hexadécimal (en continu au besoin), journal
+  hexadécimal avec découpage des trames et export, passerelle série ↔ TCP brute (serveur TCP), points
+  de données pour le simulateur
+  - [ ] passerelle RFC 2217 (réglages de ligne changés par le client TCP) et mode client TCP
 
 ## Nouveaux modules : informatique et supervision
 
@@ -125,18 +132,38 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
   redirections port local → hôte:port distant), journal des échanges en hexadécimal et export, et
   injection de défauts sur le trafic (latence, perte de paquets, coupures, altération de trames)
   pour tester des équipements sans les modifier
-- [ ] **DHCP / DNS** : serveur DHCP (attribution d'adresses, réservations) et DNS simulé, pour la
-  mise en service d'équipements sur un réseau isolé
-- [ ] **TFTP / FTP / SFTP** : serveur de fichiers pour les mises à jour de firmware et les
+- [X] **DNS** : serveur faisant autorité (zone locale, jokers, PTR automatiques, relais vers des
+  serveurs amont, UDP et TCP) et client
+- [X] **DHCP** : serveur de test pour un réseau isolé, limité aux réseaux privés (10.0.0.0/8,
+  172.16.0.0/12, 192.168.0.0/16) : interface choisie explicitement dont le sous-réseau est privé,
+  plage contrôlée par rapport à ce sous-réseau, avertissement confirmé avant chaque démarrage, liste
+  facultative d'adresses MAC autorisées, fichier journal de toutes les offres et attributions ;
+  client d'essai (DISCOVER, bail, RELEASE)
+  - [ ] réservations fixes (adresse MAC → adresse IP)
+  - [ ] requêtes transmises par un relais DHCP (giaddr), pour les réseaux de test derrière un routeur
+- [X] **TFTP / FTP / SFTP** : serveur de fichiers pour les mises à jour de firmware et les
   sauvegardes de configuration des équipements réseau et des automates
-- [ ] **RADIUS / LDAP** : serveur d'authentification simulé, pour tester la connexion centralisée
+  - [X] **SFTP** : serveur (dossier confiné, mot de passe et clés publiques, lecture seule, clé
+    d'hôte Ed25519) et client (parcours, transferts, empreinte épinglée)
+  - [X] **TFTP** : serveur (options blksize, tsize et timeout, modes octet et netascii, envois
+    autorisés ou non) et client (GET / PUT, progression, retransmissions)
+  - [X] **FTP / FTPS** (même module que SFTP) : serveur (FTPS explicite et implicite, modes passif et actif, reprise,
+    connexion anonyme en lecture seule) et client (parcours, transferts, dialogue de commandes)
+- [X] **RADIUS / LDAP** : serveur d'authentification simulé, pour tester la connexion centralisée
   des switchs, pare-feux et IHM
+  - [X] **LDAP / LDAPS** : annuaire LDIF en lecture seule (liaison, recherche, StartTLS, LDAPS,
+    memberOf) et client
+  - [X] **RADIUS** (même module que LDAP) : serveur (clients NAS avec secret partagé, PAP et CHAP
+    pour les comptes locaux et ceux de l'annuaire LDAP, attributs de réponse dont Cisco-AVPair,
+    Message-Authenticator, accounting, Status-Server) et client (Access-Request, Status-Server,
+    accounting)
+    - [ ] EAP (PEAP / EAP-TLS, 802.1X), MS-CHAPv2, attributs de réponse par groupe LDAP, RadSec (RADIUS sur TLS)
 - [ ] **CoAP / LwM2M** : serveur et client pour capteurs IoT contraints, en complément de MQTT
 
 ## Nouveaux modules : automatismes industriels
 
-- [ ] **Modbus RTU / ASCII** : serveur et client sur liaison série et en RTU over TCP, en
-  réutilisant le module Modbus TCP
+- [X] **Modbus RTU / ASCII** : transports ajoutés au module Modbus : RTU et ASCII sur liaison série
+  (esclave et maître, Unit ID 1 à 247, écritures en diffusion) et RTU over TCP
 - [X] **Siemens S7** (S7comm) : automate simulé (mémoire I / Q / M / DB, points simulés,
   identification, RUN / STOP) et client (rack / emplacement ou TSAP, lecture / écriture typées,
   surveillance)
@@ -171,6 +198,9 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 
 ## Plus tard
 
+- **Explorateur réseau : recherche et identification** : trouver les équipements des cibles et les
+  identifier en réutilisant les modules existants (Modbus 43 / 14, identification S7, OPC UA
+  FindServers, SNMP `sysDescr`), toujours dans les seuls réseaux privés.
 - **Liens entre modules** : relier une variable d'un module à un autre (par exemple une variable
   OPC UA recopiée dans un registre Modbus) pour simuler une passerelle ou une installation complète.
   Déjà possible avec un flux du simulateur (*Changement de point* → *Écrire un point*) ; reste à
@@ -190,3 +220,8 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
 - Le code de l'interface est volumineux (≈ 2,1 Mo) et n'a pas encore été optimisé.
 - Le broker MQTT ne gère pas les abonnements partagés (`$share/…`) ni l'authentification étendue de
   MQTT 5.0 (paquet AUTH).
+- DHCP : Node.js ne permet pas de lier un socket à une interface (`SO_BINDTODEVICE`). Sous Linux et
+  macOS, les requêtes diffusées sur les autres interfaces parviennent au serveur et à son journal ;
+  ses réponses ne partent que par l'interface choisie. Le filtre MAC limite cet effet sur un PC
+  relié à plusieurs réseaux. Les ports 67 / 68 demandent les droits administrateur (ou la capacité
+  `CAP_NET_BIND_SERVICE`) sous Linux. Non testé sous macOS.

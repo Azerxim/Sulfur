@@ -24,7 +24,7 @@ npm run format     # formatting (Prettier)
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
-certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP and Modbus/TCP Security, HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), fault injection, node flows and trend recording on both protocols,
+certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP, Modbus/TCP Security, RTU and ASCII (frames, RTU over TCP, serial link, broadcast), HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), network explorer targets (private networks only), serial terminal (hexadecimal and escaped entries, frame splitting, control lines, serial ↔ TCP gateway), RADIUS (RFC 2865 examples, PAP / CHAP, Message-Authenticator, LDAP directory accounts, accounting), DHCP (packets, pool checked against the interface subnet, private networks only, leases, server and client, MAC filter), fault injection, node flows and trend recording on both protocols,
 protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
@@ -96,6 +96,7 @@ src/
 │   ├── module-host.js    # Module loading, IPC
 │   ├── config-store.js   # Saved module configurations (config.json)
 │   ├── config-transfer.js # Configuration import / export (config:* channels)
+│   ├── module-switch.js  # Enabled / disabled modules (modules:* channels)
 │   ├── system-info.js    # PC information (IP, system) — system:info channel
 │   └── modules.js        # ← list of "main" modules
 ├── preload/index.js      # Secure bridge: window.sulfur.invoke / on
@@ -117,7 +118,7 @@ src/
     │   ├── renderer/     # Module React interface
     │   └── shared/       # Shared constants
     ├── modbus/
-    │   ├── main/         # Protocol, server, client, PKI, security
+    │   ├── main/         # Protocol, framing (MBAP, RTU, ASCII), serial link, server, client, PKI
     │   ├── renderer/     # Module React interface
     │   └── shared/       # Constants + value encoding (codec)
     ├── http/             # REST server (variables, routes, webhooks) + HTTP client
@@ -127,8 +128,16 @@ src/
     ├── mqtt/             # MQTT broker (simulated topics) + MQTT client
     ├── snmp/             # SNMP agent (simulated MIB, notifications) + manager and trap receiver
     ├── syslog/           # Syslog server (UDP / TCP / TLS) + message sender
+    ├── dns/              # Authoritative DNS server (local zone, forwarding) + DNS client
+    ├── dhcp/             # Test DHCP server for an isolated private network + DHCP client
+    ├── ldap/             # LDAP / LDAPS directory (LDIF, BER protocol) and RADIUS server + clients
+    ├── ftp/              # FTP / FTPS and SFTP servers (confined folder, users) + clients
+    ├── tftp/             # TFTP server (confined folder, options) + TFTP client
     ├── simulator/        # Fault injection and node flows (uses the points of the other modules)
-    └── trends/           # Trends, data logging and CSV export (same)
+    ├── trends/           # Trends, data logging and CSV export (same)
+    ├── ca/               # Certificate authority: authorities, issuance, CSR, revocation (CRL), PKCS#12
+    ├── explorer/         # Network explorer: targets restricted to the private networks
+    └── serial/           # Serial terminal (RS-232 / RS-485, hexadecimal log) + serial ↔ TCP gateway
 ```
 
 ## Languages and theme
@@ -178,6 +187,16 @@ are ignored and listed). It is refused while a server is running or a client is 
 reports this through an optional `busy()` in its main part). If a module interface fails to display (e.g.
 inconsistent configuration), a button restores its default configuration.
 
+### Enabling and disabling modules
+
+**Settings → Enabled modules** lists every module with a checkbox. A disabled module is hidden from
+the sidebar, the home page and the startup page choices; it is stopped at once (its channels and its
+points for the simulator and the trends are removed) and is no longer loaded at the next start.
+Its saved configuration is kept, and still exported and imported. Disabling a module whose server
+is running or whose client is connected is refused: stop it first. A re-enabled module is loaded
+immediately. The list is kept by the main process in `<userData>/preferences.json`
+(`disabledModules`).
+
 ### Adding a module
 
 1. Create `src/modules/<id>/` with `main/index.js`, `renderer/index.js` and `shared/`.
@@ -226,13 +245,24 @@ inconsistent configuration), a button restores its default configuration.
     (Linux: `~/.config/sulfur/…`, Windows: `%APPDATA%\sulfur\…`);
   - on the client side, “Discover endpoints” lists the mode / policy pairs offered by the server.
 
-## Modbus TCP module
+## Modbus module
 
+- **Transports**: Modbus TCP (MBAP header), Modbus/TCP Security (TLS), **RTU over TCP** (RTU frames
+  with CRC in a TCP connection, as sent by serial-to-Ethernet gateways in transparent mode), and
+  **Modbus RTU** / **Modbus ASCII** on a serial link (RS-232 / RS-485 port, baud rate, data bits,
+  parity, stop bits; detected ports listed). Serial ports use the `serialport` library.
+  - On a serial link and in RTU over TCP, Unit IDs go from 1 to 247: the server ignores requests
+    for another Unit ID, as on a shared bus, and applies broadcast writes (Unit ID 0) to every
+    device without replying. The client sends one request at a time and waits for the 3.5
+    character silence between frames; Unit ID 0 sends broadcast writes.
+  - RTU frames are delimited by function code (and announced byte count), then by a silence for an
+    unknown function; invalid frames (CRC, LRC, noise) are counted in the server log. A CRC error
+    closes an RTU over TCP connection; on a serial link the reader resynchronizes.
 - **Server**: the four tables (coils, discrete inputs, input registers, holding registers),
   functions 1 to 6, 15, 16, 23 (read / write multiple) and 43 / 14 (device identification). Typed
   simulated points (Boolean, UInt16/Int16, UInt32/Int32, Float32, Float64, word order ABCD / CDAB /
-  BADC / DCBA), editable while the server is running. List of connected clients and security event
-  log.
+  BADC / DCBA), editable while the server is running. List of connected clients (or the open serial
+  port) and security event log.
   - **Several devices** on one server (gateway simulation): each responds to its Unit ID with its
     own memory, points and identification; an unconfigured Unit ID gets exception 0B, or is served
     by the first device if the option is checked. Devices are added, edited or removed while the
@@ -253,7 +283,7 @@ inconsistent configuration), a button restores its default configuration.
     `1.3.6.1.4.1.50316.802.1`), read / write permissions per role, default role or refusal;
   - IP allow list (CIDR), maximum number of connections, requests-per-second limit (exception 06),
     read-only mode, write-protected points, Unit ID filtering (exception 11), connections sending
-    invalid frames are closed;
+    invalid frames are closed (TCP transports);
   - server certificate `MODBUS@Sulfur`, client certificate regenerated with the selected role;
     location: `<userData>/modules/modbus/pki/{server,client}`.
 - Default ports 5020 (TCP) / 8020 (TLS): the standard ports 502 / 802 require administrator rights
@@ -407,6 +437,157 @@ process: no native module to compile. The API folder is detected automatically (
   sends a message with the sender settings.
 - Simulator fault: connection cut (TCP / TLS connections closed and refused).
 
+## DNS module
+
+- **Server** authoritative for a test domain, over UDP and TCP (default port 1053, standard port 53
+  with administrator rights on Linux):
+  - zone records A, AAAA, CNAME, MX, TXT, SRV, PTR, NS, edited while the server is running; relative
+    names attached to the domain, `@` for the domain, `*.name` wildcards; SOA record generated at the
+    zone apex and reverse records (PTR) deduced from the A / AAAA records;
+  - CNAME chains followed inside the zone, NXDOMAIN (with SOA) for an unknown name of the zone,
+    empty answer for a name without a record of the requested type, truncation (TC) of UDP answers
+    larger than the size accepted by the client (EDNS);
+  - names outside the zone forwarded to upstream servers, or refused (REFUSED);
+  - log of the received queries (client, name, type, response, answers) and counters; faults
+    injected by the simulator (delay, no response, forced SERVFAIL / NXDOMAIN / REFUSED).
+- **Client**: query of any type (ANY included) over UDP or TCP (automatic retry over TCP when the
+  answer is truncated), recursion flag, PTR from an IP address; response code, flags, answer,
+  authority and additional sections with their TTL, duration and history.
+
+## DHCP module
+
+Test DHCP server for an **isolated network, restricted to the private networks** (10.0.0.0/8,
+172.16.0.0/12, 192.168.0.0/16), to commission devices on a bench.
+
+- **Server** (RFC 2131, ports 67 / 68), with safeguards:
+  - **stopped by default**, never started automatically (neither at launch nor by an imported
+    configuration); every start shows a **warning** that must be confirmed (the main process refuses
+    a start without this confirmation);
+  - **interface chosen explicitly** (none by default, never 0.0.0.0): its subnet must be entirely
+    private. The server sends from the address of this interface, so its broadcast replies only
+    leave through it; on Linux and macOS, it also listens on 255.255.255.255 to receive the
+    broadcasts of the clients without an address;
+  - **pool checked** against the subnet of the interface (host addresses only, server address
+    excluded, 256 addresses at most); gateway inside the subnet, announced DNS servers private;
+  - option **only answer the listed MAC addresses**; requests forwarded by a relay (giaddr) are
+    ignored;
+  - **log** of every request, offer, assignment (ACK), refusal (NAK), release and conflict
+    (DECLINE), also written to `<userData>/modules/dhcp/logs/server.log`; table of the leases
+    (offered, assigned, declined) with their expiry.
+- **Client**: on an interface with a private address, with the MAC address of the interface or
+  another one (random button, locally administered address): DISCOVER (lists the offers of every
+  server), full lease (DISCOVER, OFFER, REQUEST, ACK) and RELEASE. It never changes the
+  configuration of the interface; offers outside the private networks are ignored.
+- On Linux, ports 67 and 68 require administrator rights or the `CAP_NET_BIND_SERVICE` capability.
+  Node.js cannot bind a socket to an interface: on Linux and macOS, the broadcasts of the other
+  interfaces reach the server (and its log), but its replies only leave through the chosen interface;
+  use the MAC filter on a PC connected to several networks.
+
+## LDAP / RADIUS module
+
+Four tabs: LDAP server and client, RADIUS server and client.
+
+### LDAP
+
+- **Server** LDAP v3, **LDAPS by default** (port 1636; plain LDAP on 1389; standard ports 389 /
+  636 with administrator rights on Linux) on a read-only test directory, to check the centralized login of switches,
+  firewalls, HMIs or applications:
+  - directory written in **LDIF** (example directory with users and groups), edited while the
+    server is running; `userPassword` in clear text or hashed ({SSHA}, {SHA}, {SSHA256}, {SSHA512});
+    `memberOf` deduced from the groups (`member`, `uniqueMember`);
+  - simple bind (DN and password) or anonymous (can be disabled), search with base / one level /
+    subtree scopes and RFC 4515 filters (and, or, not, equality, substrings, ≥, ≤, presence), size
+    limit, compare, rootDSE (naming contexts), “Who am I” extended operation; passwords are never
+    returned and writes are refused (unwillingToPerform);
+  - **LDAPS** or **StartTLS** with the self-signed certificate `LDAP@Sulfur`
+    (`<userData>/modules/ldap/pki/own`);
+  - event log (binds and their failure reason, searches with their filter) and counters; faults
+    injected by the simulator (delay, no response, forced result code).
+- **Client** (ldapts library): `ldap://` or `ldaps://` URL, StartTLS, bind DN and password
+  (password not saved), authentication test with “Who am I”, search (base, scope, filter,
+  attributes, limit) and history.
+- The server implements the BER encoding and the LDAP protocol itself (the ldapjs library has been
+  decommissioned).
+
+### RADIUS
+
+- **Server** RADIUS over UDP (RFC 2865, 2866), authentication on port 1812 and accounting on 1813
+  (no administrator rights needed), to test the centralized login of switches, firewalls, Wi-Fi
+  access points or HMIs:
+  - **clients (NAS)** declared by address or CIDR network with their shared secret; requests from
+    other addresses are ignored;
+  - **PAP** and **CHAP** authentication of the **local accounts** (password in clear text, needed by
+    CHAP) and of the **LDAP directory accounts** of the LDAP Server tab (running directory or the
+    saved one, found by `uid` or another attribute, checked against `userPassword`; CHAP only with a
+    clear-text `userPassword`); EAP is not supported;
+  - **reply attributes** per account (and for the directory accounts), one `Name = value` per line:
+    Service-Type, Session-Timeout, Filter-Id, Class, Framed-IP-Address, Reply-Message…,
+    `Cisco-AVPair = shell:priv-lvl=15` or `Vendor-Specific = <vendor>:<type>:<value>`;
+  - **Message-Authenticator** (RFC 3579) checked when present and added to every reply; it can be
+    required in the Access-Requests (Blast-RADIUS protection);
+  - **accounting**: Start / Interim-Update / Stop (authenticator checked), open sessions listed,
+    Accounting-On / Off close the sessions of the device; **Status-Server** (RFC 5997) on both ports;
+  - repeated requests get the same reply; clients, accounts and attributes edited while running; log
+    (accept with the reply attributes, reject with its reason, ignored requests) and counters; faults
+    injected by the simulator (delay, no response; a forced response is an Access-Reject).
+- **Client**: server, ports, shared secret, timeout and retries, NAS-Identifier / NAS-IP-Address,
+  PAP or CHAP Access-Request (password not saved) with additional attributes, Status-Server,
+  accounting Start / Interim-Update / Stop of a session; replies checked (authenticator,
+  Message-Authenticator), decoded attributes and history.
+- The RADIUS protocol is implemented in the module (checked against the examples of RFC 2865).
+
+## FTP / SFTP module
+
+One module for the two file transfer protocols, in four tabs (FTP server and client, SFTP server
+and client). Both servers serve the same folder by default (`<userData>/modules/ftp/files`) and can
+run at the same time; the simulator faults apply to both. The module opens on the SFTP server tab.
+
+### FTP / FTPS
+
+- **Server** FTP (default port 2121) serving a folder, to test PLC backups, recipes and logs:
+  - plain FTP, explicit FTPS (AUTH TLS, optionally required) or implicit FTPS, with the server
+    self-signed certificate;
+  - passive mode (port range and announced address configurable) and active mode, which only
+    connects back to the client address; resume (REST), append, MLSD / MLST, SIZE, MDTM, ASCII
+    and binary types;
+  - users authenticated by password (only the scrypt hash is kept), read-only users, optional
+    read-only anonymous login; clients confined to the served folder, symbolic links included;
+  - log of logins and transfers, optional command log (passwords masked); counters; faults injected
+    by the simulator (delay, no response, connection cut, forced reply on transfers).
+- **Client** (basic-ftp library, passive mode): plain FTP or FTPS, optional certificate check,
+  folder browsing, transfers, folder creation, rename and delete, and display of the command
+  dialog. The password is not saved.
+
+### SFTP
+
+- **Server** SFTP (ssh2 library, default port 2222) serving a folder, to test firmware updates and
+  configuration backups of devices:
+  - SFTP subsystem only (no shell or command); clients confined to the served folder, symbolic
+    links included;
+  - users authenticated by password (only the scrypt hash is kept) and/or authorized public keys
+    (OpenSSH format), read-only users; users edited while the server is running;
+  - Ed25519 host key generated on the first start (`<userData>/modules/ftp/hostkey`), SHA256
+    fingerprint displayed to check or pin it on the clients;
+  - log of logins, transfers (path and size), folder creations, deletions and renames; counters;
+    faults injected by the simulator (delay, connection cut).
+- **Client**: password or private key (OpenSSH / PEM, passphrase), expected host key fingerprint
+  (connection refused if it changed), folder browsing, download and upload with a file dialog,
+  folder creation, rename and delete. Passwords and keys are not saved.
+
+## TFTP module
+
+- **Server** TFTP (default port 6969) serving a folder, to test firmware downloads and
+  configuration backups of network devices:
+  - octet and netascii modes, blksize, tsize and timeout options (RFC 2347 to 2349), block number
+    rollover beyond 65535 blocks;
+  - uploads allowed or not, existing files replaced or not; files written at once before the last
+    acknowledgement; paths confined to the served folder;
+  - timeout, retransmissions and maximum block size changed while running; log of transfers
+    (size, rate, retransmissions); faults injected by the simulator (delay, no response, forced
+    error).
+- **Client**: download (GET) and upload (PUT) with a file dialog, block size and file size
+  negotiation, progress, abort and history.
+
 ## Simulator module
 
 Acts on the servers and clients of the other modules through the points they publish.
@@ -448,6 +629,73 @@ Acts on the servers and clients of the other modules through the points they pub
   for points on different scales. Colorblind-safe palette, light and dark variants.
 - Table of the points with the value at the cursor (or the last one), min and max.
 - **CSV export** (`;` separator, ISO timestamps, decimal point or comma), one column per point.
+
+## Certificate authority module
+
+Test PKI to equip a bench without OpenSSL: certificates for OPC UA, Modbus/TCP Security, MQTT,
+HTTPS, Syslog TLS, or real devices.
+
+- **Authorities**: self-signed root, or intermediate signed by a root (path length 0); ECDSA P-256 /
+  P-384 or RSA 2048 to 4096 keys. Import of an existing authority (certificate + private key, PEM or
+  DER, encrypted key with its password).
+- **Issuance** with a new key, by profile: TLS server, TLS client, server and client, **OPC UA
+  application** (application URI mandatory, key usages required by the OPC UA security policies)
+  and **Modbus/TCP Security** (client role in extension `1.3.6.1.4.1.50316.802.1`, read by the
+  Modbus server). Alternative names DNS, IP and URI (names of this PC added in one click); validity
+  limited to that of the authority.
+- **Signing of a request (CSR PKCS#10)** generated by a device: subject, key and alternative names of
+  the request (completed by those entered); the private key stays on the device.
+- **Revocation** with a reason and **revocation list** (CRL v2 with CRL number, valid 30 days,
+  regenerated on each revocation or on demand).
+- **Export**: certificate (PEM, DER), certificate and chain up to the root (PEM), private key (PEM
+  PKCS#8), **PKCS#12** (.p12 / .pfx) protected by a password with the OpenSSL 3 parameters
+  (PBES2 AES-256-CBC / PBKDF2-SHA256, HMAC-SHA256), CRL (PEM, DER). Details of every certificate
+  (decoded fields, SHA-256 / SHA-1 thumbprints, PEM to copy).
+- Storage: `<userData>/modules/ca/authorities/<id>` (private keys with 600 rights). Authorities are
+  not part of the exported configuration.
+
+## Network explorer module
+
+Prepares the exploration of a test network, **restricted to the private networks** (RFC 1918):
+10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16.
+
+- **Targets**: addresses (`192.168.1.10`), CIDR networks (`192.168.1.0/24`, without the network and
+  broadcast addresses), ranges (`10.0.0.10-50` or `10.0.0.10-10.0.0.50`) and host names, separated
+  by commas, spaces or line breaks; 4,096 addresses at most. The main process checks every entry: an
+  entry that leaves the private networks, even partly, is refused as a whole, as is a host name that
+  resolves outside them (`localhost` included).
+- The private networks of the PC are proposed (limited to their /24); the addresses covered by the
+  entry are listed as it is typed.
+- Searching for and identifying the devices at these addresses is planned for a later version (see
+  the [roadmap](ROADMAP.md#later)).
+
+## Serial terminal module
+
+Talks to a device on an RS-232 or RS-485 link (USB adapter, built-in port), to test it or watch
+what it sends.
+
+- **Port**: detected ports listed (free entry accepted), baud rate, 5 to 8 data bits, parity (none,
+  even, odd, mark, space), 1, 1.5 (Windows only) or 2 stop bits, hardware (RTS / CTS) or software
+  (XON / XOFF) flow control. RS-485 requires an adapter that switches the transmit direction by
+  itself, as most USB adapters do. A port already used by another application, or by the Modbus
+  module, is refused.
+- **Control lines**: DTR and RTS set at opening and switched while the port is open, CTS, DSR and DCD
+  read every 250 ms, BREAK (TX line held low for 250 ms).
+- **Sending**: text (UTF-8, with the `\r`, `\n`, `\t`, `\0`, `\e`, `\\` and `\xNN` sequences)
+  followed by the chosen line ending, or bytes in hexadecimal (`01 03 00 00 00 0A`, `01030000000A` or
+  `0x01, 0x03…`); preview of the bytes, history of the last 20 entries, periodic sending (10 ms
+  minimum).
+- **Log** of the exchanges (5,000 entries): received bytes grouped into frames after a silence
+  (20 ms by default) and optionally at each line feed, sent frames with their origin (gateway client,
+  data point); hexadecimal and / or text view (control characters shown as `\r`, `\xNN`…),
+  millisecond timestamps, pause, export to a text file; byte and frame counters.
+- **Serial ↔ TCP gateway**: raw TCP server (default port 4001, like ser2net or a device server in
+  TCP server mode) relaying the serial port to its clients (one by default, up to 16): what they send
+  is written to the port, what the port receives is sent to every client. The exchanges appear in
+  the log; the gateway stops with the port.
+- **Data points** for the simulator and the trends: port open, counters, last frame received (text
+  and hexadecimal), control lines; writing `send text`, `send hex`, `DTR` or `RTS` sends data or
+  switches a line from a flow.
 
 ## License
 

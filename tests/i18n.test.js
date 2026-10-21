@@ -28,6 +28,22 @@ import simulatorEn from '@modules/simulator/shared/locales/en'
 import simulatorFr from '@modules/simulator/shared/locales/fr'
 import trendsEn from '@modules/trends/shared/locales/en'
 import trendsFr from '@modules/trends/shared/locales/fr'
+import caEn from '@modules/ca/shared/locales/en'
+import caFr from '@modules/ca/shared/locales/fr'
+import dnsEn from '@modules/dns/shared/locales/en'
+import dnsFr from '@modules/dns/shared/locales/fr'
+import dhcpEn from '@modules/dhcp/shared/locales/en'
+import dhcpFr from '@modules/dhcp/shared/locales/fr'
+import explorerEn from '@modules/explorer/shared/locales/en'
+import explorerFr from '@modules/explorer/shared/locales/fr'
+import ldapEn from '@modules/ldap/shared/locales/en'
+import ldapFr from '@modules/ldap/shared/locales/fr'
+import tftpEn from '@modules/tftp/shared/locales/en'
+import tftpFr from '@modules/tftp/shared/locales/fr'
+import ftpEn from '@modules/ftp/shared/locales/en'
+import ftpFr from '@modules/ftp/shared/locales/fr'
+import serialEn from '@modules/serial/shared/locales/en'
+import serialFr from '@modules/serial/shared/locales/fr'
 
 const dictionaries = {
   en: {
@@ -42,7 +58,15 @@ const dictionaries = {
     ...snmpEn,
     ...syslogEn,
     ...simulatorEn,
-    ...trendsEn
+    ...trendsEn,
+    ...caEn,
+    ...dnsEn,
+    ...dhcpEn,
+    ...explorerEn,
+    ...ldapEn,
+    ...tftpEn,
+    ...ftpEn,
+    ...serialEn
   },
   fr: {
     ...coreFr,
@@ -56,7 +80,15 @@ const dictionaries = {
     ...snmpFr,
     ...syslogFr,
     ...simulatorFr,
-    ...trendsFr
+    ...trendsFr,
+    ...caFr,
+    ...dnsFr,
+    ...dhcpFr,
+    ...explorerFr,
+    ...ldapFr,
+    ...tftpFr,
+    ...ftpFr,
+    ...serialFr
   }
 }
 

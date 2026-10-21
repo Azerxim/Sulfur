@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { moduleGroups, rendererModules } from './modules'
+import { rendererModules } from './modules'
+import { useEnabledModules } from './enabled-modules'
 import { appPages } from './pages'
 import { useI18n, useManifestText, usePreferences } from './preferences'
 import { useStoredState } from './components/ui'
@@ -16,15 +17,20 @@ export default function App() {
   // Au démarrage : la page choisie dans les paramètres, sinon la dernière page affichée.
   const [lastId, setLastId] = useStoredState('sulfur:lastPage', 'home', pageIds)
   const [activeId, setActiveId] = useState(() => (pageIds.includes(prefs.startPage) ? prefs.startPage : lastId))
-  const active = allPages.find((m) => m.manifest.id === activeId)
+  const { groups, isDisabled } = useEnabledModules()
+  // Module désactivé (page de démarrage, dernière page, lien) : page d'accueil à la place.
+  const shownId = isDisabled(activeId) ? 'home' : activeId
+  const active = allPages.find((m) => m.manifest.id === shownId)
   const select = (id) => {
-    setActiveId(id)
-    setLastId(id)
+    // Lien vers un module désactivé : les Paramètres, où il peut être réactivé.
+    const target = isDisabled(id) ? 'settings' : id
+    setActiveId(target)
+    setLastId(target)
   }
 
   return (
     <div className="flex h-full">
-      <Sidebar groups={moduleGroups} pages={appPages} activeId={activeId} onSelect={select} />
+      <Sidebar groups={groups} pages={appPages} activeId={shownId} onSelect={select} />
       <main className="flex min-w-0 flex-1 flex-col">
         {active ? (
           <>

@@ -1,0 +1,150 @@
+export default {
+  dhcp: {
+    name: 'DHCP',
+    description: 'Test DHCP server for an isolated private network, and test client',
+    interfaces: {
+      choose: 'Choose an interface…',
+      absent: '{name} (absent)',
+      option: '{name} · {address} ({cidr})',
+      notPrivate: '{name} · {address} ({cidr}) — not a private network'
+    },
+    states: {
+      offered: 'Offered',
+      bound: 'Assigned',
+      declined: 'Declined (conflict)'
+    },
+    modes: {
+      discover: 'DISCOVER',
+      lease: 'Lease',
+      release: 'RELEASE'
+    },
+    reasons: {
+      otherNetwork: 'address outside the served network',
+      taken: 'address held by another client',
+      outsidePool: 'address outside the pool'
+    },
+    server: {
+      title: 'Server configuration',
+      running: 'Running · {count} lease(s)',
+      interface: 'Interface',
+      pool: 'Pool',
+      poolStart: 'First address',
+      poolEnd: 'Last address',
+      suggest: 'Suggest',
+      router: 'Gateway',
+      dns: 'DNS servers',
+      domain: 'Domain name',
+      none: 'none',
+      leaseTime: 'Lease (s)',
+      macFilter: 'Only answer the listed MAC addresses',
+      macs: 'Allowed MAC addresses',
+      hint: 'Private networks only ({networks}): the interface must have an address in one of them, the pool stays inside its subnet ({max} addresses at most) and the announced DNS servers are private. The server is never started automatically. Ports 67 and 68 require administrator rights on Linux.',
+      linuxHint:
+        'On Linux and macOS, requests broadcast on the other interfaces also reach the server (and its log): its replies only leave through the chosen interface. Use the MAC filter on a PC connected to several networks.',
+      counters:
+        '{discovers} DISCOVER, {offers} OFFER, {requests} REQUEST, {acks} ACK, {naks} NAK, {releases} RELEASE, {ignored} ignored',
+      leases: 'Leases ({count})',
+      noLease: 'No lease yet.',
+      log: 'Log ({count})',
+      logHint: 'Every offer and assignment is also written to the log file.',
+      openLogFile: 'Log file',
+      clearLog: 'Clear',
+      noLog: 'No event yet.'
+    },
+    lease: {
+      ip: 'Address',
+      mac: 'MAC address',
+      hostname: 'Host name',
+      state: 'State',
+      expires: 'Expires'
+    },
+    warning: {
+      title: 'Start the DHCP server?',
+      text: 'A DHCP server answers every device of the network that asks for an address. On a production network, it can give wrong addresses to PCs, PLCs or HMIs and cut them off.',
+      effects: 'Only start it on an isolated test network, with no other DHCP server.',
+      filterOn: 'Only the listed MAC addresses',
+      filterOff: 'Every device of the network',
+      confirm: 'I confirm that {name} is connected to an isolated test network',
+      cancel: 'Cancel'
+    },
+    client: {
+      title: 'Request',
+      mac: 'MAC address',
+      macPlaceholder: 'MAC address of the interface',
+      randomMac: 'Random MAC address (locally administered)',
+      hostname: 'Host name',
+      requestedIp: 'Requested address',
+      timeout: 'Timeout (ms)',
+      discover: 'Discover the servers',
+      lease: 'Obtain a lease',
+      release: 'Release {ip}',
+      abort: 'Abort',
+      hint: 'The client never changes the configuration of the interface: it shows what the servers offer. Offers outside the private networks are ignored. The interface needs a private IPv4 address.',
+      history: 'History ({count})',
+      noHistory: 'No request yet.',
+      obtained: 'Lease obtained',
+      released: '{ip} released to the server {server}',
+      ignored: '{count} offer(s) outside the private networks ignored'
+    },
+    reply: {
+      server: 'server {server}',
+      mask: 'mask {mask}',
+      router: 'gateway {router}',
+      dns: 'DNS {dns}',
+      domain: 'domain {domain}',
+      lease: 'lease {seconds} s'
+    },
+    log: {
+      started: 'Server started on {interface} ({address}, network {cidr}) — pool {start} to {end}',
+      macFilter: 'Only the {count} listed MAC address(es) are answered',
+      stopped: 'Server stopped',
+      invalid: 'Invalid packet from {remote} ignored',
+      hardware: 'Request from a non-Ethernet device ignored',
+      relayed: '{type} relayed by {relay} ignored: only the local network is served',
+      notListed: '{type} from {mac} ignored: MAC address not listed',
+      discover: 'DISCOVER from {mac} ({hostname})',
+      exhausted: 'No free address for {mac}: pool exhausted',
+      offer: 'OFFER {ip} to {mac}',
+      otherServer: '{mac} chose the server {server}: offer withdrawn',
+      request: 'REQUEST {ip} from {mac}',
+      nak: 'NAK to {mac} for {ip}: {reason}',
+      ack: 'ACK {ip} assigned to {mac} for {lease} s',
+      decline: 'DECLINE {ip} by {mac}: address set aside for 10 minutes',
+      release: 'RELEASE {ip} by {mac}',
+      releaseUnknown: 'RELEASE {ip} by {mac} ignored: no lease',
+      inform: 'INFORM from {mac} ({ip}): configuration sent'
+    },
+    errors: {
+      noInterface: 'Choose an interface',
+      interfaceNotFound: 'Interface {name} not found (or without an IPv4 address)',
+      interfaceNotPrivate: 'Interface {name} ({cidr}) is not in a private network ({networks})',
+      invalidIp: 'Invalid IPv4 address: {value}',
+      poolOutsideSubnet: '{value} is not a host address of the network {cidr}',
+      poolOrder: 'The last address of the pool comes before the first',
+      poolTooLarge: 'Pool too large: {max} addresses at most',
+      poolIncludesServer: 'The pool includes the address of the server ({address})',
+      invalidRouter: 'The gateway {value} is not a host address of the network {cidr}',
+      routerInPool: 'The gateway is inside the pool',
+      dnsNotPrivate: 'DNS server outside the private networks refused: {value} ({networks})',
+      invalidDomain: 'Invalid domain name: {value}',
+      invalidLease: 'Invalid lease time ({min} to {max} seconds)',
+      invalidMac: 'Invalid MAC address: {value}',
+      emptyMacList: 'The list of allowed MAC addresses is empty',
+      noMac: 'The interface has no MAC address: enter one',
+      requestedNotPrivate: 'Requested address outside the private networks refused: {value} ({networks})',
+      invalidTimeout: 'Invalid timeout (200 to 60,000 ms)',
+      invalidPort: 'Invalid port (1 to 65535)',
+      portPrivileged: 'Port {port} requires administrator rights (on Linux: CAP_NET_BIND_SERVICE capability)',
+      portInUse: 'Port {port} is already used on this interface (another DHCP server or client?)',
+      broadcastUnsupported: 'This system does not allow receiving DHCP broadcasts this way',
+      notConfirmed: 'Confirm the warning to start the server',
+      clientBusy: 'A request is already in progress',
+      invalidMode: 'Unknown request mode',
+      noOffer: 'No offer received (timeout)',
+      offersNotPrivate: 'Only offers outside the private networks were received: ignored',
+      noAck: 'No answer from the server {server} to the request',
+      nak: 'Request refused by the server {server} (NAK): {message}',
+      noLease: 'No lease to release'
+    }
+  }
+}

@@ -25,6 +25,7 @@ import { getLocale } from '@shared/i18n'
 import { t } from '../shared/i18n'
 import { usePersistentState } from '@renderer/module-config'
 import { certStore, modbusApi } from './api'
+import { BaudRateField, SerialFormatFields, SerialPortField, TransportSelect, isSerial } from './SerialSettings'
 
 const clientCerts = certStore('client')
 
@@ -87,7 +88,7 @@ function parseWrite(raw, format, wordOrder) {
     })
 }
 
-export default function ClientPanel({ status, serverPort, serverMode }) {
+export default function ClientPanel({ status, serverPort, serverMode, serverTransport }) {
   const [config, setConfig] = usePersistentState('modbus', 'client', DEFAULT_CLIENT_CONFIG)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -100,14 +101,21 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
   const [identificationCode, setIdentificationCode] = useState(2)
   const connected = status.connected
   const security = config.security
+  const serial = isSerial(config.transport)
+  const tlsMode = config.transport === 'tcp' && security.mode === 'tls'
   const bit = TABLES[op.table].bit
 
-  // Aligne le port et le transport sur le serveur local lorsqu'il démarre.
+  // Aligne le port et le transport sur le serveur local (TCP) lorsqu'il démarre.
   useEffect(() => {
     if (serverPort && !connected) {
-      setConfig((c) => ({ ...c, port: serverPort, security: { ...c.security, mode: serverMode ?? c.security.mode } }))
+      setConfig((c) => ({
+        ...c,
+        port: serverPort,
+        transport: serverTransport ?? c.transport,
+        security: { ...c.security, mode: serverMode ?? c.security.mode }
+      }))
     }
-  }, [serverPort, serverMode, connected, setConfig])
+  }, [serverPort, serverMode, serverTransport, connected, setConfig])
 
   useEffect(() => modbusApi.client.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [])
   useEffect(() => {
@@ -228,29 +236,49 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
         }
       >
         <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] items-end gap-3">
-            <Field label={t('modbus.client.host')}>
-              <Input
-                className="font-mono"
-                value={config.host}
-                disabled={connected || busy}
-                onChange={(e) => update({ host: e.target.value })}
-                onKeyDown={(e) => e.key === 'Enter' && !connected && connect()}
-              />
+          <div className="grid grid-cols-[1.4fr_2fr_1fr_1fr_1fr_auto] items-end gap-3">
+            <Field label={t('modbus.client.transport')}>
+              <TransportSelect config={config} withTls disabled={connected || busy} onChange={update} />
             </Field>
-            <Field label={t('modbus.server.port')}>
-              <Input
-                type="number"
-                value={config.port}
-                disabled={connected || busy}
-                onChange={(e) => update({ port: Number(e.target.value) })}
-              />
-            </Field>
+            {serial ? (
+              <>
+                <SerialPortField
+                  value={config.serial.path}
+                  disabled={connected || busy}
+                  onChange={(path) => update({ serial: { ...config.serial, path } })}
+                />
+                <BaudRateField
+                  value={config.serial.baudRate}
+                  disabled={connected || busy}
+                  onChange={(baudRate) => update({ serial: { ...config.serial, baudRate } })}
+                />
+              </>
+            ) : (
+              <>
+                <Field label={t('modbus.client.host')}>
+                  <Input
+                    className="font-mono"
+                    value={config.host}
+                    disabled={connected || busy}
+                    onChange={(e) => update({ host: e.target.value })}
+                    onKeyDown={(e) => e.key === 'Enter' && !connected && connect()}
+                  />
+                </Field>
+                <Field label={t('modbus.server.port')}>
+                  <Input
+                    type="number"
+                    value={config.port}
+                    disabled={connected || busy}
+                    onChange={(e) => update({ port: Number(e.target.value) })}
+                  />
+                </Field>
+              </>
+            )}
             <Field label={t('modbus.server.unitId')}>
               <Input
                 type="number"
                 min={0}
-                max={255}
+                max={config.transport === 'tcp' ? 255 : 247}
                 value={config.unitId}
                 disabled={connected || busy}
                 onChange={(e) => update({ unitId: Number(e.target.value) })}
@@ -269,29 +297,34 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
                 <Plug className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
-              <Button variant="primary" disabled={busy || !config.host} onClick={connect}>
+              <Button
+                variant="primary"
+                disabled={busy || (serial ? !config.serial.path?.trim() : !config.host)}
+                onClick={connect}
+              >
                 <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
 
-          <div className="grid grid-cols-[2fr_1fr_2fr_auto] items-end gap-3">
-            <Field label={t('modbus.client.transport')}>
-              <Select
-                value={security.mode}
+          {serial && (
+            <div className="grid grid-cols-[1fr_1fr_1fr_2fr] items-end gap-3">
+              <SerialFormatFields
+                serial={config.serial}
                 disabled={connected || busy}
-                onChange={(e) => updateSecurity({ mode: e.target.value })}
-              >
-                <option value="tcp">{t('modbus.transport.tcp')}</option>
-                <option value="tls">{t('modbus.transport.tls')}</option>
-              </Select>
-            </Field>
+                onChange={(next) => update({ serial: next })}
+              />
+              <p className="mb-2 text-xs text-slate-500">{t('modbus.serial.clientHint')}</p>
+            </div>
+          )}
+
+          <div className={`grid grid-cols-[2fr_2fr_auto] items-end gap-3 ${tlsMode ? '' : 'hidden'}`}>
             <Field label={t('modbus.client.role')}>
               <Input
                 list="modbus-roles"
                 placeholder={t('modbus.client.rolePlaceholder')}
                 value={security.role}
-                disabled={connected || busy || security.mode !== 'tls'}
+                disabled={connected || busy || !tlsMode}
                 onChange={(e) => updateSecurity({ role: e.target.value })}
               />
               <datalist id="modbus-roles">
@@ -302,7 +335,7 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
             <Checkbox
               className="mb-2"
               label={t('ui.autoAcceptServerCert')}
-              disabled={connected || busy || security.mode !== 'tls'}
+              disabled={connected || busy || !tlsMode}
               checked={security.autoAcceptCertificates}
               onChange={(e) => updateSecurity({ autoAcceptCertificates: e.target.checked })}
             />
@@ -310,9 +343,7 @@ export default function ClientPanel({ status, serverPort, serverMode }) {
               <ShieldCheck className="size-3.5" /> {t('ui.certificates')}
             </Button>
           </div>
-          {security.mode === 'tls' && !connected && (
-            <p className="text-xs text-slate-500">{t('modbus.client.roleHint')}</p>
-          )}
+          {tlsMode && !connected && <p className="text-xs text-slate-500">{t('modbus.client.roleHint')}</p>}
           <ErrorBanner error={error} onClose={() => setError(null)} />
         </div>
       </Card>

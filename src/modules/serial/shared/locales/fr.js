@@ -1,0 +1,153 @@
+export default {
+  serial: {
+    name: 'Terminal série',
+    description: 'Terminal série RS-232 / RS-485 (journal hexadécimal, lignes de contrôle) et passerelle série ↔ TCP',
+    parities: {
+      none: 'Aucune',
+      even: 'Paire',
+      odd: 'Impaire',
+      mark: 'Marque (1)',
+      space: 'Espace (0)'
+    },
+    flowControls: {
+      none: 'Aucun',
+      rtscts: 'Matériel (RTS / CTS)',
+      xonxoff: 'Logiciel (XON / XOFF)'
+    },
+    lineEndings: {
+      none: 'Aucune',
+      cr: 'CR (\\r)',
+      lf: 'LF (\\n)',
+      crlf: 'CR LF (\\r\\n)'
+    },
+    framings: {
+      gap: 'Après un silence de',
+      newline: 'À chaque LF, ou après un silence de'
+    },
+    lines: {
+      dtr: 'Data Terminal Ready (sortie)',
+      rts: 'Request To Send (sortie)',
+      cts: 'Clear To Send (entrée)',
+      dsr: 'Data Set Ready (entrée)',
+      dcd: 'Data Carrier Detect (entrée)'
+    },
+    port: {
+      title: 'Port série',
+      path: 'Port',
+      pathPlaceholder: 'COM3, /dev/ttyUSB0…',
+      noPorts: 'Aucun port série détecté',
+      refresh: 'Actualiser la liste des ports',
+      baudRate: 'Vitesse (bauds)',
+      dataBits: 'Bits de données',
+      parity: 'Parité',
+      stopBits: 'Bits de stop',
+      flowControl: 'Contrôle de flux',
+      outputs: 'Sorties',
+      inputs: 'Entrées',
+      break: 'BREAK',
+      breakHint: 'Maintenir la ligne TX à l’état bas pendant 250 ms',
+      framing: 'Fin des trames reçues',
+      gap: 'Silence qui termine une trame (ms)',
+      bytes: '{count} octets',
+      frames: '{count} trames',
+      opened: '{path} · {label}',
+      closed: 'Fermé',
+      open: 'Ouvrir',
+      opening: 'Ouverture…',
+      close: 'Fermer',
+      signalsUnavailable: 'Ce port n’indique pas l’état de ses lignes d’entrée',
+      hint: 'RS-485 : utiliser un adaptateur qui commute seul le sens d’émission (la plupart des adaptateurs USB). 1,5 bit de stop : Windows uniquement.'
+    },
+    send: {
+      title: 'Envoi',
+      mode: 'Format',
+      modes: {
+        text: 'Texte',
+        hex: 'Hexadécimal'
+      },
+      textHint: 'Texte — \\r \\n \\t \\0 \\e \\\\ et \\xNN reconnus',
+      hexHint: 'Octets en hexadécimal — ex. 01 03 00 00 00 0A',
+      lineEnding: 'Fin de ligne',
+      send: 'Envoyer',
+      preview: '{count} octet(s) :',
+      empty: 'Saisir les données à envoyer (Entrée pour envoyer).',
+      portClosed: 'Ouvrir le port pour envoyer des données.',
+      interval: 'Période (ms)',
+      startRepeat: 'Envoyer en continu',
+      stopRepeat: 'Arrêter',
+      repeating: 'Envoi de {count} octet(s) toutes les {interval} ms'
+    },
+    gateway: {
+      title: 'Passerelle série ↔ TCP',
+      running: 'En marche · {count} client(s)',
+      needsPort: 'Ouvrir d’abord le port série',
+      host: 'Interface d’écoute',
+      port: 'Port TCP',
+      maxClients: 'Clients simultanés',
+      hint: 'Serveur TCP brut (comme ser2net ou un serveur de ports série en mode serveur TCP) : ce qu’envoient les clients est écrit sur le port série, ce que reçoit le port est envoyé à tous les clients. Les échanges apparaissent dans le journal ; la passerelle s’arrête avec le port.',
+      client: '{remote} · connecté à {time}',
+      noClient: 'Aucun client connecté.'
+    },
+    log: {
+      title: 'Échanges ({count})',
+      paused: 'Affichage en pause',
+      views: {
+        both: 'Hexadécimal + texte',
+        hex: 'Hexadécimal',
+        text: 'Texte'
+      },
+      timestamps: 'Heure',
+      pause: 'Mettre l’affichage en pause',
+      resume: 'Reprendre l’affichage',
+      export: 'Enregistrer le journal dans un fichier',
+      exported: 'Journal enregistré : {file}',
+      exportTitle: 'Enregistrer le journal série',
+      exportFilter: 'Journal',
+      clear: 'Vider le journal',
+      truncated: '{shown} dernières entrées sur {count} affichées',
+      empty: 'Aucune donnée échangée.',
+      opened: 'Port {path} ouvert ({label})',
+      closed: 'Port {path} fermé',
+      lost: 'Port {path} fermé par le système (adaptateur débranché ?)',
+      error: 'Erreur du port série : {message}',
+      repeatError: 'Envoi en continu arrêté : {message}',
+      outputsError: 'Lignes de contrôle non appliquées : {message}',
+      break: 'BREAK envoyé ({duration} ms)',
+      gatewayStarted: 'Passerelle à l’écoute sur {endpoint}',
+      gatewayStopped: 'Passerelle arrêtée',
+      gatewayError: 'Erreur de la passerelle : {message}',
+      clientRefused: 'Connexion de {remote} refusée : {max} client(s) au plus',
+      clientConnected: 'Client de la passerelle connecté : {remote}',
+      clientDisconnected: 'Client de la passerelle déconnecté : {remote}',
+      forwardError: 'Données de {remote} non écrites sur le port : {message}',
+      fromPoint: 'point de données'
+    },
+    errors: {
+      invalidHex: 'Valeur hexadécimale invalide : {value}',
+      oddHex: 'Nombre impair de chiffres hexadécimaux : {value}',
+      emptyPayload: 'Rien à envoyer',
+      payloadTooLarge: 'Trop de données : {max} octets au plus',
+      unavailable: 'Ports série indisponibles (bibliothèque serialport) : {message}',
+      missingPort: 'Choisir le port série',
+      invalidBaudRate: 'Vitesse invalide : {value}',
+      invalidDataBits: 'Nombre de bits de données invalide (5 à 8)',
+      invalidStopBits: 'Nombre de bits de stop invalide (1, 1,5 ou 2)',
+      invalidParity: 'Parité inconnue',
+      invalidFlowControl: 'Contrôle de flux inconnu',
+      busy: 'Le port {path} est déjà utilisé (par une autre application ou un autre module)',
+      open: 'Impossible d’ouvrir le port {path} : {message}',
+      invalidFraming: 'Découpage des trames inconnu',
+      invalidGap: 'Silence invalide (1 à 10000 ms)',
+      alreadyOpen: 'Le port est déjà ouvert',
+      notOpen: 'Le port série n’est pas ouvert',
+      minInterval: 'Période minimale : {min} ms',
+      invalidTcpPort: 'Port TCP invalide (1 à 65535)',
+      invalidMaxClients: 'Nombre de clients invalide (1 à {max})',
+      gatewayRunning: 'La passerelle est déjà démarrée',
+      gatewayNeedsPort: 'Ouvrir le port série avant de démarrer la passerelle',
+      portPrivileged: 'Le port {port} demande les droits administrateur : choisir un port ≥ 1024',
+      portInUse: 'Le port {port} est déjà utilisé',
+      readOnlyPoint: 'Le point {id} est en lecture seule'
+    }
+  }
+}

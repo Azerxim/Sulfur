@@ -68,6 +68,7 @@ export default {
     alreadyStarted: 'Le serveur est déjà démarré',
     notStarted: "Le serveur n'est pas démarré",
     notConnected: 'Client non connecté',
+    modulesBusy: 'Arrêtez les serveurs et clients de ces modules avant de les désactiver : {modules}',
     minPeriod: 'Période minimale : {min} ms',
     unknownStore: 'Magasin de certificats inconnu : {name}',
     certNotFound: 'Certificat introuvable',
@@ -164,6 +165,13 @@ export default {
       'Page affichée au lancement de Sulfur. Chaque module retient aussi son dernier onglet (serveur ou client).',
     lastPage: 'Dernière page affichée',
     modules: 'Modules',
+    moduleSwitch: {
+      title: 'Modules activés',
+      hint: "Un module désactivé est masqué de la barre latérale et de l'accueil, arrêté, et n'est plus chargé au démarrage. Ses réglages sont conservés. Arrêtez ses serveurs et clients avant de le désactiver.",
+      summary: '{enabled} module(s) activé(s) sur {total}',
+      enableAll: 'Tout activer',
+      disableAll: 'Tout désactiver'
+    },
     pages: 'Application',
     themes: {
       dark: 'Sombre',
