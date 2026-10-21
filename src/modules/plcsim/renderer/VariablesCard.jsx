@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Eye, RefreshCw, Search } from 'lucide-react'
-import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { ADDRESS_TYPES } from '../shared/constants'
 import { plcsimApi } from './api'
 import { t } from '../shared/i18n'

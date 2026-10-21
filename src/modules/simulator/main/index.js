@@ -1,4 +1,4 @@
-import { withDefaults } from '@shared/config'
+import { withDefaults } from '@azerxim/sulfur-sdk'
 import { DEFAULT_FAULTS, SIMULATOR_MODULE } from '../shared/constants'
 import { migrateSimulatorConfig } from '../shared/flows'
 import '../shared/locales'

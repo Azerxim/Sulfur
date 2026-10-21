@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { History } from 'lucide-react'
-import { Button, Select } from '@renderer/components/ui'
+import { Button, Select } from '@azerxim/sulfur-sdk/ui'
 import { HISTORY_RANGES } from '../shared/constants'
 import { opcuaApi } from './api'
 import { formatDateTime, formatValue } from './format'

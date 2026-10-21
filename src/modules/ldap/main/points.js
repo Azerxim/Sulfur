@@ -18,7 +18,7 @@ const RADIUS_POINTS = [
 ]
 
 /**
- * Points de données du module LDAP / RADIUS (contrat : `@shared/points`) : compteurs des deux
+ * Points de données du module LDAP / RADIUS (contrat : `points.js` du SDK) : compteurs des deux
  * serveurs. Les défauts s'appliquent aux deux serveurs (RADIUS : une réponse forcée est un
  * Access-Reject).
  */

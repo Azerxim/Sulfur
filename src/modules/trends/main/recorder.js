@@ -1,4 +1,4 @@
-import { parsePointKey, pointKey, toNumber } from '@shared/points'
+import { parsePointKey, pointKey, toNumber } from '@azerxim/sulfur-sdk'
 import { MAX_ROWS, MIN_INTERVAL } from '../shared/constants'
 import { t } from '../shared/i18n'
 
@@ -7,7 +7,7 @@ const FLUSH_INTERVAL = 500
 
 /**
  * Enregistreur de courbes : lit périodiquement les points choisis (clés `<module>/<id>`) dans les
- * modules qui les publient (`peers()`, contrat `@shared/points`). Chaque échantillon est une ligne
+ * modules qui les publient (`peers()`, contrat `points.js` du SDK). Chaque échantillon est une ligne
  * { t (ms), values: { [clé]: nombre | null } } : toutes les courbes partagent les mêmes instants.
  */
 export class TrendRecorder {

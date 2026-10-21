@@ -1,6 +1,5 @@
 import { join } from 'path'
-import { ensureCertificate } from '@shared/certificate'
-import { hashPassword } from '@shared/passwords'
+import { ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { MQTT_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { MqttServer } from './server'

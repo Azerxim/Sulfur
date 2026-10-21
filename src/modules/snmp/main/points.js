@@ -5,7 +5,7 @@ const SERVER = 'server:'
 const CLIENT = 'client:'
 
 /**
- * Points de données du module SNMP (contrat : `@shared/points`) :
+ * Points de données du module SNMP (contrat : `points.js` du SDK) :
  *  - objets simulés de l'agent (`server:<id>`), modifiables ;
  *  - `server:$trap` : écrire (n'importe quelle valeur) envoie la notification configurée ;
  *  - OID surveillés par le manager (`client:<id>`) : écrire envoie un SetRequest ;

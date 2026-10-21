@@ -1,7 +1,7 @@
 import net from 'net'
 import tls from 'tls'
 import { randomUUID } from 'crypto'
-import { simulate } from '@shared/simulator'
+import { simulate } from '@azerxim/sulfur-sdk'
 import {
   DATA_TYPES,
   DEFAULT_IDENTITY,

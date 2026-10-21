@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const PLCSIM_MODULE = builtinManifest({
   id: 'plcsim',
   name: 'PLCSim Advanced',

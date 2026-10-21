@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Plug, Plus, Send, Unplug, X } from 'lucide-react'
-import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+import {
+  Button,
+  Card,
+  Checkbox,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_CLIENT_CONFIG, MAX_LOG, PROTOCOL_VERSIONS, QOS_LEVELS } from '../shared/constants'
 import { isValidFilter } from '../shared/topics'
 import { mqttApi } from './api'

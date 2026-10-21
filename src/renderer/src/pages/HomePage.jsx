@@ -1,5 +1,5 @@
 import { ArrowRight, BookOpen, ChartLine, FlaskConical, Play, Save, Scale } from 'lucide-react'
-import { Card } from '../components/ui'
+import { Card } from '@azerxim/sulfur-sdk/ui'
 import { useEnabledModules } from '../enabled-modules'
 import { useI18n, useManifestText } from '../preferences'
 // Seul le champ `version` est intégré au build (import nommé d'un fichier JSON).

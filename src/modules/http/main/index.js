@@ -1,10 +1,9 @@
 import { join } from 'path'
-import { hashPassword } from '@shared/passwords'
+import { ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { HTTP_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { HttpServer, SERVER_COMMON_NAME } from './server'
 import { HttpClient } from './client'
-import { ensureCertificate } from '@shared/certificate'
 import { createPointsApi } from './points'
 
 let server = null

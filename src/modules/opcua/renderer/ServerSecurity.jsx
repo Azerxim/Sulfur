@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { KeyRound, Plus, ShieldCheck, Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, Input } from '@renderer/components/ui'
+import { Button, Card, CertificatesDialog, Checkbox, Input } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_SERVER_SECURITY, DEPRECATED_POLICIES, SECURITY_MODES, SECURITY_POLICIES } from '../shared/constants'
-import CertificatesDialog from '@renderer/components/CertificatesDialog'
 import { certStore, opcuaApi } from './api'
 import { t } from '../shared/i18n'
 

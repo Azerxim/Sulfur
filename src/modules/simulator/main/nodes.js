@@ -1,6 +1,5 @@
 import vm from 'vm'
-import { toNumber } from '@shared/points'
-import { simulate } from '@shared/simulator'
+import { simulate, toNumber } from '@azerxim/sulfur-sdk'
 import { RAMP_INTERVAL } from '../shared/constants'
 import { FUNCTION_TIMEOUT, getProperty, nodeOutputs } from '../shared/flows'
 import { t } from '../shared/i18n'

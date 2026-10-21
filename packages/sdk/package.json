@@ -1,0 +1,70 @@
+{
+  "name": "@azerxim/sulfur-sdk",
+  "version": "1.0.0",
+  "description": "SDK des modules Sulfur : contrat des modules, traductions, points de données et composants d'interface partagés",
+  "license": "Apache-2.0",
+  "author": "Maxime MALLET <mallet.maxime@topazdev.fr>",
+  "homepage": "https://github.com/Azerxim/Sulfur/tree/main/packages/sdk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Azerxim/Sulfur.git",
+    "directory": "packages/sdk"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./src/locales/*",
+    "./src/ui/module-config.js",
+    "./src/index.js",
+    "./src/main/index.js",
+    "./src/ui/index.js"
+  ],
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./main": {
+      "types": "./types/main.d.ts",
+      "default": "./src/main/index.js"
+    },
+    "./ui": {
+      "types": "./types/ui.d.ts",
+      "default": "./src/ui/index.js"
+    },
+    "./host": {
+      "types": "./types/host.d.ts",
+      "default": "./src/host/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "types",
+    "README.md",
+    "README.fr.md"
+  ],
+  "peerDependencies": {
+    "@peculiar/x509": "^2.1.0",
+    "lucide-react": ">=1.0.0",
+    "react": "^19.0.0",
+    "reflect-metadata": "^0.2.2"
+  },
+  "peerDependenciesMeta": {
+    "@peculiar/x509": {
+      "optional": true
+    },
+    "lucide-react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "reflect-metadata": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  }
+}

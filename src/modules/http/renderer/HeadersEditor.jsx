@@ -1,5 +1,5 @@
 import { Plus, X } from 'lucide-react'
-import { Button, Input } from '@renderer/components/ui'
+import { Button, Input } from '@azerxim/sulfur-sdk/ui'
 import { t } from '../shared/i18n'
 
 /** Liste d'en-têtes HTTP [{ name, value }] modifiable. */

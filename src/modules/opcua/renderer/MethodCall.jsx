@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Play } from 'lucide-react'
-import { Button, Field, Input } from '@renderer/components/ui'
+import { Button, Field, Input } from '@azerxim/sulfur-sdk/ui'
 import { opcuaApi } from './api'
 import { formatValue } from './format'
 import { t } from '../shared/i18n'

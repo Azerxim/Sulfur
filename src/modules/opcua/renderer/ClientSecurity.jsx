@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { Radar, ShieldCheck } from 'lucide-react'
-import { Button, Checkbox, Field, Input, Select } from '@renderer/components/ui'
+import { Button, CertificatesDialog, Checkbox, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_CLIENT_SECURITY, SECURITY_MODES, SECURITY_POLICIES } from '../shared/constants'
 import { certStore, opcuaApi } from './api'
-import CertificatesDialog from '@renderer/components/CertificatesDialog'
 import { policyLabel } from './ServerSecurity'
 import { t } from '../shared/i18n'
 

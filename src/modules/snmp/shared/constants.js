@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const SNMP_MODULE = builtinManifest({
   id: 'snmp',
   name: 'SNMP',

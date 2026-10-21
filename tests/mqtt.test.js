@@ -4,8 +4,7 @@ import { MqttServer, convertValue, encodePayload } from '@modules/mqtt/main/serv
 import { MqttClient } from '@modules/mqtt/main/client'
 import { createPointsApi } from '@modules/mqtt/main/points'
 import { isValidFilter, isValidTopic, matchTopic, payloadValue } from '@modules/mqtt/shared/topics'
-import { ensureCertificate } from '@shared/certificate'
-import { hashPassword } from '@shared/passwords'
+import { ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { errorOf, freePort, sleep, tempDir } from './helpers'
 
 let server, client, pki, port

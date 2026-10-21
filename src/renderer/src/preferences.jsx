@@ -1,7 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { getLocale, moduleT, setLanguage, t } from '@shared/i18n'
-import { DEFAULT_LANGUAGE } from '@shared/languages'
-
+import { DEFAULT_LANGUAGE, getLocale, moduleT, setLanguage, t } from '@azerxim/sulfur-sdk'
 /** Préférences de l'utilisateur (langue, thème, page de démarrage), mémorisées localement. */
 const STORAGE_KEY = 'sulfur:preferences'
 export const THEMES = ['dark', 'light', 'system']

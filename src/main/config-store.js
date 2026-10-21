@@ -1,7 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { isPlainObject } from '@shared/config'
-
+import { isPlainObject } from '@azerxim/sulfur-sdk'
 /**
  * Configuration enregistrée d'un module : un fichier JSON `{ <section>: valeur }`.
  * L'écriture est synchrone et atomique (fichier temporaire puis renommage) : rien n'est perdu si

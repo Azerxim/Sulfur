@@ -13,9 +13,8 @@ import {
   RefreshCw,
   Trash2
 } from 'lucide-react'
-import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
-import { formatDate, formatTime } from '@shared/i18n'
-import { usePersistentState } from '@renderer/module-config'
+import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
+import { formatDate, formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG } from '../../shared/sftp'
 import { sftpApi } from '../api'
 import { formatSize } from '../format'

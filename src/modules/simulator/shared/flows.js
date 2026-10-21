@@ -6,14 +6,14 @@
  *   nœud  = { id, type, name, x, y, config: { … } }   (config : voir NODE_TYPES[type].defaults)
  *   fil   = { id, source, port, target }               (sortie `port` de `source` → entrée de `target`)
  *
- * Les points sont désignés par leur clé `<module>/<id>` (voir `@shared/points`), les défauts par leur
+ * Les points sont désignés par leur clé `<module>/<id>` (voir `points.js` du SDK), les défauts par leur
  * identifiant dans la table des défauts du simulateur.
  */
 
 /** Familles de nœuds, dans l'ordre de la palette (libellés : simulator.categories.*). */
 export const NODE_CATEGORIES = ['triggers', 'points', 'timing', 'logic', 'function', 'generators', 'output']
 
-/** Fonctions des générateurs (voir `@shared/simulator`, libellés : simulator.simulations.*). */
+/** Fonctions des générateurs (voir `simulate` du SDK, libellés : simulator.simulations.*). */
 export const GENERATOR_FUNCTIONS = ['sine', 'ramp', 'random', 'toggle']
 
 /** Types de charge utile d'un déclencheur (libellés : simulator.payloadTypes.*). */

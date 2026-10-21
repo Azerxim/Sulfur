@@ -1,4 +1,4 @@
-import { registerMessages } from '@shared/i18n'
+import { registerMessages } from '@azerxim/sulfur-sdk'
 import fr from './fr'
 import en from './en'
 

@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const MODBUS_MODULE = builtinManifest({
   id: 'modbus',
   name: 'Modbus',

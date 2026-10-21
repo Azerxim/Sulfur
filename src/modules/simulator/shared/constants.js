@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const SIMULATOR_MODULE = builtinManifest({
   id: 'simulator',
   name: 'Simulateur',

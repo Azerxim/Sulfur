@@ -1,8 +1,8 @@
 import { Component } from 'react'
 import { RotateCcw, TriangleAlert } from 'lucide-react'
-import { t } from '@shared/i18n'
+import { t } from '@azerxim/sulfur-sdk'
 import { resetModuleConfig } from '../module-config'
-import { Button } from './ui'
+import { Button } from '@azerxim/sulfur-sdk/ui'
 
 /**
  * Affiche une erreur à la place d'un module dont l'interface plante (par exemple après l'import

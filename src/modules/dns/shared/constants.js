@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const DNS_MODULE = builtinManifest({
   id: 'dns',
   name: 'DNS',

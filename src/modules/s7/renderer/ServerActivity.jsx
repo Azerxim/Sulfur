@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import { Button, Card } from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
+import { Button, Card } from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import { s7Api } from './api'
 import { t } from '../shared/i18n'
 

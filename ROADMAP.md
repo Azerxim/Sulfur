@@ -72,10 +72,11 @@ premium module:
 - [X] **Module manifest**: id, version, edition (`standard` / `premium`), required module API
   version and minimum Sulfur version; an incompatible module is refused with a clear message
   (listed in Settings → Modules).
-- [ ] **Module SDK**: publish the module contract (`ctx.handle` / `emit` / `expose` / `peers`,
-  `src/shared/points.js`, i18n helpers, shared UI components) as a versioned package, so that
-  premium modules can be built outside this repository. The module API follows semantic
-  versioning.
+- [X] **Module SDK**: publish the module contract (`ctx.handle` / `emit` / `expose` / `peers`,
+  data points, i18n helpers, shared UI components) as a versioned package, so that premium modules
+  can be built outside this repository. The module API follows semantic versioning.
+  `@azerxim/sulfur-sdk` (`packages/sdk`, TypeScript declarations included), used by every built-in
+  module and published on GitHub Packages on the `sdk-v*` tags.
 - [ ] **External modules**: `src/main/modules.js` and `src/renderer/src/modules.js` become a
   registry fed by the built-in modules and by the module packages installed in the user data
   folder. The interface of an external module is loaded dynamically (dedicated protocol) and shares

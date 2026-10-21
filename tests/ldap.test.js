@@ -1,7 +1,7 @@
 import { createHash } from 'crypto'
 import { Client } from 'ldapts'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { ensureCertificate } from '@shared/certificate'
+import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { LdapServer, buildDirectory, checkPassword, matches } from '@modules/ldap/main/server'
 import { LdapClient } from '@modules/ldap/main/client'
 import { DEFAULT_CLIENT_CONFIG, DEFAULT_LDIF, DEFAULT_SERVER_CONFIG } from '@modules/ldap/shared/constants'

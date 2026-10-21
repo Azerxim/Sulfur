@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react'
 import { FileText, Play, Square, Trash2, TriangleAlert } from 'lucide-react'
-import { Button, Card, Checkbox, ErrorBanner, Field, Input, Modal, StatusDot } from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
-import { intToIp, ipToInt, subnetOf } from '@shared/networks'
-import { usePersistentState } from '@renderer/module-config'
+import {
+  Button,
+  Card,
+  Checkbox,
+  ErrorBanner,
+  Field,
+  Input,
+  Modal,
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { formatTime, intToIp, ipToInt, subnetOf } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, MAX_POOL } from '../shared/constants'
 import { dhcpApi } from './api'
 import InterfaceSelect from './InterfaceSelect'

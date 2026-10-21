@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { withDefaults } from '@shared/config'
+import { withDefaults } from '@azerxim/sulfur-sdk'
 import { ConfigStore } from '../src/main/config-store'
 import { BUNDLE_FORMAT, createBundle, parseBundle } from '../src/main/config-bundle'
 import { DEFAULT_SERVER_CONFIG } from '@modules/modbus/shared/constants'

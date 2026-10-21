@@ -1,4 +1,4 @@
-import { CommitInput } from '@renderer/components/ui'
+import { CommitInput } from '@azerxim/sulfur-sdk/ui'
 import { formatFields, parseFields } from '../shared/fields'
 import { t } from '../shared/i18n'
 

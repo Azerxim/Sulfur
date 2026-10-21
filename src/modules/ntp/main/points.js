@@ -19,7 +19,7 @@ const CLIENT_POINTS = [
 ]
 
 /**
- * Points de données du module NTP pour les autres modules (contrat : `@shared/points`). Écrire
+ * Points de données du module NTP pour les autres modules (contrat : `points.js` du SDK). Écrire
  * `server:offset` décale l'horloge simulée : un flux du simulateur peut ainsi provoquer des sauts
  * d'heure.
  */

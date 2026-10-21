@@ -6,7 +6,7 @@ const SERVER = 'server:'
 const CLIENT = 'client:'
 
 /**
- * Points de données du module MQTT (contrat : `@shared/points`) :
+ * Points de données du module MQTT (contrat : `points.js` du SDK) :
  *  - topics simulés du broker (`server:<id>`), modifiables : écrire publie la nouvelle valeur ;
  *  - nombres de clients connectés et de messages du broker ;
  *  - abonnements du client (`client:<id>`) : dernière valeur reçue ; un abonnement sans joker est

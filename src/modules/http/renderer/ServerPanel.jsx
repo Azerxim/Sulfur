@@ -9,9 +9,9 @@ import {
   Field,
   Input,
   Select,
-  StatusDot
-} from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, NUMERIC_TYPES, SIMULATIONS } from '../shared/constants'
 import { VARIABLE_NAME } from '../shared/template'
 import { httpApi } from './api'

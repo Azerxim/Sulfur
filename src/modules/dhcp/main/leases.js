@@ -1,4 +1,4 @@
-import { intToIp, ipToInt } from '@shared/networks'
+import { intToIp, ipToInt } from '@azerxim/sulfur-sdk'
 import { DECLINE_HOLD, OFFER_HOLD } from '../shared/constants'
 
 /**

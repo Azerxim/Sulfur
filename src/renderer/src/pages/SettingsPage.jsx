@@ -12,10 +12,9 @@ import {
   Sun,
   Upload
 } from 'lucide-react'
-import { LANGUAGES } from '@shared/languages'
-import { Button, Card, Checkbox, ErrorBanner, Select, Tabs, useStoredState } from '../components/ui'
+import { LANGUAGES, MODULE_API_VERSION } from '@azerxim/sulfur-sdk'
+import { Button, Card, Checkbox, ErrorBanner, Select, Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
-import { MODULE_API_VERSION } from '@shared/module'
 import { availableModules, rejectedModules, setDisabledModules, useEnabledModules } from '../enabled-modules'
 import { appPages } from '../pages'
 import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences'

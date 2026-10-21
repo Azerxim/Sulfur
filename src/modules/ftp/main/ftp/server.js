@@ -6,8 +6,15 @@ import path from 'path'
 import { Transform } from 'stream'
 import { pipeline } from 'stream/promises'
 import { randomUUID } from 'crypto'
-import { hashPassword, isPasswordHash, verifyPassword } from '@shared/passwords'
-import { OutsideRoot, prepareRoot, resolveInside, virtualPath } from '@shared/files'
+import {
+  hashPassword,
+  isPasswordHash,
+  OutsideRoot,
+  prepareRoot,
+  resolveInside,
+  verifyPassword,
+  virtualPath
+} from '@azerxim/sulfur-sdk/main'
 import { DEFAULT_SERVER_CONFIG, MAX_LOG, TLS_MODES } from '../../shared/constants'
 import { t } from '../../shared/i18n'
 

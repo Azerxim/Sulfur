@@ -2,6 +2,8 @@
 
 /* Les modules vivent hors du dossier renderer : on les inclut dans le scan Tailwind. */
 @source '../../modules';
+/* Composants partagés du SDK des modules. */
+@source '../../../packages/sdk/src/ui';
 
 @theme {
   --color-sulfur-50: #fefce8;

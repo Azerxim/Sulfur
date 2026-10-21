@@ -1,9 +1,8 @@
 import { app, BrowserWindow } from 'electron'
-import { setLanguage } from '@shared/i18n'
+import { setLanguage } from '@azerxim/sulfur-sdk'
+import { builtinManifest } from '@modules/builtin'
 import { WINDOW_BACKGROUNDS, applyNativeTheme, savePreferences } from './preferences'
 import os from 'os'
-import { builtinManifest } from '@shared/module'
-
 /** Informations système du PC (canal IPC `system:info`). */
 export function getSystemInfo() {
   const interfaces = Object.entries(os.networkInterfaces()).map(([name, addresses]) => ({

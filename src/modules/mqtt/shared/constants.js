@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const MQTT_MODULE = builtinManifest({
   id: 'mqtt',
   name: 'MQTT',

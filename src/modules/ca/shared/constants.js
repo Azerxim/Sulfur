@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const CA_MODULE = builtinManifest({
   id: 'ca',
   name: 'Autorité de certification',

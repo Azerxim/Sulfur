@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import {
-  APP_VERSION,
-  MODULE_API_VERSION,
-  builtinManifest,
-  checkManifest,
-  compareVersions,
-  parseVersion
-} from '@shared/module'
-import { t } from '@shared/i18n'
+import { APP_VERSION } from '@shared/app'
+import { checkManifest, compareVersions, MODULE_API_VERSION, parseVersion, t } from '@azerxim/sulfur-sdk'
+import { builtinManifest } from '@modules/builtin'
 import { mainModules } from '../src/main/modules'
 
 const manifest = (patch = {}) => ({
@@ -59,7 +53,7 @@ describe('Manifeste des modules', () => {
     expect(check({ apiVersion: undefined })).toEqual({ reason: 'invalid', params: { field: 'apiVersion' } })
     expect(check({ minAppVersion: 'latest' })).toEqual({ reason: 'invalid', params: { field: 'minAppVersion' } })
     expect(check({ id: 'settings' })).toEqual({ reason: 'reservedId', params: { id: 'settings' } })
-    expect(checkManifest(manifest(), { loadedIds: ['demo'] })).toEqual({
+    expect(checkManifest(manifest(), { appVersion: '0.5.0', loadedIds: ['demo'] })).toEqual({
       reason: 'duplicateId',
       params: { id: 'demo' }
     })
@@ -98,7 +92,10 @@ describe('Manifeste des modules', () => {
     })
     const loaded = []
     for (const mod of mainModules) {
-      expect([mod.manifest.id, checkManifest(mod.manifest, { loadedIds: loaded })]).toEqual([mod.manifest.id, null])
+      expect([mod.manifest.id, checkManifest(mod.manifest, { appVersion: APP_VERSION, loadedIds: loaded })]).toEqual([
+        mod.manifest.id,
+        null
+      ])
       loaded.push(mod.manifest.id)
     }
   })

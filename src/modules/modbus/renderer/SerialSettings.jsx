@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { Button, Field, Input, Select } from '@renderer/components/ui'
+import { Button, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { BAUD_RATES, DEFAULT_SERIAL } from '../shared/constants'
 import { modbusApi } from './api'
 import { t } from '../shared/i18n'

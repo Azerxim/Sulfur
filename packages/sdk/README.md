@@ -1,0 +1,114 @@
+# Sulfur module SDK
+
+**English** · [Français](README.fr.md)
+
+`@azerxim/sulfur-sdk` is the contract between [Sulfur](https://github.com/Azerxim/Sulfur) and its
+modules: manifest, main-process context, data points, translations and shared interface components.
+The modules shipped with Sulfur use it exclusively, so a module written against the SDK can be
+developed outside the Sulfur repository.
+
+The package version **is the module API version** (`MODULE_API_VERSION`) and follows semantic
+versioning: a module written for SDK 1.2 works with every Sulfur that provides a 1.x module API from
+1.2 on, not with a 2.x API. Removing or changing an export requires a new major version.
+
+## Installation
+
+The package is published on GitHub Packages. Add to the `.npmrc` of the module project:
+
+```ini
+@azerxim:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+`GITHUB_TOKEN` is a personal access token with the `read:packages` scope (GitHub Packages requires
+one even for public packages). Then:
+
+```sh
+npm install --save-dev @azerxim/sulfur-sdk
+```
+
+## Entry points
+
+| Import                       | Where             | Content                                                                                     |
+| ---------------------------- | ----------------- | ------------------------------------------------------------------------------------------- |
+| `@azerxim/sulfur-sdk`        | main and renderer | manifest (`defineManifest`, `checkManifest`), translations (`registerMessages`, `moduleT`, `formatTime`…), data points (`pointKey`, `toNumber`, `FAULT_TYPES`), `withDefaults`, private networks, `simulate` |
+| `@azerxim/sulfur-sdk/main`   | main process      | `ensureCertificate` (self-signed TLS certificate), `hashPassword` / `verifyPassword` (scrypt), served folders confined to their root (`resolveInside`, `prepareRoot`) |
+| `@azerxim/sulfur-sdk/ui`     | renderer (React)  | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
+| `@azerxim/sulfur-sdk/host`   | Sulfur only       | configuration cache of the interface; not for modules                                      |
+
+TypeScript declarations are included (`types/`); they describe the whole contract, in particular
+`ModuleContext`, `MainModule`, `RendererModule` and `PointsApi`.
+
+## A module
+
+```js
+// shared/constants.js
+import { defineManifest } from '@azerxim/sulfur-sdk'
+
+export const DEMO_MODULE = defineManifest({
+  id: 'demo', // prefix of the IPC channels
+  name: 'Demo',
+  description: 'Demo module',
+  version: '1.0.0',
+  edition: 'premium',
+  minAppVersion: '0.5.0'
+})
+```
+
+```js
+// main/index.js — main process
+import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
+import { DEMO_MODULE } from '../shared/constants'
+
+let running = false
+
+export default {
+  manifest: DEMO_MODULE,
+  activate(ctx) {
+    ctx.handle('start', async () => {
+      const { cert, key } = await ensureCertificate(`${ctx.dataDir}/pki`, 'Demo@Sulfur')
+      running = true
+      ctx.emit('status', { running })
+    })
+    ctx.expose({ name: 'Demo', points: () => [], read: () => ({}), write: async () => {} })
+  },
+  busy: () => running,
+  deactivate() {
+    running = false
+  }
+}
+```
+
+```jsx
+// renderer/index.js — interface
+import { Box } from 'lucide-react'
+import { Button, Card, usePersistentState } from '@azerxim/sulfur-sdk/ui'
+import { DEMO_MODULE } from '../shared/constants'
+
+function DemoView() {
+  const [config, setConfig] = usePersistentState('demo', 'server', { port: 1234 })
+  return (
+    <Card title="Demo">
+      <Button onClick={() => window.sulfur.invoke('demo:start', config)}>Start</Button>
+    </Card>
+  )
+}
+
+export default { manifest: DEMO_MODULE, icon: Box, Component: DemoView }
+```
+
+Translations: `registerMessages({ en, fr }, 'demo')` then `moduleT('demo')`; the displayed name and
+description come from the `demo.name` and `demo.description` keys. Common strings (`ui.start`,
+`errors.alreadyStarted`…) are provided by the SDK.
+
+## At run time
+
+Sulfur provides the SDK, React and `lucide-react` to its modules: a module bundle must declare
+them as **external** dependencies instead of bundling them again (a second copy of the SDK would
+have its own translations and configuration cache). The loading of modules installed outside the
+application, and the styles of their own components, come with the next steps of the
+[roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-premium-editions).
+
+## License
+
+[Apache License 2.0](LICENSE). Premium modules built with the SDK may use their own license.

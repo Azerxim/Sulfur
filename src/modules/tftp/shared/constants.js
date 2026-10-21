@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const TFTP_MODULE = builtinManifest({
   id: 'tftp',
   name: 'TFTP',

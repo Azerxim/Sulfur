@@ -1,6 +1,3 @@
-// Seul le champ `version` est intégré au build (import nommé d'un fichier JSON).
-import { version as APP_VERSION } from '../../package.json'
-
 /**
  * Contrat commun à tous les modules de simulation.
  *
@@ -23,9 +20,10 @@ import { version as APP_VERSION } from '../../package.json'
  * chargement (voir checkManifest).
  */
 
-export { APP_VERSION }
-
-/** Version de l'API des modules fournie par cette version de Sulfur. */
+/**
+ * Version de l'API des modules décrite par ce SDK (celle du paquet) : un module écrit avec le SDK
+ * 1.x fonctionne avec toute version de Sulfur qui fournit une API 1.x au moins égale.
+ */
 export const MODULE_API_VERSION = '1.0.0'
 
 export const EDITIONS = ['standard', 'premium']
@@ -72,24 +70,20 @@ export function compareVersions(a, b) {
   return 0
 }
 
-/** Manifeste d'un module livré avec Sulfur : version de l'application, édition standard, API courante. */
-export const builtinManifest = (manifest) => ({
-  version: APP_VERSION,
-  edition: 'standard',
-  apiVersion: MODULE_API_VERSION,
-  minAppVersion: APP_VERSION,
-  ...manifest
-})
+/**
+ * Manifeste d'un module, complété : édition standard et API de ce SDK par défaut. `version` et
+ * `minAppVersion` sont à fournir (voir checkManifest).
+ */
+export const defineManifest = (manifest) => ({ edition: 'standard', apiVersion: MODULE_API_VERSION, ...manifest })
 
 /**
  * Manifeste vérifié avant le chargement d'un module. Retourne le premier problème
  * { reason, params } (libellés : modules.problems.<reason>), ou null si le module peut être chargé.
+ *  - `appVersion` : version de Sulfur qui charge le module (obligatoire) ;
+ *  - `apiVersion` : version de l'API des modules qu'elle fournit (par défaut celle de ce SDK) ;
  *  - `loadedIds` : identifiants des modules déjà chargés (un identifiant ne sert qu'une fois).
  */
-export function checkManifest(
-  manifest,
-  { apiVersion = MODULE_API_VERSION, appVersion = APP_VERSION, loadedIds = [] } = {}
-) {
+export function checkManifest(manifest, { appVersion, apiVersion = MODULE_API_VERSION, loadedIds = [] } = {}) {
   const m = manifest ?? {}
   const invalid = (field) => ({ reason: 'invalid', params: { field } })
   if (typeof m.id !== 'string' || !MODULE_ID_PATTERN.test(m.id)) return invalid('id')

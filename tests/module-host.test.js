@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { builtinManifest } from '@shared/module'
+import { builtinManifest } from '@modules/builtin'
 import { tempDir } from './helpers'
 
 /** Canaux IPC enregistrés (ipcMain simulé) : un second enregistrement du même canal échoue, comme Electron. */

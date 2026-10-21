@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog } from 'electron'
 import fs from 'fs/promises'
 import { join } from 'path'
-import { t } from '@shared/i18n'
+import { t } from '@azerxim/sulfur-sdk'
 import { createBundle, parseBundle } from './config-bundle'
 
 /**

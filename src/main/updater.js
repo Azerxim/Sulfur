@@ -3,8 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import electronUpdater from 'electron-updater'
 import { loadPreferences, savePreferences } from './preferences'
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 /**
  * Mises à jour à partir des releases GitHub (electron-updater, fichiers latest*.yml joints aux
  * releases par la CI). Les releases en brouillon sont ignorées : une version n'est proposée qu'une

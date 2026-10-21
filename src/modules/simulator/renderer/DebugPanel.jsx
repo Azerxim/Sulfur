@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Eraser } from 'lucide-react'
-import { Button, Checkbox } from '@renderer/components/ui'
-import { getLocale } from '@shared/i18n'
+import { Button, Checkbox } from '@azerxim/sulfur-sdk/ui'
+import { getLocale } from '@azerxim/sulfur-sdk'
 import { t } from '../shared/i18n'
 
 const LEVEL_STYLES = {

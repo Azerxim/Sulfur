@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Plug, RefreshCw, Unplug, Zap } from 'lucide-react'
-import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import {
   BAUD_RATES,
   DATA_BITS,

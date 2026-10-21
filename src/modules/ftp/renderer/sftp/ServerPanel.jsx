@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Copy, FolderOpen, Play, Plus, Square, Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, ErrorBanner, Field, Input, StatusDot } from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
-import { usePersistentState } from '@renderer/module-config'
+import {
+  Button,
+  Card,
+  Checkbox,
+  ErrorBanner,
+  Field,
+  Input,
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG } from '../../shared/sftp'
 import { sftpApi } from '../api'
 import { t } from '../../shared/i18n'

@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const SERIAL_MODULE = builtinManifest({
   id: 'serial',
   name: 'Terminal série',

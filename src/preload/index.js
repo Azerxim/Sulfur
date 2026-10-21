@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC_CHANNEL_PATTERN } from '@shared/module'
-
+import { IPC_CHANNEL_PATTERN } from '@azerxim/sulfur-sdk'
 function assertChannel(channel) {
   if (!IPC_CHANNEL_PATTERN.test(channel)) throw new Error(`Canal IPC invalide : ${channel}`)
 }

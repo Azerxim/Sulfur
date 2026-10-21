@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const DHCP_MODULE = builtinManifest({
   id: 'dhcp',
   name: 'DHCP',

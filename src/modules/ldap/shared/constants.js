@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const LDAP_MODULE = builtinManifest({
   id: 'ldap',
   name: 'LDAP / RADIUS',

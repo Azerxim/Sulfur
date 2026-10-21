@@ -1,0 +1,43 @@
+# Publication du SDK des modules (@azerxim/sulfur-sdk) sur GitHub Packages, sur les tags sdk-v*
+# (ex. sdk-v1.0.0). Le tag doit correspondre à la version de packages/sdk/package.json.
+name: SDK
+
+on:
+  push:
+    tags: ['sdk-v*']
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Publication du SDK
+    runs-on: ubuntu-latest
+    env:
+      # Le binaire Electron n'est pas nécessaire : les tests s'exécutent sous Node.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: '@azerxim'
+      - run: npm ci
+      - name: Version du tag
+        run: |
+          version="$(node -p "require('./packages/sdk/package.json').version")"
+          if [ "sdk-v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Le tag $GITHUB_REF_NAME ne correspond pas à la version $version du SDK"
+            exit 1
+          fi
+      - name: Lint et tests
+        run: |
+          npm run lint
+          npm test
+      - name: Publication
+        run: npm publish ./packages/sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,8 +1,8 @@
 import http from 'http'
 import https from 'https'
 import { randomUUID, timingSafeEqual } from 'crypto'
-import { simulate } from '@shared/simulator'
-import { hashPassword, isPasswordHash, verifyPassword } from '@shared/passwords'
+import { simulate } from '@azerxim/sulfur-sdk'
+import { hashPassword, isPasswordHash, verifyPassword } from '@azerxim/sulfur-sdk/main'
 import {
   DATA_TYPES,
   DEFAULT_SERVER_AUTH,

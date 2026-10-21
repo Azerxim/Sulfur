@@ -1,4 +1,4 @@
-import { getLocale } from '@shared/i18n'
+import { getLocale } from '@azerxim/sulfur-sdk'
 import { t } from '../shared/i18n'
 
 /** Date et heure complètes (avec millisecondes) dans la langue de l'interface. */

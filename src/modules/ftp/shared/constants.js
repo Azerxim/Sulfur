@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const FTP_MODULE = builtinManifest({
   id: 'ftp',
   name: 'FTP / SFTP',

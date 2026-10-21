@@ -1,14 +1,8 @@
-import { resolve } from 'path'
 import { defineConfig } from 'vitest/config'
+import { aliases } from './aliases.mjs'
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@shared': resolve('src/shared'),
-      '@modules': resolve('src/modules'),
-      '@renderer': resolve('src/renderer/src')
-    }
-  },
+  resolve: { alias: aliases() },
   test: {
     include: ['tests/**/*.test.js'],
     environment: 'node',

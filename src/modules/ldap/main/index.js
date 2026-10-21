@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { ensureCertificate } from '@shared/certificate'
+import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { DEFAULT_LDIF, LDAP_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { LdapServer, buildDirectory } from './server'

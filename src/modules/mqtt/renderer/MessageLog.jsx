@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, Field, Input } from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
+import { Button, Card, Checkbox, Field, Input } from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import { isValidFilter, matchTopic } from '../shared/topics'
 import { t } from '../shared/i18n'
 

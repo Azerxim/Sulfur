@@ -9,8 +9,9 @@ import {
   Field,
   Input,
   Select,
-  StatusDot
-} from '@renderer/components/ui'
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
 import {
   DATA_TYPES,
   DEFAULT_IDENTITY,
@@ -22,7 +23,6 @@ import {
 import { defaultType, parseAddress } from '../shared/address'
 import { isNumericType } from '../shared/codec'
 import { MAX_AREA_SIZE, validateMemory, validatePoint } from '../shared/memory'
-import { usePersistentState } from '@renderer/module-config'
 import { s7Api } from './api'
 import { formatValue } from './format'
 import MemoryExplorer from './MemoryExplorer'

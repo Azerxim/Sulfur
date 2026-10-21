@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const OPCUA_MODULE = builtinManifest({
   id: 'opcua',
   name: 'OPC UA',

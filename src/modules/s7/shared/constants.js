@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const S7_MODULE = builtinManifest({
   id: 's7',
   name: 'Siemens S7',

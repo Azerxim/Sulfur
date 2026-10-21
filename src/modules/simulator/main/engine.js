@@ -1,4 +1,4 @@
-import { parsePointKey } from '@shared/points'
+import { parsePointKey } from '@azerxim/sulfur-sdk'
 import { RECORD_INTERVAL } from '../shared/constants'
 import { t } from '../shared/i18n'
 
@@ -14,7 +14,7 @@ const roundSeconds = (ms) => Math.round(ms / 10) / 100
 /**
  * Moteur du simulateur : défauts injectés dans les autres modules et enregistrement des évolutions
  * de points. Les flux (`./flows`) s'en servent pour lire et écrire les points et piloter les défauts.
- * Les modules sont atteints par leurs points publiés (`peers()` : [{ id, api }], contrat `@shared/points`).
+ * Les modules sont atteints par leurs points publiés (`peers()` : [{ id, api }], contrat `points.js` du SDK).
  */
 export class SimulatorEngine {
   /** id du défaut -> { def, until, timer, byFlow } */

@@ -75,10 +75,11 @@ premier module premium :
 - [X] **Manifeste de module** : identifiant, version, édition (`standard` / `premium`), version de
   l'API de module requise et version minimale de Sulfur ; un module incompatible est refusé avec un
   message clair (listé dans Paramètres → Modules).
-- [ ] **SDK de module** : publier le contrat de module (`ctx.handle` / `emit` / `expose` / `peers`,
-  `src/shared/points.js`, outils de traduction, composants d'interface communs) sous forme de paquet
+- [X] **SDK de module** : publier le contrat de module (`ctx.handle` / `emit` / `expose` / `peers`,
+  points de données, outils de traduction, composants d'interface communs) sous forme de paquet
   versionné, pour développer les modules premium hors de ce dépôt. L'API de module suit le
-  versionnage sémantique.
+  versionnage sémantique. `@azerxim/sulfur-sdk` (`packages/sdk`, déclarations TypeScript incluses),
+  utilisé par tous les modules intégrés et publié sur GitHub Packages sur les tags `sdk-v*`.
 - [ ] **Modules externes** : `src/main/modules.js` et `src/renderer/src/modules.js` deviennent un
   registre alimenté par les modules intégrés et par les paquets de modules installés dans le dossier
   des données utilisateur. L'interface d'un module externe est chargée dynamiquement (protocole

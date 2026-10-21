@@ -106,16 +106,16 @@ src/
 ├── renderer/             # Interface React
 │   └── src/
 │       ├── App.jsx       # Shell (sidebar + module actif)
-│       ├── components/   # Composants UI partagés (Card, CertificatesDialog…)
+│       ├── components/   # Composants de l'application (barre latérale, gestion d'erreur)
 │       ├── pages/        # Pages de l'application (Accueil, Informations, Paramètres)
 │       ├── preferences.jsx # Langue et thème (useI18n, usePreferences)
-│       ├── module-config.js # Réglages enregistrés des modules (usePersistentState)
+│       ├── module-config.js # Import / export et réinitialisation des configurations
 │       └── modules.js    # ← liste des modules "renderer"
-├── shared/               # Code commun main/renderer (i18n, langues, simulateur…)
-│   ├── points.js         # Points de données partagés entre modules (contrat)
-│   ├── certificate.js    # Certificats TLS auto-signés des serveurs (process principal)
-│   └── locales/          # Textes communs (fr.js, en.js)
-└── modules/              # Modules de simulation
+├── shared/               # Code de l'application commun main/renderer
+│   ├── app.js            # Version de Sulfur
+│   └── locales/          # Textes de l'application (fr.js, en.js)
+└── modules/              # Modules de simulation (ils n'importent que le SDK)
+    ├── builtin.js        # Manifeste des modules livrés avec Sulfur
     ├── opcua/
     │   ├── main/         # Serveur + client node-opcua
     │   ├── renderer/     # Interface React du module
@@ -141,7 +141,20 @@ src/
     ├── ca/               # Autorité de certification : autorités, émission, CSR, révocation (CRL), PKCS#12
     ├── explorer/         # Explorateur réseau : cibles limitées aux réseaux privés
     └── serial/           # Terminal série (RS-232 / RS-485, journal hexadécimal) + passerelle série ↔ TCP
+packages/
+└── sdk/                  # SDK des modules @azerxim/sulfur-sdk (contrat, i18n, points, composants)
 ```
+
+## SDK des modules
+
+Les modules n'utilisent l'application qu'à travers le **SDK des modules** `@azerxim/sulfur-sdk`
+(`packages/sdk`, documenté dans son [README](packages/sdk/README.fr.md)) : manifeste, traductions et
+textes communs, points de données, configuration enregistrée, certificats, mots de passe, dossiers
+servis et composants d'interface partagés (`Button`, `Card`, `Tabs`…). Le build de Sulfur le résout
+depuis ses sources (voir `aliases.mjs`) ; un test vérifie que les modules n'importent rien d'autre de
+l'application. Le SDK est publié sur GitHub Packages par le workflow `SDK` sur les tags `sdk-v*`
+(ex. `sdk-v1.0.0`, égal à la version de `packages/sdk/package.json`), pour développer les modules
+premium hors de ce dépôt.
 
 ## Langues et thème
 
@@ -149,8 +162,9 @@ La langue et le thème se choisissent dans **Paramètres** (mémorisés, y compr
 pour ouvrir la fenêtre directement dans le bon thème). La langue s'applique à l'interface et aux messages
 produits par le process principal (erreurs, journaux des serveurs). Par défaut : anglais, thème du système d'exploitation.
 
-- Les textes sont rangés par dictionnaire : `src/shared/locales/` (application) et
-  `src/modules/<id>/shared/locales/` (chaque module, clés préfixées par l'identifiant du module).
+- Les textes sont rangés par dictionnaire : `packages/sdk/src/locales/` (textes communs aux
+  modules : `ui`, `errors` génériques, `simulations`, `certs`), `src/shared/locales/` (application)
+  et `src/modules/<id>/shared/locales/` (chaque module, clés préfixées par l'identifiant du module).
 - Dans le code : `t('ui.monitoring', { count: 3 })`. Côté React, `const { t } = useI18n()`.
   Dans un module, utiliser le `t` de `src/modules/<id>/shared/i18n.js`.
 - Une clé absente d'une langue est affichée en anglais.
@@ -159,8 +173,9 @@ produits par le process principal (erreurs, journaux des serveurs). Par défaut 
 
 **Ajouter une langue** (ex. allemand) :
 
-1. déclarer `de: { label: 'Deutsch', locale: 'de-DE' }` dans `src/shared/languages.js` ;
-2. créer `de.js` à côté de chaque `fr.js` (`src/shared/locales/` et `src/modules/*/shared/locales/`) ;
+1. déclarer `de: { label: 'Deutsch', locale: 'de-DE' }` dans `packages/sdk/src/languages.js` ;
+2. créer `de.js` à côté de chaque `fr.js` (`packages/sdk/src/locales/`, `src/shared/locales/` et
+   `src/modules/*/shared/locales/`) ;
 3. l'enregistrer dans le `index.js` voisin : `registerMessages({ fr, en, de })`.
 
 Le **thème clair** redéfinit les variables de couleurs Tailwind (`ink`, `slate`, accents) sous
@@ -216,26 +231,28 @@ Chaque module déclare un manifeste, le même objet pour ses parties main et ren
 | `apiVersion`    | version de l'API des modules pour laquelle le module est écrit (semver)          |
 | `minAppVersion` | version minimale de Sulfur (semver)                                              |
 
-L'API des modules (`MODULE_API_VERSION` dans `src/shared/module.js`, actuellement 1.0.0) suit le
+L'API des modules (`MODULE_API_VERSION` du SDK, égale à sa version, actuellement 1.0.0) suit le
 versionnage sémantique : un module écrit pour l'API 1.2 fonctionne avec toute API 1.x à partir de
 1.2, pas avec une API 2.x. Le process principal vérifie chaque manifeste avant de charger le module :
 un manifeste invalide, un identifiant réservé (`modules`, `config`, `home`, `info`, `settings`) ou
 déjà pris, une API des modules incompatible ou un `minAppVersion` trop récent fait refuser le module,
 qui n'existe alors pas pour l'application (ni canaux, ni configuration, ni page). Les modules refusés
 sont listés avec la raison dans **Paramètres → Modules**. Les modules livrés avec Sulfur utilisent
-`builtinManifest({ id, name, description })` : version de l'application, édition standard, API
-courante.
+`builtinManifest({ id, name, description })` (`src/modules/builtin.js`) : version de l'application,
+édition standard, API courante. Un module développé hors du dépôt utilise `defineManifest` du SDK
+avec sa propre `version` et son `minAppVersion`.
 
 ### Ajouter un module
 
-1. Créer `src/modules/<id>/` avec `main/index.js`, `renderer/index.js` et `shared/`.
+1. Créer `src/modules/<id>/` avec `main/index.js`, `renderer/index.js` et `shared/`. N'importer le
+   code de l'application qu'à travers le SDK (`@azerxim/sulfur-sdk`, `/main`, `/ui`).
 2. **Main** : exporter `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` facultatif) ; le
    manifeste vient de `builtinManifest(…)` (voir ci-dessus).
    - `ctx.handle('action', fn)` expose le canal IPC `<id>:action`
    - `ctx.emit('event', payload)` diffuse `<id>:event` vers l'interface
    - `ctx.expose(api)` publie les points de données du module (liste, lecture, écriture, défauts
      injectables) pour le simulateur et les courbes ; `ctx.peers()` retourne ceux des autres modules.
-     Le contrat est décrit dans `src/shared/points.js`.
+     Le contrat est décrit dans le SDK (`PointsApi`).
 3. **Renderer** : exporter `{ manifest, icon, Component }` (icône `lucide-react`).
    - `window.sulfur.invoke('<id>:action', ...args)` / `window.sulfur.on('<id>:event', fn)`
 4. Enregistrer le module dans `src/main/modules.js` et `src/renderer/src/modules.js`.

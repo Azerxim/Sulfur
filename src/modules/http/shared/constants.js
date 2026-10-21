@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const HTTP_MODULE = builtinManifest({
   id: 'http',
   name: 'HTTP / REST',

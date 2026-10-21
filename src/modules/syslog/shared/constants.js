@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const SYSLOG_MODULE = builtinManifest({
   id: 'syslog',
   name: 'Syslog',

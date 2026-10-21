@@ -1,4 +1,4 @@
-import { DEFAULT_LANGUAGE, LANGUAGES } from './languages'
+import { DEFAULT_LANGUAGE, LANGUAGES } from './languages.js'
 
 /**
  * Traductions partagées par le process principal et l'interface (une instance par process).

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MonitorSmartphone, Server } from 'lucide-react'
-import { Tabs, useStoredState } from '@renderer/components/ui'
+import { Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { modbusApi } from './api'
 import ServerPanel from './ServerPanel'
 import ClientPanel from './ClientPanel'

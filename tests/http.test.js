@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { HttpServer } from '@modules/http/main/server'
 import { HttpClient } from '@modules/http/main/client'
-import { ensureCertificate } from '@shared/certificate'
+import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { httpRequest } from '@modules/http/main/request'
 import { createPointsApi } from '@modules/http/main/points'
 import { DEFAULT_SERVER_CONFIG } from '@modules/http/shared/constants'

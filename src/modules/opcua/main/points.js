@@ -18,7 +18,7 @@ const SERVER = 'server:'
 const CLIENT = 'client:'
 
 /**
- * Points de données du module OPC UA pour les autres modules (contrat : `@shared/points`) :
+ * Points de données du module OPC UA pour les autres modules (contrat : `points.js` du SDK) :
  * variables du serveur (`server:<id>`) et variables surveillées par le client (`client:<nodeId>`).
  * `savedConfig()` : configuration enregistrée du module, pour lister les variables serveur arrêté.
  */

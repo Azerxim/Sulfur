@@ -3,7 +3,7 @@ import { TEXT_TYPES } from '../shared/constants'
 const numericType = (w) => (w.kind === 'address' ? !['Char'].includes(w.dataType) : !TEXT_TYPES.includes(w.type))
 
 /**
- * Points de données du module PLCSim Advanced pour les autres modules (contrat : `@shared/points`) :
+ * Points de données du module PLCSim Advanced pour les autres modules (contrat : `points.js` du SDK) :
  * les surveillances, dans le groupe « plc ». Écrire un point écrit la variable ou l'adresse de
  * l'automate virtuel : un flux du simulateur peut ainsi piloter ses entrées.
  */

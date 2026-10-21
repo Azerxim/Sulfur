@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
-import { moduleT, t } from '@shared/i18n'
-import { checkManifest } from '@shared/module'
+import { checkManifest, moduleT, t } from '@azerxim/sulfur-sdk'
+import { APP_VERSION } from '@shared/app'
 import { ConfigStore } from './config-store'
 
 /** Canal IPC dont le résultat est enveloppé ({ ok, data } ou { ok: false, error }). Remplace un canal existant. */
@@ -28,7 +28,7 @@ const moduleName = (mod) => moduleT(mod.manifest.id)(`${mod.manifest.id}.name`, 
  *  - ctx.setConfig(section, value) : remplace une section de cette configuration (état propre au
  *    process principal, comme les flux déployés du simulateur)
  *  - ctx.expose(api) : publie les points de données du module pour les autres modules
- *    (contrat décrit dans `@shared/points`)
+ *    (contrat décrit dans `points.js` du SDK)
  *  - ctx.peers() : points publiés par les autres modules actifs, [{ id, api }]
  *  - ctx.log(...args)
  *
@@ -64,7 +64,10 @@ export class ModuleHost {
   async load(modules, { disabled = [] } = {}) {
     for (const id of disabled) this.disabled.add(id)
     for (const mod of modules) {
-      const problem = checkManifest(mod.manifest, { loadedIds: this.modules.map((m) => m.manifest.id) })
+      const problem = checkManifest(mod.manifest, {
+        appVersion: APP_VERSION,
+        loadedIds: this.modules.map((m) => m.manifest.id)
+      })
       if (problem) {
         this.reject(mod, problem)
         continue

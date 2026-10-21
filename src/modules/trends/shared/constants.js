@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const TRENDS_MODULE = builtinManifest({
   id: 'trends',
   name: 'Courbes',

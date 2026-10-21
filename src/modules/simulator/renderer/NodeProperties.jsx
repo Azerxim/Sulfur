@@ -1,5 +1,5 @@
 import { Copy, Plus, Trash2, X } from 'lucide-react'
-import { Button, Checkbox, CommitInput, Field, Input, Select } from '@renderer/components/ui'
+import { Button, Checkbox, CommitInput, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { GENERATOR_FUNCTIONS, NODE_TYPES, PAYLOAD_TYPES, SWITCH_OPERATORS, UNARY_OPERATORS } from '../shared/flows'
 import { CATEGORY_STYLES, NODE_ICONS } from './FlowNode'
 import { PointSelect } from './PointPickers'

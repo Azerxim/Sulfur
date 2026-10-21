@@ -1,8 +1,17 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { Copy, Lock, Pause, Play, Square, Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
-import { usePersistentState } from '@renderer/module-config'
+import {
+  Button,
+  Card,
+  Checkbox,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, FACILITIES, MAX_MESSAGES, SEVERITIES, TRANSPORTS } from '../shared/constants'
 import { parseStructuredData } from '../shared/codec'
 import { syslogApi } from './api'

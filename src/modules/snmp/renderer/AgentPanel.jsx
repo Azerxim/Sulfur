@@ -9,10 +9,10 @@ import {
   Field,
   Input,
   Select,
-  StatusDot
-} from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
-import { usePersistentState } from '@renderer/module-config'
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import {
   DEFAULT_AGENT_CONFIG,
   DEFAULT_USER,

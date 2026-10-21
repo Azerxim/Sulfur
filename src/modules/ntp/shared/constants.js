@@ -1,5 +1,4 @@
-import { builtinManifest } from '@shared/module'
-
+import { builtinManifest } from '@modules/builtin'
 export const NTP_MODULE = builtinManifest({
   id: 'ntp',
   name: 'NTP',

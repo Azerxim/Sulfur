@@ -1,7 +1,7 @@
 import os from 'os'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { localNetworks, parseTargets } from '@modules/explorer/main/targets'
-import { isIPv4, isPrivateIPv4, privateNetworkOf } from '@shared/networks'
+import { isIPv4, isPrivateIPv4, privateNetworkOf } from '@azerxim/sulfur-sdk'
 import { errorOf } from './helpers'
 
 const NETWORKS = '10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16'

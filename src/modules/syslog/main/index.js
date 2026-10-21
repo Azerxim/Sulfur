@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { ensureCertificate } from '@shared/certificate'
+import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { SYSLOG_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { SyslogServer } from './server'

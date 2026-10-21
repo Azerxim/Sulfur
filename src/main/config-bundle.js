@@ -1,6 +1,4 @@
-import { isPlainObject } from '@shared/config'
-import { t } from '@shared/i18n'
-
+import { isPlainObject, t } from '@azerxim/sulfur-sdk'
 /**
  * Fichier d'échange des configurations (banc de test) :
  *   { format: 'sulfur-config', version: 1, appVersion, exportedAt, modules: { <id>: { <section>: … } } }
