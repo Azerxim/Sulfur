@@ -24,7 +24,7 @@ import { useUpdater } from '../updater'
 const THEME_ICONS = { dark: Moon, light: Sun, system: Monitor }
 
 /** Onglets des Paramètres, onglet affiché mémorisé localement sous SETTINGS_TAB_KEY. */
-const TABS = ['general', 'modules']
+const TABS = ['general', 'modules', 'updates']
 const SETTINGS_TAB_KEY = 'sulfur:tab:settings'
 
 /** Onglet affiché à la prochaine ouverture des Paramètres (sans effet si le stockage est indisponible). */
@@ -298,8 +298,8 @@ function UpdatesCard() {
 }
 
 /**
- * Paramètres de l'application, en deux onglets : Général (langue, thème, page de démarrage,
- * configurations, mises à jour) et Modules (activation, modules non chargés).
+ * Paramètres de l'application, en trois onglets : Général (langue, thème, page de démarrage,
+ * configurations), Modules (activation, modules non chargés) et Mises à jour.
  */
 export default function SettingsPage() {
   const { t } = useI18n()
@@ -315,12 +315,13 @@ export default function SettingsPage() {
         onChange={setTab}
         tabs={[
           { id: 'general', label: t('settings.tabs.general'), icon: SlidersHorizontal },
-          { id: 'modules', label: t('settings.tabs.modules'), icon: Puzzle }
+          { id: 'modules', label: t('settings.tabs.modules'), icon: Puzzle },
+          { id: 'updates', label: t('settings.tabs.updates'), icon: Download }
         ]}
       />
-      {tab === 'modules' ? (
-        <ModulesCard />
-      ) : (
+      {tab === 'modules' && <ModulesCard />}
+      {tab === 'updates' && <UpdatesCard />}
+      {tab === 'general' && (
         <>
           <Card id="settings.language" title={t('settings.language')}>
             <p className="mb-3 text-xs text-slate-500">{t('settings.languageHint')}</p>
@@ -379,8 +380,6 @@ export default function SettingsPage() {
           </Card>
 
           <ConfigurationsCard />
-
-          <UpdatesCard />
         </>
       )}
     </div>

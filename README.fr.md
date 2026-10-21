@@ -178,7 +178,7 @@ Dans l'interface d'un module, `usePersistentState('<id>', '<section>', défauts)
 valeur enregistrée est complétée par les valeurs par défaut, si bien qu'un réglage ajouté dans une
 version ultérieure garde sa valeur par défaut.
 
-**Import / export** (Paramètres → Configurations) : la configuration de tous les modules est exportée dans
+**Import / export** (Paramètres → Général → Configurations) : la configuration de tous les modules est exportée dans
 un seul fichier JSON, pour partager un banc de test :
 
 ```json

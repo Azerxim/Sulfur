@@ -169,7 +169,8 @@ export default {
     description: 'Langue, apparence, modules, configurations et mises à jour',
     tabs: {
       general: 'Général',
-      modules: 'Modules'
+      modules: 'Modules',
+      updates: 'Mises à jour'
     },
     language: 'Langue',
     languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",

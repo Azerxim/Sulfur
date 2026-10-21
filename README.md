@@ -174,7 +174,7 @@ Servers are not started automatically. The OPC UA client password is never saved
 In a module interface, `usePersistentState('<id>', '<section>', defaults)` replaces `useState`: the saved
 value is completed with the defaults, so settings added in a later version keep their default value.
 
-**Import / export** (Settings → Configurations): all module configurations are exported to a single JSON
+**Import / export** (Settings → General → Configurations): all module configurations are exported to a single JSON
 file to share a test setup:
 
 ```json
