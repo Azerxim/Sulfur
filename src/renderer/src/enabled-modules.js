@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
+import { externalModules } from './external-modules'
 import { moduleGroups, rendererModules } from './modules'
 import { usePreferences } from './preferences'
 
 /**
- * Modules refusés par le process principal au chargement (manifeste invalide ou incompatible) :
- * [{ id, name, version, reason, params }]. Lus avant le premier rendu ; ils n'existent pas pour
- * l'interface (ni barre latérale, ni accueil, ni configuration).
+ * Modules refusés par le process principal au chargement (manifeste invalide ou incompatible) et
+ * modules externes dont l'interface n'a pas pu être chargée : [{ id, name, version, reason, params }].
+ * Lus avant le premier rendu, après les modules externes ; ils n'existent pas pour l'interface (ni
+ * barre latérale, ni accueil, ni configuration).
  */
 let rejected = []
 let available = { groups: moduleGroups, modules: rendererModules }
@@ -17,6 +19,7 @@ export async function loadRejectedModules() {
   } catch {
     rejected = []
   }
+  rejected = [...rejected, ...externalModules().failed]
   const off = new Set(rejected.map((r) => r.id))
   available = {
     groups: moduleGroups

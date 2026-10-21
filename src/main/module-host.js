@@ -43,7 +43,8 @@ const moduleName = (mod) => moduleT(mod.manifest.id)(`${mod.manifest.id}.name`, 
  *
  * Le manifeste de chaque module est vérifié avant tout (voir `checkManifest`) : un module invalide
  * ou incompatible (API des modules, version de Sulfur) est refusé et n'existe pas pour
- * l'application ; il est listé dans `rejected` avec la raison du refus.
+ * l'application ; il est listé dans `rejected` avec la raison du refus. Un module dont l'activation
+ * échoue au démarrage est retiré de la même façon (raison `activateFailed`).
  */
 export class ModuleHost {
   /** Modules enregistrés, actifs ou non, dans l'ordre de chargement. */
@@ -60,8 +61,11 @@ export class ModuleHost {
   /** Points publiés par les modules (ctx.expose), par identifiant de module. */
   apis = new Map()
 
-  /** `disabled` : modules à ne pas activer (leur configuration est chargée quand même). */
-  async load(modules, { disabled = [] } = {}) {
+  /**
+   * `disabled` : modules à ne pas activer (leur configuration est chargée quand même) ;
+   * `external` : modules externes (leurs refus sont marqués `external`, voir unload).
+   */
+  async load(modules, { disabled = [], external = false } = {}) {
     for (const id of disabled) this.disabled.add(id)
     for (const mod of modules) {
       const problem = checkManifest(mod.manifest, {
@@ -69,7 +73,7 @@ export class ModuleHost {
         loadedIds: this.modules.map((m) => m.manifest.id)
       })
       if (problem) {
-        this.reject(mod, problem)
+        this.reject(mod, problem, external)
         continue
       }
       const id = mod.manifest.id
@@ -89,19 +93,38 @@ export class ModuleHost {
         console.log(`[sulfur] module "${id}" désactivé`)
         continue
       }
-      await this.activate(mod)
+      try {
+        await this.activate(mod)
+      } catch (err) {
+        // Module en échec au démarrage (module externe notamment) : retiré, comme un module refusé.
+        console.error(`[sulfur] erreur au chargement du module "${id}"`, err)
+        this.forget(id)
+        this.reject(mod, { reason: 'activateFailed', params: { message: err?.message ?? String(err) } }, external)
+      }
     }
   }
 
-  reject(mod, { reason, params }) {
+  reject(mod, { reason, params }, external = false) {
     const { id = '?', name, version = '?' } = mod?.manifest ?? {}
-    this.rejected.push({ id: String(id), name: String(name ?? id), version: String(version), reason, params })
+    this.rejected.push({
+      id: String(id),
+      name: String(name ?? id),
+      version: String(version),
+      reason,
+      params,
+      ...(external ? { external: true } : {})
+    })
     console.warn(`[sulfur] module "${id}" refusé : ${t(`modules.problems.${reason}`, params)}`)
   }
 
   async activate(mod) {
     const id = mod.manifest.id
-    await mod.activate(this.contexts.get(id))
+    try {
+      await mod.activate(this.contexts.get(id))
+    } catch (err) {
+      this.release(id)
+      throw err
+    }
     this.active.add(id)
     console.log(`[sulfur] module "${id}" chargé`)
   }
@@ -114,11 +137,16 @@ export class ModuleHost {
     } catch (err) {
       console.error(`[sulfur] erreur à l'arrêt du module "${id}"`, err)
     }
+    this.release(id)
+    this.active.delete(id)
+  }
+
+  /** Canaux et points d'un module retirés. */
+  release(id) {
     const ctx = this.contexts.get(id)
     for (const channel of ctx.channels) ipcMain.removeHandler(channel)
     ctx.channels.clear()
     this.apis.delete(id)
-    this.active.delete(id)
   }
 
   /**
@@ -139,6 +167,28 @@ export class ModuleHost {
       if (!wanted.has(mod.manifest.id) && !this.active.has(mod.manifest.id)) await this.activate(mod)
     }
     return [...wanted]
+  }
+
+  /** Module (inactif) retiré : configuration et canaux de configuration compris. */
+  forget(id) {
+    for (const action of ['load', 'save', 'reset']) ipcMain.removeHandler(`${id}:config:${action}`)
+    this.configs.delete(id)
+    this.contexts.delete(id)
+    this.disabled.delete(id)
+    this.modules = this.modules.filter((m) => m.manifest.id !== id)
+  }
+
+  /**
+   * Modules `ids` arrêtés puis retirés (actualisation des modules externes), ainsi que les refus
+   * de modules externes. Leur configuration enregistrée reste sur le disque.
+   */
+  async unload(ids) {
+    const leaving = this.modules.filter((m) => ids.includes(m.manifest.id))
+    for (const mod of [...leaving].reverse()) {
+      if (this.active.has(mod.manifest.id)) await this.deactivate(mod)
+    }
+    for (const mod of leaving) this.forget(mod.manifest.id)
+    this.rejected = this.rejected.filter((r) => !r.external)
   }
 
   /** Configuration d'un module convertie par son `migrateConfig` (inchangée s'il n'en a pas). */

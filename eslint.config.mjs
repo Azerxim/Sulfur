@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import prettier from 'eslint-config-prettier'
 
 export default [
-  { ignores: ['out/', 'dist/', 'node_modules/'] },
+  { ignores: ['out/', 'dist/', '**/dist/', 'node_modules/'] },
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,mjs}'],
@@ -25,6 +25,9 @@ export default [
       'src/preload/**',
       'src/modules/*/main/**',
       'packages/sdk/src/main/**',
+      'packages/sdk/src/build/**',
+      'examples/*/src/main/**',
+      'examples/*/*.mjs',
       'tests/**',
       '*.{js,mjs}'
     ],
@@ -37,7 +40,13 @@ export default [
   },
   // Interface React
   {
-    files: ['src/renderer/**', 'src/modules/*/renderer/**', 'packages/sdk/src/ui/**', 'packages/sdk/src/host/**'],
+    files: [
+      'src/renderer/**',
+      'src/modules/*/renderer/**',
+      'packages/sdk/src/ui/**',
+      'packages/sdk/src/host/**',
+      'examples/*/src/renderer/**'
+    ],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
     // Règles classiques des hooks ; celles destinées au React Compiler ne sont pas activées.
@@ -53,7 +62,8 @@ export default [
       'src/modules/*/shared/**',
       'src/modules/*.js',
       'packages/sdk/src/*.js',
-      'packages/sdk/src/locales/**'
+      'packages/sdk/src/locales/**',
+      'examples/*/src/*.js'
     ],
     languageOptions: { globals: { ...globals.node, ...globals.browser } }
   },

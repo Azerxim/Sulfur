@@ -58,6 +58,34 @@ export function checkManifest(
   options: { appVersion: string; apiVersion?: string; loadedIds?: string[] }
 ): ManifestProblem | null
 
+// --- Paquets de modules externes ---------------------------------------------------------------
+
+export type ModuleGroup = 'tools' | 'automation' | 'it'
+
+/** Descripteur `module.json` d'un paquet de module externe. */
+export interface ModulePackage extends ModuleManifest {
+  /** Groupe de la barre latérale. */
+  group: ModuleGroup
+  /** Interface : module ES dont l'export par défaut est un `RendererModule` (`@azerxim/sulfur-sdk/ui`). */
+  renderer: string
+  /** Process principal (facultatif) : module ES dont l'export par défaut est un `MainModule`. */
+  main?: string
+  /** Feuille de style de l'interface (facultative). */
+  style?: string
+}
+
+export const MODULE_PACKAGE_FILE: string
+export const MODULE_GROUPS: ModuleGroup[]
+/** Propriété de `globalThis` où l'application publie les modules partagés. */
+export const SHARED_GLOBAL: string
+/** Imports fournis par l'application, par côté : ils ne sont pas embarqués dans un paquet. */
+export const SHARED_MODULES: { main: string[]; renderer: string[] }
+
+/** Fichiers d'un descripteur vérifiés : premier problème, ou null. */
+export function checkPackage(descriptor: unknown): ManifestProblem | null
+/** Manifeste contenu dans un descripteur `module.json`. */
+export function packageManifest(descriptor: unknown): Partial<ModuleManifest>
+
 // --- Partie "main" d'un module -------------------------------------------------------------------
 
 /** Contexte passé à `activate(ctx)` par l'application. */

@@ -77,10 +77,14 @@ premium module:
   can be built outside this repository. The module API follows semantic versioning.
   `@azerxim/sulfur-sdk` (`packages/sdk`, TypeScript declarations included), used by every built-in
   module and published on GitHub Packages on the `sdk-v*` tags.
-- [ ] **External modules**: `src/main/modules.js` and `src/renderer/src/modules.js` become a
+- [X] **External modules**: `src/main/modules.js` and `src/renderer/src/modules.js` become a
   registry fed by the built-in modules and by the module packages installed in the user data
   folder. The interface of an external module is loaded dynamically (dedicated protocol) and shares
   React and the UI components through the SDK instead of bundling them again.
+  Packages (`module.json` + built files) produced by `buildModule` (`@azerxim/sulfur-sdk/build`),
+  served by the `sulfur-module://` protocol, Tailwind styles on the Sulfur theme
+  (`@azerxim/sulfur-sdk/module.css`); loading opt-in in Settings → Modules until packages are
+  signed, refresh without restarting Sulfur.
 - [ ] **Module packages**: signed archives (Ed25519), signature checked before loading: only modules
   signed by the publisher are loaded, since a module runs with the rights of the main process.
   Installing, updating and removing modules from a *Modules* page in the Settings.

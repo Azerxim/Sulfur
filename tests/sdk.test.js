@@ -4,6 +4,7 @@ import { builtinModules } from 'module'
 import { describe, expect, it } from 'vitest'
 import * as sdk from '@azerxim/sulfur-sdk'
 import * as sdkMain from '@azerxim/sulfur-sdk/main'
+import * as sdkBuild from '@azerxim/sulfur-sdk/build'
 
 const SDK_DIR = path.resolve('packages/sdk')
 const pkg = JSON.parse(fs.readFileSync(path.join(SDK_DIR, 'package.json'), 'utf8'))
@@ -61,10 +62,15 @@ describe('Paquet SDK', () => {
       'IPC_CHANNEL_PATTERN',
       'LANGUAGES',
       'MODULE_API_VERSION',
+      'MODULE_GROUPS',
       'MODULE_ID_PATTERN',
+      'MODULE_PACKAGE_FILE',
       'PRIVATE_NETWORKS',
       'RESERVED_MODULE_IDS',
+      'SHARED_GLOBAL',
+      'SHARED_MODULES',
       'checkManifest',
+      'checkPackage',
       'compareVersions',
       'defineManifest',
       'formatDate',
@@ -81,6 +87,7 @@ describe('Paquet SDK', () => {
       'moduleT',
       'netmaskOf',
       'onLanguageChange',
+      'packageManifest',
       'parsePointKey',
       'parseVersion',
       'pointKey',
@@ -105,6 +112,7 @@ describe('Paquet SDK', () => {
       'verifyPassword',
       'virtualPath'
     ])
+    expect(Object.keys(sdkBuild).sort()).toEqual(['buildModule', 'sulfurShared'])
   })
 
   it('fournit les textes communs aux modules', () => {

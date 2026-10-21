@@ -15,6 +15,7 @@ export default {
     updateReady: 'Mise à jour prête : v{version}'
   },
   errors: {
+    externalBusy: 'Arrêtez les serveurs et clients de ces modules avant d’actualiser les modules externes : {modules}',
     modulesBusy: 'Arrêtez les serveurs et clients de ces modules avant de les désactiver : {modules}',
     config: {
       notJson: "Le fichier n'est pas un JSON valide",
@@ -33,7 +34,12 @@ export default {
       apiMajor: 'écrit pour l’API des modules {required}, incompatible avec l’API {current} de cette version de Sulfur',
       apiTooNew:
         'demande l’API des modules {required} ; cette version de Sulfur fournit la {current} : mettre Sulfur à jour',
-      appTooOld: 'demande Sulfur {required} ou plus récent (version actuelle : {current}) : mettre Sulfur à jour'
+      appTooOld: 'demande Sulfur {required} ou plus récent (version actuelle : {current}) : mettre Sulfur à jour',
+      unreadable: 'paquet illisible : {file} absent ou invalide ({message})',
+      mismatch: 'le code du paquet ne correspond pas à son module.json ({file})',
+      loadFailed: 'le code du module n’a pas pu être chargé : {message}',
+      activateFailed: 'le module n’a pas pu démarrer : {message}',
+      rendererFailed: 'l’interface du module n’a pas pu être chargée : {message}'
     }
   },
   home: {
@@ -107,8 +113,23 @@ export default {
       enableAll: 'Tout activer',
       disableAll: 'Tout désactiver',
       premium: 'Premium',
+      external: 'Externe',
       rejected: 'Modules non chargés ({count})',
       api: 'API des modules {version}'
+    },
+    externalModules: {
+      title: 'Modules externes',
+      hint: 'Modules développés hors de Sulfur avec son SDK, installés sous forme de paquets (un dossier par module) dans le dossier des paquets. Pris en compte au prochain démarrage de Sulfur, ou aussitôt avec Actualiser.',
+      enable: 'Charger les modules externes',
+      warning:
+        'Les paquets ne sont pas encore signés : un module externe s’exécute avec les droits de Sulfur. N’installez que des modules d’une source de confiance.',
+      folder: 'Dossier des paquets :',
+      open: 'Ouvrir',
+      loaded: '{count} module(s) externe(s) chargé(s)',
+      reload: 'Actualiser',
+      reloadHint:
+        'Relire les paquets (ajoutés, mis à jour ou retirés) sans redémarrer Sulfur ; l’interface est rechargée',
+      reloadNeeded: 'Actualisez les modules externes pour appliquer ce choix.'
     },
     pages: 'Application',
     themes: {

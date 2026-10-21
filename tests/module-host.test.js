@@ -1,4 +1,7 @@
+import fs from 'fs/promises'
+import path from 'path'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MODULE_API_VERSION } from '@azerxim/sulfur-sdk'
 import { builtinManifest } from '@modules/builtin'
 import { tempDir } from './helpers'
 
@@ -6,6 +9,7 @@ import { tempDir } from './helpers'
 const electron = vi.hoisted(() => ({ handlers: new Map(), userData: '' }))
 vi.mock('electron', () => ({
   app: { getPath: () => electron.userData },
+  protocol: {},
   BrowserWindow: { getAllWindows: () => [] },
   ipcMain: {
     handle(channel, fn) {
@@ -17,6 +21,8 @@ vi.mock('electron', () => ({
 }))
 
 const { ModuleHost } = await import('../src/main/module-host')
+const { ExternalModules } = await import('../src/main/external-modules')
+const { savePreferences } = await import('../src/main/preferences')
 
 const invoke = (channel, ...args) => electron.handlers.get(channel)(null, ...args)
 
@@ -137,5 +143,121 @@ describe('Manifestes', () => {
     ])
     expect(other.rejected[0].params).toEqual({ required: '99.0.0', current: future.manifest.version })
     expect(twin.activations).toBe(0)
+  })
+
+  it('retire un module dont l’activation échoue, sans arrêter les autres', async () => {
+    electron.handlers.clear()
+    const other = new ModuleHost()
+    const broken = fakeModule('broken')
+    broken.activate = function (ctx) {
+      ctx.handle('ping', () => 'never')
+      throw new Error('port busy')
+    }
+    const after = fakeModule('after')
+    await other.load([broken, after])
+    expect(other.modules.map((m) => m.manifest.id)).toEqual(['after'])
+    expect([...other.active]).toEqual(['after'])
+    expect(other.configs.has('broken')).toBe(false)
+    expect([...electron.handlers.keys()].filter((ch) => ch.startsWith('broken:'))).toEqual([])
+    expect(other.rejected).toEqual([
+      {
+        id: 'broken',
+        name: 'Module broken',
+        version: broken.manifest.version,
+        reason: 'activateFailed',
+        params: { message: 'port busy' }
+      }
+    ])
+  })
+})
+
+describe('Modules externes', () => {
+  let dir, other, external
+
+  /** Paquet `id` dont la partie main répond `<id>:ping` par `answer` ; `busy()` lu dans globalThis. */
+  async function writePackage(id, answer, manifest = {}) {
+    const pkg = path.join(dir, id)
+    await fs.mkdir(pkg, { recursive: true })
+    const descriptor = {
+      id,
+      name: `Package ${id}`,
+      version: '1.0.0',
+      edition: 'standard',
+      apiVersion: MODULE_API_VERSION,
+      minAppVersion: '0.1.0',
+      group: 'tools',
+      renderer: 'renderer.mjs',
+      main: 'main.mjs',
+      ...manifest
+    }
+    await fs.writeFile(path.join(pkg, 'module.json'), JSON.stringify(descriptor))
+    await fs.writeFile(
+      path.join(pkg, 'main.mjs'),
+      `export default {
+        manifest: ${JSON.stringify(descriptor)},
+        activate(ctx) { ctx.handle('ping', () => '${answer}') },
+        busy: () => globalThis.sulfurTestBusy === true
+      }`
+    )
+  }
+
+  beforeEach(async () => {
+    electron.handlers.clear()
+    dir = path.join(tmp.dir, `packages-${Date.now()}`)
+    await writePackage('ext', 'v1')
+    await writePackage('broken', 'never', { apiVersion: '99.0.0' })
+    other = new ModuleHost()
+    await other.load([fakeModule('a')])
+    external = new ExternalModules(other, { dir })
+    savePreferences({ externalModules: true, disabledModules: [] })
+  })
+
+  it('charge les paquets après les modules intégrés et signale les refus', async () => {
+    await external.load(true, ['ext', 'a'])
+    expect(external.ids()).toEqual(['ext'])
+    expect(other.modules.map((m) => m.manifest.id)).toEqual(['a', 'ext'])
+    // Module externe désactivé : configuration chargée, module non activé.
+    expect([...other.active]).toEqual(['a'])
+    expect([...other.disabled]).toEqual(['ext'])
+    expect(other.rejected.map((r) => [r.id, r.reason, r.external])).toEqual([['broken', 'apiMajor', true]])
+
+    const none = new ExternalModules(new ModuleHost(), { dir })
+    await none.load(false)
+    expect([none.enabled, none.ids()]).toEqual([false, []])
+  })
+
+  it('actualise les paquets sans redémarrer : nouvelle version importée, refus relus', async () => {
+    await external.load(true)
+    expect(await invoke('ext:ping')).toEqual({ ok: true, data: 'v1' })
+    await writePackage('ext', 'v2')
+    await fs.rm(path.join(dir, 'broken'), { recursive: true })
+    await external.reload()
+    expect(await invoke('ext:ping')).toEqual({ ok: true, data: 'v2' })
+    expect(other.modules.map((m) => m.manifest.id)).toEqual(['a', 'ext'])
+    expect(other.rejected).toEqual([])
+    expect(await invoke('a:ping')).toEqual({ ok: true, data: 'a:1' })
+  })
+
+  it('retire les modules externes quand leur chargement est désactivé', async () => {
+    await external.load(true)
+    savePreferences({ externalModules: false })
+    await external.reload()
+    expect([external.enabled, external.ids()]).toEqual([false, []])
+    expect([...electron.handlers.keys()].filter((ch) => ch.startsWith('ext:'))).toEqual([])
+    expect(other.configs.has('ext')).toBe(false)
+    expect(other.rejected).toEqual([])
+  })
+
+  it('refuse d’actualiser un module externe en marche', async () => {
+    await external.load(true)
+    globalThis.sulfurTestBusy = true
+    try {
+      await expect(external.reload()).rejects.toThrow(
+        'Stop the servers and clients of these modules before refreshing the external modules: Package ext'
+      )
+      expect(await invoke('ext:ping')).toEqual({ ok: true, data: 'v1' })
+    } finally {
+      delete globalThis.sulfurTestBusy
+    }
   })
 })

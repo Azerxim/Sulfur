@@ -34,6 +34,8 @@ npm install --save-dev @azerxim/sulfur-sdk
 | `@azerxim/sulfur-sdk`        | main and renderer | manifest (`defineManifest`, `checkManifest`), translations (`registerMessages`, `moduleT`, `formatTime`…), data points (`pointKey`, `toNumber`, `FAULT_TYPES`), `withDefaults`, private networks, `simulate` |
 | `@azerxim/sulfur-sdk/main`   | main process      | `ensureCertificate` (self-signed TLS certificate), `hashPassword` / `verifyPassword` (scrypt), served folders confined to their root (`resolveInside`, `prepareRoot`) |
 | `@azerxim/sulfur-sdk/ui`     | renderer (React)  | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
+| `@azerxim/sulfur-sdk/build`  | Node (build)      | `buildModule` (package of an external module), `sulfurShared` (Vite plugin) |
+| `@azerxim/sulfur-sdk/module.css` | CSS (Tailwind v4) | Tailwind utilities of an external module, on the Sulfur theme (`theme.css`) |
 | `@azerxim/sulfur-sdk/host`   | Sulfur only       | configuration cache of the interface; not for modules                                      |
 
 TypeScript declarations are included (`types/`); they describe the whole contract, in particular
@@ -101,13 +103,49 @@ Translations: `registerMessages({ en, fr }, 'demo')` then `moduleT('demo')`; the
 description come from the `demo.name` and `demo.description` keys. Common strings (`ui.start`,
 `errors.alreadyStarted`…) are provided by the SDK.
 
-## At run time
+## External module
 
-Sulfur provides the SDK, React and `lucide-react` to its modules: a module bundle must declare
-them as **external** dependencies instead of bundling them again (a second copy of the SDK would
-have its own translations and configuration cache). The loading of modules installed outside the
-application, and the styles of their own components, come with the next steps of the
-[roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-premium-editions).
+A module developed outside the Sulfur repository is delivered as a **package**: a folder holding
+its `module.json` descriptor (manifest, sidebar group, files) and its built files. `buildModule`
+produces it with [Vite](https://vite.dev):
+
+```js
+// build.mjs — node build.mjs
+import tailwindcss from '@tailwindcss/vite'
+import { buildModule } from '@azerxim/sulfur-sdk/build'
+import { DEMO_MODULE } from './src/shared/constants.js'
+
+await buildModule({
+  manifest: DEMO_MODULE,
+  group: 'tools', // 'tools', 'automation' or 'it'
+  renderer: 'src/renderer/index.jsx',
+  main: 'src/main/index.js', // optional: module without a main process part
+  outDir: 'dist/demo',
+  vite: { renderer: { plugins: [tailwindcss()] } }
+})
+```
+
+```
+dist/demo/
+  module.json    manifest, group, renderer, main, style
+  renderer.mjs   default export { manifest, icon, Component }
+  main.mjs       default export { manifest, activate, … }
+  style.css      Tailwind utilities of the module
+```
+
+- **Shared modules**: React (`react`, `react/jsx-runtime`, `react-dom`) and the SDK are not
+  bundled; Sulfur provides its own at run time (a single instance: same translations, same
+  language, same React state). The other dependencies (`lucide-react`, npm libraries) are bundled
+  in the package. Native dependencies are not supported.
+- **Styles**: the CSS imported by the interface becomes `style.css`. With Tailwind CSS v4, start
+  from `@import '@azerxim/sulfur-sdk/module.css';` (then `@source` to the module sources): only the
+  utilities of the module are generated, on the variables of the Sulfur theme (light theme
+  included).
+- **Installation**: copy the package folder into the packages folder (Settings → Modules →
+  *External modules*, *Open* button), check *Load the external modules*, then click *Refresh*
+  (no need to restart Sulfur; likewise after updating the package). The descriptor is checked before any code runs; a refused package is listed with the reason. Packages
+  are not signed yet: loading them is disabled by default. Package signing comes with the next step
+  of the [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-premium-editions).
 
 ## License
 

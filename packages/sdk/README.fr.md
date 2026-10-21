@@ -35,6 +35,8 @@ npm install --save-dev @azerxim/sulfur-sdk
 | `@azerxim/sulfur-sdk`        | main et interface       | manifeste (`defineManifest`, `checkManifest`), traductions (`registerMessages`, `moduleT`, `formatTime`…), points de données (`pointKey`, `toNumber`, `FAULT_TYPES`), `withDefaults`, réseaux privés, `simulate` |
 | `@azerxim/sulfur-sdk/main`   | process principal       | `ensureCertificate` (certificat TLS auto-signé), `hashPassword` / `verifyPassword` (scrypt), dossiers servis confinés (`resolveInside`, `prepareRoot`) |
 | `@azerxim/sulfur-sdk/ui`     | interface (React)       | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
+| `@azerxim/sulfur-sdk/build`  | Node (construction)     | `buildModule` (paquet d'un module externe), `sulfurShared` (plugin Vite) |
+| `@azerxim/sulfur-sdk/module.css` | CSS (Tailwind v4)   | utilitaires Tailwind d'un module externe, sur le thème de Sulfur (`theme.css`) |
 | `@azerxim/sulfur-sdk/host`   | Sulfur uniquement       | cache des configurations de l'interface ; pas pour les modules                              |
 
 Les déclarations TypeScript sont incluses (`types/`) ; elles décrivent tout le contrat, en
@@ -102,13 +104,50 @@ Traductions : `registerMessages({ en, fr }, 'demo')` puis `moduleT('demo')` ; le
 description affichés viennent des clés `demo.name` et `demo.description`. Les textes communs
 (`ui.start`, `errors.alreadyStarted`…) sont fournis par le SDK.
 
-## À l'exécution
+## Module externe
 
-Sulfur fournit le SDK, React et `lucide-react` à ses modules : le bundle d'un module doit les
-déclarer comme dépendances **externes** au lieu de les embarquer de nouveau (une seconde copie du
-SDK aurait ses propres traductions et son propre cache des configurations). Le chargement des
-modules installés hors de l'application, et les styles de leurs propres composants, viennent avec
-les prochaines étapes de la [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.fr.md#éditions-standard-et-premium).
+Un module développé hors du dépôt de Sulfur est livré sous forme de **paquet** : un dossier qui
+contient son descripteur `module.json` (manifeste, groupe de la barre latérale, fichiers) et ses
+fichiers construits. `buildModule` le produit avec [Vite](https://vite.dev) :
+
+```js
+// build.mjs — node build.mjs
+import tailwindcss from '@tailwindcss/vite'
+import { buildModule } from '@azerxim/sulfur-sdk/build'
+import { DEMO_MODULE } from './src/shared/constants.js'
+
+await buildModule({
+  manifest: DEMO_MODULE,
+  group: 'tools', // 'tools', 'automation' ou 'it'
+  renderer: 'src/renderer/index.jsx',
+  main: 'src/main/index.js', // facultatif : module sans process principal
+  outDir: 'dist/demo',
+  vite: { renderer: { plugins: [tailwindcss()] } }
+})
+```
+
+```
+dist/demo/
+  module.json    manifeste, group, renderer, main, style
+  renderer.mjs   export par défaut { manifest, icon, Component }
+  main.mjs       export par défaut { manifest, activate, … }
+  style.css      utilitaires Tailwind du module
+```
+
+- **Modules partagés** : React (`react`, `react/jsx-runtime`, `react-dom`) et le SDK ne sont pas
+  embarqués ; Sulfur fournit les siens à l'exécution (une seule instance : mêmes traductions, même
+  langue, même état de React). Les autres dépendances (`lucide-react`, bibliothèques npm) sont
+  embarquées dans le paquet. Les dépendances natives ne sont pas prises en charge.
+- **Styles** : le CSS importé par l'interface devient `style.css`. Avec Tailwind CSS v4, partir de
+  `@import '@azerxim/sulfur-sdk/module.css';` (puis `@source` vers les sources du module) : seuls
+  les utilitaires du module sont produits, sur les variables du thème de Sulfur (thème clair
+  compris).
+- **Installation** : copier le dossier du paquet dans le dossier des paquets (Paramètres → Modules
+  → *Modules externes*, bouton *Ouvrir*), cocher *Charger les modules externes* puis cliquer sur
+  *Actualiser* (sans redémarrer Sulfur ; de même après une mise à jour du paquet). Le descripteur est vérifié avant tout code ; un paquet refusé est listé avec la raison.
+  Les paquets ne sont pas encore signés : leur chargement est désactivé par défaut. La signature des
+  paquets vient avec la prochaine étape de la
+  [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.fr.md#éditions-standard-et-premium).
 
 ## Licence
 

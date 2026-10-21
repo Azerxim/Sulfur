@@ -7,6 +7,7 @@ import { createBundle, parseBundle } from './config-bundle'
 /**
  * Import / export de la configuration de tous les modules dans un fichier JSON (banc de test).
  * Canaux : `config:export` et `config:import` (retournent null si l'utilisateur annule).
+ * `moduleIds()` : modules dont la configuration est exportée et importée.
  */
 export function registerConfigTransfer(host, moduleIds) {
   const ctx = host.createContext('config')
@@ -20,7 +21,7 @@ export function registerConfigTransfer(host, moduleIds) {
       filters
     })
     if (canceled || !filePath) return null
-    const modules = Object.fromEntries(moduleIds.map((id) => [id, host.configs.get(id)?.get() ?? {}]))
+    const modules = Object.fromEntries(moduleIds().map((id) => [id, host.configs.get(id)?.get() ?? {}]))
     await fs.writeFile(filePath, JSON.stringify(createBundle(modules, app.getVersion()), null, 2))
     return { filePath }
   })
@@ -34,7 +35,7 @@ export function registerConfigTransfer(host, moduleIds) {
       properties: ['openFile']
     })
     if (canceled || !filePaths?.length) return null
-    const { modules, ignored } = parseBundle(await fs.readFile(filePaths[0], 'utf8'), moduleIds)
+    const { modules, ignored } = parseBundle(await fs.readFile(filePaths[0], 'utf8'), moduleIds())
     for (const [id, config] of Object.entries(modules)) {
       modules[id] = host.migrate(id, config)
       host.configs.get(id).replace(modules[id])

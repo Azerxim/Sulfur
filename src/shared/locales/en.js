@@ -15,6 +15,7 @@ export default {
     updateReady: 'Update ready: v{version}'
   },
   errors: {
+    externalBusy: 'Stop the servers and clients of these modules before refreshing the external modules: {modules}',
     modulesBusy: 'Stop the servers and clients of these modules before disabling them: {modules}',
     config: {
       notJson: 'The file is not valid JSON',
@@ -31,7 +32,12 @@ export default {
       duplicateId: 'another module already uses the identifier “{id}”',
       apiMajor: 'written for module API {required}, incompatible with the API {current} of this version of Sulfur',
       apiTooNew: 'requires module API {required}; this version of Sulfur provides {current}: update Sulfur',
-      appTooOld: 'requires Sulfur {required} or later (this is {current}): update Sulfur'
+      appTooOld: 'requires Sulfur {required} or later (this is {current}): update Sulfur',
+      unreadable: 'package unreadable: {file} missing or invalid ({message})',
+      mismatch: 'the code of the package does not match its module.json ({file})',
+      loadFailed: 'the module code could not be loaded: {message}',
+      activateFailed: 'the module failed to start: {message}',
+      rendererFailed: 'the module interface could not be loaded: {message}'
     }
   },
   home: {
@@ -104,8 +110,23 @@ export default {
       enableAll: 'Enable all',
       disableAll: 'Disable all',
       premium: 'Premium',
+      external: 'External',
       rejected: 'Modules not loaded ({count})',
       api: 'Module API {version}'
+    },
+    externalModules: {
+      title: 'External modules',
+      hint: 'Modules developed outside Sulfur with its SDK, installed as packages (one folder per module) in the packages folder. Taken into account at the next start of Sulfur, or right away with Refresh.',
+      enable: 'Load the external modules',
+      warning:
+        'Packages are not signed yet: an external module runs with the rights of Sulfur. Only install modules from a source you trust.',
+      folder: 'Packages folder:',
+      open: 'Open',
+      loaded: '{count} external module(s) loaded',
+      reload: 'Refresh',
+      reloadHint:
+        'Read the packages again (added, updated or removed) without restarting Sulfur; the interface is reloaded',
+      reloadNeeded: 'Refresh the external modules to apply this choice.'
     },
     pages: 'Application',
     themes: {

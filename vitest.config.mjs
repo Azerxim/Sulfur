@@ -3,6 +3,8 @@ import { aliases } from './aliases.mjs'
 
 export default defineConfig({
   resolve: { alias: aliases() },
+  // Composants React du SDK (rendus par les tests des modules externes) : JSX comme dans l'application.
+  esbuild: { jsx: 'automatic' },
   test: {
     include: ['tests/**/*.test.js'],
     environment: 'node',

@@ -80,11 +80,14 @@ premier module premium :
   versionné, pour développer les modules premium hors de ce dépôt. L'API de module suit le
   versionnage sémantique. `@azerxim/sulfur-sdk` (`packages/sdk`, déclarations TypeScript incluses),
   utilisé par tous les modules intégrés et publié sur GitHub Packages sur les tags `sdk-v*`.
-- [ ] **Modules externes** : `src/main/modules.js` et `src/renderer/src/modules.js` deviennent un
+- [X] **Modules externes** : `src/main/modules.js` et `src/renderer/src/modules.js` deviennent un
   registre alimenté par les modules intégrés et par les paquets de modules installés dans le dossier
   des données utilisateur. L'interface d'un module externe est chargée dynamiquement (protocole
   dédié) et partage React et les composants d'interface via le SDK au lieu de les embarquer à
-  nouveau.
+  nouveau. Paquets (`module.json` + fichiers construits) produits par `buildModule`
+  (`@azerxim/sulfur-sdk/build`), servis par le protocole `sulfur-module://`, styles Tailwind sur le
+  thème de Sulfur (`@azerxim/sulfur-sdk/module.css`) ; chargement à activer dans Paramètres →
+  Modules tant que les paquets ne sont pas signés, actualisation sans redémarrer Sulfur.
 - [ ] **Paquets de modules** : archives signées (Ed25519), signature vérifiée avant le chargement :
   seuls les modules signés par l'éditeur sont chargés, puisqu'un module s'exécute avec les droits
   du process principal. Installation, mise à jour et suppression des modules depuis une page

@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Download,
   ExternalLink,
+  FolderOpen,
   Monitor,
   Moon,
   Puzzle,
@@ -17,6 +18,7 @@ import { compareVersions, LANGUAGES, MODULE_API_VERSION, parseVersion } from '@a
 import { Button, Card, Checkbox, ErrorBanner, Select, Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
 import { availableModules, rejectedModules, setDisabledModules, useEnabledModules } from '../enabled-modules'
+import { externalModules, reloadExternalModules } from '../external-modules'
 import { appPages } from '../pages'
 import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences'
 import { useUpdater } from '../updater'
@@ -122,6 +124,7 @@ function ModulesCard() {
   const disabled = prefs.disabledModules ?? []
   const { groups, modules } = availableModules()
   const rejected = rejectedModules()
+  const externalIds = externalModules().ids
 
   async function apply(next) {
     setBusy(true)
@@ -170,6 +173,9 @@ function ModulesCard() {
                         {manifest.edition === 'premium' && (
                           <span className="text-[11px] text-sulfur-300">{t('settings.moduleSwitch.premium')}</span>
                         )}
+                        {externalIds.includes(manifest.id) && (
+                          <span className="text-[11px] text-sky-300">{t('settings.moduleSwitch.external')}</span>
+                        )}
                       </span>
                       <span className="block text-xs text-slate-500">{text(manifest).description}</span>
                     </span>
@@ -214,6 +220,91 @@ function ModulesCard() {
           </div>
         )}
         <p className="text-[11px] text-slate-500">{t('settings.moduleSwitch.api', { version: MODULE_API_VERSION })}</p>
+        <ErrorBanner error={error} onClose={() => setError(null)} />
+      </div>
+    </Card>
+  )
+}
+
+/**
+ * Modules externes : paquets installés dans le dossier des paquets, chargés seulement sur demande
+ * (ils ne sont pas encore signés). Le choix, comme l'ajout, la mise à jour ou la suppression d'un
+ * paquet, s'applique au prochain démarrage ou en actualisant les modules externes.
+ */
+function ExternalModulesCard() {
+  const { t } = useI18n()
+  const { enabled: loaded, next, dir, ids } = externalModules()
+  const [enabled, setEnabled] = useState(next)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function run(action) {
+    setBusy(true)
+    setError(null)
+    try {
+      await action()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+  const toggle = (next) => run(async () => setEnabled(await window.sulfur.invoke('modules:setExternal', next)))
+  const reload = () => run(reloadExternalModules)
+
+  return (
+    <Card
+      id="settings.externalModules"
+      title={t('settings.externalModules.title')}
+      actions={
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={busy}
+          onClick={reload}
+          title={t('settings.externalModules.reloadHint')}
+        >
+          <RefreshCw className={`size-3.5 ${busy ? 'animate-spin' : ''}`} /> {t('settings.externalModules.reload')}
+        </Button>
+      }
+    >
+      <p className="mb-3 text-xs text-slate-500">{t('settings.externalModules.hint')}</p>
+      <div className="flex flex-col gap-3">
+        <div>
+          <Checkbox
+            label={t('settings.externalModules.enable')}
+            checked={enabled}
+            disabled={busy}
+            onChange={(e) => toggle(e.target.checked)}
+          />
+          <p className="mt-1 ml-6 text-xs text-amber-300">{t('settings.externalModules.warning')}</p>
+        </div>
+        {dir && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-slate-400">{t('settings.externalModules.folder')}</span>
+            <code className="rounded bg-ink-950 px-1.5 py-0.5 font-mono text-xs break-all text-slate-300 select-text">
+              {dir}
+            </code>
+            <Button
+              size="sm"
+              disabled={busy}
+              onClick={() => run(() => window.sulfur.invoke('modules:openPackagesDir'))}
+            >
+              <FolderOpen className="size-3.5" /> {t('settings.externalModules.open')}
+            </Button>
+          </div>
+        )}
+        {loaded && (
+          <p className="text-xs text-slate-400">{t('settings.externalModules.loaded', { count: ids.length })}</p>
+        )}
+        {enabled !== loaded && (
+          <div className="flex flex-wrap items-center gap-3 rounded-md border border-sulfur-400/30 bg-sulfur-400/10 px-3 py-2">
+            <span className="text-xs text-sulfur-200">{t('settings.externalModules.reloadNeeded')}</span>
+            <Button size="sm" variant="primary" disabled={busy} onClick={reload}>
+              <RefreshCw className="size-3.5" /> {t('settings.externalModules.reload')}
+            </Button>
+          </div>
+        )}
         <ErrorBanner error={error} onClose={() => setError(null)} />
       </div>
     </Card>
@@ -404,7 +495,7 @@ function ReleaseNotesCard() {
 
 /**
  * Paramètres de l'application, en trois onglets : Général (langue, thème, page de démarrage,
- * configurations), Modules (activation, modules non chargés) et Mises à jour.
+ * configurations), Modules (activation, modules non chargés, modules externes) et Mises à jour.
  */
 export default function SettingsPage() {
   const { t } = useI18n()
@@ -424,7 +515,12 @@ export default function SettingsPage() {
           { id: 'updates', label: t('settings.tabs.updates'), icon: Download }
         ]}
       />
-      {tab === 'modules' && <ModulesCard />}
+      {tab === 'modules' && (
+        <>
+          <ModulesCard />
+          <ExternalModulesCard />
+        </>
+      )}
       {tab === 'updates' && (
         <>
           <UpdatesCard />

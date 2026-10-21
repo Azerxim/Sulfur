@@ -8,10 +8,10 @@ import Sidebar from './components/Sidebar'
 import ModuleErrorBoundary from './components/ModuleErrorBoundary'
 import { selectSettingsTab } from './pages/SettingsPage'
 
-const allPages = [...rendererModules, ...appPages]
-const pageIds = allPages.map((p) => p.manifest.id)
-
 export default function App() {
+  // Modules externes compris : ajoutés avant le premier rendu.
+  const allPages = [...rendererModules, ...appPages]
+  const pageIds = allPages.map((p) => p.manifest.id)
   const { t } = useI18n()
   const text = useManifestText()
   const { prefs } = usePreferences()
