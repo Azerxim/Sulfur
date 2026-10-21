@@ -147,7 +147,18 @@ export default {
       downloading: 'Downloading… {progress} %',
       downloaded: 'Version {version} is ready to install.',
       downloadedHint: 'Otherwise, it will be installed when Sulfur closes.',
-      install: 'Restart and install'
+      install: 'Restart and install',
+      notes: {
+        title: 'Release notes',
+        refresh: 'Refresh',
+        loading: 'Loading the GitHub releases…',
+        empty: 'No published release.',
+        installed: 'Installed',
+        newer: 'New',
+        github: 'Open the release on GitHub',
+        unreachable: 'The GitHub releases could not be read: {message}',
+        rateLimited: 'GitHub temporarily limits the requests: try again later.'
+      }
     }
   }
 }

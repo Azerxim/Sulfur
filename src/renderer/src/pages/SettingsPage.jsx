@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Check,
+  ChevronDown,
   Download,
   ExternalLink,
   Monitor,
@@ -12,13 +13,15 @@ import {
   Sun,
   Upload
 } from 'lucide-react'
-import { LANGUAGES, MODULE_API_VERSION } from '@azerxim/sulfur-sdk'
+import { compareVersions, LANGUAGES, MODULE_API_VERSION, parseVersion } from '@azerxim/sulfur-sdk'
 import { Button, Card, Checkbox, ErrorBanner, Select, Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
 import { availableModules, rejectedModules, setDisabledModules, useEnabledModules } from '../enabled-modules'
 import { appPages } from '../pages'
 import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences'
 import { useUpdater } from '../updater'
+import Markdown from '../components/Markdown'
+import { releaseSection } from '../markdown'
 
 const THEME_ICONS = { dark: Moon, light: Sun, system: Monitor }
 
@@ -296,6 +299,109 @@ function UpdatesCard() {
   )
 }
 
+/** Comparaison d'une version de release à la version installée (null si l'une n'est pas semver). */
+const versionOrder = (version, current) =>
+  parseVersion(version) && parseVersion(current) ? compareVersions(version, current) : null
+
+/**
+ * Notes des releases GitHub, dans la langue de l'interface (section de la note pour cette langue).
+ * Ouverte par défaut : la version proposée en mise à jour, sinon la version installée.
+ */
+function ReleaseNotesCard() {
+  const { t, lang, locale } = useI18n()
+  const { state, releases: fetchReleases } = useUpdater()
+  const [releases, setReleases] = useState(null)
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(null)
+
+  const load = (refresh) => {
+    setLoading(true)
+    setError(null)
+    fetchReleases(refresh)
+      .then(setReleases)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
+  }
+  useEffect(() => {
+    load(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const current = state?.currentVersion
+  const offered = ['available', 'downloading', 'downloaded'].includes(state?.status) ? state.version : null
+  const versions = releases?.map((r) => r.version) ?? []
+  const shown = open ?? [offered, current].find((v) => v && versions.includes(v)) ?? versions[0]
+
+  return (
+    <Card
+      id="settings.releaseNotes"
+      title={t('settings.updates.notes.title')}
+      actions={
+        <Button size="sm" variant="ghost" disabled={loading} onClick={() => load(true)}>
+          <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} /> {t('settings.updates.notes.refresh')}
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-2">
+        <ErrorBanner error={error} onClose={() => setError(null)} />
+        {!releases && !error && <p className="text-sm text-slate-500">{t('settings.updates.notes.loading')}</p>}
+        {releases?.length === 0 && <p className="text-sm text-slate-500">{t('settings.updates.notes.empty')}</p>}
+        {releases?.map((release) => {
+          const expanded = release.version === shown
+          const order = current ? versionOrder(release.version, current) : null
+          return (
+            <div key={release.version} className="rounded-md border border-ink-800">
+              <div className="flex items-center gap-2 px-3 py-2">
+                <button
+                  type="button"
+                  aria-expanded={expanded}
+                  onClick={() => setOpen(expanded ? '' : release.version)}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                >
+                  <ChevronDown
+                    className={`size-4 shrink-0 text-slate-500 transition-transform ${expanded ? '' : '-rotate-90'}`}
+                  />
+                  <span className="text-sm font-medium text-slate-100">{release.name}</span>
+                  {release.publishedAt && (
+                    <span className="text-xs text-slate-500">
+                      {new Date(release.publishedAt).toLocaleDateString(locale)}
+                    </span>
+                  )}
+                  {order === 0 && (
+                    <span className="rounded bg-ink-800 px-1.5 text-[11px] text-slate-300">
+                      {t('settings.updates.notes.installed')}
+                    </span>
+                  )}
+                  {order > 0 && (
+                    <span className="rounded bg-sulfur-400/15 px-1.5 text-[11px] text-sulfur-300">
+                      {t('settings.updates.notes.newer')}
+                    </span>
+                  )}
+                </button>
+                <a
+                  href={release.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={t('settings.updates.notes.github')}
+                  className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-200"
+                >
+                  <ExternalLink className="size-3.5" /> GitHub
+                </a>
+              </div>
+              {expanded && (
+                <div className="border-t border-ink-800 px-4 py-3">
+                  <Markdown text={releaseSection(release.body, lang)} />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
 /**
  * Paramètres de l'application, en trois onglets : Général (langue, thème, page de démarrage,
  * configurations), Modules (activation, modules non chargés) et Mises à jour.
@@ -319,7 +425,12 @@ export default function SettingsPage() {
         ]}
       />
       {tab === 'modules' && <ModulesCard />}
-      {tab === 'updates' && <UpdatesCard />}
+      {tab === 'updates' && (
+        <>
+          <UpdatesCard />
+          <ReleaseNotesCard />
+        </>
+      )}
       {tab === 'general' && (
         <>
           <Card id="settings.language" title={t('settings.language')}>

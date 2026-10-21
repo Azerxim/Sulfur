@@ -26,6 +26,8 @@ export function useUpdater() {
     download: () => call('download'),
     install: () => call('install'),
     openReleases: () => call('openReleases'),
-    setAutoCheck: (enabled) => call('setAutoCheck', enabled)
+    setAutoCheck: (enabled) => call('setAutoCheck', enabled),
+    /** Notes des releases GitHub (lève une erreur traduite si GitHub est injoignable). */
+    releases: (refresh = false) => window.sulfur.invoke('updater:releases', refresh)
   }
 }
