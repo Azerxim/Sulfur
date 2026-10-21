@@ -169,7 +169,8 @@ export default {
       title: 'Modules activés',
       hint: "Un module désactivé est masqué de la barre latérale et de l'accueil, arrêté, et n'est plus chargé au démarrage. Ses réglages sont conservés. Arrêtez ses serveurs et clients avant de le désactiver.",
       summary: '{enabled} module(s) activé(s) sur {total}',
-      enableAll: 'Tout activer'
+      enableAll: 'Tout activer',
+      disableAll: 'Tout désactiver'
     },
     pages: 'Application',
     themes: {

@@ -154,6 +154,13 @@ function ModulesCard() {
           <Button size="sm" disabled={busy || !disabled.length} onClick={() => apply([])}>
             {t('settings.moduleSwitch.enableAll')}
           </Button>
+          <Button
+            size="sm"
+            disabled={busy || disabled.length === rendererModules.length}
+            onClick={() => apply(rendererModules.map((m) => m.manifest.id))}
+          >
+            {t('settings.moduleSwitch.disableAll')}
+          </Button>
         </div>
         <ErrorBanner error={error} onClose={() => setError(null)} />
       </div>

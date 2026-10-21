@@ -167,7 +167,8 @@ export default {
       title: 'Enabled modules',
       hint: 'A disabled module is hidden from the sidebar and the home page, stopped, and no longer loaded at startup. Its settings are kept. Stop its servers and clients before disabling it.',
       summary: '{enabled} of {total} modules enabled',
-      enableAll: 'Enable all'
+      enableAll: 'Enable all',
+      disableAll: 'Disable all'
     },
     pages: 'Application',
     themes: {
