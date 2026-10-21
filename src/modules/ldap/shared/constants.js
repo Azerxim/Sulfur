@@ -1,7 +1,7 @@
 export const LDAP_MODULE = {
   id: 'ldap',
-  name: 'LDAP',
-  description: 'Annuaire LDAP / LDAPS simulé (authentification, recherche) et client'
+  name: 'LDAP / RADIUS',
+  description: 'Annuaire LDAP / LDAPS et serveur RADIUS simulés (authentification centralisée) et clients'
 }
 
 /** Sécurité du serveur (libellés : ldap.security.*). */

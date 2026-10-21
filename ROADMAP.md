@@ -60,7 +60,7 @@ commercial license. Unmarked modules are standard.
 
 | Edition                                | Modules                                                                                                         |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (free, Apache-2.0)  | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP, FTP / SFTP, TFTP, TCP / UDP proxy, DHCP, RADIUS, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
+| **Standard** (free, Apache-2.0)  | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP / RADIUS, FTP / SFTP, TFTP, TCP / UDP proxy, DHCP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
 | **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Modules already published under Apache-2.0 stay standard. Structure to set up before the first
@@ -141,11 +141,14 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
     allowed or not) and client (GET / PUT, progress, retransmissions)
   - [X] **FTP / FTPS** (same module as SFTP): server (explicit and implicit FTPS, passive and active modes, resume,
     read-only anonymous login) and client (browsing, transfers, command dialog)
-- [ ] **RADIUS / LDAP**: simulated authentication server, to test centralized login on switches,
+- [X] **RADIUS / LDAP**: simulated authentication server, to test centralized login on switches,
   firewalls and HMIs
   - [X] **LDAP / LDAPS**: read-only LDIF directory (bind, search, StartTLS, LDAPS, memberOf) and
     client
-  - [ ] **RADIUS**
+  - [X] **RADIUS** (same module as LDAP): server (NAS clients with shared secret, PAP and CHAP for
+    local and LDAP directory accounts, reply attributes including Cisco-AVPair, Message-Authenticator,
+    accounting, Status-Server) and client (Access-Request, Status-Server, accounting)
+    - [ ] EAP (PEAP / EAP-TLS, 802.1X), MS-CHAPv2, reply attributes by LDAP group, RadSec (RADIUS over TLS)
 - [ ] **CoAP / LwM2M**: server and client for constrained IoT sensors, alongside MQTT
 
 ## New modules: industrial automation

@@ -2,30 +2,56 @@ import { FORCED_RESULTS } from '../shared/constants'
 import { t } from '../shared/i18n'
 
 const SERVER_POINTS = [
-  { id: 'server:binds', name: 'binds', dataType: 'Int32', numeric: true },
-  { id: 'server:bindFailures', name: 'failed binds', dataType: 'Int32', numeric: true },
-  { id: 'server:searches', name: 'searches', dataType: 'Int32', numeric: true },
-  { id: 'server:sessions', name: 'connections', dataType: 'Int32', numeric: true }
+  { id: 'server:binds', name: 'binds' },
+  { id: 'server:bindFailures', name: 'failed binds' },
+  { id: 'server:searches', name: 'searches' },
+  { id: 'server:sessions', name: 'connections' }
 ]
 
-/** Points de données du module LDAP (contrat : `@shared/points`) : compteurs du serveur. */
-export function createPointsApi({ server }) {
+const RADIUS_POINTS = [
+  { id: 'radius:requests', name: 'RADIUS requests' },
+  { id: 'radius:accepts', name: 'RADIUS accepts' },
+  { id: 'radius:rejects', name: 'RADIUS rejects' },
+  { id: 'radius:dropped', name: 'RADIUS dropped requests' },
+  { id: 'radius:accounting', name: 'RADIUS accounting requests' },
+  { id: 'radius:sessions', name: 'RADIUS accounting sessions' }
+]
+
+/**
+ * Points de données du module LDAP / RADIUS (contrat : `@shared/points`) : compteurs des deux
+ * serveurs. Les défauts s'appliquent aux deux serveurs (RADIUS : une réponse forcée est un
+ * Access-Reject).
+ */
+export function createPointsApi({ server, radiusServer }) {
   return {
-    name: 'LDAP',
+    name: 'LDAP / RADIUS',
 
     points() {
-      return SERVER_POINTS.map((p) => ({ ...p, group: 'server', writable: false }))
+      return [...SERVER_POINTS, ...RADIUS_POINTS].map((p) => ({
+        ...p,
+        group: 'server',
+        dataType: 'Int32',
+        numeric: true,
+        writable: false
+      }))
     },
 
     read(ids) {
-      const running = server.running
+      const ldap = server.running
+      const radius = radiusServer.running
       const values = {
-        'server:binds': server.counters.binds,
-        'server:bindFailures': server.counters.bindFailures,
-        'server:searches': server.counters.searches,
-        'server:sessions': server.sessions.size
+        'server:binds': ldap ? server.counters.binds : undefined,
+        'server:bindFailures': ldap ? server.counters.bindFailures : undefined,
+        'server:searches': ldap ? server.counters.searches : undefined,
+        'server:sessions': ldap ? server.sessions.size : undefined,
+        ...(radius
+          ? {
+              ...Object.fromEntries(Object.entries(radiusServer.counters).map(([k, v]) => [`radius:${k}`, v])),
+              'radius:sessions': radiusServer.sessions.size
+            }
+          : {})
       }
-      return Object.fromEntries(ids.map((id) => [id, running ? values[id] : undefined]))
+      return Object.fromEntries(ids.map((id) => [id, values[id]]))
     },
 
     async write(id) {
@@ -38,6 +64,7 @@ export function createPointsApi({ server }) {
 
     setFaults(faults) {
       server.setFaults(faults)
+      radiusServer.setFaults(faults)
     }
   }
 }

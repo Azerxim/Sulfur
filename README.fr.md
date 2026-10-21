@@ -25,7 +25,7 @@ npm run format     # mise en forme (Prettier)
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
 (sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP,
-Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), cibles de l’explorateur réseau (réseaux privés uniquement), terminal série (saisies hexadécimales et échappées, découpage des trames, lignes de contrôle, passerelle série ↔ TCP), DHCP (paquets, plage contrôlée par rapport au sous-réseau de l’interface, réseaux privés uniquement, baux, serveur et client, filtre MAC), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), cibles de l’explorateur réseau (réseaux privés uniquement), terminal série (saisies hexadécimales et échappées, découpage des trames, lignes de contrôle, passerelle série ↔ TCP), RADIUS (exemples de la RFC 2865, PAP / CHAP, Message-Authenticator, comptes de l’annuaire LDAP, accounting), DHCP (paquets, plage contrôlée par rapport au sous-réseau de l’interface, réseaux privés uniquement, baux, serveur et client, filtre MAC), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -133,7 +133,7 @@ src/
     ├── syslog/           # Serveur Syslog (UDP / TCP / TLS) + émetteur de messages
     ├── dns/              # Serveur DNS faisant autorité (zone locale, relais) + client DNS
     ├── dhcp/             # Serveur DHCP de test pour un réseau privé isolé + client DHCP
-    ├── ldap/             # Annuaire LDAP / LDAPS (LDIF, protocole BER) + client LDAP
+    ├── ldap/             # Annuaire LDAP / LDAPS (LDIF, protocole BER) et serveur RADIUS + clients
     ├── ftp/              # Serveurs FTP / FTPS et SFTP (dossier confiné, utilisateurs) + clients
     ├── tftp/             # Serveur TFTP (dossier confiné, options) + client TFTP
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
@@ -504,7 +504,11 @@ Serveur DHCP de test pour un **réseau isolé, limité aux réseaux privés** (1
   réponses ne partent que par l'interface choisie ; activez le filtre MAC sur un PC relié à
   plusieurs réseaux.
 
-## Module LDAP
+## Module LDAP / RADIUS
+
+Quatre onglets : serveur et client LDAP, serveur et client RADIUS.
+
+### LDAP
 
 - **Serveur** LDAP v3, **LDAPS par défaut** (port 1636 ; LDAP simple sur 1389 ; ports standards
   389 / 636 avec droits administrateur sous Linux) sur un annuaire de test en lecture seule, pour vérifier
@@ -525,6 +529,35 @@ Serveur DHCP de test pour un **réseau isolé, limité aux réseaux privés** (1
   portée, filtre, attributs, limite) et historique.
 - Le serveur implémente lui-même le codage BER et le protocole LDAP (la bibliothèque ldapjs a été
   abandonnée).
+
+### RADIUS
+
+- **Serveur** RADIUS sur UDP (RFC 2865, 2866), authentification sur le port 1812 et accounting sur
+  le 1813 (sans droits administrateur), pour tester l'authentification centralisée de switchs,
+  pare-feux, bornes Wi-Fi ou IHM :
+  - **clients (NAS)** déclarés par adresse ou réseau CIDR avec leur secret partagé ; les requêtes
+    des autres adresses sont ignorées ;
+  - authentification **PAP** et **CHAP** des **comptes locaux** (mot de passe en clair, nécessaire
+    à CHAP) et des **comptes de l'annuaire LDAP** de l'onglet Serveur LDAP (annuaire en marche ou
+    celui enregistré, retrouvés par `uid` ou un autre attribut, vérifiés avec `userPassword` ; CHAP
+    seulement avec un `userPassword` en clair) ; EAP n'est pas pris en charge ;
+  - **attributs de la réponse** par compte (et pour les comptes de l'annuaire), un `Nom = valeur`
+    par ligne : Service-Type, Session-Timeout, Filter-Id, Class, Framed-IP-Address,
+    Reply-Message…, `Cisco-AVPair = shell:priv-lvl=15` ou `Vendor-Specific = <constructeur>:<type>:<valeur>` ;
+  - **Message-Authenticator** (RFC 3579) vérifié s'il est présent et ajouté à toutes les réponses ;
+    il peut être exigé dans les Access-Request (protection contre Blast-RADIUS) ;
+  - **accounting** : Start / Interim-Update / Stop (authentificateur vérifié), sessions ouvertes
+    listées, Accounting-On / Off ferment les sessions de l'équipement ; **Status-Server**
+    (RFC 5997) sur les deux ports ;
+  - une requête répétée reçoit la même réponse ; clients, comptes et attributs modifiables serveur
+    démarré ; journal (acceptations avec les attributs renvoyés, refus avec leur motif, requêtes
+    ignorées) et compteurs ; défauts injectés par le simulateur (délai, absence de réponse ; une
+    réponse forcée est un Access-Reject).
+- **Client** : serveur, ports, secret partagé, délai et renvois, NAS-Identifier / NAS-IP-Address,
+  Access-Request PAP ou CHAP (mot de passe non enregistré) avec attributs supplémentaires,
+  Status-Server, accounting Start / Interim-Update / Stop d'une session ; réponses vérifiées
+  (authentificateur, Message-Authenticator), attributs décodés et historique.
+- Le protocole RADIUS est implémenté dans le module (vérifié avec les exemples de la RFC 2865).
 
 ## Module FTP / SFTP
 

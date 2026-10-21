@@ -63,7 +63,7 @@ Les modules sans marque sont standard.
 
 | Édition                                  | Modules                                                                                                         |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP, FTP / SFTP, TFTP, Proxy TCP / UDP, DHCP, RADIUS, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
+| **Standard** (gratuite, Apache-2.0) | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP / RADIUS, FTP / SFTP, TFTP, Proxy TCP / UDP, DHCP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Autorité de certification, Explorateur réseau, Terminal série, Simulateur, Courbes |
 | **Premium** (licence commerciale)   | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
 Les modules déjà publiés sous Apache-2.0 restent standard. Structure à mettre en place avant le
@@ -149,11 +149,15 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
     autorisés ou non) et client (GET / PUT, progression, retransmissions)
   - [X] **FTP / FTPS** (même module que SFTP) : serveur (FTPS explicite et implicite, modes passif et actif, reprise,
     connexion anonyme en lecture seule) et client (parcours, transferts, dialogue de commandes)
-- [ ] **RADIUS / LDAP** : serveur d'authentification simulé, pour tester la connexion centralisée
+- [X] **RADIUS / LDAP** : serveur d'authentification simulé, pour tester la connexion centralisée
   des switchs, pare-feux et IHM
   - [X] **LDAP / LDAPS** : annuaire LDIF en lecture seule (liaison, recherche, StartTLS, LDAPS,
     memberOf) et client
-  - [ ] **RADIUS**
+  - [X] **RADIUS** (même module que LDAP) : serveur (clients NAS avec secret partagé, PAP et CHAP
+    pour les comptes locaux et ceux de l'annuaire LDAP, attributs de réponse dont Cisco-AVPair,
+    Message-Authenticator, accounting, Status-Server) et client (Access-Request, Status-Server,
+    accounting)
+    - [ ] EAP (PEAP / EAP-TLS, 802.1X), MS-CHAPv2, attributs de réponse par groupe LDAP, RadSec (RADIUS sur TLS)
 - [ ] **CoAP / LwM2M** : serveur et client pour capteurs IoT contraints, en complément de MQTT
 
 ## Nouveaux modules : automatismes industriels
