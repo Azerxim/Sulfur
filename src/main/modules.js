@@ -16,6 +16,7 @@ import { simulatorMainModule } from '@modules/simulator/main'
 import { trendsMainModule } from '@modules/trends/main'
 import { caMainModule } from '@modules/ca/main'
 import { explorerMainModule } from '@modules/explorer/main'
+import { serialMainModule } from '@modules/serial/main'
 
 /**
  * Modules chargés côté process principal. Ajouter les nouveaux modules ici.
@@ -40,5 +41,6 @@ export const mainModules = [
   simulatorMainModule,
   trendsMainModule,
   caMainModule,
-  explorerMainModule
+  explorerMainModule,
+  serialMainModule
 ]

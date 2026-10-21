@@ -1,0 +1,153 @@
+export default {
+  serial: {
+    name: 'Serial terminal',
+    description: 'RS-232 / RS-485 serial terminal (hexadecimal log, control lines) and serial ↔ TCP gateway',
+    parities: {
+      none: 'None',
+      even: 'Even',
+      odd: 'Odd',
+      mark: 'Mark',
+      space: 'Space'
+    },
+    flowControls: {
+      none: 'None',
+      rtscts: 'Hardware (RTS / CTS)',
+      xonxoff: 'Software (XON / XOFF)'
+    },
+    lineEndings: {
+      none: 'None',
+      cr: 'CR (\\r)',
+      lf: 'LF (\\n)',
+      crlf: 'CR LF (\\r\\n)'
+    },
+    framings: {
+      gap: 'After a silence of',
+      newline: 'At each LF, or after a silence of'
+    },
+    lines: {
+      dtr: 'Data Terminal Ready (output)',
+      rts: 'Request To Send (output)',
+      cts: 'Clear To Send (input)',
+      dsr: 'Data Set Ready (input)',
+      dcd: 'Data Carrier Detect (input)'
+    },
+    port: {
+      title: 'Serial port',
+      path: 'Port',
+      pathPlaceholder: 'COM3, /dev/ttyUSB0…',
+      noPorts: 'No serial port detected',
+      refresh: 'Refresh the list of ports',
+      baudRate: 'Baud rate',
+      dataBits: 'Data bits',
+      parity: 'Parity',
+      stopBits: 'Stop bits',
+      flowControl: 'Flow control',
+      outputs: 'Outputs',
+      inputs: 'Inputs',
+      break: 'BREAK',
+      breakHint: 'Hold the TX line low for 250 ms',
+      framing: 'Received frames end',
+      gap: 'Silence that ends a frame (ms)',
+      bytes: '{count} bytes',
+      frames: '{count} frames',
+      opened: '{path} · {label}',
+      closed: 'Closed',
+      open: 'Open',
+      opening: 'Opening…',
+      close: 'Close',
+      signalsUnavailable: 'This port does not report its input lines',
+      hint: 'RS-485: use an adapter that switches the transmit direction by itself (most USB adapters do). 1.5 stop bits: Windows only.'
+    },
+    send: {
+      title: 'Send',
+      mode: 'Format',
+      modes: {
+        text: 'Text',
+        hex: 'Hexadecimal'
+      },
+      textHint: 'Text — \\r \\n \\t \\0 \\e \\\\ and \\xNN recognized',
+      hexHint: 'Bytes in hexadecimal — e.g. 01 03 00 00 00 0A',
+      lineEnding: 'Line ending',
+      send: 'Send',
+      preview: '{count} byte(s):',
+      empty: 'Enter the data to send (Enter sends it).',
+      portClosed: 'Open the port to send data.',
+      interval: 'Period (ms)',
+      startRepeat: 'Send periodically',
+      stopRepeat: 'Stop',
+      repeating: 'Sending {count} byte(s) every {interval} ms'
+    },
+    gateway: {
+      title: 'Serial ↔ TCP gateway',
+      running: 'Running · {count} client(s)',
+      needsPort: 'Open the serial port first',
+      host: 'Listening interface',
+      port: 'TCP port',
+      maxClients: 'Simultaneous clients',
+      hint: 'Raw TCP server (like ser2net or a device server in TCP server mode): what the clients send is written to the serial port, what the port receives is sent to every client. The exchanges appear in the log; the gateway stops with the port.',
+      client: '{remote} · connected at {time}',
+      noClient: 'No client connected.'
+    },
+    log: {
+      title: 'Traffic ({count})',
+      paused: 'Display paused',
+      views: {
+        both: 'Hexadecimal + text',
+        hex: 'Hexadecimal',
+        text: 'Text'
+      },
+      timestamps: 'Time',
+      pause: 'Pause the display',
+      resume: 'Resume the display',
+      export: 'Save the log to a file',
+      exported: 'Log saved: {file}',
+      exportTitle: 'Save the serial log',
+      exportFilter: 'Log',
+      clear: 'Clear the log',
+      truncated: 'Last {shown} of {count} entries shown',
+      empty: 'No data exchanged.',
+      opened: 'Port {path} opened ({label})',
+      closed: 'Port {path} closed',
+      lost: 'Port {path} closed by the system (adapter unplugged?)',
+      error: 'Serial port error: {message}',
+      repeatError: 'Periodic sending stopped: {message}',
+      outputsError: 'Control lines not applied: {message}',
+      break: 'BREAK sent ({duration} ms)',
+      gatewayStarted: 'Gateway listening on {endpoint}',
+      gatewayStopped: 'Gateway stopped',
+      gatewayError: 'Gateway error: {message}',
+      clientRefused: 'Connection from {remote} refused: {max} client(s) at most',
+      clientConnected: 'Gateway client connected: {remote}',
+      clientDisconnected: 'Gateway client disconnected: {remote}',
+      forwardError: 'Data from {remote} not written to the port: {message}',
+      fromPoint: 'data point'
+    },
+    errors: {
+      invalidHex: 'Invalid hexadecimal value: {value}',
+      oddHex: 'Odd number of hexadecimal digits: {value}',
+      emptyPayload: 'Nothing to send',
+      payloadTooLarge: 'Too much data: {max} bytes at most',
+      unavailable: 'Serial ports unavailable (serialport library): {message}',
+      missingPort: 'Choose the serial port',
+      invalidBaudRate: 'Invalid baud rate: {value}',
+      invalidDataBits: 'Invalid number of data bits (5 to 8)',
+      invalidStopBits: 'Invalid number of stop bits (1, 1.5 or 2)',
+      invalidParity: 'Unknown parity',
+      invalidFlowControl: 'Unknown flow control',
+      busy: 'Port {path} is already in use (by another application or module)',
+      open: 'Cannot open port {path}: {message}',
+      invalidFraming: 'Unknown frame splitting',
+      invalidGap: 'Invalid silence (1 to 10000 ms)',
+      alreadyOpen: 'The port is already open',
+      notOpen: 'The serial port is not open',
+      minInterval: 'Minimum period: {min} ms',
+      invalidTcpPort: 'Invalid TCP port (1 to 65535)',
+      invalidMaxClients: 'Invalid number of clients (1 to {max})',
+      gatewayRunning: 'The gateway is already running',
+      gatewayNeedsPort: 'Open the serial port before starting the gateway',
+      portPrivileged: 'Port {port} requires administrator rights: choose a port ≥ 1024',
+      portInUse: 'Port {port} is already in use',
+      readOnlyPoint: 'Point {id} is read only'
+    }
+  }
+}

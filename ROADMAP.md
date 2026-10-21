@@ -104,8 +104,10 @@ Cross-cutting tools that serve every module and make it easier to set up a test 
   172.16.0.0/12, 192.168.0.0/16): addresses, CIDR networks, ranges and host names are checked, the
   private networks of the PC are proposed. Searching for and identifying devices comes later (see
   [Later](#later)).
-- [ ] **Serial terminal**: RS-232 / RS-485 links, hexadecimal log, serial ↔ TCP gateway; paves the
-  way for the Modbus RTU module
+- [X] **Serial terminal**: RS-232 / RS-485 links (all line settings, DTR / RTS / CTS / DSR / DCD
+  control lines, BREAK), text or hexadecimal sending (periodic if needed), hexadecimal log with frame
+  splitting and export, raw serial ↔ TCP gateway (TCP server), data points for the simulator
+  - [ ] RFC 2217 gateway (line settings changed by the TCP client) and TCP client mode
 
 ## New modules: IT and supervision
 

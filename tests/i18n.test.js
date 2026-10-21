@@ -42,6 +42,8 @@ import tftpEn from '@modules/tftp/shared/locales/en'
 import tftpFr from '@modules/tftp/shared/locales/fr'
 import ftpEn from '@modules/ftp/shared/locales/en'
 import ftpFr from '@modules/ftp/shared/locales/fr'
+import serialEn from '@modules/serial/shared/locales/en'
+import serialFr from '@modules/serial/shared/locales/fr'
 
 const dictionaries = {
   en: {
@@ -63,7 +65,8 @@ const dictionaries = {
     ...explorerEn,
     ...ldapEn,
     ...tftpEn,
-    ...ftpEn
+    ...ftpEn,
+    ...serialEn
   },
   fr: {
     ...coreFr,
@@ -84,7 +87,8 @@ const dictionaries = {
     ...explorerFr,
     ...ldapFr,
     ...tftpFr,
-    ...ftpFr
+    ...ftpFr,
+    ...serialFr
   }
 }
 

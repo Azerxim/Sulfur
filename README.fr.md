@@ -25,7 +25,7 @@ npm run format     # mise en forme (Prettier)
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
 (sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP,
-Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), cibles de l’explorateur réseau (réseaux privés uniquement), DHCP (paquets, plage contrôlée par rapport au sous-réseau de l’interface, réseaux privés uniquement, baux, serveur et client, filtre MAC), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), cibles de l’explorateur réseau (réseaux privés uniquement), terminal série (saisies hexadécimales et échappées, découpage des trames, lignes de contrôle, passerelle série ↔ TCP), DHCP (paquets, plage contrôlée par rapport au sous-réseau de l’interface, réseaux privés uniquement, baux, serveur et client, filtre MAC), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -139,7 +139,8 @@ src/
     ├── simulator/        # Injection de défauts et flux de nœuds (utilise les points des autres modules)
     ├── trends/           # Courbes, enregistrement et export CSV (idem)
     ├── ca/               # Autorité de certification : autorités, émission, CSR, révocation (CRL), PKCS#12
-    └── explorer/         # Explorateur réseau : cibles limitées aux réseaux privés
+    ├── explorer/         # Explorateur réseau : cibles limitées aux réseaux privés
+    └── serial/           # Terminal série (RS-232 / RS-485, journal hexadécimal) + passerelle série ↔ TCP
 ```
 
 ## Langues et thème
@@ -668,6 +669,35 @@ Prépare l'exploration d'un réseau de test, **limitée aux réseaux privés** (
   saisie sont listées au fil de la frappe.
 - La recherche et l'identification des équipements de ces adresses sont prévues dans une prochaine
   version (voir la [roadmap](ROADMAP.fr.md#plus-tard)).
+
+## Module Terminal série
+
+Dialogue avec un équipement sur une liaison RS-232 ou RS-485 (adaptateur USB, port intégré), pour
+le tester ou observer ce qu'il envoie.
+
+- **Port** : ports détectés proposés (saisie libre acceptée), vitesse, 5 à 8 bits de données, parité
+  (aucune, paire, impaire, marque, espace), 1, 1,5 (Windows uniquement) ou 2 bits de stop, contrôle
+  de flux matériel (RTS / CTS) ou logiciel (XON / XOFF). Le RS-485 demande un adaptateur qui commute
+  seul le sens d'émission, comme la plupart des adaptateurs USB. Un port déjà utilisé par une autre
+  application, ou par le module Modbus, est refusé.
+- **Lignes de contrôle** : DTR et RTS positionnés à l'ouverture et commutés port ouvert, CTS, DSR et
+  DCD lus toutes les 250 ms, BREAK (ligne TX maintenue à l'état bas pendant 250 ms).
+- **Envoi** : texte (UTF-8, avec les séquences `\r`, `\n`, `\t`, `\0`, `\e`, `\\` et `\xNN`)
+  suivi de la fin de ligne choisie, ou octets en hexadécimal (`01 03 00 00 00 0A`, `01030000000A` ou
+  `0x01, 0x03…`) ; aperçu des octets, historique des 20 dernières saisies, envoi en continu
+  (10 ms minimum).
+- **Journal** des échanges (5 000 entrées) : octets reçus regroupés en trames après un silence
+  (20 ms par défaut) et au choix à chaque fin de ligne, trames envoyées avec leur origine (client de
+  la passerelle, point de données) ; affichage hexadécimal et / ou texte (caractères de contrôle
+  écrits `\r`, `\xNN`…), heure à la milliseconde, pause, export dans un fichier texte ; compteurs
+  d'octets et de trames.
+- **Passerelle série ↔ TCP** : serveur TCP brut (port 4001 par défaut, comme ser2net ou un serveur
+  de ports série en mode serveur TCP) qui relaie le port série vers ses clients (un par défaut,
+  jusqu'à 16) : ce qu'ils envoient est écrit sur le port, ce que reçoit le port est envoyé à tous les
+  clients. Les échanges apparaissent dans le journal ; la passerelle s'arrête avec le port.
+- **Points de données** pour le simulateur et les courbes : port ouvert, compteurs, dernière trame
+  reçue (texte et hexadécimal), lignes de contrôle ; écrire `send text`, `send hex`, `DTR` ou `RTS`
+  depuis un flux envoie des données ou commute une ligne.
 
 ## Licence
 

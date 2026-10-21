@@ -110,8 +110,11 @@ Outils transverses qui servent à tous les modules et facilitent la mise en plac
   192.168.0.0/16) : adresses, réseaux CIDR, plages et noms d'hôte vérifiés, réseaux privés du PC
   proposés. La recherche et l'identification des équipements viendront plus tard (voir
   [Plus tard](#plus-tard)).
-- [ ] **Terminal série** : liaisons RS-232 / RS-485, journal hexadécimal, passerelle série ↔ TCP ;
-  prépare le module Modbus RTU
+- [X] **Terminal série** : liaisons RS-232 / RS-485 (tous les réglages de ligne, lignes de contrôle
+  DTR / RTS / CTS / DSR / DCD, BREAK), envoi en texte ou en hexadécimal (en continu au besoin), journal
+  hexadécimal avec découpage des trames et export, passerelle série ↔ TCP brute (serveur TCP), points
+  de données pour le simulateur
+  - [ ] passerelle RFC 2217 (réglages de ligne changés par le client TCP) et mode client TCP
 
 ## Nouveaux modules : informatique et supervision
 

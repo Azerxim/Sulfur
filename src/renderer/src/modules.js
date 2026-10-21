@@ -16,13 +16,14 @@ import simulator from '@modules/simulator/renderer'
 import trends from '@modules/trends/renderer'
 import ca from '@modules/ca/renderer'
 import explorer from '@modules/explorer/renderer'
+import serial from '@modules/serial/renderer'
 
 /**
  * Modules affichés dans l'interface, par groupe (libellés : app.groups.*), dans l'ordre de la barre
  * latérale. Ajouter les nouveaux modules ici.
  */
 export const moduleGroups = [
-  { id: 'tools', modules: [simulator, trends, ca, explorer] },
+  { id: 'tools', modules: [simulator, trends, ca, explorer, serial] },
   { id: 'automation', modules: [opcua, modbus, s7, plcsim] },
   { id: 'it', modules: [http, ntp, mqtt, snmp, syslog, dns, dhcp, ldap, ftp, tftp] }
 ]
