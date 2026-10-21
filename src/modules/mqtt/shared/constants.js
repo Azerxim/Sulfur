@@ -1,8 +1,10 @@
-export const MQTT_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const MQTT_MODULE = builtinManifest({
   id: 'mqtt',
   name: 'MQTT',
   description: 'Broker MQTT simulé (topics simulés, authentification, TLS) et client MQTT'
-}
+})
 
 /** Types des valeurs des topics simulés (libellés : mqtt.dataTypes.*). */
 export const DATA_TYPES = ['Number', 'Integer', 'Boolean', 'String']

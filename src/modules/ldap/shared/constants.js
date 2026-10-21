@@ -1,8 +1,10 @@
-export const LDAP_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const LDAP_MODULE = builtinManifest({
   id: 'ldap',
   name: 'LDAP / RADIUS',
   description: 'Annuaire LDAP / LDAPS et serveur RADIUS simulés (authentification centralisée) et clients'
-}
+})
 
 /** Sécurité du serveur (libellés : ldap.security.*). */
 export const SECURITY_MODES = ['plain', 'ldaps']

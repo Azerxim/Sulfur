@@ -1,8 +1,10 @@
-export const TRENDS_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const TRENDS_MODULE = builtinManifest({
   id: 'trends',
   name: 'Courbes',
   description: 'Courbes des valeurs des autres modules, enregistrement et export CSV'
-}
+})
 
 /** Période d'échantillonnage par défaut et minimale (ms). */
 export const DEFAULT_INTERVAL = 500

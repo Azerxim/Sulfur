@@ -3,8 +3,8 @@ import { Check, Download, ExternalLink, Monitor, Moon, RefreshCw, RotateCcw, Sun
 import { LANGUAGES } from '@shared/languages'
 import { Button, Card, Checkbox, ErrorBanner, Select } from '../components/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
-import { setDisabledModules, useEnabledModules } from '../enabled-modules'
-import { moduleGroups, rendererModules } from '../modules'
+import { MODULE_API_VERSION } from '@shared/module'
+import { availableModules, rejectedModules, setDisabledModules, useEnabledModules } from '../enabled-modules'
 import { appPages } from '../pages'
 import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences'
 import { useUpdater } from '../updater'
@@ -93,6 +93,8 @@ function ModulesCard() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const disabled = prefs.disabledModules ?? []
+  const { groups, modules } = availableModules()
+  const rejected = rejectedModules()
 
   async function apply(next) {
     setBusy(true)
@@ -111,7 +113,7 @@ function ModulesCard() {
     <Card id="settings.moduleSwitch" title={t('settings.moduleSwitch.title')}>
       <p className="mb-3 text-xs text-slate-500">{t('settings.moduleSwitch.hint')}</p>
       <div className="flex flex-col gap-4">
-        {moduleGroups.map((group) => (
+        {groups.map((group) => (
           <div key={group.id} className="flex flex-col gap-2">
             <div className="text-[11px] font-medium tracking-wider text-slate-500 uppercase">
               {t(`app.groups.${group.id}`)}
@@ -135,7 +137,13 @@ function ModulesCard() {
                     />
                     <Icon className="mt-0.5 size-4 shrink-0 text-sulfur-400" />
                     <span className="min-w-0">
-                      <span className="block text-sm text-slate-100">{text(manifest).name}</span>
+                      <span className="flex items-baseline gap-2 text-sm text-slate-100">
+                        {text(manifest).name}
+                        <span className="text-[11px] text-slate-500 tabular-nums">v{manifest.version}</span>
+                        {manifest.edition === 'premium' && (
+                          <span className="text-[11px] text-sulfur-300">{t('settings.moduleSwitch.premium')}</span>
+                        )}
+                      </span>
                       <span className="block text-xs text-slate-500">{text(manifest).description}</span>
                     </span>
                   </label>
@@ -147,8 +155,8 @@ function ModulesCard() {
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-xs text-slate-400">
             {t('settings.moduleSwitch.summary', {
-              enabled: rendererModules.length - disabled.length,
-              total: rendererModules.length
+              enabled: modules.length - disabled.length,
+              total: modules.length
             })}
           </span>
           <Button size="sm" disabled={busy || !disabled.length} onClick={() => apply([])}>
@@ -156,12 +164,29 @@ function ModulesCard() {
           </Button>
           <Button
             size="sm"
-            disabled={busy || disabled.length === rendererModules.length}
-            onClick={() => apply(rendererModules.map((m) => m.manifest.id))}
+            disabled={busy || disabled.length === modules.length}
+            onClick={() => apply(modules.map((m) => m.manifest.id))}
           >
             {t('settings.moduleSwitch.disableAll')}
           </Button>
         </div>
+        {rejected.length > 0 && (
+          <div className="flex flex-col gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+            <span className="text-xs font-medium text-amber-300">
+              {t('settings.moduleSwitch.rejected', { count: rejected.length })}
+            </span>
+            {rejected.map((r, i) => (
+              <span key={`${r.id}-${i}`} className="text-xs text-slate-300">
+                <span className="font-medium text-slate-100">{r.name}</span>{' '}
+                <span className="text-slate-500">
+                  ({r.id}, v{r.version})
+                </span>{' '}
+                — {t(`modules.problems.${r.reason}`, r.params)}
+              </span>
+            ))}
+          </div>
+        )}
+        <p className="text-[11px] text-slate-500">{t('settings.moduleSwitch.api', { version: MODULE_API_VERSION })}</p>
         <ErrorBanner error={error} onClose={() => setError(null)} />
       </div>
     </Card>

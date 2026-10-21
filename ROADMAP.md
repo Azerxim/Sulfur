@@ -69,8 +69,9 @@ premium module:
 - [X] **License**: Apache-2.0 for the application and the standard modules, contributors'
   [CLA](CLA.md) signed on the first pull request (so that contributions can also be used in the
   premium edition).
-- [ ] **Module manifest**: id, version, edition (`standard` / `premium`), required module API
-  version and minimum Sulfur version; an incompatible module is refused with a clear message.
+- [X] **Module manifest**: id, version, edition (`standard` / `premium`), required module API
+  version and minimum Sulfur version; an incompatible module is refused with a clear message
+  (listed in Settings → Enabled modules).
 - [ ] **Module SDK**: publish the module contract (`ctx.handle` / `emit` / `expose` / `peers`,
   `src/shared/points.js`, i18n helpers, shared UI components) as a versioned package, so that
   premium modules can be built outside this repository. The module API follows semantic

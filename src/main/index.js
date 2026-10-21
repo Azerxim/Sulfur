@@ -61,8 +61,10 @@ app.whenReady().then(async () => {
   const moduleIds = mainModules.map((mod) => mod.manifest.id)
   const disabled = [].concat(loadPreferences().disabledModules ?? []).filter((id) => moduleIds.includes(id))
   await host.load([systemMainModule, updaterMainModule, ...mainModules], { disabled })
-  registerConfigTransfer(host, moduleIds)
-  registerModuleSwitch(host, moduleIds)
+  // Modules refusés au chargement (manifeste incompatible) : ni configuration ni activation.
+  const loadedIds = moduleIds.filter((id) => host.configs.has(id))
+  registerConfigTransfer(host, loadedIds)
+  registerModuleSwitch(host, loadedIds)
   createWindow()
 
   app.on('activate', () => {

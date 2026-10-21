@@ -1,8 +1,10 @@
-export const CA_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const CA_MODULE = builtinManifest({
   id: 'ca',
   name: 'Autorité de certification',
   description: 'Autorités de certification, émission et révocation de certificats X.509'
-}
+})
 
 /** Algorithmes de clé (libellés : ca.keyAlgorithms.*). */
 export const KEY_ALGORITHMS = ['ecdsa-p256', 'ecdsa-p384', 'rsa-2048', 'rsa-3072', 'rsa-4096']

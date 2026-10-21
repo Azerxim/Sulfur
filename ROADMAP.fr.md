@@ -72,9 +72,9 @@ premier module premium :
 - [X] **Licence** : Apache-2.0 pour l'application et les modules standard, [CLA](CLA.md) des
   contributeurs signé à la première pull request (pour que les contributions puissent aussi servir
   dans l'édition premium).
-- [ ] **Manifeste de module** : identifiant, version, édition (`standard` / `premium`), version de
+- [X] **Manifeste de module** : identifiant, version, édition (`standard` / `premium`), version de
   l'API de module requise et version minimale de Sulfur ; un module incompatible est refusé avec un
-  message clair.
+  message clair (listé dans Paramètres → Modules activés).
 - [ ] **SDK de module** : publier le contrat de module (`ctx.handle` / `emit` / `expose` / `peers`,
   `src/shared/points.js`, outils de traduction, composants d'interface communs) sous forme de paquet
   versionné, pour développer les modules premium hors de ce dépôt. L'API de module suit le

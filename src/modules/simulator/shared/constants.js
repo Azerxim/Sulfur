@@ -1,8 +1,10 @@
-export const SIMULATOR_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const SIMULATOR_MODULE = builtinManifest({
   id: 'simulator',
   name: 'Simulateur',
   description: 'Injection de défauts et flux de nœuds sur les serveurs et clients des autres modules'
-}
+})
 
 /** Pas de temps d'une rampe (ms). */
 export const RAMP_INTERVAL = 100

@@ -81,6 +81,16 @@ export default {
       busy: 'Stop the servers and disconnect the clients before importing a configuration'
     }
   },
+  modules: {
+    problems: {
+      invalid: 'invalid manifest: “{field}” field missing or incorrect',
+      reservedId: 'identifier “{id}” is reserved by Sulfur',
+      duplicateId: 'another module already uses the identifier “{id}”',
+      apiMajor: 'written for module API {required}, incompatible with the API {current} of this version of Sulfur',
+      apiTooNew: 'requires module API {required}; this version of Sulfur provides {current}: update Sulfur',
+      appTooOld: 'requires Sulfur {required} or later (this is {current}): update Sulfur'
+    }
+  },
   simulations: {
     none: 'Static',
     sine: 'Sine',
@@ -168,7 +178,10 @@ export default {
       hint: 'A disabled module is hidden from the sidebar and the home page, stopped, and no longer loaded at startup. Its settings are kept. Stop its servers and clients before disabling it.',
       summary: '{enabled} of {total} modules enabled',
       enableAll: 'Enable all',
-      disableAll: 'Disable all'
+      disableAll: 'Disable all',
+      premium: 'Premium',
+      rejected: 'Modules not loaded ({count})',
+      api: 'Module API {version}'
     },
     pages: 'Application',
     themes: {

@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron'
 import { setLanguage } from '@shared/i18n'
 import { WINDOW_BACKGROUNDS, applyNativeTheme, savePreferences } from './preferences'
 import os from 'os'
+import { builtinManifest } from '@shared/module'
 
 /** Informations système du PC (canal IPC `system:info`). */
 export function getSystemInfo() {
@@ -43,7 +44,7 @@ export function setTheme(theme) {
 
 /** Module "cœur" toujours chargé, indépendant des modules de simulation. */
 export const systemMainModule = {
-  manifest: { id: 'system', name: 'Système', description: 'Informations sur le PC et préférences' },
+  manifest: builtinManifest({ id: 'system', name: 'Système', description: 'Informations sur le PC et préférences' }),
   activate(ctx) {
     ctx.handle('info', getSystemInfo)
     // Langue des messages produits par le process principal (erreurs, journaux des serveurs).

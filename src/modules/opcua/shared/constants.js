@@ -1,8 +1,10 @@
-export const OPCUA_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const OPCUA_MODULE = builtinManifest({
   id: 'opcua',
   name: 'OPC UA',
   description: 'Serveur et client OPC UA (Sign / SignAndEncrypt, certificats)'
-}
+})
 
 export const DATA_TYPES = ['Double', 'Float', 'Int32', 'UInt32', 'Int16', 'Boolean', 'String']
 

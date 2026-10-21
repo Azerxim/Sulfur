@@ -194,7 +194,7 @@ configuration par défaut.
 
 ### Activer et désactiver des modules
 
-**Paramètres → Modules activés** liste tous les modules avec une case à cocher. Un module désactivé
+**Paramètres → Modules activés** liste tous les modules, avec leur version, et une case à cocher. Un module désactivé
 est masqué de la barre latérale, de l'accueil et du choix de la page de démarrage ; il est arrêté
 aussitôt (ses canaux et ses points pour le simulateur et les courbes sont retirés) et n'est plus
 chargé au démarrage suivant. Sa configuration enregistrée est conservée, et toujours exportée et
@@ -202,10 +202,35 @@ importée. Désactiver un module dont le serveur est démarré ou le client conn
 arrêtez-le d'abord. Un module réactivé est chargé immédiatement. La liste est tenue par le process
 principal dans `<userData>/preferences.json` (`disabledModules`).
 
+### Manifeste des modules
+
+Chaque module déclare un manifeste, le même objet pour ses parties main et renderer :
+
+| Champ           | Contenu                                                                          |
+| --------------- | -------------------------------------------------------------------------------- |
+| `id`            | identifiant, préfixe des canaux IPC (`[a-z0-9-]+`, unique)                       |
+| `name`          | nom de repli (le nom affiché vient de la clé `<id>.name`)                        |
+| `description`   | description de repli (clé `<id>.description`)                                    |
+| `version`       | version du module (semver)                                                       |
+| `edition`       | `standard` (Apache-2.0) ou `premium` (licence commerciale)                       |
+| `apiVersion`    | version de l'API des modules pour laquelle le module est écrit (semver)          |
+| `minAppVersion` | version minimale de Sulfur (semver)                                              |
+
+L'API des modules (`MODULE_API_VERSION` dans `src/shared/module.js`, actuellement 1.0.0) suit le
+versionnage sémantique : un module écrit pour l'API 1.2 fonctionne avec toute API 1.x à partir de
+1.2, pas avec une API 2.x. Le process principal vérifie chaque manifeste avant de charger le module :
+un manifeste invalide, un identifiant réservé (`modules`, `config`, `home`, `info`, `settings`) ou
+déjà pris, une API des modules incompatible ou un `minAppVersion` trop récent fait refuser le module,
+qui n'existe alors pas pour l'application (ni canaux, ni configuration, ni page). Les modules refusés
+sont listés avec la raison dans **Paramètres → Modules activés**. Les modules livrés avec Sulfur utilisent
+`builtinManifest({ id, name, description })` : version de l'application, édition standard, API
+courante.
+
 ### Ajouter un module
 
 1. Créer `src/modules/<id>/` avec `main/index.js`, `renderer/index.js` et `shared/`.
-2. **Main** : exporter `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` facultatif).
+2. **Main** : exporter `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` facultatif) ; le
+   manifeste vient de `builtinManifest(…)` (voir ci-dessus).
    - `ctx.handle('action', fn)` expose le canal IPC `<id>:action`
    - `ctx.emit('event', payload)` diffuse `<id>:event` vers l'interface
    - `ctx.expose(api)` publie les points de données du module (liste, lecture, écriture, défauts

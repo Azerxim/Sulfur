@@ -1,8 +1,10 @@
-export const FTP_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const FTP_MODULE = builtinManifest({
   id: 'ftp',
   name: 'FTP / SFTP',
   description: "Serveurs FTP / FTPS et SFTP simulés (firmware, sauvegardes, recettes d'automates) et clients"
-}
+})
 
 /** Événements conservés dans le journal du serveur et dans le dialogue du client. */
 export const MAX_LOG = 500

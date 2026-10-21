@@ -1,8 +1,10 @@
-export const DNS_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const DNS_MODULE = builtinManifest({
   id: 'dns',
   name: 'DNS',
   description: 'Serveur DNS simulé (zone locale, relais) et client de résolution'
-}
+})
 
 /** Types d'enregistrement gérés par la zone locale. */
 export const RECORD_TYPES = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'SRV', 'PTR', 'NS']

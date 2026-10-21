@@ -1,8 +1,10 @@
-export const SNMP_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const SNMP_MODULE = builtinManifest({
   id: 'snmp',
   name: 'SNMP',
   description: 'Agent SNMP simulé (v1 / v2c / v3, MIB simulée, traps) et manager SNMP'
-}
+})
 
 /** Versions du protocole (libellés : snmp.versions.*). */
 export const VERSIONS = ['v1', 'v2c', 'v3']

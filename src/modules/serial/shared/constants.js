@@ -1,8 +1,10 @@
-export const SERIAL_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const SERIAL_MODULE = builtinManifest({
   id: 'serial',
-  name: 'Serial terminal',
+  name: 'Terminal série',
   description: 'Terminal série RS-232 / RS-485 (journal hexadécimal, lignes de contrôle) et passerelle série ↔ TCP'
-}
+})
 
 export const BAUD_RATES = [300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
 

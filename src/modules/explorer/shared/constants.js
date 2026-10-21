@@ -1,8 +1,10 @@
-export const EXPLORER_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const EXPLORER_MODULE = builtinManifest({
   id: 'explorer',
   name: 'Explorateur réseau',
   description: 'Recherche et identification des équipements industriels et informatiques du réseau'
-}
+})
 
 /**
  * Services recherchés. `transport` : 'tcp' (connexion puis identification) ou 'udp' (requête dont

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { builtinManifest } from '@shared/module'
 import { tempDir } from './helpers'
 
 /** Canaux IPC enregistrés (ipcMain simulé) : un second enregistrement du même canal échoue, comme Electron. */
@@ -22,7 +23,7 @@ const invoke = (channel, ...args) => electron.handlers.get(channel)(null, ...arg
 /** Module de test : un canal `ping`, des points publiés, un état « en marche » réglable. */
 function fakeModule(id) {
   return {
-    manifest: { id, name: `Module ${id}` },
+    manifest: builtinManifest({ id, name: `Module ${id}` }),
     activations: 0,
     deactivations: 0,
     running: false,
@@ -105,5 +106,36 @@ describe('Modules activés et désactivés', () => {
   it('n’arrête à la fermeture que les modules actifs', async () => {
     await host.dispose()
     expect([a.deactivations, b.deactivations, c.deactivations]).toEqual([1, 0, 1])
+  })
+})
+
+describe('Manifestes', () => {
+  /** Module de test dont le manifeste est complété ou remplacé par `patch`. */
+  const withManifest = (id, patch) => {
+    const mod = fakeModule(id)
+    mod.manifest = { ...mod.manifest, ...patch }
+    return mod
+  }
+
+  it('refuse les modules incompatibles sans enregistrer leurs canaux', async () => {
+    electron.handlers.clear()
+    const other = new ModuleHost()
+    const ok = fakeModule('ok')
+    const future = withManifest('future', { minAppVersion: '99.0.0' })
+    const api2 = withManifest('api2', { apiVersion: '2.0.0' })
+    const twin = fakeModule('ok')
+    const bad = withManifest('Bad Id', {})
+    await other.load([ok, future, api2, twin, bad])
+    expect(other.modules.map((m) => m.manifest.id)).toEqual(['ok'])
+    expect(electron.handlers.has('future:config:load')).toBe(false)
+    expect(future.activations).toBe(0)
+    expect(other.rejected.map((r) => [r.id, r.reason])).toEqual([
+      ['future', 'appTooOld'],
+      ['api2', 'apiMajor'],
+      ['ok', 'duplicateId'],
+      ['Bad Id', 'invalid']
+    ])
+    expect(other.rejected[0].params).toEqual({ required: '99.0.0', current: future.manifest.version })
+    expect(twin.activations).toBe(0)
   })
 })

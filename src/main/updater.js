@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import electronUpdater from 'electron-updater'
 import { loadPreferences, savePreferences } from './preferences'
+import { builtinManifest } from '@shared/module'
 
 /**
  * Mises à jour à partir des releases GitHub (electron-updater, fichiers latest*.yml joints aux
@@ -143,7 +144,11 @@ export function createUpdater(emit) {
 
 /** Module "cœur" des mises à jour (canaux `updater:*`, événement `updater:status`). */
 export const updaterMainModule = {
-  manifest: { id: 'updater', name: 'Mises à jour', description: 'Mises à jour depuis les releases GitHub' },
+  manifest: builtinManifest({
+    id: 'updater',
+    name: 'Mises à jour',
+    description: 'Mises à jour depuis les releases GitHub'
+  }),
   updater: null,
   activate(ctx) {
     const updater = createUpdater(ctx.emit)

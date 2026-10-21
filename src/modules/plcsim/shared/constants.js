@@ -1,8 +1,10 @@
-export const PLCSIM_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const PLCSIM_MODULE = builtinManifest({
   id: 'plcsim',
   name: 'PLCSim Advanced',
   description: 'Automates virtuels S7-1500 de S7-PLCSIM Advanced (Windows)'
-}
+})
 
 /** Dossier d'installation de l'API Simulation Runtime (un sous-dossier par version : 3.0 … 8.0). */
 export const DEFAULT_API_ROOT = 'C:\\Program Files (x86)\\Common Files\\Siemens\\PLCSIMADV\\API'

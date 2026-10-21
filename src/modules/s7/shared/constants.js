@@ -1,8 +1,10 @@
-export const S7_MODULE = {
+import { builtinManifest } from '@shared/module'
+
+export const S7_MODULE = builtinManifest({
   id: 's7',
   name: 'Siemens S7',
   description: 'Automate S7 simulé (S7comm) et client S7 (S7-300/400/1200/1500)'
-}
+})
 
 /**
  * Zones mémoire accessibles par S7comm. `code` = identifiant de zone dans les requêtes ;

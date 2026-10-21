@@ -189,7 +189,7 @@ inconsistent configuration), a button restores its default configuration.
 
 ### Enabling and disabling modules
 
-**Settings → Enabled modules** lists every module with a checkbox. A disabled module is hidden from
+**Settings → Enabled modules** lists every module, with its version, and a checkbox. A disabled module is hidden from
 the sidebar, the home page and the startup page choices; it is stopped at once (its channels and its
 points for the simulator and the trends are removed) and is no longer loaded at the next start.
 Its saved configuration is kept, and still exported and imported. Disabling a module whose server
@@ -197,10 +197,34 @@ is running or whose client is connected is refused: stop it first. A re-enabled 
 immediately. The list is kept by the main process in `<userData>/preferences.json`
 (`disabledModules`).
 
+### Module manifest
+
+Each module declares a manifest, the same object for its main and renderer parts:
+
+| Field           | Content                                                                     |
+| --------------- | --------------------------------------------------------------------------- |
+| `id`            | identifier, prefix of the IPC channels (`[a-z0-9-]+`, unique)               |
+| `name`          | fallback name (the displayed one comes from the `<id>.name` key)            |
+| `description`   | fallback description (`<id>.description` key)                               |
+| `version`       | version of the module (semver)                                              |
+| `edition`       | `standard` (Apache-2.0) or `premium` (commercial license)                   |
+| `apiVersion`    | version of the module API the module is written for (semver)               |
+| `minAppVersion` | minimum version of Sulfur (semver)                                          |
+
+The module API (`MODULE_API_VERSION` in `src/shared/module.js`, currently 1.0.0) follows semantic
+versioning: a module written for API 1.2 works with every 1.x API from 1.2 on, not with a 2.x API.
+The main process checks every manifest before loading the module: an invalid manifest, an identifier
+that is reserved (`modules`, `config`, `home`, `info`, `settings`) or already used, an incompatible
+module API or a too recent `minAppVersion` refuses the module, which then does not exist for the
+application (no channels, configuration or page). The refused modules are listed with the reason in
+**Settings → Enabled modules**. The modules shipped with Sulfur use `builtinManifest({ id, name,
+description })`: version of the application, standard edition, current module API.
+
 ### Adding a module
 
 1. Create `src/modules/<id>/` with `main/index.js`, `renderer/index.js` and `shared/`.
-2. **Main**: export `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` optional).
+2. **Main**: export `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` optional); the manifest
+   comes from `builtinManifest(…)` (see above).
    - `ctx.handle('action', fn)` exposes the IPC channel `<id>:action`
    - `ctx.emit('event', payload)` broadcasts `<id>:event` to the interface
    - `ctx.expose(api)` publishes the module's data points (list, read, write, injectable faults) for

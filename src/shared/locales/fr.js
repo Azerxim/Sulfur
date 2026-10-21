@@ -82,6 +82,17 @@ export default {
       busy: "Arrêtez les serveurs et déconnectez les clients avant d'importer une configuration"
     }
   },
+  modules: {
+    problems: {
+      invalid: 'manifeste invalide : champ « {field} » absent ou incorrect',
+      reservedId: 'l’identifiant « {id} » est réservé par Sulfur',
+      duplicateId: 'un autre module utilise déjà l’identifiant « {id} »',
+      apiMajor: 'écrit pour l’API des modules {required}, incompatible avec l’API {current} de cette version de Sulfur',
+      apiTooNew:
+        'demande l’API des modules {required} ; cette version de Sulfur fournit la {current} : mettre Sulfur à jour',
+      appTooOld: 'demande Sulfur {required} ou plus récent (version actuelle : {current}) : mettre Sulfur à jour'
+    }
+  },
   simulations: {
     none: 'Statique',
     sine: 'Sinus',
@@ -170,7 +181,10 @@ export default {
       hint: "Un module désactivé est masqué de la barre latérale et de l'accueil, arrêté, et n'est plus chargé au démarrage. Ses réglages sont conservés. Arrêtez ses serveurs et clients avant de le désactiver.",
       summary: '{enabled} module(s) activé(s) sur {total}',
       enableAll: 'Tout activer',
-      disableAll: 'Tout désactiver'
+      disableAll: 'Tout désactiver',
+      premium: 'Premium',
+      rejected: 'Modules non chargés ({count})',
+      api: 'API des modules {version}'
     },
     pages: 'Application',
     themes: {

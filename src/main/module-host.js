@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { moduleT, t } from '@shared/i18n'
+import { checkManifest } from '@shared/module'
 import { ConfigStore } from './config-store'
 
 /** Canal IPC dont le résultat est enveloppé ({ ok, data } ou { ok: false, error }). Remplace un canal existant. */
@@ -39,6 +40,10 @@ const moduleName = (mod) => moduleT(mod.manifest.id)(`${mod.manifest.id}.name`, 
  *
  * Un module désactivé (Paramètres → Modules) n'est pas activé : ni ses canaux ni ses points
  * n'existent, mais sa configuration enregistrée reste disponible (interface, import / export).
+ *
+ * Le manifeste de chaque module est vérifié avant tout (voir `checkManifest`) : un module invalide
+ * ou incompatible (API des modules, version de Sulfur) est refusé et n'existe pas pour
+ * l'application ; il est listé dans `rejected` avec la raison du refus.
  */
 export class ModuleHost {
   /** Modules enregistrés, actifs ou non, dans l'ordre de chargement. */
@@ -47,6 +52,8 @@ export class ModuleHost {
   active = new Set()
   /** Identifiants des modules désactivés par l'utilisateur. */
   disabled = new Set()
+  /** Modules refusés au chargement : [{ id, name, version, reason, params }] (libellés : modules.problems.*). */
+  rejected = []
   contexts = new Map()
   /** Configurations enregistrées, par identifiant de module. */
   configs = new Map()
@@ -57,6 +64,11 @@ export class ModuleHost {
   async load(modules, { disabled = [] } = {}) {
     for (const id of disabled) this.disabled.add(id)
     for (const mod of modules) {
+      const problem = checkManifest(mod.manifest, { loadedIds: this.modules.map((m) => m.manifest.id) })
+      if (problem) {
+        this.reject(mod, problem)
+        continue
+      }
       const id = mod.manifest.id
       const ctx = this.createContext(id)
       const config = new ConfigStore(join(ctx.dataDir, 'config.json'))
@@ -76,6 +88,12 @@ export class ModuleHost {
       }
       await this.activate(mod)
     }
+  }
+
+  reject(mod, { reason, params }) {
+    const { id = '?', name, version = '?' } = mod?.manifest ?? {}
+    this.rejected.push({ id: String(id), name: String(name ?? id), version: String(version), reason, params })
+    console.warn(`[sulfur] module "${id}" refusé : ${t(`modules.problems.${reason}`, params)}`)
   }
 
   async activate(mod) {
