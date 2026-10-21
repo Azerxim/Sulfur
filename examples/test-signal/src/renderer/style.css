@@ -1,0 +1,15 @@
+/*
+ * Styles du module : utilitaires Tailwind sur le thème de Sulfur. Un module publié importe
+ * « @azerxim/sulfur-sdk/module.css » ; l'exemple, dans le dépôt, l'importe depuis les sources du SDK.
+ */
+@import '../../../../packages/sdk/src/ui/module.css';
+@source './';
+
+/* CSS propre au module : préfixer les classes par l'identifiant du module. */
+.test-signal-pong {
+  color: var(--color-emerald-300);
+}
+
+.test-signal-sparkline polyline {
+  transition: all 0.2s linear;
+}

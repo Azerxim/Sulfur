@@ -10,6 +10,7 @@ files:
   - '!src/*'
   - '!tests/*'
   - '!packages/*'
+  - '!examples/*'
   - '!aliases.mjs'
   - '!{electron.vite.config,vitest.config,eslint.config}.*'
   - '!{.editorconfig,.prettierrc.json,.prettierignore,jsconfig.json}'

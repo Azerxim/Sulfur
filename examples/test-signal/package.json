@@ -1,0 +1,10 @@
+{
+  "name": "sulfur-module-test-signal",
+  "version": "0.1.0",
+  "description": "Module externe de test pour Sulfur : générateur de signal avec points de données",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}
