@@ -164,7 +164,11 @@ export default {
   },
   settings: {
     name: 'Settings',
-    description: 'Language, appearance, configurations and updates',
+    description: 'Language, appearance, modules, configurations and updates',
+    tabs: {
+      general: 'General',
+      modules: 'Modules'
+    },
     language: 'Language',
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',

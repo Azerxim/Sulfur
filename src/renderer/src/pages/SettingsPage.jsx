@@ -1,7 +1,19 @@
 import { useState } from 'react'
-import { Check, Download, ExternalLink, Monitor, Moon, RefreshCw, RotateCcw, Sun, Upload } from 'lucide-react'
+import {
+  Check,
+  Download,
+  ExternalLink,
+  Monitor,
+  Moon,
+  Puzzle,
+  RefreshCw,
+  RotateCcw,
+  SlidersHorizontal,
+  Sun,
+  Upload
+} from 'lucide-react'
 import { LANGUAGES } from '@shared/languages'
-import { Button, Card, Checkbox, ErrorBanner, Select } from '../components/ui'
+import { Button, Card, Checkbox, ErrorBanner, Select, Tabs, useStoredState } from '../components/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
 import { MODULE_API_VERSION } from '@shared/module'
 import { availableModules, rejectedModules, setDisabledModules, useEnabledModules } from '../enabled-modules'
@@ -10,6 +22,19 @@ import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences
 import { useUpdater } from '../updater'
 
 const THEME_ICONS = { dark: Moon, light: Sun, system: Monitor }
+
+/** Onglets des Paramètres, onglet affiché mémorisé localement sous SETTINGS_TAB_KEY. */
+const TABS = ['general', 'modules']
+const SETTINGS_TAB_KEY = 'sulfur:tab:settings'
+
+/** Onglet affiché à la prochaine ouverture des Paramètres (sans effet si le stockage est indisponible). */
+export function selectSettingsTab(tab) {
+  try {
+    localStorage.setItem(SETTINGS_TAB_KEY, tab)
+  } catch {
+    // stockage indisponible : les Paramètres s'ouvrent sur le dernier onglet affiché
+  }
+}
 
 function Choice({ selected, onClick, icon: Icon, title, subtitle }) {
   return (
@@ -272,72 +297,92 @@ function UpdatesCard() {
   )
 }
 
-/** Paramètres de l'application : langue, thème, page de démarrage, modules, configurations et mises à jour. */
+/**
+ * Paramètres de l'application, en deux onglets : Général (langue, thème, page de démarrage,
+ * configurations, mises à jour) et Modules (activation, modules non chargés).
+ */
 export default function SettingsPage() {
   const { t } = useI18n()
   const { prefs, update } = usePreferences()
   const text = useManifestText()
   const { modules } = useEnabledModules()
+  const [tab, setTab] = useStoredState(SETTINGS_TAB_KEY, 'general', TABS)
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <Card id="settings.language" title={t('settings.language')}>
-        <p className="mb-3 text-xs text-slate-500">{t('settings.languageHint')}</p>
-        <div className="flex flex-wrap gap-3">
-          {Object.entries(LANGUAGES).map(([code, lang]) => (
-            <Choice
-              key={code}
-              selected={prefs.language === code}
-              onClick={() => update({ language: code })}
-              title={lang.label}
-              subtitle={code.toUpperCase()}
-            />
-          ))}
-        </div>
-      </Card>
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'general', label: t('settings.tabs.general'), icon: SlidersHorizontal },
+          { id: 'modules', label: t('settings.tabs.modules'), icon: Puzzle }
+        ]}
+      />
+      {tab === 'modules' ? (
+        <ModulesCard />
+      ) : (
+        <>
+          <Card id="settings.language" title={t('settings.language')}>
+            <p className="mb-3 text-xs text-slate-500">{t('settings.languageHint')}</p>
+            <div className="flex flex-wrap gap-3">
+              {Object.entries(LANGUAGES).map(([code, lang]) => (
+                <Choice
+                  key={code}
+                  selected={prefs.language === code}
+                  onClick={() => update({ language: code })}
+                  title={lang.label}
+                  subtitle={code.toUpperCase()}
+                />
+              ))}
+            </div>
+          </Card>
 
-      <Card id="settings.theme" title={t('settings.theme')}>
-        <p className="mb-3 text-xs text-slate-500">{t('settings.themeHint')}</p>
-        <div className="flex flex-wrap gap-3">
-          {THEMES.map((theme) => (
-            <Choice
-              key={theme}
-              selected={prefs.theme === theme}
-              onClick={() => update({ theme })}
-              icon={THEME_ICONS[theme]}
-              title={t(`settings.themes.${theme}`)}
-              subtitle={t(`settings.themeDescriptions.${theme}`)}
-            />
-          ))}
-        </div>
-      </Card>
+          <Card id="settings.theme" title={t('settings.theme')}>
+            <p className="mb-3 text-xs text-slate-500">{t('settings.themeHint')}</p>
+            <div className="flex flex-wrap gap-3">
+              {THEMES.map((theme) => (
+                <Choice
+                  key={theme}
+                  selected={prefs.theme === theme}
+                  onClick={() => update({ theme })}
+                  icon={THEME_ICONS[theme]}
+                  title={t(`settings.themes.${theme}`)}
+                  subtitle={t(`settings.themeDescriptions.${theme}`)}
+                />
+              ))}
+            </div>
+          </Card>
 
-      <Card id="settings.startPage" title={t('settings.startPage')}>
-        <p className="mb-3 text-xs text-slate-500">{t('settings.startPageHint')}</p>
-        <Select className="max-w-sm" value={prefs.startPage} onChange={(e) => update({ startPage: e.target.value })}>
-          <option value="last">{t('settings.lastPage')}</option>
-          <optgroup label={t('settings.modules')}>
-            {modules.map(({ manifest }) => (
-              <option key={manifest.id} value={manifest.id}>
-                {text(manifest).name}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label={t('settings.pages')}>
-            {appPages.map(({ manifest }) => (
-              <option key={manifest.id} value={manifest.id}>
-                {text(manifest).name}
-              </option>
-            ))}
-          </optgroup>
-        </Select>
-      </Card>
+          <Card id="settings.startPage" title={t('settings.startPage')}>
+            <p className="mb-3 text-xs text-slate-500">{t('settings.startPageHint')}</p>
+            <Select
+              className="max-w-sm"
+              value={prefs.startPage}
+              onChange={(e) => update({ startPage: e.target.value })}
+            >
+              <option value="last">{t('settings.lastPage')}</option>
+              <optgroup label={t('settings.modules')}>
+                {modules.map(({ manifest }) => (
+                  <option key={manifest.id} value={manifest.id}>
+                    {text(manifest).name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label={t('settings.pages')}>
+                {appPages.map(({ manifest }) => (
+                  <option key={manifest.id} value={manifest.id}>
+                    {text(manifest).name}
+                  </option>
+                ))}
+              </optgroup>
+            </Select>
+          </Card>
 
-      <ModulesCard />
+          <ConfigurationsCard />
 
-      <ConfigurationsCard />
-
-      <UpdatesCard />
+          <UpdatesCard />
+        </>
+      )}
     </div>
   )
 }

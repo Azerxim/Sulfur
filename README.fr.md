@@ -194,7 +194,7 @@ configuration par défaut.
 
 ### Activer et désactiver des modules
 
-**Paramètres → Modules activés** liste tous les modules, avec leur version, et une case à cocher. Un module désactivé
+**Paramètres → Modules → Modules activés** liste tous les modules, avec leur version, et une case à cocher. Un module désactivé
 est masqué de la barre latérale, de l'accueil et du choix de la page de démarrage ; il est arrêté
 aussitôt (ses canaux et ses points pour le simulateur et les courbes sont retirés) et n'est plus
 chargé au démarrage suivant. Sa configuration enregistrée est conservée, et toujours exportée et
@@ -222,7 +222,7 @@ versionnage sémantique : un module écrit pour l'API 1.2 fonctionne avec toute 
 un manifeste invalide, un identifiant réservé (`modules`, `config`, `home`, `info`, `settings`) ou
 déjà pris, une API des modules incompatible ou un `minAppVersion` trop récent fait refuser le module,
 qui n'existe alors pas pour l'application (ni canaux, ni configuration, ni page). Les modules refusés
-sont listés avec la raison dans **Paramètres → Modules activés**. Les modules livrés avec Sulfur utilisent
+sont listés avec la raison dans **Paramètres → Modules**. Les modules livrés avec Sulfur utilisent
 `builtinManifest({ id, name, description })` : version de l'application, édition standard, API
 courante.
 

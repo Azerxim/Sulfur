@@ -166,7 +166,11 @@ export default {
   },
   settings: {
     name: 'Paramètres',
-    description: 'Langue, apparence, configurations et mises à jour',
+    description: 'Langue, apparence, modules, configurations et mises à jour',
+    tabs: {
+      general: 'Général',
+      modules: 'Modules'
+    },
     language: 'Langue',
     languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",
     theme: 'Thème',

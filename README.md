@@ -189,7 +189,7 @@ inconsistent configuration), a button restores its default configuration.
 
 ### Enabling and disabling modules
 
-**Settings → Enabled modules** lists every module, with its version, and a checkbox. A disabled module is hidden from
+**Settings → Modules → Enabled modules** lists every module, with its version, and a checkbox. A disabled module is hidden from
 the sidebar, the home page and the startup page choices; it is stopped at once (its channels and its
 points for the simulator and the trends are removed) and is no longer loaded at the next start.
 Its saved configuration is kept, and still exported and imported. Disabling a module whose server
@@ -217,7 +217,7 @@ The main process checks every manifest before loading the module: an invalid man
 that is reserved (`modules`, `config`, `home`, `info`, `settings`) or already used, an incompatible
 module API or a too recent `minAppVersion` refuses the module, which then does not exist for the
 application (no channels, configuration or page). The refused modules are listed with the reason in
-**Settings → Enabled modules**. The modules shipped with Sulfur use `builtinManifest({ id, name,
+**Settings → Modules**. The modules shipped with Sulfur use `builtinManifest({ id, name,
 description })`: version of the application, standard edition, current module API.
 
 ### Adding a module

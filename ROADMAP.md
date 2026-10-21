@@ -71,7 +71,7 @@ premium module:
   premium edition).
 - [X] **Module manifest**: id, version, edition (`standard` / `premium`), required module API
   version and minimum Sulfur version; an incompatible module is refused with a clear message
-  (listed in Settings → Enabled modules).
+  (listed in Settings → Modules).
 - [ ] **Module SDK**: publish the module contract (`ctx.handle` / `emit` / `expose` / `peers`,
   `src/shared/points.js`, i18n helpers, shared UI components) as a versioned package, so that
   premium modules can be built outside this repository. The module API follows semantic
