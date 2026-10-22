@@ -102,6 +102,8 @@ git push --follow-tags
   ignored: an update is offered once its release is published. Installation is automatic on Windows,
   AppImage and .deb; on macOS (unsigned application), the new version is only reported, with a link to
   its release.
+- Signing the Windows and macOS installers, and publishing on the Microsoft Store, Mac App Store,
+  Flathub and Snap Store: see [docs/distribution.md](docs/distribution.md).
 
 ## Architecture
 
@@ -163,7 +165,8 @@ examples/
 ├── test-signal/          # Example external module (signal generator, data points)
 └── module-template/      # Template to start your own module
 docs/
-└── module-guide.md       # Module development guide
+├── module-guide.md       # Module development guide
+└── distribution.md       # Signing and publishing on the stores
 ```
 
 ## Module SDK

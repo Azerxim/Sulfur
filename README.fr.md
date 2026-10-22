@@ -106,6 +106,8 @@ git push --follow-tags
   en brouillon sont ignorées : une mise à jour n'est proposée qu'une fois sa release publiée.
   L'installation est automatique sous Windows, en AppImage et en .deb ; sous macOS (application non
   signée), la nouvelle version est seulement signalée, avec un lien vers sa release.
+- Signature des installeurs Windows et macOS, et publication sur le Microsoft Store, le Mac App Store,
+  Flathub et le Snap Store : voir [docs/distribution.fr.md](docs/distribution.fr.md).
 
 ## Architecture
 
@@ -167,7 +169,8 @@ examples/
 ├── test-signal/          # Module externe d'exemple (générateur de signal, points de données)
 └── module-template/      # Modèle pour démarrer son propre module
 docs/
-└── module-guide.fr.md    # Guide de développement de module
+├── module-guide.fr.md    # Guide de développement de module
+└── distribution.fr.md    # Signature et publication sur les stores
 ```
 
 ## SDK des modules
