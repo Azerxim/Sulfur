@@ -13,18 +13,20 @@ versioning: a module written for SDK 1.2 works with every Sulfur that provides a
 
 ## Installation
 
-The package is published on GitHub Packages. Add to the `.npmrc` of the module project:
+The package is published on [npm](https://www.npmjs.com/package/@azerxim/sulfur-sdk), with no
+configuration or token needed:
+
+```sh
+npm install --save-dev @azerxim/sulfur-sdk
+```
+
+It is also published on GitHub Packages. To install it from there, add to the `.npmrc` of the
+module project (`GITHUB_TOKEN`: personal access token with the `read:packages` scope, required by
+GitHub Packages even for public packages):
 
 ```ini
 @azerxim:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-```
-
-`GITHUB_TOKEN` is a personal access token with the `read:packages` scope (GitHub Packages requires
-one even for public packages). Then:
-
-```sh
-npm install --save-dev @azerxim/sulfur-sdk
 ```
 
 ## Entry points

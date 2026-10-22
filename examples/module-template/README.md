@@ -7,7 +7,6 @@ for the simulator and the trends, with its interface, saved settings and transla
 French). Copy this folder, then follow the [module development guide](../../docs/module-guide.md).
 
 ```sh
-export GITHUB_TOKEN=ghp_…   # token with the read:packages scope (the SDK is on GitHub Packages)
 npm install
 npm run build               # dist/my-module/ and dist/my-module-0.1.0.sulfur-module
 ```

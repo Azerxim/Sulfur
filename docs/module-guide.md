@@ -35,10 +35,9 @@ Once built, a module becomes a **package**: a folder with `module.json` and the 
 ## Requirements
 
 - **Node.js 22** or later, and npm;
-- **Sulfur 0.4** or later, to try the module;
-- a **GitHub token** (Settings → Developer settings → Personal access tokens) with the
-  `read:packages` scope: the SDK is published on GitHub Packages, which requires a token even for a
-  public package.
+- **Sulfur 0.4** or later, to try the module.
+
+The SDK is installed from npm, with no configuration or token needed.
 
 ## 1. Start from the template
 
@@ -46,12 +45,11 @@ Copy the [`examples/module-template`](../examples/module-template) folder wherev
 standalone project), then:
 
 ```sh
-export GITHUB_TOKEN=ghp_…   # read:packages token (Windows: set GITHUB_TOKEN=…)
 npm install
 npm run build
 ```
 
-The `.npmrc` file of the template tells npm where to find the SDK. `npm run build` produces
+`npm run build` produces
 `dist/my-module/` and the `dist/my-module-0.1.0.sulfur-module` archive.
 
 Then choose the identifier of your module (lowercase letters, digits and dashes, e.g.
@@ -68,7 +66,7 @@ of a Sulfur module.
 
 ```text
 my-module/
-  package.json, .npmrc, build.mjs
+  package.json, build.mjs
   src/
     manifest.js         manifest (defineManifest) and default settings
     i18n.js             translations (English, French)

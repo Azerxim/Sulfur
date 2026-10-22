@@ -14,18 +14,20 @@ export demande une nouvelle version majeure.
 
 ## Installation
 
-Le paquet est publié sur GitHub Packages. Ajouter au `.npmrc` du projet du module :
+Le paquet est publié sur [npm](https://www.npmjs.com/package/@azerxim/sulfur-sdk), sans
+configuration ni jeton :
+
+```sh
+npm install --save-dev @azerxim/sulfur-sdk
+```
+
+Il est aussi publié sur GitHub Packages. Pour l'installer depuis ce registre, ajouter au `.npmrc` du
+projet du module (`GITHUB_TOKEN` : jeton d'accès personnel avec le droit `read:packages`, que GitHub
+Packages demande même pour un paquet public) :
 
 ```ini
 @azerxim:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-```
-
-`GITHUB_TOKEN` est un jeton d'accès personnel avec le droit `read:packages` (GitHub Packages en
-demande un, même pour un paquet public). Puis :
-
-```sh
-npm install --save-dev @azerxim/sulfur-sdk
 ```
 
 ## Points d'entrée

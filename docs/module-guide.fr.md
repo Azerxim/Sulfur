@@ -36,10 +36,9 @@ archive `<id>-<version>.sulfur-module` à installer depuis les Paramètres.
 ## Prérequis
 
 - **Node.js 22** ou plus récent, et npm ;
-- **Sulfur 0.4** ou plus récent, pour essayer le module ;
-- un **jeton GitHub** (Settings → Developer settings → Personal access tokens) avec le droit
-  `read:packages` : le SDK est publié sur GitHub Packages, qui demande un jeton même pour un paquet
-  public.
+- **Sulfur 0.4** ou plus récent, pour essayer le module.
+
+Le SDK s'installe depuis npm, sans configuration ni jeton.
 
 ## 1. Démarrer depuis le modèle
 
@@ -47,12 +46,11 @@ Copiez le dossier [`examples/module-template`](../examples/module-template) où 
 projet indépendant), puis :
 
 ```sh
-export GITHUB_TOKEN=ghp_…   # jeton read:packages (Windows : set GITHUB_TOKEN=…)
 npm install
 npm run build
 ```
 
-Le fichier `.npmrc` du modèle indique où trouver le SDK. `npm run build` produit
+`npm run build` produit
 `dist/my-module/` et l'archive `dist/my-module-0.1.0.sulfur-module`.
 
 Choisissez ensuite l'identifiant de votre module (minuscules, chiffres et tirets, par exemple
@@ -69,7 +67,7 @@ doit pas être celui d'un module de Sulfur.
 
 ```text
 my-module/
-  package.json, .npmrc, build.mjs
+  package.json, build.mjs
   src/
     manifest.js         manifeste (defineManifest) et réglages par défaut
     i18n.js             traductions (anglais, français)

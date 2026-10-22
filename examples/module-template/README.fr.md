@@ -8,7 +8,6 @@ ses traductions (anglais, français). Copiez ce dossier, puis suivez le
 [guide de développement de module](../../docs/module-guide.fr.md).
 
 ```sh
-export GITHUB_TOKEN=ghp_…   # jeton avec le droit read:packages (le SDK est sur GitHub Packages)
 npm install
 npm run build               # dist/my-module/ et dist/my-module-0.1.0.sulfur-module
 ```

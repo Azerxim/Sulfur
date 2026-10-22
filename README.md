@@ -149,8 +149,8 @@ The modules only use the application through the **module SDK** `@azerxim/sulfur
 common strings, data points, saved configuration, certificates, passwords, served folders and the
 shared UI components (`Button`, `Card`, `Tabs`…). The Sulfur build resolves it from its sources (see
 `aliases.mjs`); a test checks that the modules import nothing else from the application. The SDK is
-published on GitHub Packages by the `SDK` workflow on the `sdk-v*` tags (e.g. `sdk-v1.0.0`, equal to
-the version of `packages/sdk/package.json`), so that additional modules, including your own, can be built
+published on npm and on GitHub Packages by the `SDK` workflow on the `sdk-v*` tags (e.g. `sdk-v1.1.0`,
+equal to the version of `packages/sdk/package.json`), so that additional modules, including your own, can be built
 outside this repository.
 
 ## Languages and theme

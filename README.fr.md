@@ -152,8 +152,8 @@ Les modules n'utilisent l'application qu'à travers le **SDK des modules** `@aze
 textes communs, points de données, configuration enregistrée, certificats, mots de passe, dossiers
 servis et composants d'interface partagés (`Button`, `Card`, `Tabs`…). Le build de Sulfur le résout
 depuis ses sources (voir `aliases.mjs`) ; un test vérifie que les modules n'importent rien d'autre de
-l'application. Le SDK est publié sur GitHub Packages par le workflow `SDK` sur les tags `sdk-v*`
-(ex. `sdk-v1.0.0`, égal à la version de `packages/sdk/package.json`), pour développer les modules
+l'application. Le SDK est publié sur npm et sur GitHub Packages par le workflow `SDK` sur les tags
+`sdk-v*` (ex. `sdk-v1.1.0`, égal à la version de `packages/sdk/package.json`), pour développer les modules
 additionnels, y compris les vôtres, hors de ce dépôt.
 
 ## Langues et thème

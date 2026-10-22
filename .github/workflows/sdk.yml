@@ -1,5 +1,12 @@
-# Publication du SDK des modules (@azerxim/sulfur-sdk) sur GitHub Packages, sur les tags sdk-v*
-# (ex. sdk-v1.0.0). Le tag doit correspondre à la version de packages/sdk/package.json.
+# Publication du SDK des modules (@azerxim/sulfur-sdk) sur les tags sdk-v* (ex. sdk-v1.1.0), après
+# lint et tests. Le tag doit correspondre à la version de packages/sdk/package.json.
+#  - npmjs.com : registre par défaut de npm, installation sans configuration ni jeton. Le workflow
+#    met la version en attente (npm stage publish) avec le secret NPM_TOKEN, jeton granulaire
+#    « Read and write (stage only) » du compte azerxim ; un mainteneur l'approuve ensuite avec sa 2FA
+#    (npm stage list, puis npm stage approve <id>, ou sur npmjs.com). Provenance signée par GitHub
+#    Actions.
+#  - GitHub Packages : avec le GITHUB_TOKEN du workflow.
+# Chaque registre a son job : une version déjà publiée y est sautée, un job relancé ne republie pas.
 name: SDK
 
 on:
@@ -8,36 +15,88 @@ on:
 
 permissions:
   contents: read
-  packages: write
+
+env:
+  # Le binaire Electron n'est pas nécessaire : les tests s'exécutent sous Node.
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
 
 jobs:
-  publish:
-    name: Publication du SDK
+  check:
+    name: Version, lint et tests
     runs-on: ubuntu-latest
-    env:
-      # Le binaire Electron n'est pas nécessaire : les tests s'exécutent sous Node.
-      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
-          registry-url: https://npm.pkg.github.com
-          scope: '@azerxim'
       - run: npm ci
       - name: Version du tag
+        id: version
         run: |
           version="$(node -p "require('./packages/sdk/package.json').version")"
           if [ "sdk-v$version" != "$GITHUB_REF_NAME" ]; then
             echo "::error::Le tag $GITHUB_REF_NAME ne correspond pas à la version $version du SDK"
             exit 1
           fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Lint et tests
         run: |
           npm run lint
           npm test
+      - name: Contenu du paquet
+        run: npm pack --dry-run ./packages/sdk
+
+  npm:
+    name: Mise en attente sur npmjs.com
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Provenance : attestation de construction signée par GitHub Actions (OIDC).
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # npm stage demande npm 11.15 ou plus récent.
+      - run: npm install --global npm@11
+      - name: Mise en attente
+        working-directory: packages/sdk
+        run: |
+          if npm view "@azerxim/sulfur-sdk@${{ needs.check.outputs.version }}" version 2>/dev/null | grep -q .; then
+            echo "::notice::Version ${{ needs.check.outputs.version }} déjà publiée sur npmjs.com"
+          else
+            npm stage publish --provenance --access public
+            echo "::notice::Version ${{ needs.check.outputs.version }} en attente sur npmjs.com : l'approuver avec npm stage approve (2FA)"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  github:
+    name: Publication sur GitHub Packages
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: '@azerxim'
       - name: Publication
-        run: npm publish ./packages/sdk
+        run: |
+          if npm view "@azerxim/sulfur-sdk@${{ needs.check.outputs.version }}" version 2>/dev/null | grep -q .; then
+            echo "::notice::Version ${{ needs.check.outputs.version }} déjà publiée sur GitHub Packages"
+          else
+            npm publish ./packages/sdk --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
