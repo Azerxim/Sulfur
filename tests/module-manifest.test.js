@@ -8,7 +8,7 @@ const manifest = (patch = {}) => ({
   id: 'demo',
   name: 'Demo',
   version: '1.0.0',
-  edition: 'premium',
+  edition: 'additional',
   apiVersion: '1.0.0',
   minAppVersion: '0.4.0',
   ...patch

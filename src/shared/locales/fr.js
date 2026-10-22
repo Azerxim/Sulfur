@@ -112,7 +112,7 @@ export default {
       summary: '{enabled} module(s) activé(s) sur {total}',
       enableAll: 'Tout activer',
       disableAll: 'Tout désactiver',
-      premium: 'Premium',
+      additional: 'Additionnel',
       external: 'Externe',
       rejected: 'Modules non chargés ({count})',
       api: 'API des modules {version}'
@@ -122,7 +122,7 @@ export default {
       hint: 'Modules développés hors de Sulfur avec son SDK, installés sous forme de paquets (un dossier par module) dans le dossier des paquets. Pris en compte au prochain démarrage de Sulfur, ou aussitôt avec Actualiser.',
       enable: 'Charger les modules externes',
       warning:
-        'Les paquets ne sont pas encore signés : un module externe s’exécute avec les droits de Sulfur. N’installez que des modules d’une source de confiance.',
+        'Les paquets ne sont pas signés : un module externe s’exécute avec les droits de Sulfur. N’installez que vos propres modules ou ceux d’une source de confiance.',
       folder: 'Dossier des paquets :',
       open: 'Ouvrir',
       loaded: '{count} module(s) externe(s) chargé(s)',

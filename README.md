@@ -150,8 +150,8 @@ common strings, data points, saved configuration, certificates, passwords, serve
 shared UI components (`Button`, `Card`, `Tabs`…). The Sulfur build resolves it from its sources (see
 `aliases.mjs`); a test checks that the modules import nothing else from the application. The SDK is
 published on GitHub Packages by the `SDK` workflow on the `sdk-v*` tags (e.g. `sdk-v1.0.0`, equal to
-the version of `packages/sdk/package.json`), so that premium modules can be built outside this
-repository.
+the version of `packages/sdk/package.json`), so that additional modules, including your own, can be built
+outside this repository.
 
 ## Languages and theme
 
@@ -222,7 +222,7 @@ Each module declares a manifest, the same object for its main and renderer parts
 | `name`          | fallback name (the displayed one comes from the `<id>.name` key)            |
 | `description`   | fallback description (`<id>.description` key)                               |
 | `version`       | version of the module (semver)                                              |
-| `edition`       | `standard` (Apache-2.0) or `premium` (commercial license)                   |
+| `edition`       | `standard` (built into Sulfur) or `additional` (separate package)            |
 | `apiVersion`    | version of the module API the module is written for (semver)               |
 | `minAppVersion` | minimum version of Sulfur (semver)                                          |
 
@@ -742,8 +742,9 @@ what it sends.
 ## License
 
 Sulfur is distributed under the [Apache License 2.0](LICENSE) — Copyright © 2026 Maxime MALLET. The
-modules of this repository form the free **standard** edition; **premium** modules, distributed
-separately under a commercial license, are planned (see the [roadmap](ROADMAP.md#standard-and-premium-editions)).
+modules of this repository are the **standard** modules; **additional** modules, distributed as
+separate packages, are planned, and anyone can build their own module with the SDK (see the
+[roadmap](ROADMAP.md#standard-and-additional-modules)).
 
 Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Each contributor signs the
 [Contributor License Agreement](CLA.md) once, on their first pull request.

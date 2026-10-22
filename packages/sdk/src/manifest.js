@@ -11,7 +11,7 @@
  *   name           nom affiché (repli si le module ne le traduit pas : `<id>.name`)
  *   description    description affichée (repli : `<id>.description`)
  *   version        version du module (semver « 1.2.3 »)
- *   edition        'standard' (Apache-2.0) ou 'premium' (licence commerciale)
+ *   edition        'standard' (intégré à Sulfur) ou 'additional' (paquet séparé)
  *   apiVersion     version de l'API des modules pour laquelle il est écrit (semver)
  *   minAppVersion  version minimale de Sulfur (semver)
  *
@@ -26,7 +26,7 @@
  */
 export const MODULE_API_VERSION = '1.0.0'
 
-export const EDITIONS = ['standard', 'premium']
+export const EDITIONS = ['standard', 'additional']
 
 /** Identifiant d'un module : préfixe des canaux IPC. */
 export const MODULE_ID_PATTERN = /^[a-z0-9-]+$/

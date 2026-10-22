@@ -170,8 +170,8 @@ function ModulesCard() {
                       <span className="flex items-baseline gap-2 text-sm text-slate-100">
                         {text(manifest).name}
                         <span className="text-[11px] text-slate-500 tabular-nums">v{manifest.version}</span>
-                        {manifest.edition === 'premium' && (
-                          <span className="text-[11px] text-sulfur-300">{t('settings.moduleSwitch.premium')}</span>
+                        {manifest.edition === 'additional' && (
+                          <span className="text-[11px] text-sulfur-300">{t('settings.moduleSwitch.additional')}</span>
                         )}
                         {externalIds.includes(manifest.id) && (
                           <span className="text-[11px] text-sky-300">{t('settings.moduleSwitch.external')}</span>
@@ -228,7 +228,7 @@ function ModulesCard() {
 
 /**
  * Modules externes : paquets installés dans le dossier des paquets, chargés seulement sur demande
- * (ils ne sont pas encore signés). Le choix, comme l'ajout, la mise à jour ou la suppression d'un
+ * (ils ne sont pas signés et s'exécutent avec les droits de Sulfur). Le choix, comme l'ajout, la mise à jour ou la suppression d'un
  * paquet, s'applique au prochain démarrage ou en actualisant les modules externes.
  */
 function ExternalModulesCard() {

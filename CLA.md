@@ -1,6 +1,6 @@
 # Sulfur Contributor License Agreement
 
-Version 1.0 — based on the Apache Software Foundation Individual Contributor License Agreement.
+Version 1.1 — based on the Apache Software Foundation Individual Contributor License Agreement.
 
 Thank you for your interest in Sulfur (the "Project"), owned and maintained by Maxime MALLET (the
 "Maintainer"). This Contributor License Agreement ("Agreement") documents the rights granted by
@@ -32,8 +32,8 @@ Subject to the terms and conditions of this Agreement, You hereby grant to the M
 recipients of software distributed by the Maintainer a perpetual, worldwide, non-exclusive,
 no-charge, royalty-free, irrevocable copyright license to reproduce, prepare derivative works of,
 publicly display, publicly perform, sublicense and distribute Your Contributions and such
-derivative works, **under any license terms, including open source and proprietary (commercial)
-licenses**.
+derivative works under the Apache License, Version 2.0, or another license approved by the Open
+Source Initiative.
 
 ## 3. Grant of patent license
 
@@ -51,9 +51,8 @@ shall terminate as of the date such litigation is filed.
 
 ## 4. Commitment of the Maintainer
 
-The Maintainer agrees that every Contribution included in the open source edition of the Project
-will remain available under the Apache License, Version 2.0, or another license approved by the
-Open Source Initiative, in addition to any other license the Maintainer may choose.
+The Maintainer agrees that every Contribution included in the Project will remain available under
+the Apache License, Version 2.0, or another license approved by the Open Source Initiative.
 
 ## 5. Your representations
 

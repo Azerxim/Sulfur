@@ -7,8 +7,8 @@ import { loadPreferences } from './preferences'
 
 /**
  * Modules externes installés dans `<userData>/module-packages`, chargés seulement si l'utilisateur
- * l'a demandé (Paramètres → Modules) : ces paquets ne sont pas encore signés et leur code
- * s'exécute avec les droits de l'application. Chargés après les modules intégrés (ils peuvent
+ * l'a demandé (Paramètres → Modules) : ces paquets ne sont pas signés (chacun peut créer le sien)
+ * et leur code s'exécute avec les droits de l'application. Chargés après les modules intégrés (ils peuvent
  * utiliser leurs points) et actualisables sans redémarrer Sulfur (reload).
  */
 export class ExternalModules {

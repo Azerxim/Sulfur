@@ -5,7 +5,7 @@
 
 // --- Manifeste ---------------------------------------------------------------------------------
 
-export type Edition = 'standard' | 'premium'
+export type Edition = 'standard' | 'additional'
 
 export interface ModuleManifest {
   /** Identifiant, préfixe des canaux IPC (`[a-z0-9-]+`), unique. */

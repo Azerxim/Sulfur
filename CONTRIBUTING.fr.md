@@ -7,17 +7,16 @@ les bienvenus.
 
 ## Licence et CLA
 
-Sulfur est distribué sous [licence Apache 2.0](LICENSE). En plus de l'édition gratuite (standard),
-des modules premium sous licence commerciale sont prévus (voir la [roadmap](ROADMAP.fr.md)).
+Sulfur est distribué sous [licence Apache 2.0](LICENSE). Des modules additionnels, distribués en
+paquets séparés, sont prévus (voir la [roadmap](ROADMAP.fr.md)).
 
-Pour que les contributions puissent être utilisées dans les deux éditions, chaque contributeur
-signe une fois le [Contributor License Agreement](CLA.md) (CLA, accord de licence du contributeur) :
+Chaque contributeur signe une fois le [Contributor License Agreement](CLA.md) (CLA, accord de licence du contributeur) :
 
 - vous conservez le droit d'auteur sur vos contributions ;
-- vous autorisez le mainteneur à les distribuer sous Apache-2.0 et sous d'autres licences, y compris
-  commerciales ;
-- en contrepartie, toute contribution intégrée à l'édition open source reste disponible sous
-  Apache-2.0 (ou une autre licence approuvée par l'OSI).
+- vous autorisez le mainteneur à les distribuer sous Apache-2.0 (ou une autre licence approuvée par
+  l'OSI) ;
+- en contrepartie, toute contribution intégrée à Sulfur reste disponible sous Apache-2.0 (ou une
+  autre licence approuvée par l'OSI).
 
 Le texte de référence du CLA est la version anglaise ([CLA.md](CLA.md)). À l'ouverture de votre
 première pull request, un bot vous demande de le signer : publiez le commentaire

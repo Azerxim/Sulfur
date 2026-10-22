@@ -52,7 +52,7 @@ export const DEMO_MODULE = defineManifest({
   name: 'Demo',
   description: 'Demo module',
   version: '1.0.0',
-  edition: 'premium',
+  edition: 'additional',
   minAppVersion: '0.5.0'
 })
 ```
@@ -144,9 +144,10 @@ dist/demo/
 - **Installation**: copy the package folder into the packages folder (Settings → Modules →
   *External modules*, *Open* button), check *Load the external modules*, then click *Refresh*
   (no need to restart Sulfur; likewise after updating the package). The descriptor is checked before any code runs; a refused package is listed with the reason. Packages
-  are not signed yet: loading them is disabled by default. Package signing comes with the next step
-  of the [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-premium-editions).
+  are not signed, so anyone can build and install their own module; since a module runs with the
+  rights of Sulfur, loading them is disabled by default (see the
+  [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-additional-modules)).
 
 ## License
 
-[Apache License 2.0](LICENSE). Premium modules built with the SDK may use their own license.
+[Apache License 2.0](LICENSE). Additional modules built with the SDK may use their own license.

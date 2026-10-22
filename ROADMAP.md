@@ -51,30 +51,30 @@ Make the simulators more useful for testing real equipment and software.
 - [X] **Modbus**: register explorer on the server side, several Unit IDs on one server (gateway
   simulation), device identification (function 43 / 14), read/write multiple registers (function 23).
 
-## Standard and premium editions
+## Standard and additional modules
 
 Sulfur is distributed under the [Apache License 2.0](LICENSE). The application and the **standard**
-modules stay free and open source in this repository; **premium** modules, marked *(premium)* in
-this roadmap, will be developed in a private repository and distributed separately under a
-commercial license. Unmarked modules are standard.
+modules are built into this repository; **additional** modules, marked *(additional)* in this
+roadmap, are distributed as separate packages and installed on demand. Anyone can build their own
+module with the module SDK and install it in Sulfur, without any approval or signature. Unmarked
+modules are standard.
 
-| Edition                                | Modules                                                                                                         |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Standard** (free, Apache-2.0)  | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP / RADIUS, FTP / SFTP, TFTP, TCP / UDP proxy, DHCP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
-| **Premium** (commercial license) | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
+| Type                                    | Modules                                                                                                         |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Standard** (built in)                 | OPC UA, Modbus (TCP, RTU, ASCII), HTTP / REST, NTP, MQTT, SNMP, Syslog, DNS, LDAP / RADIUS, FTP / SFTP, TFTP, TCP / UDP proxy, DHCP, CoAP / LwM2M, Siemens S7, PLCSim Advanced, Certificate authority, Network explorer, Serial terminal, Simulator, Trends |
+| **Additional** (separate packages)      | Siemens S7 Enhanced, Sparkplug B, EtherNet/IP (CIP), BACnet/IP, OPC UA PubSub, Mitsubishi MC / SLMP, Omron FINS, Beckhoff ADS, KNX/IP, PROFINET DCP, IEC 60870-5-104, DNP3, IEC 61850, DLMS/COSEM, M-Bus, PTP |
 
-Modules already published under Apache-2.0 stay standard. Structure to set up before the first
-premium module:
+Structure to set up before the first additional module:
 
 - [X] **License**: Apache-2.0 for the application and the standard modules, contributors'
-  [CLA](CLA.md) signed on the first pull request (so that contributions can also be used in the
-  premium edition).
-- [X] **Module manifest**: id, version, edition (`standard` / `premium`), required module API
+  [CLA](CLA.md) signed on the first pull request.
+- [X] **Module manifest**: id, version, edition (`standard` / `additional`), required module API
   version and minimum Sulfur version; an incompatible module is refused with a clear message
   (listed in Settings → Modules).
 - [X] **Module SDK**: publish the module contract (`ctx.handle` / `emit` / `expose` / `peers`,
-  data points, i18n helpers, shared UI components) as a versioned package, so that premium modules
-  can be built outside this repository. The module API follows semantic versioning.
+  data points, i18n helpers, shared UI components) as a versioned package, so that additional
+  modules, including the users' own modules, can be built outside this repository. The module API
+  follows semantic versioning.
   `@azerxim/sulfur-sdk` (`packages/sdk`, TypeScript declarations included), used by every built-in
   module and published on GitHub Packages on the `sdk-v*` tags.
 - [X] **External modules**: `src/main/modules.js` and `src/renderer/src/modules.js` become a
@@ -83,19 +83,16 @@ premium module:
   React and the UI components through the SDK instead of bundling them again.
   Packages (`module.json` + built files) produced by `buildModule` (`@azerxim/sulfur-sdk/build`),
   served by the `sulfur-module://` protocol, Tailwind styles on the Sulfur theme
-  (`@azerxim/sulfur-sdk/module.css`); loading opt-in in Settings → Modules until packages are
-  signed, refresh without restarting Sulfur.
-- [ ] **Module packages**: signed archives (Ed25519), signature checked before loading: only modules
-  signed by the publisher are loaded, since a module runs with the rights of the main process.
-  Installing, updating and removing modules from a *Modules* page in the Settings.
-- [ ] **Licenses**: signed license file, verified offline with a public key embedded in the
-  application (holder, expiry date, premium modules covered); *License* page in the Settings.
-  Without a valid license, a premium module is listed but locked.
-- [ ] **Configurations**: on import, the sections of a premium module that is not installed or not
-  licensed are kept and reported (they are ignored today).
-- [ ] **Premium repository**: private repository with its own CI (build against the SDK, tests,
-  package signature), end user license agreement (EULA), release of the packages alongside the
-  application installers.
+  (`@azerxim/sulfur-sdk/module.css`); loading opt-in in Settings → Modules, refresh without
+  restarting Sulfur.
+- [ ] **Module packages**: single-file archive of a module (`module.json` + built files), not
+  signed. Installing, updating and removing modules from a *Modules* page in the Settings; since a
+  module runs with the rights of the main process, the publisher and the requested version are
+  shown and installation is confirmed explicitly.
+- [ ] **Configurations**: on import, the sections of a module that is not installed are kept and
+  reported (they are ignored today).
+- [ ] **Module development guide**: documentation and a module template (SDK, `buildModule`,
+  packaging), so that users can create and share their own modules.
 
 ## New modules: tools
 
@@ -120,7 +117,7 @@ Cross-cutting tools that serve every module and make it easier to set up a test 
 Simpler protocols, quick to deliver, useful to supervise and integrate equipment.
 
 - [X] **MQTT**: broker and client, TLS, topic simulation
-- [ ] **Sparkplug B** *(premium)*: on top of the MQTT module
+- [ ] **Sparkplug B** *(additional)*: on top of the MQTT module
 - [X] **SNMP**: agent and manager, v1 / v2c / v3 (USM authentication and encryption), simulated MIB
   and traps
 - [X] **Syslog**: server and sender, UDP / TCP / TLS
@@ -166,28 +163,28 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 - [X] **Siemens PLCSim Advanced**: drive virtual S7-1500 PLCs (create and start instances, read /
   write tags, points published for the simulator and trends). Windows only: PLCSim Advanced must be
   installed and the user gives the path to its DLLs (Simulation Runtime API) in the module settings.
-- [ ] **Siemens S7 Enhanced** *(premium)*: S7CommPlus protocol of the S7-1200 / S7-1500 (firmware
+- [ ] **Siemens S7 Enhanced** *(additional)*: S7CommPlus protocol of the S7-1200 / S7-1500 (firmware
   V4 and later): symbolic access to optimized data blocks (no PUT / GET to enable), browsing of the
   PLC tags, secure communication (TLS) of recent firmware; extends the Siemens S7 module
-- [ ] **EtherNet/IP (CIP)** *(premium)*: Rockwell / Allen-Bradley controllers
-- [ ] **BACnet/IP** *(premium)*: building automation (HVAC, lighting)
-- [ ] **OPC UA PubSub** *(premium)*: publish / subscribe mode of OPC UA, as an extension of the OPC UA module
-- [ ] **Mitsubishi MC / SLMP** and **Omron FINS** *(premium)*: Mitsubishi MELSEC and Omron PLCs
-- [ ] **Beckhoff ADS** *(premium)*: TwinCAT PLCs, symbolic access to variables
-- [ ] **KNX/IP** *(premium)*: building automation, alongside BACnet/IP
-- [ ] **PROFINET DCP** *(premium)*: device discovery, naming and addressing (without the cyclic
+- [ ] **EtherNet/IP (CIP)** *(additional)*: Rockwell / Allen-Bradley controllers
+- [ ] **BACnet/IP** *(additional)*: building automation (HVAC, lighting)
+- [ ] **OPC UA PubSub** *(additional)*: publish / subscribe mode of OPC UA, as an extension of the OPC UA module
+- [ ] **Mitsubishi MC / SLMP** and **Omron FINS** *(additional)*: Mitsubishi MELSEC and Omron PLCs
+- [ ] **Beckhoff ADS** *(additional)*: TwinCAT PLCs, symbolic access to variables
+- [ ] **KNX/IP** *(additional)*: building automation, alongside BACnet/IP
+- [ ] **PROFINET DCP** *(additional)*: device discovery, naming and addressing (without the cyclic
   real-time exchange, which requires a dedicated driver)
 
 ## New modules: energy, metering and transport
 
-- [ ] **IEC 60870-5-104** and **DNP3** *(premium)*: telecontrol
-- [ ] **IEC 61850** (MMS, GOOSE) *(premium)*: electrical substations; requires a native library (libiec61850)
-- [ ] **DLMS/COSEM** (IEC 62056) and **M-Bus** *(premium)*: energy and water meter reading
-- [ ] **PTP** (IEEE 1588) *(premium)*: precise time synchronization, alongside NTP (used in
+- [ ] **IEC 60870-5-104** and **DNP3** *(additional)*: telecontrol
+- [ ] **IEC 61850** (MMS, GOOSE) *(additional)*: electrical substations; requires a native library (libiec61850)
+- [ ] **DLMS/COSEM** (IEC 62056) and **M-Bus** *(additional)*: energy and water meter reading
+- [ ] **PTP** (IEEE 1588) *(additional)*: precise time synchronization, alongside NTP (used in
   IEC 61850 substations); limited accuracy without hardware timestamping
 
 Each new module follows the existing module contract (main / renderer / shared, its own translations);
-premium modules use the module SDK and are distributed as signed packages.
+additional modules use the module SDK and are distributed as separate packages.
 The order within each version will be set according to needs.
 
 ## Later

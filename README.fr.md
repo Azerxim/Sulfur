@@ -154,7 +154,7 @@ servis et composants d'interface partagés (`Button`, `Card`, `Tabs`…). Le bui
 depuis ses sources (voir `aliases.mjs`) ; un test vérifie que les modules n'importent rien d'autre de
 l'application. Le SDK est publié sur GitHub Packages par le workflow `SDK` sur les tags `sdk-v*`
 (ex. `sdk-v1.0.0`, égal à la version de `packages/sdk/package.json`), pour développer les modules
-premium hors de ce dépôt.
+additionnels, y compris les vôtres, hors de ce dépôt.
 
 ## Langues et thème
 
@@ -227,7 +227,7 @@ Chaque module déclare un manifeste, le même objet pour ses parties main et ren
 | `name`          | nom de repli (le nom affiché vient de la clé `<id>.name`)                        |
 | `description`   | description de repli (clé `<id>.description`)                                    |
 | `version`       | version du module (semver)                                                       |
-| `edition`       | `standard` (Apache-2.0) ou `premium` (licence commerciale)                       |
+| `edition`       | `standard` (intégré à Sulfur) ou `additional` (paquet séparé)                   |
 | `apiVersion`    | version de l'API des modules pour laquelle le module est écrit (semver)          |
 | `minAppVersion` | version minimale de Sulfur (semver)                                              |
 
@@ -777,8 +777,9 @@ le tester ou observer ce qu'il envoie.
 ## Licence
 
 Sulfur est distribué sous [licence Apache 2.0](LICENSE) — Copyright © 2026 Maxime MALLET. Les modules
-de ce dépôt forment l'édition **standard**, gratuite ; des modules **premium**, distribués à part sous
-licence commerciale, sont prévus (voir la [roadmap](ROADMAP.fr.md#éditions-standard-et-premium)).
+de ce dépôt sont les modules **standard** ; des modules **additionnels**, distribués en paquets
+séparés, sont prévus, et chacun peut créer son propre module avec le SDK (voir la
+[roadmap](ROADMAP.fr.md#modules-standard-et-additionnels)).
 
 Les contributions sont les bienvenues : voir [CONTRIBUTING.fr.md](CONTRIBUTING.fr.md). Chaque
 contributeur signe une fois le [Contributor License Agreement](CLA.md), à sa première pull request.

@@ -109,7 +109,7 @@ export default {
       summary: '{enabled} of {total} modules enabled',
       enableAll: 'Enable all',
       disableAll: 'Disable all',
-      premium: 'Premium',
+      additional: 'Additional',
       external: 'External',
       rejected: 'Modules not loaded ({count})',
       api: 'Module API {version}'
@@ -119,7 +119,7 @@ export default {
       hint: 'Modules developed outside Sulfur with its SDK, installed as packages (one folder per module) in the packages folder. Taken into account at the next start of Sulfur, or right away with Refresh.',
       enable: 'Load the external modules',
       warning:
-        'Packages are not signed yet: an external module runs with the rights of Sulfur. Only install modules from a source you trust.',
+        'Packages are not signed: an external module runs with the rights of Sulfur. Only install modules you wrote yourself or from a source you trust.',
       folder: 'Packages folder:',
       open: 'Open',
       loaded: '{count} external module(s) loaded',

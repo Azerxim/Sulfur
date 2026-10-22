@@ -11,7 +11,7 @@ import { loadPreferences, savePreferences } from './preferences'
  *
  * Modules externes (`external` : ExternalModules) : `modules:packages` (chargement en cours et
  * choix enregistré, paquets chargés et URL de leur interface), `modules:setExternal` (chargement
- * des paquets non signés), `modules:reload` (actualisation des modules externes selon ce choix ;
+ * des paquets, qui ne sont pas signés), `modules:reload` (actualisation des modules externes selon ce choix ;
  * l'interface se recharge ensuite) et `modules:openPackagesDir`.
  */
 export function registerModuleSwitch(host, moduleIds, external) {
