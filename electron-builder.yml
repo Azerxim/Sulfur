@@ -12,11 +12,18 @@ files:
   - '!packages/*'
   - '!examples/*'
   - '!aliases.mjs'
+  - '!node_modules/cpu-features/build/**'
+  - '!node_modules/ssh2/lib/protocol/crypto/build/**'
   - '!{electron.vite.config,vitest.config,eslint.config}.*'
   - '!{.editorconfig,.prettierrc.json,.prettierignore,jsconfig.json}'
   - '!{README.md,README.fr.md,ROADMAP.md,ROADMAP.fr.md,CLAUDE.md,CLA.md,CONTRIBUTING.md,CONTRIBUTING.fr.md}'
 asarUnpack:
   - resources/**
+# Pas de recompilation des modules natifs pour Electron : serialport fournit des binaires N-API
+# précompilés (compatibles avec Electron) pour chaque plateforme, et les modules natifs facultatifs
+# de ssh2 (cpu-features, sshcrypto) ont un repli en JavaScript. Leur recompilation échoue en CI
+# (buildcheck.gypi absent) ; les binaires compilés pour Node en local sont exclus du paquet.
+npmRebuild: false
 # Source des mises à jour (electron-updater) : releases GitHub. Les builds restent en --publish never :
 # c'est la CI qui joint installeurs, latest*.yml et .blockmap à la release.
 publish:
