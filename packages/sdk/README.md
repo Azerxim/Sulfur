@@ -107,6 +107,9 @@ description come from the `demo.name` and `demo.description` keys. Common string
 
 ## External module
 
+Step by step, from a ready-to-use template: see the
+[module development guide](https://github.com/Azerxim/Sulfur/blob/main/docs/module-guide.md).
+
 A module developed outside the Sulfur repository is delivered as a **package**: a folder holding
 its `module.json` descriptor (manifest, sidebar group, files) and its built files. `buildModule`
 produces it with [Vite](https://vite.dev):

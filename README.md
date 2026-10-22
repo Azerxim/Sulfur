@@ -217,6 +217,9 @@ immediately. The list is kept by the main process in `<userData>/preferences.jso
 
 ### Module packages
 
+To create your own module, follow the [module development guide](docs/module-guide.md), which
+starts from the template in [`examples/module-template`](examples/module-template).
+
 An external module (developed with the SDK, yours included) is shared as a **package**: a single
 `<id>-<version>.sulfur-module` file (ZIP archive of `module.json` and the built files), produced by
 `packModule` of the SDK. **Settings → Modules → External modules → Install a package…** reads and

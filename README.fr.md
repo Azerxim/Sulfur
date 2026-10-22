@@ -222,6 +222,9 @@ principal dans `<userData>/preferences.json` (`disabledModules`).
 
 ### Paquets de modules
 
+Pour créer votre propre module, suivez le [guide de développement de module](docs/module-guide.fr.md),
+qui part du modèle d'[`examples/module-template`](examples/module-template).
+
 Un module externe (développé avec le SDK, y compris les vôtres) se partage sous forme de
 **paquet** : un seul fichier `<id>-<version>.sulfur-module` (archive ZIP de `module.json` et des
 fichiers construits), produit par `packModule` du SDK. **Paramètres → Modules → Modules externes →

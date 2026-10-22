@@ -97,8 +97,10 @@ Structure to set up before the first additional module:
   reported (they are ignored today).
   Kept in `<userData>/modules/<id>/config.json`, applied (with `migrateConfig`) once the module is
   installed and loaded, and included again in the next export.
-- [ ] **Module development guide**: documentation and a module template (SDK, `buildModule`,
+- [X] **Module development guide**: documentation and a module template (SDK, `buildModule`,
   packaging), so that users can create and share their own modules.
+  [Guide](docs/module-guide.md) (EN / FR) and template in `examples/module-template` (counter published
+  as a data point), built and run by the tests.
 
 ## New modules: tools
 

@@ -108,6 +108,9 @@ description affichés viennent des clés `demo.name` et `demo.description`. Les 
 
 ## Module externe
 
+Pas à pas, à partir d'un modèle prêt à l'emploi : voir le
+[guide de développement de module](https://github.com/Azerxim/Sulfur/blob/main/docs/module-guide.fr.md).
+
 Un module développé hors du dépôt de Sulfur est livré sous forme de **paquet** : un dossier qui
 contient son descripteur `module.json` (manifeste, groupe de la barre latérale, fichiers) et ses
 fichiers construits. `buildModule` le produit avec [Vite](https://vite.dev) :

@@ -101,8 +101,10 @@ Structure à mettre en place avant le premier module additionnel :
   signalées (elles sont ignorées aujourd'hui).
   Conservées dans `<userData>/modules/<id>/config.json`, appliquées (avec `migrateConfig`) une fois
   le module installé et chargé, et reprises par l'export suivant.
-- [ ] **Guide de développement de module** : documentation et modèle de module (SDK, `buildModule`,
+- [X] **Guide de développement de module** : documentation et modèle de module (SDK, `buildModule`,
   empaquetage), pour que les utilisateurs puissent créer et partager leurs propres modules.
+  [Guide](docs/module-guide.fr.md) (EN / FR) et modèle dans `examples/module-template` (compteur publié
+  comme point de données), construit et exécuté par les tests.
 
 ## Nouveaux modules : outils
 
