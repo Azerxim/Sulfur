@@ -5,6 +5,12 @@ import type { ModuleGroup, ModuleManifest, ModulePackage } from './index.js'
 /** Plugin Vite : imports fournis par l'application (React, SDK) lus à l'exécution, non embarqués. */
 export function sulfurShared(side: 'main' | 'renderer'): Plugin
 
+/**
+ * Archive le dossier d'un paquet dans `file` (par défaut `<id>-<version>.sulfur-module` à côté du
+ * dossier) ; retourne le chemin de l'archive.
+ */
+export function packModule(dir: string, file?: string): Promise<string>
+
 /** Construit le paquet d'un module externe ; retourne le descripteur écrit dans module.json. */
 export function buildModule(options: {
   manifest: ModuleManifest

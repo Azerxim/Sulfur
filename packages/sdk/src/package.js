@@ -33,7 +33,7 @@ export const SHARED_MODULES = {
   renderer: ['react', 'react/jsx-runtime', 'react-dom', '@azerxim/sulfur-sdk', '@azerxim/sulfur-sdk/ui']
 }
 
-const MANIFEST_FIELDS = ['id', 'name', 'description', 'version', 'edition', 'apiVersion', 'minAppVersion']
+const MANIFEST_FIELDS = ['id', 'name', 'description', 'version', 'author', 'edition', 'apiVersion', 'minAppVersion']
 
 /** Fichier d'un paquet : chemin relatif sans « .. » ni dossier caché, avec l'extension attendue. */
 const isPackageFile = (file, extensions) =>

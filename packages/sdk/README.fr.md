@@ -35,7 +35,8 @@ npm install --save-dev @azerxim/sulfur-sdk
 | `@azerxim/sulfur-sdk`        | main et interface       | manifeste (`defineManifest`, `checkManifest`), traductions (`registerMessages`, `moduleT`, `formatTime`…), points de données (`pointKey`, `toNumber`, `FAULT_TYPES`), `withDefaults`, réseaux privés, `simulate` |
 | `@azerxim/sulfur-sdk/main`   | process principal       | `ensureCertificate` (certificat TLS auto-signé), `hashPassword` / `verifyPassword` (scrypt), dossiers servis confinés (`resolveInside`, `prepareRoot`) |
 | `@azerxim/sulfur-sdk/ui`     | interface (React)       | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
-| `@azerxim/sulfur-sdk/build`  | Node (construction)     | `buildModule` (paquet d'un module externe), `sulfurShared` (plugin Vite) |
+| `@azerxim/sulfur-sdk/build`  | Node (construction)     | `buildModule` (paquet d'un module externe), `packModule` (archive `.sulfur-module`), `sulfurShared` (plugin Vite) |
+| `@azerxim/sulfur-sdk/archive` | Node                   | lecture et écriture des archives `.sulfur-module` (`packModule`, `readModuleArchive`)       |
 | `@azerxim/sulfur-sdk/module.css` | CSS (Tailwind v4)   | utilitaires Tailwind d'un module externe, sur le thème de Sulfur (`theme.css`) |
 | `@azerxim/sulfur-sdk/host`   | Sulfur uniquement       | cache des configurations de l'interface ; pas pour les modules                              |
 
@@ -53,6 +54,7 @@ export const DEMO_MODULE = defineManifest({
   name: 'Démo',
   description: 'Module de démonstration',
   version: '1.0.0',
+  author: 'Jane Doe', // facultatif, affiché avant l'installation
   edition: 'additional',
   minAppVersion: '0.5.0'
 })
@@ -113,7 +115,7 @@ fichiers construits. `buildModule` le produit avec [Vite](https://vite.dev) :
 ```js
 // build.mjs — node build.mjs
 import tailwindcss from '@tailwindcss/vite'
-import { buildModule } from '@azerxim/sulfur-sdk/build'
+import { buildModule, packModule } from '@azerxim/sulfur-sdk/build'
 import { DEMO_MODULE } from './src/shared/constants.js'
 
 await buildModule({
@@ -124,6 +126,7 @@ await buildModule({
   outDir: 'dist/demo',
   vite: { renderer: { plugins: [tailwindcss()] } }
 })
+await packModule('dist/demo') // dist/demo-1.0.0.sulfur-module, à installer depuis les Paramètres
 ```
 
 ```
@@ -142,11 +145,16 @@ dist/demo/
   `@import '@azerxim/sulfur-sdk/module.css';` (puis `@source` vers les sources du module) : seuls
   les utilitaires du module sont produits, sur les variables du thème de Sulfur (thème clair
   compris).
-- **Installation** : copier le dossier du paquet dans le dossier des paquets (Paramètres → Modules
-  → *Modules externes*, bouton *Ouvrir*), cocher *Charger les modules externes* puis cliquer sur
-  *Actualiser* (sans redémarrer Sulfur ; de même après une mise à jour du paquet). Le descripteur est vérifié avant tout code ; un paquet refusé est listé avec la raison.
-  Les paquets ne sont pas signés : chacun peut créer et installer son propre module ; comme un module
-  s'exécute avec les droits de Sulfur, leur chargement est désactivé par défaut (voir la
+- **Archive** : `packModule(dir)` écrit le paquet en un seul fichier `<id>-<version>.sulfur-module`
+  (archive ZIP, `module.json` en premier) à côté du dossier, pour partager le module.
+- **Installation** : Paramètres → Modules → *Modules externes* → *Installer un paquet…* : Sulfur
+  vérifie l'archive, affiche le module, sa version et son auteur, puis l'installe après
+  confirmation (une version installée est remplacée). Pendant le développement, le dossier du paquet
+  peut aussi être copié dans le dossier des paquets (bouton *Ouvrir*). Cocher ensuite *Charger les
+  modules externes* puis cliquer sur *Actualiser* (sans redémarrer Sulfur). Le descripteur est
+  vérifié avant tout code ; un paquet refusé est listé avec la raison. Les paquets ne sont pas
+  signés : chacun peut créer et installer son propre module ; comme un module s'exécute avec les
+  droits de Sulfur, leur chargement est désactivé par défaut (voir la
   [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.fr.md#modules-standard-et-additionnels)).
 
 ## Licence

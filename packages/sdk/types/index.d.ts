@@ -16,6 +16,8 @@ export interface ModuleManifest {
   description?: string
   /** Version du module (semver). */
   version: string
+  /** Auteur ou éditeur (facultatif), affiché avant l'installation d'un paquet. */
+  author?: string
   edition: Edition
   /** Version de l'API des modules pour laquelle le module est écrit (semver). */
   apiVersion: string

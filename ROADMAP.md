@@ -85,10 +85,14 @@ Structure to set up before the first additional module:
   served by the `sulfur-module://` protocol, Tailwind styles on the Sulfur theme
   (`@azerxim/sulfur-sdk/module.css`); loading opt-in in Settings → Modules, refresh without
   restarting Sulfur.
-- [ ] **Module packages**: single-file archive of a module (`module.json` + built files), not
+- [X] **Module packages**: single-file archive of a module (`module.json` + built files), not
   signed. Installing, updating and removing modules from a *Modules* page in the Settings; since a
   module runs with the rights of the main process, the publisher and the requested version are
   shown and installation is confirmed explicitly.
+  `<id>-<version>.sulfur-module` file (ZIP) produced by `packModule` (`@azerxim/sulfur-sdk/build`),
+  read with limits (relative paths, 2000 files, 200 MB, CRC); optional `author` field in the
+  manifest; Settings → Modules → *External modules*: *Install a package…*, list of the installed
+  packages and removal, automatic refresh when the external modules are loaded.
 - [ ] **Configurations**: on import, the sections of a module that is not installed are kept and
   reported (they are ignored today).
 - [ ] **Module development guide**: documentation and a module template (SDK, `buildModule`,

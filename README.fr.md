@@ -217,6 +217,25 @@ importée. Désactiver un module dont le serveur est démarré ou le client conn
 arrêtez-le d'abord. Un module réactivé est chargé immédiatement. La liste est tenue par le process
 principal dans `<userData>/preferences.json` (`disabledModules`).
 
+### Paquets de modules
+
+Un module externe (développé avec le SDK, y compris les vôtres) se partage sous forme de
+**paquet** : un seul fichier `<id>-<version>.sulfur-module` (archive ZIP de `module.json` et des
+fichiers construits), produit par `packModule` du SDK. **Paramètres → Modules → Modules externes →
+Installer un paquet…** le lit et le vérifie (descripteur, fichiers, compatibilité, identifiant non
+pris par un module intégré), puis affiche le module, sa version, son auteur et la version déjà
+installée avant de demander confirmation ; rien n'est écrit avant. Le paquet est extrait dans
+`<userData>/module-packages/<id>`, à la place de la version précédente. La même liste supprime un
+paquet installé. Quand les modules externes sont chargés, Sulfur les actualise juste après une
+installation ou une suppression ; l'une comme l'autre est refusée tant qu'un serveur d'un module
+externe tourne ou qu'un client est connecté.
+
+Les paquets **ne sont pas signés** : chacun peut créer et installer son propre module, sans
+validation. Comme un module s'exécute avec les droits de Sulfur (fichiers, réseau), le chargement
+des modules externes est désactivé par défaut, et la confirmation rappelle que la provenance du
+paquet ne peut pas être vérifiée. La lecture d'une archive est limitée (chemins relatifs
+uniquement, 2000 fichiers, 200 Mo une fois extraite, CRC contrôlé).
+
 ### Manifeste des modules
 
 Chaque module déclare un manifeste, le même objet pour ses parties main et renderer :
@@ -227,11 +246,12 @@ Chaque module déclare un manifeste, le même objet pour ses parties main et ren
 | `name`          | nom de repli (le nom affiché vient de la clé `<id>.name`)                        |
 | `description`   | description de repli (clé `<id>.description`)                                    |
 | `version`       | version du module (semver)                                                       |
+| `author`        | auteur ou éditeur (facultatif), affiché avant l'installation d'un paquet         |
 | `edition`       | `standard` (intégré à Sulfur) ou `additional` (paquet séparé)                   |
 | `apiVersion`    | version de l'API des modules pour laquelle le module est écrit (semver)          |
 | `minAppVersion` | version minimale de Sulfur (semver)                                              |
 
-L'API des modules (`MODULE_API_VERSION` du SDK, égale à sa version, actuellement 1.0.0) suit le
+L'API des modules (`MODULE_API_VERSION` du SDK, égale à sa version, actuellement 1.1.0) suit le
 versionnage sémantique : un module écrit pour l'API 1.2 fonctionne avec toute API 1.x à partir de
 1.2, pas avec une API 2.x. Le process principal vérifie chaque manifeste avant de charger le module :
 un manifeste invalide, un identifiant réservé (`modules`, `config`, `home`, `info`, `settings`) ou

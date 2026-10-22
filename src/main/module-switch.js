@@ -1,5 +1,7 @@
-import { shell } from 'electron'
+import { BrowserWindow, dialog, shell } from 'electron'
 import fs from 'fs/promises'
+import { t } from '@azerxim/sulfur-sdk'
+import { MODULE_ARCHIVE_EXTENSION } from '@azerxim/sulfur-sdk/archive'
 import { packageUrl } from './module-packages'
 import { loadPreferences, savePreferences } from './preferences'
 
@@ -12,7 +14,10 @@ import { loadPreferences, savePreferences } from './preferences'
  * Modules externes (`external` : ExternalModules) : `modules:packages` (chargement en cours et
  * choix enregistré, paquets chargés et URL de leur interface), `modules:setExternal` (chargement
  * des paquets, qui ne sont pas signés), `modules:reload` (actualisation des modules externes selon ce choix ;
- * l'interface se recharge ensuite) et `modules:openPackagesDir`.
+ * l'interface se recharge ensuite) et `modules:openPackagesDir`. Paquets : `modules:installed`
+ * (paquets présents, chargés ou non), `modules:choosePackage` (choix et vérification d'une archive
+ * `.sulfur-module`, null si l'utilisateur annule), `modules:installPackage` (installation confirmée)
+ * et `modules:removePackage`.
  */
 export function registerModuleSwitch(host, moduleIds, external) {
   const ctx = host.createContext('modules')
@@ -42,6 +47,21 @@ export function registerModuleSwitch(host, moduleIds, external) {
     await external.reload()
     return external.ids()
   })
+  ctx.handle('installed', () => external.installed())
+  ctx.handle('choosePackage', async () => {
+    const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+    const { canceled, filePaths } = await dialog.showOpenDialog(window, {
+      title: t('settings.externalModules.installTitle'),
+      filters: [
+        { name: t('settings.externalModules.packageFiles'), extensions: [MODULE_ARCHIVE_EXTENSION.slice(1), 'zip'] }
+      ],
+      properties: ['openFile']
+    })
+    if (canceled || !filePaths?.length) return null
+    return external.inspect(await fs.readFile(filePaths[0]))
+  })
+  ctx.handle('installPackage', (token) => external.install(token))
+  ctx.handle('removePackage', (id) => external.remove(id))
   ctx.handle('openPackagesDir', async () => {
     await fs.mkdir(external.dir, { recursive: true })
     const error = await shell.openPath(external.dir)

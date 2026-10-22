@@ -11,6 +11,7 @@
  *   name           nom affiché (repli si le module ne le traduit pas : `<id>.name`)
  *   description    description affichée (repli : `<id>.description`)
  *   version        version du module (semver « 1.2.3 »)
+ *   author         auteur ou éditeur (facultatif), affiché avant l'installation d'un paquet
  *   edition        'standard' (intégré à Sulfur) ou 'additional' (paquet séparé)
  *   apiVersion     version de l'API des modules pour laquelle il est écrit (semver)
  *   minAppVersion  version minimale de Sulfur (semver)
@@ -24,7 +25,7 @@
  * Version de l'API des modules décrite par ce SDK (celle du paquet) : un module écrit avec le SDK
  * 1.x fonctionne avec toute version de Sulfur qui fournit une API 1.x au moins égale.
  */
-export const MODULE_API_VERSION = '1.0.0'
+export const MODULE_API_VERSION = '1.1.0'
 
 export const EDITIONS = ['standard', 'additional']
 
@@ -89,6 +90,7 @@ export function checkManifest(manifest, { appVersion, apiVersion = MODULE_API_VE
   if (typeof m.id !== 'string' || !MODULE_ID_PATTERN.test(m.id)) return invalid('id')
   if (typeof m.name !== 'string' || !m.name.trim()) return invalid('name')
   if (!parseVersion(m.version)) return invalid('version')
+  if (m.author !== undefined && (typeof m.author !== 'string' || !m.author.trim())) return invalid('author')
   if (!EDITIONS.includes(m.edition)) return invalid('edition')
   if (!parseVersion(m.apiVersion)) return invalid('apiVersion')
   if (!parseVersion(m.minAppVersion)) return invalid('minAppVersion')

@@ -1,6 +1,7 @@
 /**
  * SDK des modules Sulfur — construction d'un paquet de module externe (Node, avec Vite) :
- * `buildModule` produit le dossier du paquet (module.json, renderer.mjs, main.mjs, style.css) et
+ * `buildModule` produit le dossier du paquet (module.json, renderer.mjs, main.mjs, style.css),
+ * `packModule` l'archive en un fichier `.sulfur-module` à installer depuis les Paramètres, et
  * `sulfurShared` remplace les imports fournis par l'application (React, SDK) par une lecture de
  * `globalThis[SHARED_GLOBAL]`, pour qu'ils ne soient pas embarqués dans le paquet.
  */
@@ -9,6 +10,8 @@ import path from 'path'
 import { build } from 'vite'
 import { MODULE_PACKAGE_FILE, SHARED_GLOBAL, SHARED_MODULES, checkPackage } from '../package.js'
 import { checkManifest } from '../manifest.js'
+
+export { packModule } from '../archive.js'
 
 const SHARED_PREFIX = '\0sulfur-shared:'
 const SDK_PATTERN = /^@azerxim\/sulfur-sdk(\/.*)?$/

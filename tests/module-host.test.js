@@ -3,6 +3,7 @@ import path from 'path'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MODULE_API_VERSION } from '@azerxim/sulfur-sdk'
 import { builtinManifest } from '@modules/builtin'
+import { createArchive } from '@azerxim/sulfur-sdk/archive'
 import { tempDir } from './helpers'
 
 /** Canaux IPC enregistrés (ipcMain simulé) : un second enregistrement du même canal échoue, comme Electron. */
@@ -259,5 +260,124 @@ describe('Modules externes', () => {
     } finally {
       delete globalThis.sulfurTestBusy
     }
+  })
+
+  /** Archive `.sulfur-module` d'un paquet comme ceux de writePackage. */
+  function archiveOf(id, answer, manifest = {}) {
+    const descriptor = {
+      id,
+      name: `Package ${id}`,
+      version: '1.0.0',
+      edition: 'additional',
+      apiVersion: MODULE_API_VERSION,
+      minAppVersion: '0.1.0',
+      group: 'tools',
+      renderer: 'renderer.mjs',
+      main: 'main.mjs',
+      ...manifest
+    }
+    const main = `export default {
+      manifest: ${JSON.stringify(descriptor)},
+      activate(ctx) { ctx.handle('ping', () => '${answer}') },
+      busy: () => globalThis.sulfurTestBusy === true
+    }`
+    return createArchive([
+      { name: 'module.json', data: Buffer.from(JSON.stringify(descriptor)) },
+      { name: 'main.mjs', data: Buffer.from(main) },
+      { name: 'renderer.mjs', data: Buffer.from('export default {}') }
+    ])
+  }
+
+  it('liste les paquets installés, chargés ou non', async () => {
+    await fs.mkdir(path.join(dir, 'empty'))
+    await fs.mkdir(path.join(dir, '.hidden'))
+    await external.load(true)
+    expect(await external.installed()).toEqual([
+      {
+        id: 'broken',
+        name: 'Package broken',
+        version: '1.0.0',
+        author: null,
+        description: null,
+        folder: 'broken',
+        loaded: false
+      },
+      { id: 'empty', name: 'empty', version: '?', author: null, description: null, folder: 'empty', loaded: false },
+      { id: 'ext', name: 'Package ext', version: '1.0.0', author: null, description: null, folder: 'ext', loaded: true }
+    ])
+  })
+
+  it('vérifie une archive avant de l’installer, puis l’installe après confirmation', async () => {
+    const info = await external.inspect(archiveOf('new', 'n1', { author: 'Jane Doe', description: 'New module' }))
+    expect(info).toMatchObject({
+      id: 'new',
+      name: 'Package new',
+      version: '1.0.0',
+      author: 'Jane Doe',
+      description: 'New module',
+      files: 3,
+      installed: null
+    })
+    // Rien n'est écrit avant la confirmation.
+    expect((await external.installed()).map((p) => p.id)).toEqual(['broken', 'ext'])
+    await expect(external.install('other-token')).rejects.toThrow('no longer waiting')
+
+    expect(await external.install(info.token)).toEqual({ id: 'new', reload: false })
+    expect((await external.installed()).find((p) => p.id === 'new')).toMatchObject({
+      folder: 'new',
+      author: 'Jane Doe'
+    })
+    expect((await fs.readdir(dir)).filter((name) => name.startsWith('.'))).toEqual([])
+    await expect(external.install(info.token)).rejects.toThrow('no longer waiting')
+
+    await external.load(true)
+    expect(await invoke('new:ping')).toEqual({ ok: true, data: 'n1' })
+  })
+
+  it('met à jour un paquet installé, même dans un dossier d’un autre nom', async () => {
+    await fs.rename(path.join(dir, 'ext'), path.join(dir, 'ext-copy'))
+    await external.load(true)
+    const info = await external.inspect(archiveOf('ext', 'v2', { version: '2.0.0' }))
+    expect(info.installed).toBe('1.0.0')
+    expect(await external.install(info.token)).toEqual({ id: 'ext', reload: true })
+    expect((await external.installed()).filter((p) => p.id === 'ext')).toMatchObject([
+      { folder: 'ext', version: '2.0.0' }
+    ])
+    await external.reload()
+    expect(await invoke('ext:ping')).toEqual({ ok: true, data: 'v2' })
+  })
+
+  it('refuse une archive invalide ou un module intégré', async () => {
+    await expect(external.inspect(Buffer.from('not a zip'))).rejects.toThrow(
+      'Module package refused: invalid archive: not a ZIP file'
+    )
+    await expect(external.inspect(archiveOf('a', 'x'))).rejects.toThrow(
+      'Module package refused: another module already uses the identifier “a”'
+    )
+    await expect(external.inspect(archiveOf('later', 'x', { minAppVersion: '99.0.0' }))).rejects.toThrow(
+      /update Sulfur/
+    )
+    expect(external.pending).toBeNull()
+  })
+
+  it('n’installe ni ne supprime un module externe en marche', async () => {
+    await external.load(true)
+    const info = await external.inspect(archiveOf('ext', 'v2', { version: '2.0.0' }))
+    globalThis.sulfurTestBusy = true
+    try {
+      await expect(external.install(info.token)).rejects.toThrow(/Stop the servers and clients/)
+      await expect(external.remove('ext')).rejects.toThrow(/Stop the servers and clients/)
+    } finally {
+      delete globalThis.sulfurTestBusy
+    }
+    expect((await external.installed()).find((p) => p.id === 'ext').version).toBe('1.0.0')
+  })
+
+  it('supprime un paquet', async () => {
+    await external.load(true)
+    expect(await external.remove('broken')).toEqual({ id: 'broken', reload: false })
+    expect(await external.remove('ext')).toEqual({ id: 'ext', reload: true })
+    expect(await external.installed()).toEqual([])
+    await expect(external.remove('ext')).rejects.toThrow('No package installed for the module “ext”')
   })
 })

@@ -8,6 +8,7 @@ export const manifest = {
   name: 'Test signal',
   description: 'External test module: signal generator with data points',
   version: '0.1.0',
+  author: 'Sulfur',
   edition: 'standard',
   apiVersion: '1.0.0',
   minAppVersion: '0.4.0'

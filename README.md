@@ -212,6 +212,24 @@ is running or whose client is connected is refused: stop it first. A re-enabled 
 immediately. The list is kept by the main process in `<userData>/preferences.json`
 (`disabledModules`).
 
+### Module packages
+
+An external module (developed with the SDK, yours included) is shared as a **package**: a single
+`<id>-<version>.sulfur-module` file (ZIP archive of `module.json` and the built files), produced by
+`packModule` of the SDK. **Settings → Modules → External modules → Install a package…** reads and
+checks it (descriptor, files, compatibility, identifier not used by a built-in module), then shows
+the module, its version, its author and the version already installed before asking for
+confirmation; nothing is written before that. The package is extracted to
+`<userData>/module-packages/<id>`, in place of the previous version. The same list removes an
+installed package. When the external modules are loaded, Sulfur refreshes them right after an
+installation or a removal; both are refused while a server of an external module is running or a
+client is connected.
+
+Packages are **not signed**: anyone can create and install their own module, without any approval.
+Since a module runs with the rights of Sulfur (files, network), loading the external modules is
+disabled by default, and the confirmation reminds that the origin of the package cannot be checked.
+Reading an archive is limited (relative paths only, 2000 files, 200 MB once extracted, CRC checked).
+
 ### Module manifest
 
 Each module declares a manifest, the same object for its main and renderer parts:
@@ -222,11 +240,12 @@ Each module declares a manifest, the same object for its main and renderer parts
 | `name`          | fallback name (the displayed one comes from the `<id>.name` key)            |
 | `description`   | fallback description (`<id>.description` key)                               |
 | `version`       | version of the module (semver)                                              |
+| `author`        | author or publisher (optional), shown before a package is installed         |
 | `edition`       | `standard` (built into Sulfur) or `additional` (separate package)            |
 | `apiVersion`    | version of the module API the module is written for (semver)               |
 | `minAppVersion` | minimum version of Sulfur (semver)                                          |
 
-The module API (`MODULE_API_VERSION` of the SDK, equal to its version, currently 1.0.0) follows semantic
+The module API (`MODULE_API_VERSION` of the SDK, equal to its version, currently 1.1.0) follows semantic
 versioning: a module written for API 1.2 works with every 1.x API from 1.2 on, not with a 2.x API.
 The main process checks every manifest before loading the module: an invalid manifest, an identifier
 that is reserved (`modules`, `config`, `home`, `info`, `settings`) or already used, an incompatible

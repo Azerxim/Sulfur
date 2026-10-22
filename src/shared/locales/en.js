@@ -17,6 +17,9 @@ export default {
   errors: {
     externalBusy: 'Stop the servers and clients of these modules before refreshing the external modules: {modules}',
     modulesBusy: 'Stop the servers and clients of these modules before disabling them: {modules}',
+    modulePackage: 'Module package refused: {problem}',
+    packageExpired: 'This package is no longer waiting to be installed: choose it again.',
+    packageNotFound: 'No package installed for the module “{id}”',
     config: {
       notJson: 'The file is not valid JSON',
       notSulfur: 'The file is not a Sulfur configuration',
@@ -37,7 +40,9 @@ export default {
       mismatch: 'the code of the package does not match its module.json ({file})',
       loadFailed: 'the module code could not be loaded: {message}',
       activateFailed: 'the module failed to start: {message}',
-      rendererFailed: 'the module interface could not be loaded: {message}'
+      rendererFailed: 'the module interface could not be loaded: {message}',
+      archive: 'invalid archive: {message}',
+      missingFile: 'file “{file}” missing from the package'
     }
   },
   home: {
@@ -116,7 +121,7 @@ export default {
     },
     externalModules: {
       title: 'External modules',
-      hint: 'Modules developed outside Sulfur with its SDK, installed as packages (one folder per module) in the packages folder. Taken into account at the next start of Sulfur, or right away with Refresh.',
+      hint: 'Modules developed outside Sulfur with its SDK, yours included. Install a package (.sulfur-module file) with Install a package, or copy its folder into the packages folder. Taken into account at the next start of Sulfur, or right away with Refresh.',
       enable: 'Load the external modules',
       warning:
         'Packages are not signed: an external module runs with the rights of Sulfur. Only install modules you wrote yourself or from a source you trust.',
@@ -126,7 +131,34 @@ export default {
       reload: 'Refresh',
       reloadHint:
         'Read the packages again (added, updated or removed) without restarting Sulfur; the interface is reloaded',
-      reloadNeeded: 'Refresh the external modules to apply this choice.'
+      reloadNeeded: 'Refresh the external modules to apply this choice.',
+      install: 'Install a package…',
+      installTitle: 'Install a module package',
+      packageFiles: 'Sulfur module package',
+      installed: 'Installed packages',
+      none: 'No package installed.',
+      notLoaded: 'not loaded',
+      unknownAuthor: 'author not specified',
+      by: 'by {author}',
+      remove: 'Remove',
+      confirmRemove: 'Remove {name}',
+      cancel: 'Cancel',
+      installedOk: '{name} {version} installed. Check Load the external modules, then Refresh, to use it.',
+      removedOk: '{name} removed.',
+      confirm: {
+        title: 'Install {name}?',
+        id: 'Identifier',
+        version: 'Version',
+        author: 'Author',
+        content: 'Content',
+        files: '{count} file(s), {size}',
+        current: 'Installed version',
+        warning:
+          'This package is not signed and Sulfur cannot check where it comes from. Once loaded, its code runs with the rights of Sulfur (files, network). Install it only if you wrote it yourself or trust its author.',
+        install: 'Install',
+        update: 'Update to {version}',
+        replace: 'Replace version {version}'
+      }
     },
     pages: 'Application',
     themes: {

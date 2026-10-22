@@ -17,9 +17,13 @@ export function provideSharedModules() {
 /** Import d'un fichier de paquet, relu à chaque actualisation (Node garde en cache chaque URL importée). */
 const importFile = (file) => import(`${pathToFileURL(file).href}?v=${Date.now()}`)
 
+/** Dossiers de paquets parmi les entrées d'un dossier : dossiers non cachés, par ordre alphabétique. */
+export const packageDirs = (entries) =>
+  entries.filter((e) => e.isDirectory() && !e.name.startsWith('.')).sort((a, b) => a.name.localeCompare(b.name))
+
 /**
  * Paquets de modules externes installés dans `dir` (un dossier par paquet, voir `package.js` du
- * SDK). Le descripteur module.json de chaque paquet est vérifié avant tout code : manifeste,
+ * SDK ; les dossiers cachés, comme une installation en cours, sont ignorés). Le descripteur module.json de chaque paquet est vérifié avant tout code : manifeste,
  * fichiers, compatibilité et identifiant libre (`loadedIds` : modules intégrés). La partie main du
  * module est ensuite importée ; un paquet sans partie main n'a que son interface.
  * Retourne { modules, packages: [{ id, dir, descriptor }], rejected: [{ id, name, version, reason, params }] }.
@@ -28,7 +32,7 @@ export async function loadModulePackages(dir, { appVersion, loadedIds = [], impo
   const result = { modules: [], packages: [], rejected: [] }
   const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => [])
   const ids = [...loadedIds]
-  for (const entry of entries.filter((e) => e.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const entry of packageDirs(entries)) {
     const packageDir = path.join(dir, entry.name)
     const reject = (descriptor, reason, params = {}) =>
       result.rejected.push({

@@ -23,15 +23,17 @@ npm run example:build
 ```
 
 Le paquet est écrit dans `examples/test-signal/dist/test-signal/` (`module.json`, `main.mjs`,
-`renderer.mjs`, `style.css`).
+`renderer.mjs`, `style.css`), et son archive dans `examples/test-signal/dist/test-signal-0.1.0.sulfur-module`.
 
 ## Charger dans Sulfur
 
-1. Paramètres → Modules → *Modules externes* : bouton **Ouvrir** (dossier des paquets, créé au
-   besoin).
-2. Copier le dossier `dist/test-signal` dans ce dossier : `module-packages/test-signal/module.json`.
-3. Cocher **Charger les modules externes**, puis cliquer sur **Actualiser** (de même après chaque
-   reconstruction du paquet : la nouvelle version est chargée sans redémarrer Sulfur).
+1. Paramètres → Modules → *Modules externes* : **Installer un paquet…**, choisir
+   `dist/test-signal-0.1.0.sulfur-module` et confirmer l'installation.
+2. Cocher **Charger les modules externes**, puis cliquer sur **Actualiser**.
+
+Pendant le développement, on peut plutôt copier le dossier `dist/test-signal` dans le dossier des
+paquets (bouton **Ouvrir**) : `module-packages/test-signal/module.json`, puis cliquer sur
+**Actualiser** après chaque reconstruction (la nouvelle version est chargée sans redémarrer Sulfur).
 
 Le module apparaît dans le groupe *Outils*, avec le badge *Externe* dans Paramètres → Modules.
 

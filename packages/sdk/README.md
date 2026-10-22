@@ -34,7 +34,8 @@ npm install --save-dev @azerxim/sulfur-sdk
 | `@azerxim/sulfur-sdk`        | main and renderer | manifest (`defineManifest`, `checkManifest`), translations (`registerMessages`, `moduleT`, `formatTime`…), data points (`pointKey`, `toNumber`, `FAULT_TYPES`), `withDefaults`, private networks, `simulate` |
 | `@azerxim/sulfur-sdk/main`   | main process      | `ensureCertificate` (self-signed TLS certificate), `hashPassword` / `verifyPassword` (scrypt), served folders confined to their root (`resolveInside`, `prepareRoot`) |
 | `@azerxim/sulfur-sdk/ui`     | renderer (React)  | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
-| `@azerxim/sulfur-sdk/build`  | Node (build)      | `buildModule` (package of an external module), `sulfurShared` (Vite plugin) |
+| `@azerxim/sulfur-sdk/build`  | Node (build)      | `buildModule` (package of an external module), `packModule` (`.sulfur-module` archive), `sulfurShared` (Vite plugin) |
+| `@azerxim/sulfur-sdk/archive` | Node             | reading and writing `.sulfur-module` archives (`packModule`, `readModuleArchive`)             |
 | `@azerxim/sulfur-sdk/module.css` | CSS (Tailwind v4) | Tailwind utilities of an external module, on the Sulfur theme (`theme.css`) |
 | `@azerxim/sulfur-sdk/host`   | Sulfur only       | configuration cache of the interface; not for modules                                      |
 
@@ -52,6 +53,7 @@ export const DEMO_MODULE = defineManifest({
   name: 'Demo',
   description: 'Demo module',
   version: '1.0.0',
+  author: 'Jane Doe', // optional, shown before installation
   edition: 'additional',
   minAppVersion: '0.5.0'
 })
@@ -112,7 +114,7 @@ produces it with [Vite](https://vite.dev):
 ```js
 // build.mjs — node build.mjs
 import tailwindcss from '@tailwindcss/vite'
-import { buildModule } from '@azerxim/sulfur-sdk/build'
+import { buildModule, packModule } from '@azerxim/sulfur-sdk/build'
 import { DEMO_MODULE } from './src/shared/constants.js'
 
 await buildModule({
@@ -123,6 +125,7 @@ await buildModule({
   outDir: 'dist/demo',
   vite: { renderer: { plugins: [tailwindcss()] } }
 })
+await packModule('dist/demo') // dist/demo-1.0.0.sulfur-module, to install from the Settings
 ```
 
 ```
@@ -141,11 +144,16 @@ dist/demo/
   from `@import '@azerxim/sulfur-sdk/module.css';` (then `@source` to the module sources): only the
   utilities of the module are generated, on the variables of the Sulfur theme (light theme
   included).
-- **Installation**: copy the package folder into the packages folder (Settings → Modules →
-  *External modules*, *Open* button), check *Load the external modules*, then click *Refresh*
-  (no need to restart Sulfur; likewise after updating the package). The descriptor is checked before any code runs; a refused package is listed with the reason. Packages
-  are not signed, so anyone can build and install their own module; since a module runs with the
-  rights of Sulfur, loading them is disabled by default (see the
+- **Archive**: `packModule(dir)` writes the package as a single `<id>-<version>.sulfur-module`
+  file (ZIP archive, `module.json` first) next to the folder, to share the module.
+- **Installation**: Settings → Modules → *External modules* → *Install a package…*: Sulfur checks
+  the archive, shows the module, its version and its author, then installs it after confirmation
+  (an installed version is replaced). During development, the package folder can also be copied
+  into the packages folder (*Open* button). Then check *Load the external modules* and click
+  *Refresh* (no need to restart Sulfur). The descriptor is checked before any code runs; a refused
+  package is listed with the reason. Packages are not signed, so anyone can build and install their
+  own module; since a module runs with the rights of Sulfur, loading them is disabled by default
+  (see the
   [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-additional-modules)).
 
 ## License

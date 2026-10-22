@@ -16,6 +16,9 @@ export default {
   },
   errors: {
     externalBusy: 'Arrêtez les serveurs et clients de ces modules avant d’actualiser les modules externes : {modules}',
+    modulePackage: 'Paquet de module refusé : {problem}',
+    packageExpired: 'Ce paquet n’est plus en attente d’installation : choisissez-le à nouveau.',
+    packageNotFound: 'Aucun paquet installé pour le module « {id} »',
     modulesBusy: 'Arrêtez les serveurs et clients de ces modules avant de les désactiver : {modules}',
     config: {
       notJson: "Le fichier n'est pas un JSON valide",
@@ -39,7 +42,9 @@ export default {
       mismatch: 'le code du paquet ne correspond pas à son module.json ({file})',
       loadFailed: 'le code du module n’a pas pu être chargé : {message}',
       activateFailed: 'le module n’a pas pu démarrer : {message}',
-      rendererFailed: 'l’interface du module n’a pas pu être chargée : {message}'
+      rendererFailed: 'l’interface du module n’a pas pu être chargée : {message}',
+      archive: 'archive invalide : {message}',
+      missingFile: 'fichier « {file} » absent du paquet'
     }
   },
   home: {
@@ -119,7 +124,7 @@ export default {
     },
     externalModules: {
       title: 'Modules externes',
-      hint: 'Modules développés hors de Sulfur avec son SDK, installés sous forme de paquets (un dossier par module) dans le dossier des paquets. Pris en compte au prochain démarrage de Sulfur, ou aussitôt avec Actualiser.',
+      hint: 'Modules développés hors de Sulfur avec son SDK, y compris les vôtres. Installez un paquet (fichier .sulfur-module) avec Installer un paquet, ou copiez son dossier dans le dossier des paquets. Pris en compte au prochain démarrage de Sulfur, ou aussitôt avec Actualiser.',
       enable: 'Charger les modules externes',
       warning:
         'Les paquets ne sont pas signés : un module externe s’exécute avec les droits de Sulfur. N’installez que vos propres modules ou ceux d’une source de confiance.',
@@ -129,7 +134,34 @@ export default {
       reload: 'Actualiser',
       reloadHint:
         'Relire les paquets (ajoutés, mis à jour ou retirés) sans redémarrer Sulfur ; l’interface est rechargée',
-      reloadNeeded: 'Actualisez les modules externes pour appliquer ce choix.'
+      reloadNeeded: 'Actualisez les modules externes pour appliquer ce choix.',
+      install: 'Installer un paquet…',
+      installTitle: 'Installer un paquet de module',
+      packageFiles: 'Paquet de module Sulfur',
+      installed: 'Paquets installés',
+      none: 'Aucun paquet installé.',
+      notLoaded: 'non chargé',
+      unknownAuthor: 'auteur non indiqué',
+      by: 'par {author}',
+      remove: 'Supprimer',
+      confirmRemove: 'Supprimer {name}',
+      cancel: 'Annuler',
+      installedOk: '{name} {version} installé. Cochez Charger les modules externes, puis Actualiser, pour l’utiliser.',
+      removedOk: '{name} supprimé.',
+      confirm: {
+        title: 'Installer {name} ?',
+        id: 'Identifiant',
+        version: 'Version',
+        author: 'Auteur',
+        content: 'Contenu',
+        files: '{count} fichier(s), {size}',
+        current: 'Version installée',
+        warning:
+          'Ce paquet n’est pas signé et Sulfur ne peut pas vérifier sa provenance. Une fois chargé, son code s’exécute avec les droits de Sulfur (fichiers, réseau). Ne l’installez que si vous l’avez écrit vous-même ou si vous faites confiance à son auteur.',
+        install: 'Installer',
+        update: 'Mettre à jour vers la {version}',
+        replace: 'Remplacer la version {version}'
+      }
     },
     pages: 'Application',
     themes: {

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import * as sdk from '@azerxim/sulfur-sdk'
 import * as sdkMain from '@azerxim/sulfur-sdk/main'
 import * as sdkBuild from '@azerxim/sulfur-sdk/build'
+import * as sdkArchive from '@azerxim/sulfur-sdk/archive'
 
 const SDK_DIR = path.resolve('packages/sdk')
 const pkg = JSON.parse(fs.readFileSync(path.join(SDK_DIR, 'package.json'), 'utf8'))
@@ -112,7 +113,16 @@ describe('Paquet SDK', () => {
       'verifyPassword',
       'virtualPath'
     ])
-    expect(Object.keys(sdkBuild).sort()).toEqual(['buildModule', 'sulfurShared'])
+    expect(Object.keys(sdkBuild).sort()).toEqual(['buildModule', 'packModule', 'sulfurShared'])
+    expect(Object.keys(sdkArchive).sort()).toEqual([
+      'ARCHIVE_LIMITS',
+      'ArchiveError',
+      'MODULE_ARCHIVE_EXTENSION',
+      'createArchive',
+      'packModule',
+      'readArchive',
+      'readModuleArchive'
+    ])
   })
 
   it('fournit les textes communs aux modules', () => {

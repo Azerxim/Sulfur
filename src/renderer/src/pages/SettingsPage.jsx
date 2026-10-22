@@ -7,15 +7,18 @@ import {
   FolderOpen,
   Monitor,
   Moon,
+  PackagePlus,
   Puzzle,
   RefreshCw,
   RotateCcw,
   SlidersHorizontal,
   Sun,
+  Trash2,
+  TriangleAlert,
   Upload
 } from 'lucide-react'
 import { compareVersions, LANGUAGES, MODULE_API_VERSION, parseVersion } from '@azerxim/sulfur-sdk'
-import { Button, Card, Checkbox, ErrorBanner, Select, Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { Button, Card, Checkbox, ErrorBanner, Modal, Select, Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
 import { availableModules, rejectedModules, setDisabledModules, useEnabledModules } from '../enabled-modules'
 import { externalModules, reloadExternalModules } from '../external-modules'
@@ -226,21 +229,112 @@ function ModulesCard() {
   )
 }
 
+/** Taille lisible d'un paquet (o, Ko, Mo selon la langue). */
+const formatSize = (bytes, locale) => {
+  const [value, unit] =
+    bytes < 1024
+      ? [bytes, 'byte']
+      : bytes < 1024 * 1024
+        ? [bytes / 1024, 'kilobyte']
+        : [bytes / 1024 / 1024, 'megabyte']
+  return new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'short', maximumFractionDigits: 1 }).format(
+    value
+  )
+}
+
+/**
+ * Confirmation de l'installation d'un paquet vérifié par le process principal (`info` : voir
+ * ExternalModules.inspect) : module, auteur, version installée et avertissement, le paquet n'étant
+ * pas signé.
+ */
+function InstallPackageModal({ info, busy, onConfirm, onClose }) {
+  const { t, locale } = useI18n()
+  const order = info.installed ? versionOrder(info.version, info.installed) : null
+  const label = !info.installed
+    ? t('settings.externalModules.confirm.install')
+    : order > 0
+      ? t('settings.externalModules.confirm.update', { version: info.version })
+      : t('settings.externalModules.confirm.replace', { version: info.installed })
+  const rows = [
+    [
+      'id',
+      <code key="id" className="font-mono">
+        {info.id}
+      </code>
+    ],
+    ['version', info.version],
+    ['author', info.author ?? <span className="text-amber-300">{t('settings.externalModules.unknownAuthor')}</span>],
+    [
+      'content',
+      t('settings.externalModules.confirm.files', { count: info.files, size: formatSize(info.size, locale) })
+    ],
+    ...(info.installed ? [['current', info.installed]] : [])
+  ]
+  return (
+    <Modal
+      title={t('settings.externalModules.confirm.title', { name: info.name })}
+      onClose={onClose}
+      className="max-w-lg"
+    >
+      <div className="flex flex-col gap-3">
+        {info.description && <p className="text-sm text-slate-300">{info.description}</p>}
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+          {rows.map(([key, value]) => (
+            <div key={key} className="contents">
+              <dt className="text-slate-500">{t(`settings.externalModules.confirm.${key}`)}</dt>
+              <dd className="text-slate-100 select-text">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="flex gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+          {t('settings.externalModules.confirm.warning')}
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button disabled={busy} onClick={onClose}>
+            {t('settings.externalModules.cancel')}
+          </Button>
+          <Button variant="primary" disabled={busy} onClick={onConfirm}>
+            <PackagePlus className="size-4" /> {label}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 /**
  * Modules externes : paquets installés dans le dossier des paquets, chargés seulement sur demande
- * (ils ne sont pas signés et s'exécutent avec les droits de Sulfur). Le choix, comme l'ajout, la mise à jour ou la suppression d'un
- * paquet, s'applique au prochain démarrage ou en actualisant les modules externes.
+ * (ils ne sont pas signés et s'exécutent avec les droits de Sulfur). Un paquet s'installe depuis une
+ * archive `.sulfur-module`, après confirmation, ou en copiant son dossier. Le choix de chargement,
+ * comme l'ajout, la mise à jour ou la suppression d'un paquet, s'applique au prochain démarrage ou
+ * en actualisant les modules externes (automatique après une installation ou une suppression
+ * quand les modules externes sont chargés).
  */
 function ExternalModulesCard() {
   const { t } = useI18n()
   const { enabled: loaded, next, dir, ids } = externalModules()
   const [enabled, setEnabled] = useState(next)
+  const [installed, setInstalled] = useState([])
+  const [pending, setPending] = useState(null)
+  const [removing, setRemoving] = useState(null)
+  const [notice, setNotice] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+
+  const refresh = () =>
+    window.sulfur
+      .invoke('modules:installed')
+      .then(setInstalled)
+      .catch((err) => setError(err.message))
+  useEffect(() => {
+    refresh()
+  }, [])
 
   async function run(action) {
     setBusy(true)
     setError(null)
+    setNotice(null)
     try {
       await action()
     } catch (err) {
@@ -251,21 +345,52 @@ function ExternalModulesCard() {
   }
   const toggle = (next) => run(async () => setEnabled(await window.sulfur.invoke('modules:setExternal', next)))
   const reload = () => run(reloadExternalModules)
+  const choose = () =>
+    run(async () => {
+      const info = await window.sulfur.invoke('modules:choosePackage')
+      if (info) setPending(info)
+    })
+  /** Après une installation ou une suppression : actualisation si le module est (ou sera) chargé. */
+  async function applied(result, message) {
+    if (result.reload) return reloadExternalModules()
+    await refresh()
+    setNotice(message)
+  }
+  const install = () =>
+    run(async () => {
+      const info = pending
+      const result = await window.sulfur.invoke('modules:installPackage', info.token)
+      setPending(null)
+      await applied(result, t('settings.externalModules.installedOk', { name: info.name, version: info.version }))
+    })
+  const remove = (pkg) =>
+    run(async () => {
+      setRemoving(null)
+      await applied(
+        await window.sulfur.invoke('modules:removePackage', pkg.id),
+        t('settings.externalModules.removedOk', { name: pkg.name })
+      )
+    })
 
   return (
     <Card
       id="settings.externalModules"
       title={t('settings.externalModules.title')}
       actions={
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={busy}
-          onClick={reload}
-          title={t('settings.externalModules.reloadHint')}
-        >
-          <RefreshCw className={`size-3.5 ${busy ? 'animate-spin' : ''}`} /> {t('settings.externalModules.reload')}
-        </Button>
+        <>
+          <Button size="sm" disabled={busy} onClick={choose}>
+            <PackagePlus className="size-3.5" /> {t('settings.externalModules.install')}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy}
+            onClick={reload}
+            title={t('settings.externalModules.reloadHint')}
+          >
+            <RefreshCw className={`size-3.5 ${busy ? 'animate-spin' : ''}`} /> {t('settings.externalModules.reload')}
+          </Button>
+        </>
       }
     >
       <p className="mb-3 text-xs text-slate-500">{t('settings.externalModules.hint')}</p>
@@ -278,6 +403,46 @@ function ExternalModulesCard() {
             onChange={(e) => toggle(e.target.checked)}
           />
           <p className="mt-1 ml-6 text-xs text-amber-300">{t('settings.externalModules.warning')}</p>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-slate-400">{t('settings.externalModules.installed')}</span>
+          {installed.length === 0 && <p className="text-xs text-slate-500">{t('settings.externalModules.none')}</p>}
+          {installed.map((pkg) => (
+            <div
+              key={pkg.folder}
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-ink-800 px-3 py-2"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-baseline gap-2 text-sm text-slate-100">
+                  {pkg.name}
+                  <span className="text-[11px] text-slate-500 tabular-nums">v{pkg.version}</span>
+                  {loaded && !ids.includes(pkg.id) && (
+                    <span className="text-[11px] text-amber-300">{t('settings.externalModules.notLoaded')}</span>
+                  )}
+                </span>
+                <span className="block text-xs text-slate-500">
+                  <code className="font-mono">{pkg.id}</code> ·{' '}
+                  {pkg.author
+                    ? t('settings.externalModules.by', { author: pkg.author })
+                    : t('settings.externalModules.unknownAuthor')}
+                </span>
+              </span>
+              {removing === pkg.id ? (
+                <span className="flex gap-2">
+                  <Button size="sm" disabled={busy} onClick={() => setRemoving(null)}>
+                    {t('settings.externalModules.cancel')}
+                  </Button>
+                  <Button size="sm" variant="danger" disabled={busy} onClick={() => remove(pkg)}>
+                    <Trash2 className="size-3.5" /> {t('settings.externalModules.confirmRemove', { name: pkg.name })}
+                  </Button>
+                </span>
+              ) : (
+                <Button size="sm" variant="ghost" disabled={busy} onClick={() => setRemoving(pkg.id)}>
+                  <Trash2 className="size-3.5" /> {t('settings.externalModules.remove')}
+                </Button>
+              )}
+            </div>
+          ))}
         </div>
         {dir && (
           <div className="flex flex-wrap items-center gap-2">
@@ -305,8 +470,12 @@ function ExternalModulesCard() {
             </Button>
           </div>
         )}
+        {notice && <p className="text-xs text-emerald-300">{notice}</p>}
         <ErrorBanner error={error} onClose={() => setError(null)} />
       </div>
+      {pending && (
+        <InstallPackageModal info={pending} busy={busy} onConfirm={install} onClose={() => !busy && setPending(null)} />
+      )}
     </Card>
   )
 }
