@@ -2,12 +2,18 @@
 
 [![CI](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml?query=branch%3Amain)
 [![Release](https://img.shields.io/github/v/release/Azerxim/Sulfur)](https://github.com/Azerxim/Sulfur/releases/latest)
+[![SDK](https://img.shields.io/npm/v/@azerxim/sulfur-sdk?label=SDK)](https://www.npmjs.com/package/@azerxim/sulfur-sdk)
 
 [English](README.md) · **Français**
 
 Application de simulateur modulaire — Electron + React (JavaScript) + TailwindCSS v4.
 Interface en anglais (par défaut) et en français, thème clair ou sombre (celui du système par défaut).
 Voir la [roadmap](ROADMAP.fr.md) pour la suite. Licence : [Apache-2.0](LICENSE).
+
+Chacun peut étendre Sulfur avec ses propres modules, sans validation ni signature : écrivez-en un avec
+le [SDK des modules](packages/sdk/README.fr.md) en suivant le
+[guide de développement de module](docs/module-guide.fr.md), puis installez son paquet
+`.sulfur-module` depuis *Paramètres → Modules*.
 
 ## Démarrage
 
@@ -19,13 +25,14 @@ npm run dist       # packaging (electron-builder) dans dist/
 npm test           # tests automatisés (Vitest)
 npm run lint       # analyse statique (ESLint)
 npm run format     # mise en forme (Prettier)
+npm run example:build # module externe d'exemple → examples/test-signal/dist/
 ```
 
 ## Tests
 
 Le dossier `tests/` contient des tests d'intégration exécutés contre de vrais serveurs et clients
 (sockets, TLS, certificats) et des tests unitaires : sécurité, modification à chaud, tableaux et structures, méthodes, alarmes et événements, historique et import NodeSet2 OPC UA, Modbus TCP,
-Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), cibles de l’explorateur réseau (réseaux privés uniquement), terminal série (saisies hexadécimales et échappées, découpage des trames, lignes de contrôle, passerelle série ↔ TCP), RADIUS (exemples de la RFC 2865, PAP / CHAP, Message-Authenticator, comptes de l’annuaire LDAP, accounting), DHCP (paquets, plage contrôlée par rapport au sous-réseau de l’interface, réseaux privés uniquement, baux, serveur et client, filtre MAC), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export, traductions (mêmes clés et paramètres dans
+Modbus/TCP Security, RTU et ASCII (trames, RTU over TCP, liaison série, diffusion), HTTP / REST (API, routes, authentification, HTTPS, webhooks), NTP (paquets, horloge simulée, client), Siemens S7 (adresses, codec, serveur et client, découpage selon la PDU, défauts), PLCSim Advanced (protocole du pont, gestionnaire), MQTT (topics et jokers, broker et client, authentification, TLS, défauts), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, surveillance, traps et informs, défauts), Syslog (RFC 5424 et 3164, délimitation TCP, UDP / TCP / TLS, défauts), cibles de l’explorateur réseau (réseaux privés uniquement), terminal série (saisies hexadécimales et échappées, découpage des trames, lignes de contrôle, passerelle série ↔ TCP), RADIUS (exemples de la RFC 2865, PAP / CHAP, Message-Authenticator, comptes de l’annuaire LDAP, accounting), DHCP (paquets, plage contrôlée par rapport au sous-réseau de l’interface, réseaux privés uniquement, baux, serveur et client, filtre MAC), injection de défauts, flux de nœuds et enregistrement de courbes sur les deux protocoles, protocole et encodage des valeurs, configurations enregistrées et fichiers d'import / export (sections des modules non installés conservées), manifestes des modules et exports du SDK, paquets de modules externes (chargement, archives `.sulfur-module`, installation, mise à jour et suppression), modèle de module (construit, archivé et exécuté), traductions (mêmes clés et paramètres dans
 chaque langue, toute clé utilisée dans le code existe). Chaque test utilise un port libre et un magasin
 de certificats temporaire.
 
@@ -58,6 +65,16 @@ avant de pousser :
 
 ```bash
 npm run lint && npm run format:check && npm test && npm run build
+```
+
+Le SDK des modules a son propre workflow (`.github/workflows/sdk.yml`), lancé sur les tags `sdk-v*`
+(ex. `sdk-v1.1.0`, égal à la version de `packages/sdk/package.json`) : lint et tests, puis
+publication sur GitHub Packages et mise en attente sur npm (`npm stage publish` avec provenance,
+secret `NPM_TOKEN` : jeton « stage only »). Un mainteneur approuve ensuite la version npm avec sa 2FA :
+
+```bash
+npm stage list @azerxim/sulfur-sdk
+npm stage approve <id>
 ```
 
 ## Packaging
@@ -99,7 +116,9 @@ src/
 │   ├── module-host.js    # Chargement des modules, IPC
 │   ├── config-store.js   # Configurations enregistrées des modules (config.json)
 │   ├── config-transfer.js # Import / export des configurations (canaux config:*)
-│   ├── module-switch.js  # Modules activés / désactivés (canaux modules:*)
+│   ├── module-switch.js  # Modules activés / désactivés, paquets (canaux modules:*)
+│   ├── external-modules.js # Modules externes : chargement, actualisation, installation et suppression
+│   ├── module-packages.js # Dossiers des paquets : vérifications, import, protocole sulfur-module://
 │   ├── system-info.js    # Infos PC (IP, système) — canal system:info
 │   └── modules.js        # ← liste des modules "main"
 ├── preload/index.js      # Pont sécurisé : window.sulfur.invoke / on
@@ -142,7 +161,13 @@ src/
     ├── explorer/         # Explorateur réseau : cibles limitées aux réseaux privés
     └── serial/           # Terminal série (RS-232 / RS-485, journal hexadécimal) + passerelle série ↔ TCP
 packages/
-└── sdk/                  # SDK des modules @azerxim/sulfur-sdk (contrat, i18n, points, composants)
+└── sdk/                  # SDK des modules @azerxim/sulfur-sdk (contrat, i18n, points, composants,
+                          #   construction des paquets et archives .sulfur-module)
+examples/
+├── test-signal/          # Module externe d'exemple (générateur de signal, points de données)
+└── module-template/      # Modèle pour démarrer son propre module
+docs/
+└── module-guide.fr.md    # Guide de développement de module
 ```
 
 ## SDK des modules

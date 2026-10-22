@@ -2,12 +2,17 @@
 
 [![CI](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml?query=branch%3Amain)
 [![Release](https://img.shields.io/github/v/release/Azerxim/Sulfur)](https://github.com/Azerxim/Sulfur/releases/latest)
+[![SDK](https://img.shields.io/npm/v/@azerxim/sulfur-sdk?label=SDK)](https://www.npmjs.com/package/@azerxim/sulfur-sdk)
 
 **English** · [Français](README.fr.md)
 
 Modular simulator application — Electron + React (JavaScript) + TailwindCSS v4.
 English (default) and French interface, light or dark theme (follows the system by default).
 See the [roadmap](ROADMAP.md) for what comes next. License: [Apache-2.0](LICENSE).
+
+Anyone can extend Sulfur with their own modules, without approval or signature: write one with the
+[module SDK](packages/sdk/README.md) by following the [module development guide](docs/module-guide.md),
+then install its `.sulfur-module` package from *Settings → Modules*.
 
 ## Getting started
 
@@ -19,13 +24,14 @@ npm run dist       # installers (electron-builder) in dist/
 npm test           # automated tests (Vitest)
 npm run lint       # static analysis (ESLint)
 npm run format     # formatting (Prettier)
+npm run example:build # example external module → examples/test-signal/dist/
 ```
 
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
 certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP, Modbus/TCP Security, RTU and ASCII (frames, RTU over TCP, serial link, broadcast), HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), network explorer targets (private networks only), serial terminal (hexadecimal and escaped entries, frame splitting, control lines, serial ↔ TCP gateway), RADIUS (RFC 2865 examples, PAP / CHAP, Message-Authenticator, LDAP directory accounts, accounting), DHCP (packets, pool checked against the interface subnet, private networks only, leases, server and client, MAC filter), fault injection, node flows and trend recording on both protocols,
-protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
+protocol and value encoding, saved configurations and import / export files (sections of modules that are not installed kept), module manifests and SDK exports, external module packages (loading, `.sulfur-module` archives, installation, update and removal), module template (built, packaged and run), translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
 ```bash
@@ -55,6 +61,16 @@ formatting check, tests and build, on Ubuntu with Node 24. Run the same checks l
 
 ```bash
 npm run lint && npm run format:check && npm test && npm run build
+```
+
+The module SDK has its own workflow (`.github/workflows/sdk.yml`), run on `sdk-v*` tags (e.g.
+`sdk-v1.1.0`, equal to the version of `packages/sdk/package.json`): lint and tests, then publication
+on GitHub Packages and staging on npm (`npm stage publish` with provenance, `NPM_TOKEN` secret:
+stage-only token). A maintainer then approves the npm version with 2FA:
+
+```bash
+npm stage list @azerxim/sulfur-sdk
+npm stage approve <id>
 ```
 
 ## Packaging
@@ -96,7 +112,9 @@ src/
 │   ├── module-host.js    # Module loading, IPC
 │   ├── config-store.js   # Saved module configurations (config.json)
 │   ├── config-transfer.js # Configuration import / export (config:* channels)
-│   ├── module-switch.js  # Enabled / disabled modules (modules:* channels)
+│   ├── module-switch.js  # Enabled / disabled modules, packages (modules:* channels)
+│   ├── external-modules.js # External modules: loading, refresh, package installation and removal
+│   ├── module-packages.js # Package folders: checks, import, sulfur-module:// protocol
 │   ├── system-info.js    # PC information (IP, system) — system:info channel
 │   └── modules.js        # ← list of "main" modules
 ├── preload/index.js      # Secure bridge: window.sulfur.invoke / on
@@ -139,7 +157,13 @@ src/
     ├── explorer/         # Network explorer: targets restricted to the private networks
     └── serial/           # Serial terminal (RS-232 / RS-485, hexadecimal log) + serial ↔ TCP gateway
 packages/
-└── sdk/                  # Module SDK @azerxim/sulfur-sdk (contract, i18n, points, UI components)
+└── sdk/                  # Module SDK @azerxim/sulfur-sdk (contract, i18n, points, UI components,
+                          #   package build and .sulfur-module archives)
+examples/
+├── test-signal/          # Example external module (signal generator, data points)
+└── module-template/      # Template to start your own module
+docs/
+└── module-guide.md       # Module development guide
 ```
 
 ## Module SDK
