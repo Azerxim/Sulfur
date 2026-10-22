@@ -1,7 +1,7 @@
 import net from 'net'
 import { randomUUID } from 'crypto'
 import snmp from 'net-snmp'
-import { simulate } from '@shared/simulator'
+import { simulate } from '@azerxim/sulfur-sdk'
 import {
   AUTH_PROTOCOLS,
   DEFAULT_AGENT_CONFIG,

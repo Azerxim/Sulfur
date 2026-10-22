@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { FolderOpen, RefreshCw, ShieldCheck, ShieldX, Trash2 } from 'lucide-react'
-import { formatDate, t as appT } from '@shared/i18n'
-import { Button, ErrorBanner, Modal } from './ui'
+import { formatDate, t as appT } from '../i18n.js'
+import { Button, ErrorBanner, Modal } from './components.jsx'
 
 const STORES = ['rejected', 'trusted', 'own']
 

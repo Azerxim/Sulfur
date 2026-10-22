@@ -2,7 +2,7 @@ import dns from 'dns/promises'
 import net from 'net'
 import os from 'os'
 import { MAX_HOSTS } from '../shared/constants'
-import { PRIVATE_NETWORKS, intToIp, ipToInt, isIPv4, isPrivateIPv4 } from '@shared/networks'
+import { intToIp, ipToInt, isIPv4, isPrivateIPv4, PRIVATE_NETWORKS } from '@azerxim/sulfur-sdk'
 import { t } from '../shared/i18n'
 
 const notPrivate = (value) =>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Bell, BellOff, Check, Eraser } from 'lucide-react'
-import { Button, Card } from '@renderer/components/ui'
+import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { opcuaApi } from './api'
 import { formatDateTime } from './format'
 import { t } from '../shared/i18n'

@@ -1,6 +1,6 @@
 import dgram from 'dgram'
 import { randomUUID } from 'crypto'
-import { ipToInt, isIPv4 } from '@shared/networks'
+import { ipToInt, isIPv4 } from '@azerxim/sulfur-sdk'
 import {
   CODES,
   DEFAULT_RADIUS_SERVER_CONFIG,

@@ -1,4 +1,4 @@
-import { Input, Select } from '@renderer/components/ui'
+import { Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { AUTH_PROTOCOLS, PRIV_PROTOCOLS, SECURITY_LEVELS } from '../shared/constants'
 import { t } from '../shared/i18n'
 

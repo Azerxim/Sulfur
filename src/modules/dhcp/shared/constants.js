@@ -1,8 +1,9 @@
-export const DHCP_MODULE = {
+import { builtinManifest } from '@modules/builtin'
+export const DHCP_MODULE = builtinManifest({
   id: 'dhcp',
   name: 'DHCP',
   description: "Serveur DHCP de test pour un réseau privé isolé, et client d'essai"
-}
+})
 
 /** Événements conservés dans le journal affiché ; le fichier journal garde tout. */
 export const MAX_LOG = 1000

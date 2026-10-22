@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Eye, History, Send, X } from 'lucide-react'
-import { Button, Card, Checkbox, CommitInput, ErrorBanner, Field, Input, Select, Tabs } from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
-import { usePersistentState } from '@renderer/module-config'
+import {
+  Button,
+  Card,
+  Checkbox,
+  CommitInput,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  Tabs,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import { AUTH_TYPES, DEFAULT_CLIENT_CONFIG, DEFAULT_CLIENT_REQUEST, METHODS } from '../shared/constants'
 import { httpApi } from './api'
 import HeadersEditor from './HeadersEditor'

@@ -1,8 +1,9 @@
-export const NTP_MODULE = {
+import { builtinManifest } from '@modules/builtin'
+export const NTP_MODULE = builtinManifest({
   id: 'ntp',
   name: 'NTP',
   description: 'Serveur de temps simulé (heure décalée, dérive, strate) et client NTP'
-}
+})
 
 /** Indicateur de seconde intercalaire (libellés : ntp.leap.*). 3 : horloge non synchronisée. */
 export const LEAP_INDICATORS = [0, 1, 2, 3]

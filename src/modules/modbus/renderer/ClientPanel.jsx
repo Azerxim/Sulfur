@@ -3,15 +3,17 @@ import { ArrowLeftRight, BookOpen, Eye, Fingerprint, Lock, Plug, PlugZap, Shield
 import {
   Button,
   Card,
+  CertificatesDialog,
   Checkbox,
   CommitInput,
   ErrorBanner,
   Field,
   Input,
   Select,
-  StatusDot
-} from '@renderer/components/ui'
-import CertificatesDialog from '@renderer/components/CertificatesDialog'
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { getLocale } from '@azerxim/sulfur-sdk'
 import {
   DATA_TYPES,
   DEFAULT_CLIENT_CONFIG,
@@ -21,9 +23,7 @@ import {
   WORD_ORDERS
 } from '../shared/constants'
 import { decodeValue, encodeValue } from '../shared/codec'
-import { getLocale } from '@shared/i18n'
 import { t } from '../shared/i18n'
-import { usePersistentState } from '@renderer/module-config'
 import { certStore, modbusApi } from './api'
 import { BaudRateField, SerialFormatFields, SerialPortField, TransportSelect, isSerial } from './SerialSettings'
 

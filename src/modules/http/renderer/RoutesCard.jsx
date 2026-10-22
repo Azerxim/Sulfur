@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown, Plus, Trash2 } from 'lucide-react'
-import { Button, Card, Field, Input, Select } from '@renderer/components/ui'
+import { Button, Card, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { CONTENT_TYPES, ROUTE_METHODS } from '../shared/constants'
 import HeadersEditor from './HeadersEditor'
 import { t } from '../shared/i18n'

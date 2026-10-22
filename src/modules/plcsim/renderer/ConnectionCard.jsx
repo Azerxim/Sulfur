@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { Monitor, Network, Plug, PlugZap } from 'lucide-react'
-import { Button, Card, Checkbox, ErrorBanner, Field, Input, StatusDot, Tabs } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+import {
+  Button,
+  Card,
+  Checkbox,
+  ErrorBanner,
+  Field,
+  Input,
+  StatusDot,
+  Tabs,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_API_ROOT, DEFAULT_REMOTE_PORT, DEFAULT_SETTINGS } from '../shared/constants'
 import { plcsimApi } from './api'
 import { t } from '../shared/i18n'

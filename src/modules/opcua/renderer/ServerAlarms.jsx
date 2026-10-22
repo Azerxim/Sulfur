@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, Send, Trash2 } from 'lucide-react'
-import { Button, Card, CommitInput, Field, Input, Select } from '@renderer/components/ui'
+import { Button, Card, CommitInput, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { ALARM_LIMITS, NUMERIC_TYPES } from '../shared/constants'
 import { t } from '../shared/i18n'
 

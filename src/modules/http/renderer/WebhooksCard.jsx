@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Plus, Trash2 } from 'lucide-react'
-import { Button, Card, Input, Select } from '@renderer/components/ui'
+import { Button, Card, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { WEBHOOK_MODES } from '../shared/constants'
 import { t } from '../shared/i18n'
 

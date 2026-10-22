@@ -1,8 +1,9 @@
-export const TFTP_MODULE = {
+import { builtinManifest } from '@modules/builtin'
+export const TFTP_MODULE = builtinManifest({
   id: 'tftp',
   name: 'TFTP',
   description: "Serveur TFTP simulé (firmware, configurations d'équipements) et client"
-}
+})
 
 /** Événements conservés dans le journal du serveur ; transferts dans l'historique du client. */
 export const MAX_LOG = 500

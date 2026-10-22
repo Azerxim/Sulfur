@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Repeat, Send, Square } from 'lucide-react'
-import { Button, Card, ErrorBanner, Field, Input, Select } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+import { Button, Card, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_SEND_CONFIG, LINE_ENDINGS, MAX_SEND_HISTORY, MIN_REPEAT } from '../shared/constants'
 import { encodePayload, toHex } from '../shared/codec'
 import { serialApi } from './api'

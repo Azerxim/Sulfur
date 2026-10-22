@@ -10,7 +10,7 @@ const SERVER_POINTS = [
   { id: 'server:bytesIn', name: 'bytes received', dataType: 'Int32', numeric: true }
 ]
 
-/** Points de données du module TFTP (contrat : `@shared/points`) : compteurs du serveur. */
+/** Points de données du module TFTP (contrat : `points.js` du SDK) : compteurs du serveur. */
 export function createPointsApi({ server }) {
   return {
     name: 'TFTP',

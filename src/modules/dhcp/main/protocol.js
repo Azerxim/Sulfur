@@ -1,5 +1,4 @@
-import { intToIp, ipToInt, isIPv4 } from '@shared/networks'
-
+import { intToIp, ipToInt, isIPv4 } from '@azerxim/sulfur-sdk'
 /** Paquets DHCP (RFC 2131) et options (RFC 2132). */
 
 export const OP = { REQUEST: 1, REPLY: 2 }

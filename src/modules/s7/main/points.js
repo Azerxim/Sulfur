@@ -15,7 +15,7 @@ export const FAULT_CODES = [
 ]
 
 /**
- * Points de données du module S7 pour les autres modules (contrat : `@shared/points`) :
+ * Points de données du module S7 pour les autres modules (contrat : `points.js` du SDK) :
  * points de l'automate simulé (`server:<id>`) et surveillances du client (`client:<id>`).
  */
 export function createPointsApi({ server, client, savedConfig = () => ({}) }) {

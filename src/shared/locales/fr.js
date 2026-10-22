@@ -14,65 +14,12 @@ export default {
     updateAvailable: 'Mise à jour disponible : v{version}',
     updateReady: 'Mise à jour prête : v{version}'
   },
-  ui: {
-    expand: 'Déplier',
-    collapse: 'Réduire',
-    close: 'Fermer',
-    copy: 'Copier',
-    refresh: 'Actualiser',
-    remove: 'Supprimer',
-    add: 'Ajouter',
-    start: 'Démarrer',
-    starting: 'Démarrage…',
-    stop: 'Arrêter',
-    stopped: 'Arrêté',
-    connect: 'Connecter',
-    connecting: 'Connexion…',
-    disconnect: 'Déconnecter',
-    connected: 'Connecté',
-    disconnected: 'Déconnecté',
-    loading: 'Chargement…',
-    toggle: 'Basculer',
-    server: 'Serveur',
-    client: 'Client',
-    name: 'Nom',
-    type: 'Type',
-    value: 'Valeur',
-    initialValue: 'Valeur initiale',
-    currentValue: 'Valeur courante',
-    simulation: 'Simulation',
-    periodMs: 'Période (ms)',
-    min: 'Min',
-    max: 'Max',
-    write: 'Écriture',
-    read: 'Lecture',
-    status: 'Statut',
-    timestamp: 'Horodatage',
-    liveApplied: 'Modifications appliquées en direct',
-    lockedWhileRunning: 'Modifiable serveur arrêté',
-    incomplete: 'Configuration incomplète : {problems}.',
-    simulationRate: 'Période de simulation (ms)',
-    renameRecreates: 'Renommer recrée le nœud (son identifiant change)',
-    typeRecreates: 'Changer le type recrée le nœud',
-    certificates: 'Certificats',
-    autoAcceptServerCert: 'Accepter automatiquement le certificat du serveur',
-    autoAcceptUnknownCerts: 'Accepter automatiquement les certificats inconnus',
-    security: 'Sécurité',
-    connection: 'Connexion',
-    monitoring: 'Surveillance ({count})',
-    remove2: 'Retirer'
-  },
   errors: {
-    invalidNumber: 'Valeur numérique invalide : {value}',
-    invalidInteger: 'Valeur entière invalide : {value}',
-    alreadyStarted: 'Le serveur est déjà démarré',
-    notStarted: "Le serveur n'est pas démarré",
-    notConnected: 'Client non connecté',
+    externalBusy: 'Arrêtez les serveurs et clients de ces modules avant d’actualiser les modules externes : {modules}',
+    modulePackage: 'Paquet de module refusé : {problem}',
+    packageExpired: 'Ce paquet n’est plus en attente d’installation : choisissez-le à nouveau.',
+    packageNotFound: 'Aucun paquet installé pour le module « {id} »',
     modulesBusy: 'Arrêtez les serveurs et clients de ces modules avant de les désactiver : {modules}',
-    minPeriod: 'Période minimale : {min} ms',
-    unknownStore: 'Magasin de certificats inconnu : {name}',
-    certNotFound: 'Certificat introuvable',
-    emptyPassword: 'Le mot de passe est vide',
     config: {
       notJson: "Le fichier n'est pas un JSON valide",
       notSulfur: "Le fichier n'est pas une configuration Sulfur",
@@ -82,29 +29,23 @@ export default {
       busy: "Arrêtez les serveurs et déconnectez les clients avant d'importer une configuration"
     }
   },
-  simulations: {
-    none: 'Statique',
-    sine: 'Sinus',
-    ramp: 'Rampe',
-    random: 'Aléatoire',
-    toggle: 'Bascule'
-  },
-  certs: {
-    rejected: 'Rejetés',
-    rejectedHint: 'Certificats inconnus reçus et refusés. Approuvez-les pour autoriser la connexion.',
-    trusted: 'Approuvés',
-    trustedHint: 'Certificats des pairs autorisés à se connecter.',
-    own: "Certificat de l'application",
-    ownHint: 'Généré automatiquement au premier démarrage.',
-    none: 'Aucun certificat',
-    expired: 'expiré',
-    unreadable: 'Certificat illisible',
-    approve: 'Approuver',
-    reject: 'Rejeter',
-    openFolder: 'Ouvrir le dossier',
-    thumbprint: 'empreinte',
-    validUntil: "valide jusqu'au {date}",
-    confirmRemove: 'Supprimer le certificat « {name} » ?'
+  modules: {
+    problems: {
+      invalid: 'manifeste invalide : champ « {field} » absent ou incorrect',
+      reservedId: 'l’identifiant « {id} » est réservé par Sulfur',
+      duplicateId: 'un autre module utilise déjà l’identifiant « {id} »',
+      apiMajor: 'écrit pour l’API des modules {required}, incompatible avec l’API {current} de cette version de Sulfur',
+      apiTooNew:
+        'demande l’API des modules {required} ; cette version de Sulfur fournit la {current} : mettre Sulfur à jour',
+      appTooOld: 'demande Sulfur {required} ou plus récent (version actuelle : {current}) : mettre Sulfur à jour',
+      unreadable: 'paquet illisible : {file} absent ou invalide ({message})',
+      mismatch: 'le code du paquet ne correspond pas à son module.json ({file})',
+      loadFailed: 'le code du module n’a pas pu être chargé : {message}',
+      activateFailed: 'le module n’a pas pu démarrer : {message}',
+      rendererFailed: 'l’interface du module n’a pas pu être chargée : {message}',
+      archive: 'archive invalide : {message}',
+      missingFile: 'fichier « {file} » absent du paquet'
+    }
   },
   home: {
     name: 'Accueil',
@@ -155,7 +96,12 @@ export default {
   },
   settings: {
     name: 'Paramètres',
-    description: 'Langue, apparence, configurations et mises à jour',
+    description: 'Langue, apparence, modules, configurations et mises à jour',
+    tabs: {
+      general: 'Général',
+      modules: 'Modules',
+      updates: 'Mises à jour'
+    },
     language: 'Langue',
     languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",
     theme: 'Thème',
@@ -170,7 +116,52 @@ export default {
       hint: "Un module désactivé est masqué de la barre latérale et de l'accueil, arrêté, et n'est plus chargé au démarrage. Ses réglages sont conservés. Arrêtez ses serveurs et clients avant de le désactiver.",
       summary: '{enabled} module(s) activé(s) sur {total}',
       enableAll: 'Tout activer',
-      disableAll: 'Tout désactiver'
+      disableAll: 'Tout désactiver',
+      additional: 'Additionnel',
+      external: 'Externe',
+      rejected: 'Modules non chargés ({count})',
+      api: 'API des modules {version}'
+    },
+    externalModules: {
+      title: 'Modules externes',
+      hint: 'Modules développés hors de Sulfur avec son SDK, y compris les vôtres. Installez un paquet (fichier .sulfur-module) avec Installer un paquet, ou copiez son dossier dans le dossier des paquets. Pris en compte au prochain démarrage de Sulfur, ou aussitôt avec Actualiser.',
+      enable: 'Charger les modules externes',
+      warning:
+        'Les paquets ne sont pas signés : un module externe s’exécute avec les droits de Sulfur. N’installez que vos propres modules ou ceux d’une source de confiance.',
+      folder: 'Dossier des paquets :',
+      open: 'Ouvrir',
+      loaded: '{count} module(s) externe(s) chargé(s)',
+      reload: 'Actualiser',
+      reloadHint:
+        'Relire les paquets (ajoutés, mis à jour ou retirés) sans redémarrer Sulfur ; l’interface est rechargée',
+      reloadNeeded: 'Actualisez les modules externes pour appliquer ce choix.',
+      install: 'Installer un paquet…',
+      installTitle: 'Installer un paquet de module',
+      packageFiles: 'Paquet de module Sulfur',
+      installed: 'Paquets installés',
+      none: 'Aucun paquet installé.',
+      notLoaded: 'non chargé',
+      unknownAuthor: 'auteur non indiqué',
+      by: 'par {author}',
+      remove: 'Supprimer',
+      confirmRemove: 'Supprimer {name}',
+      cancel: 'Annuler',
+      installedOk: '{name} {version} installé. Cochez Charger les modules externes, puis Actualiser, pour l’utiliser.',
+      removedOk: '{name} supprimé.',
+      confirm: {
+        title: 'Installer {name} ?',
+        id: 'Identifiant',
+        version: 'Version',
+        author: 'Auteur',
+        content: 'Contenu',
+        files: '{count} fichier(s), {size}',
+        current: 'Version installée',
+        warning:
+          'Ce paquet n’est pas signé et Sulfur ne peut pas vérifier sa provenance. Une fois chargé, son code s’exécute avec les droits de Sulfur (fichiers, réseau). Ne l’installez que si vous l’avez écrit vous-même ou si vous faites confiance à son auteur.',
+        install: 'Installer',
+        update: 'Mettre à jour vers la {version}',
+        replace: 'Remplacer la version {version}'
+      }
     },
     pages: 'Application',
     themes: {
@@ -192,7 +183,9 @@ export default {
       importTitle: 'Importer une configuration Sulfur',
       exported: 'Configuration exportée dans {path}',
       imported: 'Configuration importée depuis {path}',
-      ignored: 'Modules ignorés (absents de cette version) : {modules}'
+      exportedKept: 'Le fichier contient aussi les configurations conservées des modules non installés : {modules}',
+      kept: 'Configurations conservées pour les modules non installés, appliquées quand ils seront installés et chargés : {modules}',
+      ignored: 'Sections ignorées (identifiant invalide ou réservé, contenu incorrect) : {modules}'
     },
     updates: {
       title: 'Mises à jour',
@@ -212,7 +205,18 @@ export default {
       downloading: 'Téléchargement… {progress} %',
       downloaded: 'La version {version} est prête à être installée.',
       downloadedHint: 'Sinon, elle sera installée à la fermeture de Sulfur.',
-      install: 'Redémarrer et installer'
+      install: 'Redémarrer et installer',
+      notes: {
+        title: 'Notes de version',
+        refresh: 'Actualiser',
+        loading: 'Lecture des releases GitHub…',
+        empty: 'Aucune release publiée.',
+        installed: 'Installée',
+        newer: 'Nouvelle',
+        github: 'Ouvrir la release sur GitHub',
+        unreachable: 'Les releases GitHub n’ont pas pu être lues : {message}',
+        rateLimited: 'GitHub limite temporairement les requêtes : réessayez plus tard.'
+      }
     }
   }
 }

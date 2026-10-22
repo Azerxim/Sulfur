@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Play, Send, Square, Trash2, Unplug } from 'lucide-react'
-import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
-import { usePersistentState } from '@renderer/module-config'
+import {
+  Button,
+  Card,
+  Checkbox,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import {
   DEFAULT_CLIENT_CONFIG,
   FACILITIES,

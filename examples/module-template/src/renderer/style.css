@@ -1,0 +1,3 @@
+/* Utilitaires Tailwind du module, sur le thème de Sulfur (thème clair compris). */
+@import '@azerxim/sulfur-sdk/module.css';
+@source './';

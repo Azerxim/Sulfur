@@ -15,7 +15,7 @@ const CLIENT_POINTS = [
 ]
 
 /**
- * Points de données du module Syslog (contrat : `@shared/points`). Écrire `client:message` envoie un
+ * Points de données du module Syslog (contrat : `points.js` du SDK). Écrire `client:message` envoie un
  * message de ce texte avec les réglages de l'émetteur : un flux du simulateur peut ainsi produire
  * des messages Syslog.
  */

@@ -1,5 +1,4 @@
-import { getLocale } from '@shared/i18n'
-
+import { getLocale } from '@azerxim/sulfur-sdk'
 /** Valeur lue par le client (tableaux et structures en JSON). */
 export const formatValue = (v) =>
   v === null || v === undefined ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v)

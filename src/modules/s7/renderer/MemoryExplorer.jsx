@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button, Card, Field, Input, Select } from '@renderer/components/ui'
+import { Button, Card, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { resolveAddress } from '../shared/address'
 import { s7Api } from './api'
 import { formatValue, hex } from './format'

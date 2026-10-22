@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Eraser, Play, Plus, Power, PowerOff, Square, Trash2 } from 'lucide-react'
-import { Button, Card, ErrorBanner, Field, Input, Select } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+import { Button, Card, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_NEW_INSTANCE } from '../shared/constants'
 import { plcsimApi } from './api'
 import { t } from '../shared/i18n'

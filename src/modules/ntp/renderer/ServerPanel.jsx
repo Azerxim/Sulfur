@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Copy, Play, RotateCcw, Snowflake, Square, Trash2 } from 'lucide-react'
-import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
-import { formatTime } from '@shared/i18n'
-import { usePersistentState } from '@renderer/module-config'
+import {
+  Button,
+  Card,
+  CommitInput,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import { CLOCK_MODES, DEFAULT_SERVER_CONFIG, LEAP_INDICATORS, MAX_STRATUM, OFFSET_PRESETS } from '../shared/constants'
 import { ntpApi } from './api'
 import { formatDateTime, formatOffset, fromLocalInput, toLocalInput } from './format'

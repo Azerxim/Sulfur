@@ -1,11 +1,21 @@
 import fs from 'fs'
 import path from 'path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { DEFAULT_LANGUAGE, LANGUAGES } from '@shared/languages'
-import { getLanguage, moduleLanguage, moduleT, registerMessages, setLanguage, t } from '@shared/i18n'
+import {
+  DEFAULT_LANGUAGE,
+  getLanguage,
+  LANGUAGES,
+  moduleLanguage,
+  moduleT,
+  registerMessages,
+  setLanguage,
+  t
+} from '@azerxim/sulfur-sdk'
 import { t as modbusT } from '@modules/modbus/shared/i18n'
 import coreEn from '@shared/locales/en'
 import coreFr from '@shared/locales/fr'
+import sdkEn from '../packages/sdk/src/locales/en'
+import sdkFr from '../packages/sdk/src/locales/fr'
 import opcuaEn from '@modules/opcua/shared/locales/en'
 import opcuaFr from '@modules/opcua/shared/locales/fr'
 import modbusEn from '@modules/modbus/shared/locales/en'
@@ -45,9 +55,18 @@ import ftpFr from '@modules/ftp/shared/locales/fr'
 import serialEn from '@modules/serial/shared/locales/en'
 import serialFr from '@modules/serial/shared/locales/fr'
 
+/** Fusion profonde : l'application et le SDK partagent des espaces de noms (errors). */
+const merge = (a, b) =>
+  Object.fromEntries(
+    [...new Set([...Object.keys(a), ...Object.keys(b)])].map((k) => [
+      k,
+      typeof a[k] === 'object' && typeof b[k] === 'object' ? merge(a[k], b[k]) : (b[k] ?? a[k])
+    ])
+  )
+
 const dictionaries = {
   en: {
-    ...coreEn,
+    ...merge(sdkEn, coreEn),
     ...opcuaEn,
     ...modbusEn,
     ...httpEn,
@@ -69,7 +88,7 @@ const dictionaries = {
     ...serialEn
   },
   fr: {
-    ...coreFr,
+    ...merge(sdkFr, coreFr),
     ...opcuaFr,
     ...modbusFr,
     ...httpFr,
@@ -160,6 +179,7 @@ describe('Dictionnaires', () => {
       }
     }
     walk(path.resolve('src'))
+    walk(path.resolve('packages/sdk/src'))
     const used = new Set()
     for (const file of files) {
       for (const match of fs.readFileSync(file, 'utf8').matchAll(/\bt\(\s*'([a-zA-Z0-9_.]+)'/g)) used.add(match[1])

@@ -1,9 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Copy, Play, Plus, Square, Trash2 } from 'lucide-react'
-import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
+import {
+  Button,
+  Card,
+  CommitInput,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
+import { getLocale } from '@azerxim/sulfur-sdk'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, HISTORY_MAX_VALUES, SIMULATIONS } from '../shared/constants'
-import { usePersistentState } from '@renderer/module-config'
-import { getLocale } from '@shared/i18n'
 import { opcuaApi } from './api'
 import ServerSecurity, { isSecurityValid } from './ServerSecurity'
 import ServerStructures, { structureProblem } from './ServerStructures'

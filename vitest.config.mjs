@@ -1,14 +1,10 @@
-import { resolve } from 'path'
 import { defineConfig } from 'vitest/config'
+import { aliases } from './aliases.mjs'
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@shared': resolve('src/shared'),
-      '@modules': resolve('src/modules'),
-      '@renderer': resolve('src/renderer/src')
-    }
-  },
+  resolve: { alias: aliases() },
+  // Composants React du SDK (rendus par les tests des modules externes) : JSX comme dans l'application.
+  esbuild: { jsx: 'automatic' },
   test: {
     include: ['tests/**/*.test.js'],
     environment: 'node',

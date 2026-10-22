@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { KeyRound, Plus, RefreshCw, X } from 'lucide-react'
-import { Button, Card, Field, Input, Select } from '@renderer/components/ui'
+import { Button, Card, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { AUTH_TYPES, DEFAULT_SERVER_AUTH } from '../shared/constants'
 import { httpApi } from './api'
 import { t } from '../shared/i18n'

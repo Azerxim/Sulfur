@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
-import { getLocale } from '@shared/i18n'
+import { getLocale } from '@azerxim/sulfur-sdk'
 import { seriesColor } from './palette'
 
 export const formatNumber = (v) =>

@@ -16,7 +16,7 @@ const serverPoints = (protocol, label) => [
 ]
 
 /**
- * Points de données du module FTP / SFTP (contrat : `@shared/points`) : compteurs des deux serveurs.
+ * Points de données du module FTP / SFTP (contrat : `points.js` du SDK) : compteurs des deux serveurs.
  * Les défauts s'appliquent aux deux serveurs (SFTP : délai et coupure uniquement).
  */
 export function createPointsApi({ ftpServer, sftpServer }) {

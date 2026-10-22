@@ -1,4 +1,4 @@
-import { moduleT } from '@shared/i18n'
+import { moduleT } from '@azerxim/sulfur-sdk'
 import './locales'
 
 /**

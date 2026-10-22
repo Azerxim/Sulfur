@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { randomUUID } from 'crypto'
-import { ipToInt } from '@shared/networks'
+import { ipToInt } from '@azerxim/sulfur-sdk'
 import { MAX_LOG } from '../shared/constants'
 import { prepareServerConfig } from './config'
 import { LeaseTable } from './leases'

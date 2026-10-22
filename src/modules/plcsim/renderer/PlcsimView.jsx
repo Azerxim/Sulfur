@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MonitorX, Settings2, Variable } from 'lucide-react'
-import { Card, Tabs, useStoredState } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+import { Card, Tabs, usePersistentState, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { plcsimApi } from './api'
 import ConnectionCard from './ConnectionCard'
 import InstancesCard from './InstancesCard'

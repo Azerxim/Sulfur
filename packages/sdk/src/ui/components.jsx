@@ -1,8 +1,8 @@
-/** Composants d'interface partagés par tous les modules. */
+/** Composants d'interface partagés par tous les modules (SDK : @azerxim/sulfur-sdk/ui). */
 
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { t } from '@shared/i18n'
+import { t } from '../i18n.js'
 
 const buttonVariants = {
   primary: 'bg-sulfur-400 text-on-accent hover:bg-sulfur-300 disabled:bg-ink-700 disabled:text-slate-500',

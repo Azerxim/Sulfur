@@ -1,5 +1,13 @@
 import os from 'os'
-import { PRIVATE_NETWORKS, intToIp, ipToInt, isIPv4, isPrivateIPv4, isPrivateSubnet, subnetOf } from '@shared/networks'
+import {
+  intToIp,
+  ipToInt,
+  isIPv4,
+  isPrivateIPv4,
+  isPrivateSubnet,
+  PRIVATE_NETWORKS,
+  subnetOf
+} from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG, DEFAULT_SERVER_CONFIG, MAX_LEASE, MAX_POOL, MIN_LEASE } from '../shared/constants'
 import { normalizeMac } from './protocol'
 import { t } from '../shared/i18n'

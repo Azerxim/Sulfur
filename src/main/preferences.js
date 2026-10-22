@@ -12,19 +12,41 @@ const file = () => path.join(app.getPath('userData'), 'preferences.json')
 export const THEMES = ['dark', 'light', 'system']
 export const WINDOW_BACKGROUNDS = { dark: '#0b0d12', light: '#f1f3f6' }
 
+/** Préférences lues une fois, puis tenues en mémoire : le fichier n'est relu qu'au démarrage. */
+let current = null
+let writing = Promise.resolve()
+
 export function loadPreferences() {
-  try {
-    return JSON.parse(fs.readFileSync(file(), 'utf8'))
-  } catch {
-    return {}
+  if (!current) {
+    try {
+      current = JSON.parse(fs.readFileSync(file(), 'utf8'))
+    } catch {
+      current = {}
+    }
   }
+  return { ...current }
 }
 
+/**
+ * Enregistre `patch` dans les préférences. Les écritures se suivent et remplacent le fichier d'un
+ * bloc (fichier temporaire renommé) : deux enregistrements rapprochés (langue et thème au
+ * démarrage) ne perdent rien et le fichier n'est jamais lu à moitié écrit.
+ */
 export function savePreferences(patch) {
-  const next = { ...loadPreferences(), ...patch }
-  fs.promises.writeFile(file(), JSON.stringify(next, null, 2)).catch(() => {})
-  return next
+  current = { ...loadPreferences(), ...patch }
+  const data = JSON.stringify(current, null, 2)
+  writing = writing
+    .then(async () => {
+      const tmp = `${file()}.tmp`
+      await fs.promises.writeFile(tmp, data)
+      await fs.promises.rename(tmp, file())
+    })
+    .catch(() => {})
+  return { ...current }
 }
+
+/** Attend la fin des écritures en cours (avant de quitter). */
+export const flushPreferences = () => writing
 
 /** Applique le thème aux éléments natifs et retourne le thème effectif ('dark' | 'light'). */
 export function applyNativeTheme(theme) {

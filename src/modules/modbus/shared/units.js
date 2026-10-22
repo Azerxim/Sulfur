@@ -1,4 +1,4 @@
-import { isPlainObject } from '@shared/config'
+import { isPlainObject } from '@azerxim/sulfur-sdk'
 import { DEFAULT_IDENTITY } from './constants'
 
 /**

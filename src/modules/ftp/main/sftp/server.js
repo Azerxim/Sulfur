@@ -3,7 +3,7 @@ import fs from 'fs/promises'
 import { constants as fsConstants } from 'fs'
 import path from 'path'
 import ssh2 from 'ssh2'
-import { hashPassword, isPasswordHash, verifyPassword } from '@shared/passwords'
+import { hashPassword, isPasswordHash, verifyPassword } from '@azerxim/sulfur-sdk/main'
 import { DEFAULT_SERVER_CONFIG, MAX_LOG } from '../../shared/sftp'
 import { t } from '../../shared/i18n'
 

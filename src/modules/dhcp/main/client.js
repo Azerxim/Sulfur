@@ -1,5 +1,5 @@
 import { randomInt, randomUUID } from 'crypto'
-import { isPrivateIPv4 } from '@shared/networks'
+import { isPrivateIPv4 } from '@azerxim/sulfur-sdk'
 import { CLIENT_MODES, MAX_HISTORY } from '../shared/constants'
 import { prepareClientConfig } from './config'
 import { BROADCAST_FLAG, OP, OPTION, TYPE, TYPE_NAMES, decode, encode } from './protocol'

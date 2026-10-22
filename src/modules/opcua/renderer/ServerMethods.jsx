@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react'
-import { Button, Card, CommitInput, Select } from '@renderer/components/ui'
+import { Button, Card, CommitInput, Select } from '@azerxim/sulfur-sdk/ui'
 import { METHOD_BEHAVIORS, METHOD_FAILURES } from '../shared/constants'
 import FieldsInput from './FieldsInput'
 import { t } from '../shared/i18n'

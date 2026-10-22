@@ -1,8 +1,9 @@
-export const SYSLOG_MODULE = {
+import { builtinManifest } from '@modules/builtin'
+export const SYSLOG_MODULE = builtinManifest({
   id: 'syslog',
   name: 'Syslog',
   description: 'Serveur Syslog (UDP / TCP / TLS, RFC 5424 et 3164) et émetteur de messages'
-}
+})
 
 /** Transports (libellés : syslog.transports.*). */
 export const TRANSPORTS = ['udp', 'tcp', 'tls']

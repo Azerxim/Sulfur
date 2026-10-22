@@ -1,6 +1,6 @@
 import { FileUp, Trash2 } from 'lucide-react'
-import { Button, Card } from '@renderer/components/ui'
-import { getLocale } from '@shared/i18n'
+import { Button, Card } from '@azerxim/sulfur-sdk/ui'
+import { getLocale } from '@azerxim/sulfur-sdk'
 import { opcuaApi } from './api'
 import { t } from '../shared/i18n'
 

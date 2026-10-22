@@ -5,7 +5,7 @@ import { SyslogClient } from '@modules/syslog/main/client'
 import { FrameDecoder, frame } from '@modules/syslog/main/framing'
 import { createPointsApi } from '@modules/syslog/main/points'
 import { encodeMessage, parseMessage, parseStructuredData } from '@modules/syslog/shared/codec'
-import { ensureCertificate } from '@shared/certificate'
+import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { errorOf, freePort, sleep, tempDir } from './helpers'
 
 let server, client, pki, port

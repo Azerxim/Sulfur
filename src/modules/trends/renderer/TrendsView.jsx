@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChartLine, Circle, Download, Eraser, Eye, EyeOff, List, LocateFixed, Square, X } from 'lucide-react'
-import { Button, Card, CommitInput, ErrorBanner, Field, Select, Tabs, useStoredState } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
-import { getLocale } from '@shared/i18n'
+import {
+  Button,
+  Card,
+  CommitInput,
+  ErrorBanner,
+  Field,
+  Select,
+  Tabs,
+  usePersistentState,
+  useStoredState
+} from '@azerxim/sulfur-sdk/ui'
+import { getLocale } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CONFIG, MAX_ROWS, MIN_INTERVAL, WINDOWS } from '../shared/constants'
 import { trendsApi } from './api'
 import { MAX_SERIES, freeSlot, seriesColor } from './palette'

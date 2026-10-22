@@ -14,65 +14,12 @@ export default {
     updateAvailable: 'Update available: v{version}',
     updateReady: 'Update ready: v{version}'
   },
-  ui: {
-    expand: 'Expand',
-    collapse: 'Collapse',
-    close: 'Close',
-    copy: 'Copy',
-    refresh: 'Refresh',
-    remove: 'Delete',
-    add: 'Add',
-    start: 'Start',
-    starting: 'Starting…',
-    stop: 'Stop',
-    stopped: 'Stopped',
-    connect: 'Connect',
-    connecting: 'Connecting…',
-    disconnect: 'Disconnect',
-    connected: 'Connected',
-    disconnected: 'Disconnected',
-    loading: 'Loading…',
-    toggle: 'Toggle',
-    server: 'Server',
-    client: 'Client',
-    name: 'Name',
-    type: 'Type',
-    value: 'Value',
-    initialValue: 'Initial value',
-    currentValue: 'Current value',
-    simulation: 'Simulation',
-    periodMs: 'Period (ms)',
-    min: 'Min',
-    max: 'Max',
-    write: 'Write',
-    read: 'Read',
-    status: 'Status',
-    timestamp: 'Timestamp',
-    liveApplied: 'Changes applied live',
-    lockedWhileRunning: 'Editable when the server is stopped',
-    incomplete: 'Incomplete configuration: {problems}.',
-    simulationRate: 'Simulation period (ms)',
-    renameRecreates: 'Renaming recreates the node (its identifier changes)',
-    typeRecreates: 'Changing the type recreates the node',
-    certificates: 'Certificates',
-    autoAcceptServerCert: 'Automatically accept the server certificate',
-    autoAcceptUnknownCerts: 'Automatically accept unknown certificates',
-    security: 'Security',
-    connection: 'Connection',
-    monitoring: 'Monitoring ({count})',
-    remove2: 'Remove'
-  },
   errors: {
-    invalidNumber: 'Invalid numeric value: {value}',
-    invalidInteger: 'Invalid integer value: {value}',
-    alreadyStarted: 'The server is already running',
-    notStarted: 'The server is not running',
-    notConnected: 'Client not connected',
+    externalBusy: 'Stop the servers and clients of these modules before refreshing the external modules: {modules}',
     modulesBusy: 'Stop the servers and clients of these modules before disabling them: {modules}',
-    minPeriod: 'Minimum period: {min} ms',
-    unknownStore: 'Unknown certificate store: {name}',
-    certNotFound: 'Certificate not found',
-    emptyPassword: 'The password is empty',
+    modulePackage: 'Module package refused: {problem}',
+    packageExpired: 'This package is no longer waiting to be installed: choose it again.',
+    packageNotFound: 'No package installed for the module “{id}”',
     config: {
       notJson: 'The file is not valid JSON',
       notSulfur: 'The file is not a Sulfur configuration',
@@ -81,29 +28,22 @@ export default {
       busy: 'Stop the servers and disconnect the clients before importing a configuration'
     }
   },
-  simulations: {
-    none: 'Static',
-    sine: 'Sine',
-    ramp: 'Ramp',
-    random: 'Random',
-    toggle: 'Toggle'
-  },
-  certs: {
-    rejected: 'Rejected',
-    rejectedHint: 'Unknown certificates that were received and refused. Approve them to allow the connection.',
-    trusted: 'Trusted',
-    trustedHint: 'Certificates of peers allowed to connect.',
-    own: 'Application certificate',
-    ownHint: 'Generated automatically on first start.',
-    none: 'No certificate',
-    expired: 'expired',
-    unreadable: 'Unreadable certificate',
-    approve: 'Approve',
-    reject: 'Reject',
-    openFolder: 'Open folder',
-    thumbprint: 'thumbprint',
-    validUntil: 'valid until {date}',
-    confirmRemove: 'Delete certificate “{name}”?'
+  modules: {
+    problems: {
+      invalid: 'invalid manifest: “{field}” field missing or incorrect',
+      reservedId: 'identifier “{id}” is reserved by Sulfur',
+      duplicateId: 'another module already uses the identifier “{id}”',
+      apiMajor: 'written for module API {required}, incompatible with the API {current} of this version of Sulfur',
+      apiTooNew: 'requires module API {required}; this version of Sulfur provides {current}: update Sulfur',
+      appTooOld: 'requires Sulfur {required} or later (this is {current}): update Sulfur',
+      unreadable: 'package unreadable: {file} missing or invalid ({message})',
+      mismatch: 'the code of the package does not match its module.json ({file})',
+      loadFailed: 'the module code could not be loaded: {message}',
+      activateFailed: 'the module failed to start: {message}',
+      rendererFailed: 'the module interface could not be loaded: {message}',
+      archive: 'invalid archive: {message}',
+      missingFile: 'file “{file}” missing from the package'
+    }
   },
   home: {
     name: 'Home',
@@ -154,7 +94,12 @@ export default {
   },
   settings: {
     name: 'Settings',
-    description: 'Language, appearance, configurations and updates',
+    description: 'Language, appearance, modules, configurations and updates',
+    tabs: {
+      general: 'General',
+      modules: 'Modules',
+      updates: 'Updates'
+    },
     language: 'Language',
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',
@@ -168,7 +113,52 @@ export default {
       hint: 'A disabled module is hidden from the sidebar and the home page, stopped, and no longer loaded at startup. Its settings are kept. Stop its servers and clients before disabling it.',
       summary: '{enabled} of {total} modules enabled',
       enableAll: 'Enable all',
-      disableAll: 'Disable all'
+      disableAll: 'Disable all',
+      additional: 'Additional',
+      external: 'External',
+      rejected: 'Modules not loaded ({count})',
+      api: 'Module API {version}'
+    },
+    externalModules: {
+      title: 'External modules',
+      hint: 'Modules developed outside Sulfur with its SDK, yours included. Install a package (.sulfur-module file) with Install a package, or copy its folder into the packages folder. Taken into account at the next start of Sulfur, or right away with Refresh.',
+      enable: 'Load the external modules',
+      warning:
+        'Packages are not signed: an external module runs with the rights of Sulfur. Only install modules you wrote yourself or from a source you trust.',
+      folder: 'Packages folder:',
+      open: 'Open',
+      loaded: '{count} external module(s) loaded',
+      reload: 'Refresh',
+      reloadHint:
+        'Read the packages again (added, updated or removed) without restarting Sulfur; the interface is reloaded',
+      reloadNeeded: 'Refresh the external modules to apply this choice.',
+      install: 'Install a package…',
+      installTitle: 'Install a module package',
+      packageFiles: 'Sulfur module package',
+      installed: 'Installed packages',
+      none: 'No package installed.',
+      notLoaded: 'not loaded',
+      unknownAuthor: 'author not specified',
+      by: 'by {author}',
+      remove: 'Remove',
+      confirmRemove: 'Remove {name}',
+      cancel: 'Cancel',
+      installedOk: '{name} {version} installed. Check Load the external modules, then Refresh, to use it.',
+      removedOk: '{name} removed.',
+      confirm: {
+        title: 'Install {name}?',
+        id: 'Identifier',
+        version: 'Version',
+        author: 'Author',
+        content: 'Content',
+        files: '{count} file(s), {size}',
+        current: 'Installed version',
+        warning:
+          'This package is not signed and Sulfur cannot check where it comes from. Once loaded, its code runs with the rights of Sulfur (files, network). Install it only if you wrote it yourself or trust its author.',
+        install: 'Install',
+        update: 'Update to {version}',
+        replace: 'Replace version {version}'
+      }
     },
     pages: 'Application',
     themes: {
@@ -190,7 +180,9 @@ export default {
       importTitle: 'Import a Sulfur configuration',
       exported: 'Configuration exported to {path}',
       imported: 'Configuration imported from {path}',
-      ignored: 'Ignored modules (not available in this version): {modules}'
+      exportedKept: 'The file also contains the kept configurations of modules that are not installed: {modules}',
+      kept: 'Configurations kept for modules that are not installed, applied once they are installed and loaded: {modules}',
+      ignored: 'Ignored sections (invalid or reserved identifier, incorrect content): {modules}'
     },
     updates: {
       title: 'Updates',
@@ -210,7 +202,18 @@ export default {
       downloading: 'Downloading… {progress} %',
       downloaded: 'Version {version} is ready to install.',
       downloadedHint: 'Otherwise, it will be installed when Sulfur closes.',
-      install: 'Restart and install'
+      install: 'Restart and install',
+      notes: {
+        title: 'Release notes',
+        refresh: 'Refresh',
+        loading: 'Loading the GitHub releases…',
+        empty: 'No published release.',
+        installed: 'Installed',
+        newer: 'New',
+        github: 'Open the release on GitHub',
+        unreachable: 'The GitHub releases could not be read: {message}',
+        rateLimited: 'GitHub temporarily limits the requests: try again later.'
+      }
     }
   }
 }

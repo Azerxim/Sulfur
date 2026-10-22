@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Button, Card, ErrorBanner, Field, Input } from '@renderer/components/ui'
-import { usePersistentState } from '@renderer/module-config'
+import { Button, Card, ErrorBanner, Field, Input, usePersistentState } from '@azerxim/sulfur-sdk/ui'
+import { PRIVATE_NETWORKS } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SCAN, MAX_HOSTS } from '../shared/constants'
-import { PRIVATE_NETWORKS } from '@shared/networks'
 import { explorerApi } from './api'
 import { t } from '../shared/i18n'
 

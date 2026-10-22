@@ -1,5 +1,5 @@
 import net from 'net'
-import { simulate } from '@shared/simulator'
+import { simulate } from '@azerxim/sulfur-sdk'
 import { AREAS, AREA_BY_CODE, DEFAULT_IDENTITY, PDU_SIZES, RETURN_CODES } from '../shared/constants'
 import { formatAddress } from '../shared/address'
 import { validateMemory, validatePoint } from '../shared/memory'

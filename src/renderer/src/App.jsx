@@ -3,14 +3,15 @@ import { rendererModules } from './modules'
 import { useEnabledModules } from './enabled-modules'
 import { appPages } from './pages'
 import { useI18n, useManifestText, usePreferences } from './preferences'
-import { useStoredState } from './components/ui'
+import { useStoredState } from '@azerxim/sulfur-sdk/ui'
 import Sidebar from './components/Sidebar'
 import ModuleErrorBoundary from './components/ModuleErrorBoundary'
-
-const allPages = [...rendererModules, ...appPages]
-const pageIds = allPages.map((p) => p.manifest.id)
+import { selectSettingsTab } from './pages/SettingsPage'
 
 export default function App() {
+  // Modules externes compris : ajoutés avant le premier rendu.
+  const allPages = [...rendererModules, ...appPages]
+  const pageIds = allPages.map((p) => p.manifest.id)
   const { t } = useI18n()
   const text = useManifestText()
   const { prefs } = usePreferences()
@@ -22,7 +23,8 @@ export default function App() {
   const shownId = isDisabled(activeId) ? 'home' : activeId
   const active = allPages.find((m) => m.manifest.id === shownId)
   const select = (id) => {
-    // Lien vers un module désactivé : les Paramètres, où il peut être réactivé.
+    // Lien vers un module désactivé : l'onglet Modules des Paramètres, où il peut être réactivé.
+    if (isDisabled(id)) selectSettingsTab('modules')
     const target = isDisabled(id) ? 'settings' : id
     setActiveId(target)
     setLastId(target)

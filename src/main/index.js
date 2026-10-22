@@ -2,17 +2,22 @@ import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import '@shared/locales'
-import { setLanguage } from '@shared/i18n'
+import { setLanguage } from '@azerxim/sulfur-sdk'
 import { ModuleHost } from './module-host'
+import { ExternalModules } from './external-modules'
+import { registerModuleScheme, serveModulePackages } from './module-packages'
 import { registerConfigTransfer } from './config-transfer'
 import { registerModuleSwitch } from './module-switch'
 import { mainModules } from './modules'
-import { WINDOW_BACKGROUNDS, applyNativeTheme, loadPreferences } from './preferences'
+import { WINDOW_BACKGROUNDS, applyNativeTheme, flushPreferences, loadPreferences } from './preferences'
 import { systemMainModule } from './system-info'
 import { updaterMainModule } from './updater'
 import icon from '../../resources/icon.png?asset'
 
 const host = new ModuleHost()
+
+// Fichiers de l'interface des modules externes (sulfur-module://<id>/…) : schéma déclaré avant le démarrage.
+registerModuleScheme()
 
 function createWindow() {
   // Thème mémorisé appliqué dès l'ouverture : fond de fenêtre et page (via le preload) sans flash.
@@ -55,14 +60,24 @@ app.whenReady().then(async () => {
   electronApp.setAppUserModelId('fr.topazdev.sulfur')
   app.on('browser-window-created', (_, window) => optimizer.watchWindowShortcuts(window))
 
+  const prefs = loadPreferences()
   // Langue des messages du process principal dès le démarrage (avant le chargement de l'interface).
-  setLanguage(loadPreferences().language)
+  setLanguage(prefs.language)
   // Modules désactivés dans les Paramètres : configuration chargée, module non activé.
-  const moduleIds = mainModules.map((mod) => mod.manifest.id)
-  const disabled = [].concat(loadPreferences().disabledModules ?? []).filter((id) => moduleIds.includes(id))
-  await host.load([systemMainModule, updaterMainModule, ...mainModules], { disabled })
+  const disabled = [].concat(prefs.disabledModules ?? [])
+  const builtinIds = mainModules.map((mod) => mod.manifest.id)
+  await host.load([systemMainModule, updaterMainModule, ...mainModules], {
+    disabled: disabled.filter((id) => builtinIds.includes(id))
+  })
+  // Modules externes ensuite : ils peuvent utiliser les points des modules intégrés.
+  const external = new ExternalModules(host)
+  await external.load(prefs.externalModules === true, disabled)
+  // Modules intégrés chargés (les modules refusés n'ont ni configuration ni activation) et modules
+  // externes chargés : liste relue à chaque usage (actualisation des modules externes).
+  const moduleIds = () => [...builtinIds.filter((id) => host.configs.has(id)), ...external.ids()]
   registerConfigTransfer(host, moduleIds)
-  registerModuleSwitch(host, moduleIds)
+  registerModuleSwitch(host, moduleIds, external)
+  serveModulePackages(() => external.packages)
   createWindow()
 
   app.on('activate', () => {
@@ -76,6 +91,7 @@ app.on('before-quit', async (event) => {
   event.preventDefault()
   quitting = true
   await host.dispose()
+  await flushPreferences()
   app.quit()
 })
 

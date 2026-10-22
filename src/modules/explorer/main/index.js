@@ -1,5 +1,5 @@
 import { EXPLORER_MODULE, MAX_PREVIEW } from '../shared/constants'
-import { PRIVATE_NETWORKS } from '@shared/networks'
+import { PRIVATE_NETWORKS } from '@azerxim/sulfur-sdk'
 import '../shared/locales'
 import { localNetworks, parseTargets } from './targets'
 

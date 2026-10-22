@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { Select } from '@renderer/components/ui'
+import { Select } from '@azerxim/sulfur-sdk/ui'
 import { t } from '../shared/i18n'
 
 /** Libellé d'un groupe de points : « OPC UA · Serveur ». */

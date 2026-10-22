@@ -32,7 +32,7 @@ const GATEWAY_POINTS = [
 const toBoolean = (value) => value === true || value === 1 || /^(true|1|on)$/i.test(String(value ?? '').trim())
 
 /**
- * Points de données du module Terminal série (contrat : `@shared/points`). Écrire `port:send`
+ * Points de données du module Terminal série (contrat : `points.js` du SDK). Écrire `port:send`
  * envoie ce texte (séquences \r, \n, \xNN reconnues) suivi de la fin de ligne choisie dans
  * l'interface, `port:sendHex` envoie des octets en hexadécimal : un flux du simulateur peut ainsi
  * piloter un équipement série.

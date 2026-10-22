@@ -9,8 +9,9 @@ import {
   Field,
   Input,
   Select,
-  StatusDot
-} from '@renderer/components/ui'
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
 import {
   DATA_TYPES,
   DEFAULT_IDENTITY,
@@ -25,7 +26,6 @@ import {
 } from '../shared/constants'
 import { pointSize } from '../shared/codec'
 import { unitLabel } from '../shared/units'
-import { usePersistentState } from '@renderer/module-config'
 import { modbusApi } from './api'
 import ServerSecurity, { securityProblems } from './ServerSecurity'
 import ServerActivity from './ServerActivity'

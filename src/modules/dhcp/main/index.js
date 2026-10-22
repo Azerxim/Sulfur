@@ -1,7 +1,7 @@
 import { shell } from 'electron'
 import fs from 'fs/promises'
 import { join } from 'path'
-import { PRIVATE_NETWORKS } from '@shared/networks'
+import { PRIVATE_NETWORKS } from '@azerxim/sulfur-sdk'
 import { DHCP_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { listInterfaces } from './config'

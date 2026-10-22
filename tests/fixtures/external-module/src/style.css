@@ -1,0 +1,3 @@
+/* Le paquet publié s'importe par « @azerxim/sulfur-sdk/module.css ». */
+@import '../../../../packages/sdk/src/ui/module.css';
+@source './';

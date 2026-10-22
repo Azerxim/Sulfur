@@ -1,6 +1,6 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from 'crypto'
 import { promisify } from 'util'
-import { t } from './i18n'
+import { t } from '../i18n.js'
 
 const scrypt = promisify(scryptCb)
 const KEY_LENGTH = 32

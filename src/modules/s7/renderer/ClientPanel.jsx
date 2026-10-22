@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import { BookOpen, Eye, Fingerprint, Plug, PlugZap, Power, PowerOff, RefreshCw, Send, X } from 'lucide-react'
-import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select, StatusDot } from '@renderer/components/ui'
+import {
+  Button,
+  Card,
+  CommitInput,
+  ErrorBanner,
+  Field,
+  Input,
+  Select,
+  StatusDot,
+  usePersistentState
+} from '@azerxim/sulfur-sdk/ui'
 import {
   CONNECTION_TYPES,
   DATA_TYPES,
@@ -10,7 +20,6 @@ import {
   PDU_SIZES
 } from '../shared/constants'
 import { defaultType, parseAddress } from '../shared/address'
-import { usePersistentState } from '@renderer/module-config'
 import { s7Api } from './api'
 import { formatTime, formatValue, hex } from './format'
 import { CpuBadge } from './ServerPanel'

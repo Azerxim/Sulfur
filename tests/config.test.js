@@ -1,11 +1,14 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { withDefaults } from '@shared/config'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { withDefaults } from '@azerxim/sulfur-sdk'
 import { ConfigStore } from '../src/main/config-store'
 import { BUNDLE_FORMAT, createBundle, parseBundle } from '../src/main/config-bundle'
+import { keepConfigs, storedConfigs } from '../src/main/config-transfer'
 import { DEFAULT_SERVER_CONFIG } from '@modules/modbus/shared/constants'
 import { tempDir } from './helpers'
+
+vi.mock('electron', () => ({ app: {}, BrowserWindow: {}, dialog: {} }))
 
 describe('withDefaults', () => {
   it('retourne les valeurs par défaut sans configuration enregistrée', () => {
@@ -77,19 +80,56 @@ describe("Fichier d'échange (import / export)", () => {
   it('relit un fichier exporté', () => {
     const bundle = createBundle(modules, '0.1.0')
     expect(bundle).toMatchObject({ format: BUNDLE_FORMAT, version: 1, appVersion: '0.1.0', modules })
-    expect(parseBundle(JSON.stringify(bundle), known)).toEqual({ modules, ignored: [] })
+    expect(parseBundle(JSON.stringify(bundle), known)).toEqual({ modules, kept: {}, ignored: [] })
   })
 
-  it('ignore les modules inconnus de cette version', () => {
-    const text = JSON.stringify(createBundle({ ...modules, mqtt: { broker: {} } }))
-    expect(parseBundle(text, known)).toEqual({ modules, ignored: ['mqtt'] })
+  it('conserve les sections des modules absents et ignore les sections inutilisables', () => {
+    const text = JSON.stringify(
+      createBundle({
+        ...modules,
+        mqtt: { broker: { port: 1884 } },
+        'test-signal': { generator: { period: 5 } },
+        system: { window: {} },
+        settings: {},
+        '../evil': {},
+        list: [1]
+      })
+    )
+    expect(parseBundle(text, known, ['system'])).toEqual({
+      modules,
+      kept: { mqtt: { broker: { port: 1884 } }, 'test-signal': { generator: { period: 5 } } },
+      ignored: ['system', 'settings', '../evil', 'list']
+    })
+    // Seulement des modules absents : rien à appliquer tout de suite, mais le fichier est accepté.
+    expect(parseBundle(JSON.stringify(createBundle({ mqtt: {} })), known).kept).toEqual({ mqtt: {} })
   })
 
   it('refuse les fichiers invalides', () => {
     expect(() => parseBundle('{ pas du json', known)).toThrow('not valid JSON')
     expect(() => parseBundle(JSON.stringify({ modules }), known)).toThrow('not a Sulfur configuration')
     expect(() => parseBundle(JSON.stringify({ ...createBundle(modules), version: 2 }), known)).toThrow('version 2')
-    expect(() => parseBundle(JSON.stringify(createBundle({ mqtt: {} })), known)).toThrow('no configuration')
+    expect(() => parseBundle(JSON.stringify(createBundle({ settings: {} })), known)).toThrow('no configuration')
     expect(() => parseBundle(JSON.stringify(createBundle({ opcua: [] })), known)).toThrow('no configuration')
+  })
+})
+
+describe('Configurations conservées des modules non chargés', () => {
+  let tmp
+  beforeEach(async () => {
+    tmp = await tempDir('kept')
+  })
+  afterEach(() => tmp.cleanup())
+
+  it('les enregistre puis les relit, sans celles des modules chargés', async () => {
+    keepConfigs(tmp.dir, { mqtt: { broker: { port: 1884 } }, 'test-signal': { generator: { period: 5 } } })
+    new ConfigStore(path.join(tmp.dir, 'opcua', 'config.json')).set('server', { port: 4841 })
+    new ConfigStore(path.join(tmp.dir, 'empty', 'config.json')).replace({})
+    await fs.mkdir(path.join(tmp.dir, 'settings'))
+    await fs.writeFile(path.join(tmp.dir, 'notes.txt'), '')
+    expect(await storedConfigs(tmp.dir, ['opcua'])).toEqual({
+      mqtt: { broker: { port: 1884 } },
+      'test-signal': { generator: { period: 5 } }
+    })
+    expect(await storedConfigs(path.join(tmp.dir, 'missing'), [])).toEqual({})
   })
 })

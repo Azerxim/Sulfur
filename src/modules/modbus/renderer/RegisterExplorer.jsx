@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select } from '@renderer/components/ui'
+import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { TABLES } from '../shared/constants'
 import { decodeValue, pointSize } from '../shared/codec'
 import { unitLabel } from '../shared/units'

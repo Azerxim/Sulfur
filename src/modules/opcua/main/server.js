@@ -22,9 +22,8 @@ import {
 } from '../shared/constants'
 import { coerce, coerceArray, coerceStruct, defaultValue, toPlain } from './serialize'
 import { nodesetSources, structuresNodeset, TYPES_NAMESPACE, validateStructures } from './nodesets'
-import { hashPassword, isPasswordHash, verifyPassword } from '@shared/passwords'
-import { simulate } from '@shared/simulator'
-
+import { hashPassword, isPasswordHash, verifyPassword } from '@azerxim/sulfur-sdk/main'
+import { simulate } from '@azerxim/sulfur-sdk'
 const VALUES_EMIT_INTERVAL = 250
 
 /** Identité de l'application serveur (nom du certificat : OPCUA@Sulfur). */

@@ -20,7 +20,8 @@ import serial from '@modules/serial/renderer'
 
 /**
  * Modules affichés dans l'interface, par groupe (libellés : app.groups.*), dans l'ordre de la barre
- * latérale. Ajouter les nouveaux modules ici.
+ * latérale. Ajouter les nouveaux modules intégrés ici ; les modules externes sont ajoutés au
+ * démarrage, avant le premier rendu (addModule).
  */
 export const moduleGroups = [
   { id: 'tools', modules: [simulator, trends, ca, explorer, serial] },
@@ -29,3 +30,9 @@ export const moduleGroups = [
 ]
 
 export const rendererModules = moduleGroups.flatMap((group) => group.modules)
+
+/** Ajoute un module (externe) à la fin de son groupe. */
+export function addModule(groupId, mod) {
+  moduleGroups.find((group) => group.id === groupId).modules.push(mod)
+  rendererModules.push(mod)
+}

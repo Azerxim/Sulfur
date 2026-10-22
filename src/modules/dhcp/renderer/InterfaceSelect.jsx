@@ -1,5 +1,5 @@
 import { RefreshCw } from 'lucide-react'
-import { Button, Select } from '@renderer/components/ui'
+import { Button, Select } from '@azerxim/sulfur-sdk/ui'
 import { t } from '../shared/i18n'
 
 /**

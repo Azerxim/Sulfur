@@ -9,7 +9,7 @@ const SERVER_POINTS = [
   { id: 'server:lastName', name: 'last queried name', dataType: 'String', numeric: false }
 ]
 
-/** Points de données du module DNS (contrat : `@shared/points`) : compteurs du serveur. */
+/** Points de données du module DNS (contrat : `points.js` du SDK) : compteurs du serveur. */
 export function createPointsApi({ server }) {
   return {
     name: 'DNS',

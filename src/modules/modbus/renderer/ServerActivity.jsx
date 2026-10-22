@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Lock, Trash2 } from 'lucide-react'
-import { Button, Card } from '@renderer/components/ui'
+import { Button, Card } from '@azerxim/sulfur-sdk/ui'
+import { formatTime } from '@azerxim/sulfur-sdk'
 import { modbusApi } from './api'
-import { formatTime } from '@shared/i18n'
 import { t } from '../shared/i18n'
 
 const MAX_LOG = 300

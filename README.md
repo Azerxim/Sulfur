@@ -2,12 +2,17 @@
 
 [![CI](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Azerxim/Sulfur/actions/workflows/ci.yml?query=branch%3Amain)
 [![Release](https://img.shields.io/github/v/release/Azerxim/Sulfur)](https://github.com/Azerxim/Sulfur/releases/latest)
+[![SDK](https://img.shields.io/npm/v/@azerxim/sulfur-sdk?label=SDK)](https://www.npmjs.com/package/@azerxim/sulfur-sdk)
 
 **English** · [Français](README.fr.md)
 
 Modular simulator application — Electron + React (JavaScript) + TailwindCSS v4.
 English (default) and French interface, light or dark theme (follows the system by default).
 See the [roadmap](ROADMAP.md) for what comes next. License: [Apache-2.0](LICENSE).
+
+Anyone can extend Sulfur with their own modules, without approval or signature: write one with the
+[module SDK](packages/sdk/README.md) by following the [module development guide](docs/module-guide.md),
+then install its `.sulfur-module` package from *Settings → Modules*.
 
 ## Getting started
 
@@ -19,13 +24,14 @@ npm run dist       # installers (electron-builder) in dist/
 npm test           # automated tests (Vitest)
 npm run lint       # static analysis (ESLint)
 npm run format     # formatting (Prettier)
+npm run example:build # example external module → examples/test-signal/dist/
 ```
 
 ## Tests
 
 The `tests/` folder holds integration tests run against real servers and clients (sockets, TLS,
 certificates) plus unit tests: OPC UA security, live editing, arrays and structures, methods, alarms and events, history and NodeSet2 import, Modbus TCP, Modbus/TCP Security, RTU and ASCII (frames, RTU over TCP, serial link, broadcast), HTTP / REST (API, routes, authentication, HTTPS, webhooks), NTP (packets, simulated clock, client), Siemens S7 (addresses, codec, server and client, PDU splitting, faults), PLCSim Advanced (bridge protocol, manager), MQTT (topics and wildcards, broker and client, authentication, TLS, faults), SNMP (v1 / v2c / v3, Get / GetNext / GetBulk / Walk / Set, monitoring, traps and informs, faults), Syslog (RFC 5424 and 3164, TCP framing, UDP / TCP / TLS, faults), network explorer targets (private networks only), serial terminal (hexadecimal and escaped entries, frame splitting, control lines, serial ↔ TCP gateway), RADIUS (RFC 2865 examples, PAP / CHAP, Message-Authenticator, LDAP directory accounts, accounting), DHCP (packets, pool checked against the interface subnet, private networks only, leases, server and client, MAC filter), fault injection, node flows and trend recording on both protocols,
-protocol and value encoding, saved configurations and import / export files, translations (same keys and parameters in every language, every key used
+protocol and value encoding, saved configurations and import / export files (sections of modules that are not installed kept), module manifests and SDK exports, external module packages (loading, `.sulfur-module` archives, installation, update and removal), module template (built, packaged and run), translations (same keys and parameters in every language, every key used
 in the code exists). Each test uses a free port and a temporary certificate store.
 
 ```bash
@@ -55,6 +61,16 @@ formatting check, tests and build, on Ubuntu with Node 24. Run the same checks l
 
 ```bash
 npm run lint && npm run format:check && npm test && npm run build
+```
+
+The module SDK has its own workflow (`.github/workflows/sdk.yml`), run on `sdk-v*` tags (e.g.
+`sdk-v1.1.0`, equal to the version of `packages/sdk/package.json`): lint and tests, then publication
+on GitHub Packages and staging on npm (`npm stage publish` with provenance, `NPM_TOKEN` secret:
+stage-only token). A maintainer then approves the npm version with 2FA:
+
+```bash
+npm stage list @azerxim/sulfur-sdk
+npm stage approve <id>
 ```
 
 ## Packaging
@@ -96,23 +112,25 @@ src/
 │   ├── module-host.js    # Module loading, IPC
 │   ├── config-store.js   # Saved module configurations (config.json)
 │   ├── config-transfer.js # Configuration import / export (config:* channels)
-│   ├── module-switch.js  # Enabled / disabled modules (modules:* channels)
+│   ├── module-switch.js  # Enabled / disabled modules, packages (modules:* channels)
+│   ├── external-modules.js # External modules: loading, refresh, package installation and removal
+│   ├── module-packages.js # Package folders: checks, import, sulfur-module:// protocol
 │   ├── system-info.js    # PC information (IP, system) — system:info channel
 │   └── modules.js        # ← list of "main" modules
 ├── preload/index.js      # Secure bridge: window.sulfur.invoke / on
 ├── renderer/             # React interface
 │   └── src/
 │       ├── App.jsx       # Shell (sidebar + active module)
-│       ├── components/   # Shared UI components (Card, CertificatesDialog…)
+│       ├── components/   # Application components (Sidebar, error boundary)
 │       ├── pages/        # Application pages (Home, Information, Settings)
 │       ├── preferences.jsx # Language and theme (useI18n, usePreferences)
-│       ├── module-config.js # Saved module settings (usePersistentState)
+│       ├── module-config.js # Configuration import / export and reset
 │       └── modules.js    # ← list of "renderer" modules
-├── shared/               # Code shared by main/renderer (i18n, languages, simulator…)
-│   ├── points.js         # Data points shared between modules (contract)
-│   ├── certificate.js    # Self-signed TLS certificates of the servers (main process)
-│   └── locales/          # Common strings (en.js, fr.js)
-└── modules/              # Simulation modules
+├── shared/               # Application code shared by main/renderer
+│   ├── app.js            # Version of Sulfur
+│   └── locales/          # Application strings (en.js, fr.js)
+└── modules/              # Simulation modules (they only import the SDK)
+    ├── builtin.js        # Manifest of the modules shipped with Sulfur
     ├── opcua/
     │   ├── main/         # node-opcua server + client
     │   ├── renderer/     # Module React interface
@@ -138,7 +156,26 @@ src/
     ├── ca/               # Certificate authority: authorities, issuance, CSR, revocation (CRL), PKCS#12
     ├── explorer/         # Network explorer: targets restricted to the private networks
     └── serial/           # Serial terminal (RS-232 / RS-485, hexadecimal log) + serial ↔ TCP gateway
+packages/
+└── sdk/                  # Module SDK @azerxim/sulfur-sdk (contract, i18n, points, UI components,
+                          #   package build and .sulfur-module archives)
+examples/
+├── test-signal/          # Example external module (signal generator, data points)
+└── module-template/      # Template to start your own module
+docs/
+└── module-guide.md       # Module development guide
 ```
+
+## Module SDK
+
+The modules only use the application through the **module SDK** `@azerxim/sulfur-sdk`
+(`packages/sdk`, documented in its [README](packages/sdk/README.md)): manifest, translations and
+common strings, data points, saved configuration, certificates, passwords, served folders and the
+shared UI components (`Button`, `Card`, `Tabs`…). The Sulfur build resolves it from its sources (see
+`aliases.mjs`); a test checks that the modules import nothing else from the application. The SDK is
+published on npm and on GitHub Packages by the `SDK` workflow on the `sdk-v*` tags (e.g. `sdk-v1.1.0`,
+equal to the version of `packages/sdk/package.json`), so that additional modules, including your own, can be built
+outside this repository.
 
 ## Languages and theme
 
@@ -146,7 +183,8 @@ Language and theme are chosen in **Settings** (remembered, including by the main
 opens directly in the right theme). The language applies to the interface and to the messages produced
 by the main process (errors, server logs). Defaults: English, theme of the operating system.
 
-- Strings are stored per dictionary: `src/shared/locales/` (application) and
+- Strings are stored per dictionary: `packages/sdk/src/locales/` (strings common to the modules:
+  `ui`, generic `errors`, `simulations`, `certs`), `src/shared/locales/` (application) and
   `src/modules/<id>/shared/locales/` (each module, keys prefixed with the module identifier).
 - In code: `t('ui.monitoring', { count: 3 })`. In React: `const { t } = useI18n()`.
   Inside a module, use the `t` from `src/modules/<id>/shared/i18n.js`.
@@ -156,8 +194,9 @@ by the main process (errors, server logs). Defaults: English, theme of the opera
 
 **Adding a language** (e.g. German):
 
-1. declare `de: { label: 'Deutsch', locale: 'de-DE' }` in `src/shared/languages.js`;
-2. create `de.js` next to each `en.js` (`src/shared/locales/` and `src/modules/*/shared/locales/`);
+1. declare `de: { label: 'Deutsch', locale: 'de-DE' }` in `packages/sdk/src/languages.js`;
+2. create `de.js` next to each `en.js` (`packages/sdk/src/locales/`, `src/shared/locales/` and
+   `src/modules/*/shared/locales/`);
 3. register it in the neighbouring `index.js`: `registerMessages({ fr, en, de })`.
 
 The **light theme** redefines the Tailwind color variables (`ink`, `slate`, accents) under
@@ -174,7 +213,7 @@ Servers are not started automatically. The OPC UA client password is never saved
 In a module interface, `usePersistentState('<id>', '<section>', defaults)` replaces `useState`: the saved
 value is completed with the defaults, so settings added in a later version keep their default value.
 
-**Import / export** (Settings → Configurations): all module configurations are exported to a single JSON
+**Import / export** (Settings → General → Configurations): all module configurations are exported to a single JSON
 file to share a test setup:
 
 ```json
@@ -182,14 +221,17 @@ file to share a test setup:
   "modules": { "opcua": { "server": { … } }, "modbus": { "client": { … } } } }
 ```
 
-Importing replaces the configuration of the modules present in the file (modules unknown to this version
-are ignored and listed). It is refused while a server is running or a client is connected (a module
+Importing replaces the configuration of the modules present in the file. The sections of a module
+that is not loaded (external module not installed or not loaded, module of another version of
+Sulfur) are kept in `<userData>/modules/<id>/config.json` and listed: the module finds them once it
+is installed and loaded, and the next export includes them again. Unusable sections (invalid or
+reserved identifier, content that is not an object) are ignored and listed. Importing is refused while a server is running or a client is connected (a module
 reports this through an optional `busy()` in its main part). If a module interface fails to display (e.g.
 inconsistent configuration), a button restores its default configuration.
 
 ### Enabling and disabling modules
 
-**Settings → Enabled modules** lists every module with a checkbox. A disabled module is hidden from
+**Settings → Modules → Enabled modules** lists every module, with its version, and a checkbox. A disabled module is hidden from
 the sidebar, the home page and the startup page choices; it is stopped at once (its channels and its
 points for the simulator and the trends are removed) and is no longer loaded at the next start.
 Its saved configuration is kept, and still exported and imported. Disabling a module whose server
@@ -197,15 +239,64 @@ is running or whose client is connected is refused: stop it first. A re-enabled 
 immediately. The list is kept by the main process in `<userData>/preferences.json`
 (`disabledModules`).
 
+### Module packages
+
+To create your own module, follow the [module development guide](docs/module-guide.md), which
+starts from the template in [`examples/module-template`](examples/module-template).
+
+An external module (developed with the SDK, yours included) is shared as a **package**: a single
+`<id>-<version>.sulfur-module` file (ZIP archive of `module.json` and the built files), produced by
+`packModule` of the SDK. **Settings → Modules → External modules → Install a package…** reads and
+checks it (descriptor, files, compatibility, identifier not used by a built-in module), then shows
+the module, its version, its author and the version already installed before asking for
+confirmation; nothing is written before that. The package is extracted to
+`<userData>/module-packages/<id>`, in place of the previous version. The same list removes an
+installed package. When the external modules are loaded, Sulfur refreshes them right after an
+installation or a removal; both are refused while a server of an external module is running or a
+client is connected.
+
+Packages are **not signed**: anyone can create and install their own module, without any approval.
+Since a module runs with the rights of Sulfur (files, network), loading the external modules is
+disabled by default, and the confirmation reminds that the origin of the package cannot be checked.
+Reading an archive is limited (relative paths only, 2000 files, 200 MB once extracted, CRC checked).
+
+### Module manifest
+
+Each module declares a manifest, the same object for its main and renderer parts:
+
+| Field           | Content                                                                     |
+| --------------- | --------------------------------------------------------------------------- |
+| `id`            | identifier, prefix of the IPC channels (`[a-z0-9-]+`, unique)               |
+| `name`          | fallback name (the displayed one comes from the `<id>.name` key)            |
+| `description`   | fallback description (`<id>.description` key)                               |
+| `version`       | version of the module (semver)                                              |
+| `author`        | author or publisher (optional), shown before a package is installed         |
+| `edition`       | `standard` (built into Sulfur) or `additional` (separate package)            |
+| `apiVersion`    | version of the module API the module is written for (semver)               |
+| `minAppVersion` | minimum version of Sulfur (semver)                                          |
+
+The module API (`MODULE_API_VERSION` of the SDK, equal to its version, currently 1.1.0) follows semantic
+versioning: a module written for API 1.2 works with every 1.x API from 1.2 on, not with a 2.x API.
+The main process checks every manifest before loading the module: an invalid manifest, an identifier
+that is reserved (`modules`, `config`, `home`, `info`, `settings`) or already used, an incompatible
+module API or a too recent `minAppVersion` refuses the module, which then does not exist for the
+application (no channels, configuration or page). The refused modules are listed with the reason in
+**Settings → Modules**. The modules shipped with Sulfur use `builtinManifest({ id, name,
+description })` (`src/modules/builtin.js`): version of the application, standard edition, current
+module API. A module developed outside the repository uses `defineManifest` of the SDK with its own
+`version` and `minAppVersion`.
+
 ### Adding a module
 
-1. Create `src/modules/<id>/` with `main/index.js`, `renderer/index.js` and `shared/`.
-2. **Main**: export `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` optional).
+1. Create `src/modules/<id>/` with `main/index.js`, `renderer/index.js` and `shared/`. Import the
+   application code only through the SDK (`@azerxim/sulfur-sdk`, `/main`, `/ui`).
+2. **Main**: export `{ manifest, activate(ctx), deactivate(), busy() }` (`busy` optional); the manifest
+   comes from `builtinManifest(…)` (see above).
    - `ctx.handle('action', fn)` exposes the IPC channel `<id>:action`
    - `ctx.emit('event', payload)` broadcasts `<id>:event` to the interface
    - `ctx.expose(api)` publishes the module's data points (list, read, write, injectable faults) for
      the simulator and the trends; `ctx.peers()` returns those of the other modules. The contract is
-     described in `src/shared/points.js`.
+     described in the SDK (`PointsApi`).
 3. **Renderer**: export `{ manifest, icon, Component }` (`lucide-react` icon).
    - `window.sulfur.invoke('<id>:action', ...args)` / `window.sulfur.on('<id>:event', fn)`
 4. Register the module in `src/main/modules.js` and `src/renderer/src/modules.js`.
@@ -700,8 +791,9 @@ what it sends.
 ## License
 
 Sulfur is distributed under the [Apache License 2.0](LICENSE) — Copyright © 2026 Maxime MALLET. The
-modules of this repository form the free **standard** edition; **premium** modules, distributed
-separately under a commercial license, are planned (see the [roadmap](ROADMAP.md#standard-and-premium-editions)).
+modules of this repository are the **standard** modules; **additional** modules, distributed as
+separate packages, are planned, and anyone can build their own module with the SDK (see the
+[roadmap](ROADMAP.md#standard-and-additional-modules)).
 
 Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Each contributor signs the
 [Contributor License Agreement](CLA.md) once, on their first pull request.

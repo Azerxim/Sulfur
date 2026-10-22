@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Plus, ShieldCheck, Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, Field, Input, Select } from '@renderer/components/ui'
-import CertificatesDialog from '@renderer/components/CertificatesDialog'
+import { Button, Card, CertificatesDialog, Checkbox, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_SERVER_SECURITY } from '../shared/constants'
 import { certStore } from './api'
 import { t } from '../shared/i18n'

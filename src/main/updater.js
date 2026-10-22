@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import electronUpdater from 'electron-updater'
 import { loadPreferences, savePreferences } from './preferences'
+import { builtinManifest } from '@modules/builtin'
+import { createReleaseNotes } from './releases'
 
 /**
  * Mises à jour à partir des releases GitHub (electron-updater, fichiers latest*.yml joints aux
@@ -141,9 +143,16 @@ export function createUpdater(emit) {
   }
 }
 
-/** Module "cœur" des mises à jour (canaux `updater:*`, événement `updater:status`). */
+/**
+ * Module "cœur" des mises à jour (canaux `updater:*`, événement `updater:status`). `updater:releases`
+ * (notes des releases GitHub) fonctionne aussi hors de l'application installée.
+ */
 export const updaterMainModule = {
-  manifest: { id: 'updater', name: 'Mises à jour', description: 'Mises à jour depuis les releases GitHub' },
+  manifest: builtinManifest({
+    id: 'updater',
+    name: 'Mises à jour',
+    description: 'Mises à jour depuis les releases GitHub'
+  }),
   updater: null,
   activate(ctx) {
     const updater = createUpdater(ctx.emit)
@@ -154,6 +163,8 @@ export const updaterMainModule = {
     ctx.handle('install', () => updater.install())
     ctx.handle('setAutoCheck', (enabled) => updater.setAutoCheck(enabled))
     ctx.handle('openReleases', () => shell.openExternal(updater.state().releaseUrl ?? RELEASES_URL))
+    const releases = createReleaseNotes()
+    ctx.handle('releases', (refresh) => releases({ refresh: Boolean(refresh) }))
     updater.start()
   },
   deactivate() {

@@ -1,8 +1,9 @@
-export const HTTP_MODULE = {
+import { builtinManifest } from '@modules/builtin'
+export const HTTP_MODULE = builtinManifest({
   id: 'http',
   name: 'HTTP / REST',
   description: 'Serveur REST simulé (variables, routes, webhooks) et client HTTP / HTTPS'
-}
+})
 
 export const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 

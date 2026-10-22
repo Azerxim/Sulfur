@@ -1,6 +1,7 @@
 import { Download } from 'lucide-react'
 import { useI18n, useManifestText } from '../preferences'
 import { useUpdater } from '../updater'
+import { selectSettingsTab } from '../pages/SettingsPage'
 // Seul le champ `version` est intégré au build (import nommé d'un fichier JSON).
 import { version } from '../../../../package.json'
 
@@ -19,14 +20,17 @@ function NavItem({ item: { manifest, icon: Icon }, active, onSelect }) {
   )
 }
 
-/** Rappel discret d'une mise à jour disponible ou prête, qui ouvre les paramètres. */
+/** Rappel discret d'une mise à jour disponible ou prête, qui ouvre l'onglet Mises à jour des paramètres. */
 function UpdateNotice({ onSelect }) {
   const { t } = useI18n()
   const { state } = useUpdater()
   if (!state || !['available', 'downloading', 'downloaded'].includes(state.status)) return null
   return (
     <button
-      onClick={() => onSelect('settings')}
+      onClick={() => {
+        selectSettingsTab('updates')
+        onSelect('settings')
+      }}
       className="mx-2 mt-2 flex items-center gap-2 rounded-md bg-sulfur-400/10 px-3 py-2 text-left text-xs text-sulfur-300 hover:bg-sulfur-400/20"
     >
       <Download className="size-3.5 shrink-0" />

@@ -1,8 +1,9 @@
-export const MODBUS_MODULE = {
+import { builtinManifest } from '@modules/builtin'
+export const MODBUS_MODULE = builtinManifest({
   id: 'modbus',
   name: 'Modbus',
   description: 'Serveur et client Modbus TCP, Modbus/TCP Security (TLS), RTU et ASCII'
-}
+})
 
 /**
  * Transports (libellés : modbus.transports.*) : Modbus TCP (en-tête MBAP, TLS possible),

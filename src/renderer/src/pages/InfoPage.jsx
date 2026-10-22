@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, Copy, Network, RefreshCw } from 'lucide-react'
-import { Button, Card, ErrorBanner } from '../components/ui'
+import { Button, Card, ErrorBanner } from '@azerxim/sulfur-sdk/ui'
 import { useI18n } from '../preferences'
 
 function CopyButton({ text }) {

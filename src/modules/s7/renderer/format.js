@@ -1,5 +1,4 @@
-import { getLocale } from '@shared/i18n'
-
+import { getLocale } from '@azerxim/sulfur-sdk'
 /** Valeur affichée : nombres à 7 chiffres significatifs, chaînes entre guillemets. */
 export function formatValue(v) {
   if (v === null || v === undefined) return '—'

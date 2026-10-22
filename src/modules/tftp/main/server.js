@@ -3,7 +3,7 @@ import fs from 'fs/promises'
 import net from 'net'
 import path from 'path'
 import { randomUUID } from 'crypto'
-import { OutsideRoot, prepareRoot, resolveInside, virtualPath } from '@shared/files'
+import { OutsideRoot, prepareRoot, resolveInside, virtualPath } from '@azerxim/sulfur-sdk/main'
 import { DEFAULT_SERVER_CONFIG, MAX_BLOCK_SIZE, MAX_LOG, MIN_BLOCK_SIZE, MODES } from '../shared/constants'
 import {
   Channel,
