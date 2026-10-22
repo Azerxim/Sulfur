@@ -183,7 +183,9 @@ export default {
       importTitle: 'Importer une configuration Sulfur',
       exported: 'Configuration exportée dans {path}',
       imported: 'Configuration importée depuis {path}',
-      ignored: 'Modules ignorés (absents de cette version) : {modules}'
+      exportedKept: 'Le fichier contient aussi les configurations conservées des modules non installés : {modules}',
+      kept: 'Configurations conservées pour les modules non installés, appliquées quand ils seront installés et chargés : {modules}',
+      ignored: 'Sections ignorées (identifiant invalide ou réservé, contenu incorrect) : {modules}'
     },
     updates: {
       title: 'Mises à jour',

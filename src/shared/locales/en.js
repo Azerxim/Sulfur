@@ -180,7 +180,9 @@ export default {
       importTitle: 'Import a Sulfur configuration',
       exported: 'Configuration exported to {path}',
       imported: 'Configuration imported from {path}',
-      ignored: 'Ignored modules (not available in this version): {modules}'
+      exportedKept: 'The file also contains the kept configurations of modules that are not installed: {modules}',
+      kept: 'Configurations kept for modules that are not installed, applied once they are installed and loaded: {modules}',
+      ignored: 'Ignored sections (invalid or reserved identifier, incorrect content): {modules}'
     },
     updates: {
       title: 'Updates',

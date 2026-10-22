@@ -97,8 +97,10 @@ Structure à mettre en place avant le premier module additionnel :
   dans le manifeste ; Paramètres → Modules → *Modules externes* : *Installer un paquet…*, liste des
   paquets installés et suppression, actualisation automatique quand les modules externes sont
   chargés.
-- [ ] **Configurations** : à l'import, les sections d'un module non installé sont conservées et
+- [X] **Configurations** : à l'import, les sections d'un module non installé sont conservées et
   signalées (elles sont ignorées aujourd'hui).
+  Conservées dans `<userData>/modules/<id>/config.json`, appliquées (avec `migrateConfig`) une fois
+  le module installé et chargé, et reprises par l'export suivant.
 - [ ] **Guide de développement de module** : documentation et modèle de module (SDK, `buildModule`,
   empaquetage), pour que les utilisateurs puissent créer et partager leurs propres modules.
 

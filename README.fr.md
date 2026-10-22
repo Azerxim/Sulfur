@@ -201,8 +201,11 @@ un seul fichier JSON, pour partager un banc de test :
   "modules": { "opcua": { "server": { … } }, "modbus": { "client": { … } } } }
 ```
 
-L'import remplace la configuration des modules présents dans le fichier (les modules inconnus de cette
-version sont ignorés et signalés). Il est refusé tant qu'un serveur tourne ou qu'un client est connecté
+L'import remplace la configuration des modules présents dans le fichier. Les sections d'un module
+qui n'est pas chargé (module externe non installé ou non chargé, module d'une autre version de
+Sulfur) sont conservées dans `<userData>/modules/<id>/config.json` et signalées : le module les
+retrouve une fois installé et chargé, et l'export suivant les reprend. Les sections inutilisables
+(identifiant invalide ou réservé, contenu qui n'est pas un objet) sont ignorées et signalées. L'import est refusé tant qu'un serveur tourne ou qu'un client est connecté
 (un module le signale par une fonction `busy()` facultative dans sa partie main). Si l'interface d'un
 module ne peut pas s'afficher (configuration incohérente par exemple), un bouton rétablit sa
 configuration par défaut.

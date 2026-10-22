@@ -197,8 +197,11 @@ file to share a test setup:
   "modules": { "opcua": { "server": { … } }, "modbus": { "client": { … } } } }
 ```
 
-Importing replaces the configuration of the modules present in the file (modules unknown to this version
-are ignored and listed). It is refused while a server is running or a client is connected (a module
+Importing replaces the configuration of the modules present in the file. The sections of a module
+that is not loaded (external module not installed or not loaded, module of another version of
+Sulfur) are kept in `<userData>/modules/<id>/config.json` and listed: the module finds them once it
+is installed and loaded, and the next export includes them again. Unusable sections (invalid or
+reserved identifier, content that is not an object) are ignored and listed. Importing is refused while a server is running or a client is connected (a module
 reports this through an optional `busy()` in its main part). If a module interface fails to display (e.g.
 inconsistent configuration), a button restores its default configuration.
 

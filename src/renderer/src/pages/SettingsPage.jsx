@@ -84,10 +84,14 @@ function ConfigurationsCard() {
   }
 
   const exportAll = () =>
-    run(exportConfigurations, ({ filePath }) => [t('settings.configurations.exported', { path: filePath })])
+    run(exportConfigurations, ({ filePath, kept }) => [
+      t('settings.configurations.exported', { path: filePath }),
+      kept.length > 0 && t('settings.configurations.exportedKept', { modules: kept.join(', ') })
+    ])
   const importAll = () =>
-    run(importConfigurations, ({ filePath, ignored }) => [
+    run(importConfigurations, ({ filePath, kept, ignored }) => [
       t('settings.configurations.imported', { path: filePath }),
+      kept.length > 0 && t('settings.configurations.kept', { modules: kept.join(', ') }),
       ignored.length > 0 && t('settings.configurations.ignored', { modules: ignored.join(', ') })
     ])
 

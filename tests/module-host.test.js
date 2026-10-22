@@ -334,6 +334,14 @@ describe('Modules externes', () => {
     expect(await invoke('new:ping')).toEqual({ ok: true, data: 'n1' })
   })
 
+  it('applique à un module installé la configuration conservée à l’import', async () => {
+    const { keepConfigs } = await import('../src/main/config-transfer')
+    keepConfigs(path.join(electron.userData, 'modules'), { kept: { generator: { period: 5 } } })
+    await external.install((await external.inspect(archiveOf('kept', 'k1'))).token)
+    await external.load(true)
+    expect(other.configs.get('kept').get()).toEqual({ generator: { period: 5 } })
+  })
+
   it('met à jour un paquet installé, même dans un dossier d’un autre nom', async () => {
     await fs.rename(path.join(dir, 'ext'), path.join(dir, 'ext-copy'))
     await external.load(true)

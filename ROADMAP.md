@@ -93,8 +93,10 @@ Structure to set up before the first additional module:
   read with limits (relative paths, 2000 files, 200 MB, CRC); optional `author` field in the
   manifest; Settings → Modules → *External modules*: *Install a package…*, list of the installed
   packages and removal, automatic refresh when the external modules are loaded.
-- [ ] **Configurations**: on import, the sections of a module that is not installed are kept and
+- [X] **Configurations**: on import, the sections of a module that is not installed are kept and
   reported (they are ignored today).
+  Kept in `<userData>/modules/<id>/config.json`, applied (with `migrateConfig`) once the module is
+  installed and loaded, and included again in the next export.
 - [ ] **Module development guide**: documentation and a module template (SDK, `buildModule`,
   packaging), so that users can create and share their own modules.
 
