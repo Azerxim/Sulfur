@@ -28,7 +28,7 @@ npm ci
 npm run lint && npm run format:check && npm test && npm run build
 ```
 
-- Follow the module contract described in the [README](README.md#adding-a-module).
+- Follow the module contract described in the [architecture documentation](docs/en/architecture.md#adding-a-built-in-module).
 - Provide the strings in English and French (`shared/locales/en.js` and `fr.js`).
 - Add or update the tests in `tests/`.
 - Keep one topic per pull request, with a clear description of the change.

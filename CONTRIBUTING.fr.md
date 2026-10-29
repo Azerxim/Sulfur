@@ -30,7 +30,7 @@ npm ci
 npm run lint && npm run format:check && npm test && npm run build
 ```
 
-- Respectez le contrat de module décrit dans le [README](README.fr.md#ajouter-un-module).
+- Respectez le contrat de module décrit dans la [documentation d'architecture](docs/fr/architecture.md#ajouter-un-module-intégré).
 - Fournissez les textes en anglais et en français (`shared/locales/en.js` et `fr.js`).
 - Ajoutez ou mettez à jour les tests dans `tests/`.
 - Une pull request par sujet, avec une description claire du changement.

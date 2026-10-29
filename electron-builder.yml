@@ -11,6 +11,7 @@ files:
   - '!tests/*'
   - '!packages/*'
   - '!examples/*'
+  - '!docs/*'
   - '!aliases.mjs'
   - '!node_modules/cpu-features/build/**'
   - '!node_modules/ssh2/lib/protocol/crypto/build/**'

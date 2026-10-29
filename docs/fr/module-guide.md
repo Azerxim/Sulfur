@@ -1,15 +1,15 @@
 # Créer un module pour Sulfur
 
-[English](module-guide.md) · **Français**
+[Documentation](README.md) · [English](../en/module-guide.md) · **Français**
 
 Ce guide explique comment écrire un module pour Sulfur hors de son dépôt, le construire, l'installer
 et le partager. N'importe qui peut le faire : un module n'a besoin d'aucune validation ni signature.
 
-Il part du **modèle de module** ([`examples/module-template`](../examples/module-template)), un
+Il part du **modèle de module** ([`examples/module-template`](../../examples/module-template)), un
 petit module complet : un compteur dans le process principal, publié comme point de données, avec
 son interface et ses traductions. Pour un exemple plus fourni (courbe, plusieurs points, CSS
-propre), voir [`examples/test-signal`](../examples/test-signal). La référence de l'API est le
-[README du SDK](../packages/sdk/README.fr.md) et ses déclarations TypeScript.
+propre), voir [`examples/test-signal`](../../examples/test-signal). La référence de l'API est le
+[README du SDK](../../packages/sdk/README.fr.md) et ses déclarations TypeScript.
 
 ## Comment fonctionne un module
 
@@ -42,7 +42,7 @@ Le SDK s'installe depuis npm, sans configuration ni jeton.
 
 ## 1. Démarrer depuis le modèle
 
-Copiez le dossier [`examples/module-template`](../examples/module-template) où vous voulez (c'est un
+Copiez le dossier [`examples/module-template`](../../examples/module-template) où vous voulez (c'est un
 projet indépendant), puis :
 
 ```sh

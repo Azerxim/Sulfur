@@ -99,7 +99,7 @@ Structure to set up before the first additional module:
   installed and loaded, and included again in the next export.
 - [X] **Module development guide**: documentation and a module template (SDK, `buildModule`,
   packaging), so that users can create and share their own modules.
-  [Guide](docs/module-guide.md) (EN / FR) and template in `examples/module-template` (counter published
+  [Guide](docs/en/module-guide.md) (EN / FR) and template in `examples/module-template` (counter published
   as a data point), built and run by the tests.
 
 ## New modules: tools

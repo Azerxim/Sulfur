@@ -103,7 +103,7 @@ Structure à mettre en place avant le premier module additionnel :
   le module installé et chargé, et reprises par l'export suivant.
 - [X] **Guide de développement de module** : documentation et modèle de module (SDK, `buildModule`,
   empaquetage), pour que les utilisateurs puissent créer et partager leurs propres modules.
-  [Guide](docs/module-guide.fr.md) (EN / FR) et modèle dans `examples/module-template` (compteur publié
+  [Guide](docs/fr/module-guide.md) (EN / FR) et modèle dans `examples/module-template` (compteur publié
   comme point de données), construit et exécuté par les tests.
 
 ## Nouveaux modules : outils

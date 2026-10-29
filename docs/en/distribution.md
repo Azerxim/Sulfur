@@ -1,6 +1,6 @@
 # Signing the installers and publishing Sulfur on the stores
 
-**English** · [Français](distribution.fr.md)
+[Documentation](README.md) · **English** · [Français](../fr/distribution.md)
 
 Today the CI produces **unsigned** installers (`CSC_IDENTITY_AUTO_DISCOVERY: 'false'` in
 `.github/workflows/ci.yml`) and attaches them to a GitHub release. Consequences:
