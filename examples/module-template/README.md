@@ -4,7 +4,7 @@
 
 Starting point for your own Sulfur module: a counter in the main process, published as a data point
 for the simulator and the trends, with its interface, saved settings and translations (English,
-French). Copy this folder, then follow the [module development guide](../../docs/module-guide.md).
+French). Copy this folder, then follow the [module development guide](../../docs/en/module-guide.md).
 
 ```sh
 npm install
