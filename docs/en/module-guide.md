@@ -203,8 +203,8 @@ npm run build
 
 1. In Sulfur: **Settings → Modules → External modules → Install a package…**, choose
    `dist/<id>-<version>.sulfur-module` and confirm.
-2. Check **Load the external modules**, then **Refresh**. The module shows up in the sidebar, with
-   the *External* badge in Settings → Modules.
+2. Check **Load the external modules**, then **Refresh**. The module shows up in the sidebar and in
+   Settings → Modules.
 
 **During development**, it is faster to copy (or link) the `dist/<id>` folder into the packages
 folder (**Open** button of the same card), then click **Refresh** after each `npm run build`: the

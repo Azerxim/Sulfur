@@ -206,7 +206,7 @@ npm run build
 1. Dans Sulfur : **Paramètres → Modules → Modules externes → Installer un paquet…**, choisissez
    `dist/<id>-<version>.sulfur-module` et confirmez.
 2. Cochez **Charger les modules externes**, puis **Actualiser**. Le module apparaît dans la barre
-   latérale, avec le badge *Externe* dans Paramètres → Modules.
+   latérale et dans Paramètres → Modules.
 
 **Pendant le développement**, il est plus rapide de copier (ou de lier) le dossier `dist/<id>` dans le
 dossier des paquets (bouton **Ouvrir** de la même carte), puis de cliquer sur **Actualiser** après

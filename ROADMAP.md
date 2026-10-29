@@ -101,6 +101,12 @@ Structure to set up before the first additional module:
   packaging), so that users can create and share their own modules.
   [Guide](docs/en/module-guide.md) (EN / FR) and template in `examples/module-template` (counter published
   as a data point), built and run by the tests.
+- [ ] **Module extensions**: an additional module adds a tab to the page of a standard module
+  (module API 1.2, see the [SDK roadmap](packages/sdk/ROADMAP.md)). The module host collects the
+  tabs declared by the loaded modules and provides them to their target; the extensible modules
+  show them after their own tabs (Siemens S7 first, then OPC UA). The tabs follow the enabling,
+  disabling and refreshing of the module that brings them; Settings → Modules shows which module
+  a package extends.
 
 ## New modules: tools
 
@@ -173,7 +179,8 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
   installed and the user gives the path to its DLLs (Simulation Runtime API) in the module settings.
 - [ ] **Siemens S7 Enhanced** *(additional)*: S7CommPlus protocol of the S7-1200 / S7-1500 (firmware
   V4 and later): symbolic access to optimized data blocks (no PUT / GET to enable), browsing of the
-  PLC tags, secure communication (TLS) of recent firmware; extends the Siemens S7 module
+  PLC tags, secure communication (TLS) of recent firmware; extends the Siemens S7 module (own page
+  until module extensions are available, then a tab of the Siemens S7 module)
 - [ ] **EtherNet/IP (CIP)** *(additional)*: Rockwell / Allen-Bradley controllers
 - [ ] **BACnet/IP** *(additional)*: building automation (HVAC, lighting)
 - [ ] **OPC UA PubSub** *(additional)*: publish / subscribe mode of OPC UA, as an extension of the OPC UA module

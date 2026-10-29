@@ -118,7 +118,6 @@ export default {
       enableAll: 'Tout activer',
       disableAll: 'Tout désactiver',
       additional: 'Additionnel',
-      external: 'Externe',
       rejected: 'Modules non chargés ({count})',
       api: 'API des modules {version}'
     },
