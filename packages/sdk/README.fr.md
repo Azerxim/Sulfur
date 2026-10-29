@@ -162,6 +162,10 @@ dist/demo/
   droits de Sulfur, leur chargement est désactivé par défaut (voir la
   [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.fr.md#modules-standard-et-additionnels)).
 
+## Roadmap
+
+Évolutions prévues de l'API des modules : [roadmap du SDK](ROADMAP.fr.md).
+
 ## Licence
 
 [Licence Apache 2.0](LICENSE). Les modules additionnels écrits avec le SDK peuvent avoir leur propre

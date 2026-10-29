@@ -105,6 +105,12 @@ Structure à mettre en place avant le premier module additionnel :
   empaquetage), pour que les utilisateurs puissent créer et partager leurs propres modules.
   [Guide](docs/fr/module-guide.md) (EN / FR) et modèle dans `examples/module-template` (compteur publié
   comme point de données), construit et exécuté par les tests.
+- [ ] **Extensions de modules** : un module additionnel ajoute un onglet à la page d'un module
+  standard (API des modules 1.2, voir la [roadmap du SDK](packages/sdk/ROADMAP.fr.md)). L'hôte des
+  modules rassemble les onglets déclarés par les modules chargés et les fournit à leur cible ; les
+  modules extensibles les affichent après leurs propres onglets (Siemens S7 d'abord, puis OPC UA).
+  Les onglets suivent l'activation, la désactivation et l'actualisation du module qui les apporte ;
+  Paramètres → Modules indique quel module un paquet complète.
 
 ## Nouveaux modules : outils
 
@@ -183,7 +189,8 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
 - [ ] **Siemens S7 Enhanced** *(additionnel)* : protocole S7CommPlus des S7-1200 / S7-1500 (firmware
   V4 et suivants) : accès symbolique aux blocs de données optimisés (sans activer PUT / GET),
   navigation dans les variables de l'automate, communication sécurisée (TLS) des firmwares récents ;
-  en extension du module Siemens S7
+  en extension du module Siemens S7 (page propre en attendant les extensions de modules, puis onglet
+  du module Siemens S7)
 - [ ] **EtherNet/IP (CIP)** *(additionnel)* : automates Rockwell / Allen-Bradley
 - [ ] **BACnet/IP** *(additionnel)* : gestion technique du bâtiment (CVC, éclairage)
 - [ ] **OPC UA PubSub** *(additionnel)* : mode publication / abonnement d'OPC UA, en extension du module OPC UA
