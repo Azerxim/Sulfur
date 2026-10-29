@@ -131,7 +131,6 @@ function ModulesCard() {
   const disabled = prefs.disabledModules ?? []
   const { groups, modules } = availableModules()
   const rejected = rejectedModules()
-  const externalIds = externalModules().ids
 
   async function apply(next) {
     setBusy(true)
@@ -179,9 +178,6 @@ function ModulesCard() {
                         <span className="text-[11px] text-slate-500 tabular-nums">v{manifest.version}</span>
                         {manifest.edition === 'additional' && (
                           <span className="text-[11px] text-sulfur-300">{t('settings.moduleSwitch.additional')}</span>
-                        )}
-                        {externalIds.includes(manifest.id) && (
-                          <span className="text-[11px] text-sky-300">{t('settings.moduleSwitch.external')}</span>
                         )}
                       </span>
                       <span className="block text-xs text-slate-500">{text(manifest).description}</span>

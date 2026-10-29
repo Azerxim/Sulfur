@@ -115,7 +115,6 @@ export default {
       enableAll: 'Enable all',
       disableAll: 'Disable all',
       additional: 'Additional',
-      external: 'External',
       rejected: 'Modules not loaded ({count})',
       api: 'Module API {version}'
     },
