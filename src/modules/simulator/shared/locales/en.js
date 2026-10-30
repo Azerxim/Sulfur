@@ -90,7 +90,12 @@ export default {
       trigger: 'Trigger',
       output: 'Output {n}',
       duplicateNode: 'Duplicate the node',
-      resize: 'Drag to resize (double-click: default width)'
+      resize: 'Drag to resize (double-click: default width)',
+      palette: 'Nodes',
+      collapsePalette: 'Collapse the palette',
+      expandPalette: 'Show the palette',
+      collapseSide: 'Collapse the panel',
+      expandSide: 'Show the panel'
     },
     debug: {
       currentFlow: 'Displayed flow only',

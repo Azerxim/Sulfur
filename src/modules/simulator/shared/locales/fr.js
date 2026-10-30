@@ -90,7 +90,12 @@ export default {
       trigger: 'Déclencher',
       output: 'Sortie {n}',
       duplicateNode: 'Dupliquer le nœud',
-      resize: 'Tirer pour redimensionner (double-clic : largeur par défaut)'
+      resize: 'Tirer pour redimensionner (double-clic : largeur par défaut)',
+      palette: 'Nœuds',
+      collapsePalette: 'Réduire la palette',
+      expandPalette: 'Afficher la palette',
+      collapseSide: 'Réduire le panneau',
+      expandSide: 'Afficher le panneau'
     },
     debug: {
       currentFlow: 'Flux affiché seulement',
