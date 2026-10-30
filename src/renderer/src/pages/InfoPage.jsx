@@ -45,7 +45,7 @@ export default function InfoPage() {
   const mainIps = (info?.interfaces ?? []).flatMap((i) => i.addresses).filter((a) => !a.internal && a.family === 'IPv4')
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="flex flex-col gap-3 p-4">
       <ErrorBanner error={error} onClose={() => setError(null)} />
 
       {info && (

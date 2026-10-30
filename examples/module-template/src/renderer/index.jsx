@@ -39,7 +39,7 @@ function MyModuleView() {
   const running = state?.running ?? false
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="flex flex-col gap-3 p-4">
       <ErrorBanner error={error} onClose={() => setError(null)} />
       <Card
         id={`${ID}.counter`}

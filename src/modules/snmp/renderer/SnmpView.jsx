@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MonitorSmartphone, Server } from 'lucide-react'
-import { Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { snmpApi } from './api'
 import AgentPanel from './AgentPanel'
 import ManagerPanel from './ManagerPanel'
@@ -21,26 +21,25 @@ export default function SnmpView() {
   }, [])
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'server', label: t('snmp.tabs.agent'), icon: Server, badge: dot(agentStatus.running) },
-          {
-            id: 'client',
-            label: t('snmp.tabs.manager'),
-            icon: MonitorSmartphone,
-            badge: dot(managerStatus.polling || managerStatus.receiving)
-          }
-        ]}
-      />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        { id: 'server', label: t('snmp.tabs.agent'), icon: Server, badge: dot(agentStatus.running) },
+        {
+          id: 'client',
+          label: t('snmp.tabs.manager'),
+          icon: MonitorSmartphone,
+          badge: dot(managerStatus.polling || managerStatus.receiving)
+        }
+      ]}
+    >
       <div className={tab === 'server' ? 'contents' : 'hidden'}>
         <AgentPanel status={agentStatus} />
       </div>
       <div className={tab === 'client' ? 'contents' : 'hidden'}>
         <ManagerPanel status={managerStatus} agent={agentStatus.running ? agentStatus.config : null} />
       </div>
-    </div>
+    </TabbedPage>
   )
 }

@@ -35,7 +35,7 @@ GitHub Packages even for public packages):
 | ---------------------------- | ----------------- | ------------------------------------------------------------------------------------------- |
 | `@azerxim/sulfur-sdk`        | main and renderer | manifest (`defineManifest`, `checkManifest`), translations (`registerMessages`, `moduleT`, `formatTime`…), data points (`pointKey`, `toNumber`, `FAULT_TYPES`), `withDefaults`, private networks, `simulate` |
 | `@azerxim/sulfur-sdk/main`   | main process      | `ensureCertificate` (self-signed TLS certificate), `hashPassword` / `verifyPassword` (scrypt), served folders confined to their root (`resolveInside`, `prepareRoot`) |
-| `@azerxim/sulfur-sdk/ui`     | renderer (React)  | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
+| `@azerxim/sulfur-sdk/ui`     | renderer (React)  | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `TabbedPage`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
 | `@azerxim/sulfur-sdk/build`  | Node (build)      | `buildModule` (package of an external module), `packModule` (`.sulfur-module` archive), `sulfurShared` (Vite plugin) |
 | `@azerxim/sulfur-sdk/archive` | Node             | reading and writing `.sulfur-module` archives (`packModule`, `readModuleArchive`)             |
 | `@azerxim/sulfur-sdk/module.css` | CSS (Tailwind v4) | Tailwind utilities of an external module, on the Sulfur theme (`theme.css`) |

@@ -82,7 +82,7 @@ export default function HomePage({ onNavigate = () => {} }) {
   const activeTools = tools.filter((m) => activity(m.manifest.id).active).length
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
         <Stat
           label={t('home.stats.active')}

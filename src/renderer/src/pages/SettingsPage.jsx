@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import {
-  Check,
   ChevronDown,
   Download,
   ExternalLink,
@@ -18,7 +17,7 @@ import {
   Upload
 } from 'lucide-react'
 import { compareVersions, LANGUAGES, MODULE_API_VERSION, parseVersion } from '@azerxim/sulfur-sdk'
-import { Button, Card, Checkbox, ErrorBanner, Modal, Select, Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { Button, Card, Checkbox, ErrorBanner, Modal, Select, TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
 import { availableModules, rejectedModules, setDisabledModules, useEnabledModules } from '../enabled-modules'
 import { externalModules, reloadExternalModules } from '../external-modules'
@@ -43,22 +42,43 @@ export function selectSettingsTab(tab) {
   }
 }
 
-function Choice({ selected, onClick, icon: Icon, title, subtitle }) {
+/** Réglage sur une ligne : libellé et explication à gauche, contrôle à droite (dessous si la place manque). */
+function SettingRow({ label, hint, children }) {
   return (
-    <button
-      onClick={onClick}
-      aria-pressed={selected}
-      className={`flex min-w-48 flex-1 items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
-        selected ? 'border-sulfur-400 bg-sulfur-400/10' : 'border-ink-700 hover:border-ink-600 hover:bg-ink-850'
-      }`}
+    <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3 first:pt-0 last:pb-0">
+      <div className="min-w-0 flex-1 basis-64">
+        <div className="text-sm font-medium text-slate-100">{label}</div>
+        {hint && <p className="text-xs text-slate-500">{hint}</p>}
+      </div>
+      <div className="shrink-0">{children}</div>
+    </div>
+  )
+}
+
+/** Choix unique parmi quelques options, en sélecteur compact. */
+function Segmented({ label, options, value, onChange }) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="flex flex-wrap gap-0.5 rounded-lg border border-ink-800 bg-ink-950 p-0.5"
     >
-      {Icon && <Icon className={`size-5 shrink-0 ${selected ? 'text-sulfur-400' : 'text-slate-500'}`} />}
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium text-slate-100">{title}</span>
-        {subtitle && <span className="block text-xs text-slate-500">{subtitle}</span>}
-      </span>
-      {selected && <Check className="size-4 shrink-0 text-sulfur-400" />}
-    </button>
+      {options.map(({ id, label: text, title, icon: Icon }) => (
+        <button
+          key={id}
+          role="radio"
+          aria-checked={value === id}
+          title={title}
+          onClick={() => onChange(id)}
+          className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-sm transition-colors ${
+            value === id ? 'bg-ink-850 font-medium text-slate-100 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          {Icon && <Icon className={`size-4 ${value === id ? 'text-sulfur-400' : ''}`} />}
+          {text}
+        </button>
+      ))}
+    </div>
   )
 }
 
@@ -97,15 +117,17 @@ function ConfigurationsCard() {
 
   return (
     <Card id="settings.configurations" title={t('settings.configurations.title')}>
-      <p className="mb-3 text-xs text-slate-500">{t('settings.configurations.hint')}</p>
       <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap gap-2">
-          <Button disabled={busy} onClick={exportAll}>
-            <Download className="size-4" /> {t('settings.configurations.export')}
-          </Button>
-          <Button disabled={busy} onClick={importAll}>
-            <Upload className="size-4" /> {t('settings.configurations.import')}
-          </Button>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <p className="min-w-0 flex-1 basis-64 text-xs text-slate-500">{t('settings.configurations.hint')}</p>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button disabled={busy} onClick={exportAll}>
+              <Download className="size-4" /> {t('settings.configurations.export')}
+            </Button>
+            <Button disabled={busy} onClick={importAll}>
+              <Upload className="size-4" /> {t('settings.configurations.import')}
+            </Button>
+          </div>
         </div>
         {message?.filter(Boolean).map((line) => (
           <p key={line} className="text-sm break-all text-emerald-300">
@@ -149,31 +171,32 @@ function ModulesCard() {
   return (
     <Card id="settings.moduleSwitch" title={t('settings.moduleSwitch.title')}>
       <p className="mb-3 text-xs text-slate-500">{t('settings.moduleSwitch.hint')}</p>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {groups.map((group) => (
-          <div key={group.id} className="flex flex-col gap-2">
-            <div className="text-[11px] font-medium tracking-wider text-slate-500 uppercase">
+          <div key={group.id} className="flex flex-col gap-1.5">
+            <div className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
               {t(`app.groups.${group.id}`)}
             </div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-2">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-1.5">
               {group.modules.map(({ manifest, icon: Icon }) => {
                 const enabled = !disabled.includes(manifest.id)
                 return (
                   <label
                     key={manifest.id}
-                    className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 transition-colors has-disabled:cursor-not-allowed ${
-                      enabled ? 'border-ink-700 bg-ink-850' : 'border-ink-800 opacity-60'
+                    title={text(manifest).description}
+                    className={`flex cursor-pointer items-center gap-2.5 rounded-md border px-2.5 py-1.5 transition-colors has-disabled:cursor-not-allowed ${
+                      enabled ? 'border-ink-800 bg-ink-850 hover:border-ink-700' : 'border-ink-800 opacity-60'
                     }`}
                   >
                     <input
                       type="checkbox"
-                      className="mt-0.5 size-4 accent-sulfur-400"
+                      className="size-4 shrink-0 accent-sulfur-400"
                       checked={enabled}
                       disabled={busy}
                       onChange={(e) => toggle(manifest.id, e.target.checked)}
                     />
-                    <Icon className="mt-0.5 size-4 shrink-0 text-sulfur-400" />
-                    <span className="min-w-0">
+                    <Icon className="size-4 shrink-0 text-sulfur-400" />
+                    <span className="min-w-0 flex-1">
                       <span className="flex items-baseline gap-2 text-sm text-slate-100">
                         {text(manifest).name}
                         <span className="text-[11px] text-slate-500 tabular-nums">v{manifest.version}</span>
@@ -184,7 +207,6 @@ function ModulesCard() {
                           <span className="text-[11px] text-sky-300">{t('settings.moduleSwitch.external')}</span>
                         )}
                       </span>
-                      <span className="block text-xs text-slate-500">{text(manifest).description}</span>
                     </span>
                   </label>
                 )
@@ -678,16 +700,16 @@ export default function SettingsPage() {
   const [tab, setTab] = useStoredState(SETTINGS_TAB_KEY, 'general', TABS)
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'general', label: t('settings.tabs.general'), icon: SlidersHorizontal },
-          { id: 'modules', label: t('settings.tabs.modules'), icon: Puzzle },
-          { id: 'updates', label: t('settings.tabs.updates'), icon: Download }
-        ]}
-      />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        { id: 'general', label: t('settings.tabs.general'), icon: SlidersHorizontal },
+        { id: 'modules', label: t('settings.tabs.modules'), icon: Puzzle },
+        { id: 'updates', label: t('settings.tabs.updates'), icon: Download }
+      ]}
+      className="mx-auto w-full max-w-5xl"
+    >
       {tab === 'modules' && (
         <>
           <ModulesCard />
@@ -702,65 +724,62 @@ export default function SettingsPage() {
       )}
       {tab === 'general' && (
         <>
-          <Card id="settings.language" title={t('settings.language')}>
-            <p className="mb-3 text-xs text-slate-500">{t('settings.languageHint')}</p>
-            <div className="flex flex-wrap gap-3">
-              {Object.entries(LANGUAGES).map(([code, lang]) => (
-                <Choice
-                  key={code}
-                  selected={prefs.language === code}
-                  onClick={() => update({ language: code })}
-                  title={lang.label}
-                  subtitle={code.toUpperCase()}
+          <Card id="settings.preferences" title={t('settings.preferences')} collapsible={false}>
+            <div className="flex flex-col divide-y divide-ink-800">
+              <SettingRow label={t('settings.language')} hint={t('settings.languageHint')}>
+                <Segmented
+                  label={t('settings.language')}
+                  value={prefs.language}
+                  onChange={(language) => update({ language })}
+                  options={Object.entries(LANGUAGES).map(([code, lang]) => ({
+                    id: code,
+                    label: lang.label,
+                    title: code.toUpperCase()
+                  }))}
                 />
-              ))}
+              </SettingRow>
+              <SettingRow label={t('settings.theme')} hint={t('settings.themeHint')}>
+                <Segmented
+                  label={t('settings.theme')}
+                  value={prefs.theme}
+                  onChange={(theme) => update({ theme })}
+                  options={THEMES.map((theme) => ({
+                    id: theme,
+                    label: t(`settings.themes.${theme}`),
+                    title: t(`settings.themeDescriptions.${theme}`),
+                    icon: THEME_ICONS[theme]
+                  }))}
+                />
+              </SettingRow>
+              <SettingRow label={t('settings.startPage')} hint={t('settings.startPageHint')}>
+                <Select
+                  className="w-64"
+                  aria-label={t('settings.startPage')}
+                  value={prefs.startPage}
+                  onChange={(e) => update({ startPage: e.target.value })}
+                >
+                  <option value="last">{t('settings.lastPage')}</option>
+                  <optgroup label={t('settings.modules')}>
+                    {modules.map(({ manifest }) => (
+                      <option key={manifest.id} value={manifest.id}>
+                        {text(manifest).name}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label={t('settings.pages')}>
+                    {appPages.map(({ manifest }) => (
+                      <option key={manifest.id} value={manifest.id}>
+                        {text(manifest).name}
+                      </option>
+                    ))}
+                  </optgroup>
+                </Select>
+              </SettingRow>
             </div>
           </Card>
-
-          <Card id="settings.theme" title={t('settings.theme')}>
-            <p className="mb-3 text-xs text-slate-500">{t('settings.themeHint')}</p>
-            <div className="flex flex-wrap gap-3">
-              {THEMES.map((theme) => (
-                <Choice
-                  key={theme}
-                  selected={prefs.theme === theme}
-                  onClick={() => update({ theme })}
-                  icon={THEME_ICONS[theme]}
-                  title={t(`settings.themes.${theme}`)}
-                  subtitle={t(`settings.themeDescriptions.${theme}`)}
-                />
-              ))}
-            </div>
-          </Card>
-
-          <Card id="settings.startPage" title={t('settings.startPage')}>
-            <p className="mb-3 text-xs text-slate-500">{t('settings.startPageHint')}</p>
-            <Select
-              className="max-w-sm"
-              value={prefs.startPage}
-              onChange={(e) => update({ startPage: e.target.value })}
-            >
-              <option value="last">{t('settings.lastPage')}</option>
-              <optgroup label={t('settings.modules')}>
-                {modules.map(({ manifest }) => (
-                  <option key={manifest.id} value={manifest.id}>
-                    {text(manifest).name}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label={t('settings.pages')}>
-                {appPages.map(({ manifest }) => (
-                  <option key={manifest.id} value={manifest.id}>
-                    {text(manifest).name}
-                  </option>
-                ))}
-              </optgroup>
-            </Select>
-          </Card>
-
           <ConfigurationsCard />
         </>
       )}
-    </div>
+    </TabbedPage>
   )
 }

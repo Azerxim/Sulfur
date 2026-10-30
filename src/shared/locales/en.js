@@ -137,6 +137,7 @@ export default {
       modules: 'Modules',
       updates: 'Updates'
     },
+    preferences: 'Preferences',
     language: 'Language',
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MonitorSmartphone, Server } from 'lucide-react'
-import { Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { ftpApi, sftpApi } from './api'
 import FtpServerPanel from './ftp/ServerPanel'
 import FtpClientPanel from './ftp/ClientPanel'
@@ -30,22 +30,21 @@ export default function FtpView() {
   const sftpClient = useStatus(sftpApi.client, { connected: false })
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'ftpServer', label: t('ftp.tabs.ftpServer'), icon: Server, badge: dot(ftpServer.running) },
-          { id: 'ftpClient', label: t('ftp.tabs.ftpClient'), icon: MonitorSmartphone, badge: dot(ftpClient.connected) },
-          { id: 'sftpServer', label: t('ftp.tabs.sftpServer'), icon: Server, badge: dot(sftpServer.running) },
-          {
-            id: 'sftpClient',
-            label: t('ftp.tabs.sftpClient'),
-            icon: MonitorSmartphone,
-            badge: dot(sftpClient.connected)
-          }
-        ]}
-      />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        { id: 'ftpServer', label: t('ftp.tabs.ftpServer'), icon: Server, badge: dot(ftpServer.running) },
+        { id: 'ftpClient', label: t('ftp.tabs.ftpClient'), icon: MonitorSmartphone, badge: dot(ftpClient.connected) },
+        { id: 'sftpServer', label: t('ftp.tabs.sftpServer'), icon: Server, badge: dot(sftpServer.running) },
+        {
+          id: 'sftpClient',
+          label: t('ftp.tabs.sftpClient'),
+          icon: MonitorSmartphone,
+          badge: dot(sftpClient.connected)
+        }
+      ]}
+    >
       {/* Les panneaux restent montés pour conserver leur état local. */}
       <div className={tab === 'ftpServer' ? 'contents' : 'hidden'}>
         <FtpServerPanel status={ftpServer} />
@@ -59,6 +58,6 @@ export default function FtpView() {
       <div className={tab === 'sftpClient' ? 'contents' : 'hidden'}>
         <SftpClientPanel status={sftpClient} serverPort={sftpServer.running ? sftpServer.config?.port : null} />
       </div>
-    </div>
+    </TabbedPage>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ShieldAlert, Workflow } from 'lucide-react'
-import { ErrorBanner, Tabs, usePersistentState, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { ErrorBanner, TabbedPage, usePersistentState, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { pointKey } from '@azerxim/sulfur-sdk'
 import { DEFAULT_FAULTS, DEFAULT_FLOWS } from '../shared/constants'
 import { simulatorApi } from './api'
@@ -41,20 +41,20 @@ export default function SimulatorView() {
   )
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'flows', label: t('simulator.flows.title', { count: flows.length }), icon: Workflow },
-          {
-            id: 'faults',
-            label: t('simulator.faults.title', { count: faults.length }),
-            icon: ShieldAlert,
-            badge: status.faults?.length > 0 && <span className="size-1.5 rounded-full bg-amber-400" />
-          }
-        ]}
-      />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        { id: 'flows', label: t('simulator.flows.title', { count: flows.length }), icon: Workflow },
+        {
+          id: 'faults',
+          label: t('simulator.faults.title', { count: faults.length }),
+          icon: ShieldAlert,
+          badge: status.faults?.length > 0 && <span className="size-1.5 rounded-full bg-amber-400" />
+        }
+      ]}
+      className="overflow-auto"
+    >
       <ErrorBanner error={error} onClose={() => setError(null)} />
       {tab === 'faults' ? (
         <FaultsCard faults={faults} onChange={setFaults} targets={targets} status={status} onError={setError} />
@@ -68,6 +68,6 @@ export default function SimulatorView() {
           onError={setError}
         />
       )}
-    </div>
+    </TabbedPage>
   )
 }

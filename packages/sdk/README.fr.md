@@ -36,7 +36,7 @@ Packages demande même pour un paquet public) :
 | ---------------------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
 | `@azerxim/sulfur-sdk`        | main et interface       | manifeste (`defineManifest`, `checkManifest`), traductions (`registerMessages`, `moduleT`, `formatTime`…), points de données (`pointKey`, `toNumber`, `FAULT_TYPES`), `withDefaults`, réseaux privés, `simulate` |
 | `@azerxim/sulfur-sdk/main`   | process principal       | `ensureCertificate` (certificat TLS auto-signé), `hashPassword` / `verifyPassword` (scrypt), dossiers servis confinés (`resolveInside`, `prepareRoot`) |
-| `@azerxim/sulfur-sdk/ui`     | interface (React)       | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
+| `@azerxim/sulfur-sdk/ui`     | interface (React)       | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `TabbedPage`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
 | `@azerxim/sulfur-sdk/build`  | Node (construction)     | `buildModule` (paquet d'un module externe), `packModule` (archive `.sulfur-module`), `sulfurShared` (plugin Vite) |
 | `@azerxim/sulfur-sdk/archive` | Node                   | lecture et écriture des archives `.sulfur-module` (`packModule`, `readModuleArchive`)       |
 | `@azerxim/sulfur-sdk/module.css` | CSS (Tailwind v4)   | utilitaires Tailwind d'un module externe, sur le thème de Sulfur (`theme.css`) |

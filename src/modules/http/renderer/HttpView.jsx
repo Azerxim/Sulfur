@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MonitorSmartphone, Server } from 'lucide-react'
-import { Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { httpApi } from './api'
 import ServerPanel from './ServerPanel'
 import ClientPanel from './ClientPanel'
@@ -21,15 +21,14 @@ export default function HttpView() {
   }, [])
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
-          { id: 'client', label: t('ui.client'), icon: MonitorSmartphone, badge: dot(clientStatus.watches?.length > 0) }
-        ]}
-      />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
+        { id: 'client', label: t('ui.client'), icon: MonitorSmartphone, badge: dot(clientStatus.watches?.length > 0) }
+      ]}
+    >
       {/* Les deux panneaux restent montés pour conserver leur état local. */}
       <div className={tab === 'server' ? 'contents' : 'hidden'}>
         <ServerPanel status={serverStatus} />
@@ -37,6 +36,6 @@ export default function HttpView() {
       <div className={tab === 'client' ? 'contents' : 'hidden'}>
         <ClientPanel status={clientStatus} serverUrl={serverStatus.url} />
       </div>
-    </div>
+    </TabbedPage>
   )
 }

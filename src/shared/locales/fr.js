@@ -139,6 +139,7 @@ export default {
       modules: 'Modules',
       updates: 'Mises à jour'
     },
+    preferences: 'Préférences',
     language: 'Langue',
     languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",
     theme: 'Thème',

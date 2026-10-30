@@ -58,7 +58,7 @@ function EndpointChip({ endpoint }) {
  */
 export default function PageHeader({ icon: Icon, name, description, activity }) {
   return (
-    <header className="flex items-center gap-3 border-b border-ink-800 bg-ink-900 px-6 py-3.5">
+    <header className="page-header flex items-center gap-3 border-b border-ink-800 bg-ink-900 px-4 py-3">
       <span className="grid size-9 shrink-0 place-items-center rounded-[9px] bg-sulfur-400/12 text-sulfur-400">
         <Icon className="size-[18px]" />
       </span>

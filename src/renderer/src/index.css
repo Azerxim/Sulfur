@@ -62,6 +62,15 @@ textarea {
   @apply select-text;
 }
 
+/*
+ * Barre d'onglets d'une page (TabbedPage du SDK) : elle prolonge l'en-tête, qui perd sa bordure et
+ * une partie de sa marge basse ; la bordure passe sous les onglets.
+ */
+main:has(.page-tabs) > .page-header {
+  border-bottom-color: transparent;
+  padding-bottom: 0.25rem;
+}
+
 /* Focus clavier visible partout ; dans la couche de base pour que les utilitaires le remplacent. */
 @layer base {
   :focus-visible {

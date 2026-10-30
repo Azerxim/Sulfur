@@ -164,6 +164,9 @@ function MyModuleView() {
 - **Composants** (`@azerxim/sulfur-sdk/ui`) : `Button`, `Card`, `Input`, `CommitInput`, `Select`,
   `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`… Ils suivent le thème et la langue
   de Sulfur.
+- **Page à onglets** : `TabbedPage` (`tabs`, `value`, `onChange`) place la barre d'onglets pleine
+  largeur sous l'en-tête du module et le contenu avec les marges standard ; `Tabs` seul reste un
+  sélecteur compact pour les choix à l'intérieur d'une carte.
 - **Réglages enregistrés** : `usePersistentState(id, section, défauts)` remplace `useState` ; la
   valeur est enregistrée, restaurée au démarrage, exportée avec les configurations de Sulfur, et
   lisible côté process principal par `ctx.config()[section]`.

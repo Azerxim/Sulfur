@@ -104,7 +104,7 @@ export function Card({
     >
       {(title || actions) && (
         <div
-          className={`flex min-h-12 items-center justify-between gap-2 px-4 py-2 ${isCollapsed ? '' : 'border-b border-ink-800'} ${
+          className={`flex min-h-10 items-center justify-between gap-2 px-4 py-1.5 ${isCollapsed ? '' : 'border-b border-ink-800'} ${
             canCollapse ? 'cursor-pointer select-none' : ''
           }`}
           onClick={canCollapse ? toggle : undefined}
@@ -132,7 +132,7 @@ export function Card({
         </div>
       )}
       {!isCollapsed && (
-        <div className={`min-h-0 flex-1 p-4 ${fill ? 'flex flex-col overflow-auto' : ''}`}>{children}</div>
+        <div className={`min-h-0 flex-1 p-3.5 ${fill ? 'flex flex-col overflow-auto' : ''}`}>{children}</div>
       )}
     </section>
   )
@@ -218,7 +218,37 @@ export function ErrorBanner({ error, onClose }) {
   )
 }
 
-export function Tabs({ tabs, value, onChange }) {
+/**
+ * Onglets. `variant` : `segmented` (par défaut, sélecteur compact dans le contenu) ou `bar` (barre
+ * pleine largeur soulignée, collée sous l'en-tête de la page : voir TabbedPage).
+ */
+export function Tabs({ tabs, value, onChange, variant = 'segmented' }) {
+  if (variant === 'bar') {
+    return (
+      <div
+        role="tablist"
+        className="page-tabs sticky top-0 z-10 flex shrink-0 gap-1 overflow-x-auto border-b border-ink-800 bg-ink-900 px-1"
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={value === tab.id}
+            onClick={() => onChange(tab.id)}
+            className={`-mb-px flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors ${
+              value === tab.id
+                ? 'border-sulfur-400 font-medium text-slate-100'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {tab.icon && <tab.icon className={`size-4 ${value === tab.id ? 'text-sulfur-400' : ''}`} />}
+            {tab.label}
+            {tab.badge}
+          </button>
+        ))}
+      </div>
+    )
+  }
   return (
     <div className="flex w-fit max-w-full gap-0.5 overflow-x-auto rounded-lg border border-ink-800 bg-ink-950 p-0.5">
       {tabs.map((tab) => (
@@ -237,6 +267,19 @@ export function Tabs({ tabs, value, onChange }) {
           {tab.badge}
         </button>
       ))}
+    </div>
+  )
+}
+
+/**
+ * Page de module à onglets : barre d'onglets pleine largeur sous l'en-tête (toujours visible au
+ * défilement), puis le contenu avec les marges standard. `className` complète le conteneur du contenu.
+ */
+export function TabbedPage({ tabs, value, onChange, className = '', children }) {
+  return (
+    <div className="flex h-full flex-col">
+      <Tabs variant="bar" tabs={tabs} value={value} onChange={onChange} />
+      <div className={`flex min-h-0 flex-1 flex-col gap-3 p-4 ${className}`}>{children}</div>
     </div>
   )
 }

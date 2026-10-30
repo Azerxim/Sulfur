@@ -444,7 +444,7 @@ export default function CaView() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto p-6">
+    <div className="flex h-full flex-col gap-3 overflow-auto p-4">
       <Card
         id="ca.authorities"
         title={t('ca.authorities.title', { count: authorities?.length ?? 0 })}

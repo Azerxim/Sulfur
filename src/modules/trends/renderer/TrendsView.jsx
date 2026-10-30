@@ -7,7 +7,7 @@ import {
   ErrorBanner,
   Field,
   Select,
-  Tabs,
+  TabbedPage,
   usePersistentState,
   useStoredState
 } from '@azerxim/sulfur-sdk/ui'
@@ -113,20 +113,20 @@ export default function TrendsView() {
   const split = config.layout === 'split'
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          {
-            id: 'chart',
-            label: t('trends.chart.title'),
-            icon: ChartLine,
-            badge: recording && <span className="size-1.5 animate-pulse rounded-full bg-red-400" />
-          },
-          { id: 'series', label: t('trends.series.title', { count: config.series.length }), icon: List }
-        ]}
-      />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        {
+          id: 'chart',
+          label: t('trends.chart.title'),
+          icon: ChartLine,
+          badge: recording && <span className="size-1.5 animate-pulse rounded-full bg-red-400" />
+        },
+        { id: 'series', label: t('trends.series.title', { count: config.series.length }), icon: List }
+      ]}
+      className="overflow-auto"
+    >
       {tab === 'chart' && (
         <Card
           id="trends.chart"
@@ -380,6 +380,6 @@ export default function TrendsView() {
           )}
         </Card>
       )}
-    </div>
+    </TabbedPage>
   )
 }

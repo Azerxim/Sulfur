@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { MonitorSmartphone, Server } from 'lucide-react'
-import { Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { dhcpApi } from './api'
 import ServerPanel from './ServerPanel'
 import ClientPanel from './ClientPanel'
@@ -27,15 +27,14 @@ export default function DhcpView() {
   }, [reload])
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
-          { id: 'client', label: t('ui.client'), icon: MonitorSmartphone }
-        ]}
-      />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
+        { id: 'client', label: t('ui.client'), icon: MonitorSmartphone }
+      ]}
+    >
       {/* Les deux panneaux restent montés pour conserver leur état local. */}
       <div className={tab === 'server' ? 'contents' : 'hidden'}>
         <ServerPanel status={serverStatus} network={network} onReload={reload} />
@@ -43,6 +42,6 @@ export default function DhcpView() {
       <div className={tab === 'client' ? 'contents' : 'hidden'}>
         <ClientPanel network={network} onReload={reload} />
       </div>
-    </div>
+    </TabbedPage>
   )
 }
