@@ -67,8 +67,8 @@ export default {
     }
   },
   home: {
-    name: 'Accueil',
-    description: 'Présentation de Sulfur et de ses modules',
+    name: 'Vue d’ensemble',
+    description: 'Ce qui tourne en ce moment : serveurs, clients, sessions et points d’accès',
     headline: 'Simulateur modulaire de protocoles industriels et informatiques',
     intro:
       "Sulfur simule les serveurs et les clients des protocoles de l'automatisme et de la supervision : OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Testez des équipements, des logiciels de supervision et des intégrations sans l'installation réelle, et reproduisez les pannes à la demande.",
@@ -98,10 +98,12 @@ export default {
     stats: {
       active: 'Modules actifs',
       activeOf: 'sur {count}',
-      sessions: 'Sessions clientes',
-      sessionsHint: 'Clients connectés aux serveurs simulés',
-      available: 'Modules disponibles',
-      availableHint: '{count} groupe(s)'
+      servers: 'Serveurs en marche',
+      serversHint: '{count} session(s) cliente(s)',
+      clients: 'Clients connectés',
+      clientsHint: 'Vers des serveurs ou des équipements',
+      tools: 'Outils actifs',
+      toolsHint: 'Simulateur, courbes, terminal série…'
     },
     activeTitle: 'Modules actifs',
     activeEmpty: 'Aucun serveur ni client en marche. Démarrez un module : il apparaîtra ici avec son point d’accès.',
@@ -111,7 +113,7 @@ export default {
       activity: 'Activité'
     },
     open: 'Ouvrir {name}',
-    allModules: 'Tous les modules',
+    statusTitle: 'État des modules',
     license: 'Licence Apache 2.0 — © 2026 Maxime MALLET',
     repository: 'Code source et documentation'
   },

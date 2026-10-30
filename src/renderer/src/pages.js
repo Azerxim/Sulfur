@@ -1,4 +1,4 @@
-import { House, Info, Settings } from 'lucide-react'
+import { Info, LayoutDashboard, Settings } from 'lucide-react'
 import HomePage from './pages/HomePage'
 import InfoPage from './pages/InfoPage'
 import SettingsPage from './pages/SettingsPage'
@@ -9,7 +9,7 @@ import SettingsPage from './pages/SettingsPage'
  * Nom et description sont traduits via les clés `<id>.name` et `<id>.description`.
  */
 export const appPages = [
-  { manifest: { id: 'home', name: 'Accueil' }, icon: House, Component: HomePage },
+  { manifest: { id: 'home', name: "Vue d'ensemble" }, icon: LayoutDashboard, Component: HomePage },
   { manifest: { id: 'info', name: 'Informations' }, icon: Info, Component: InfoPage },
   { manifest: { id: 'settings', name: 'Paramètres' }, icon: Settings, Component: SettingsPage }
 ]
