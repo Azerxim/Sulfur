@@ -138,7 +138,7 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 - [X] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
 - [X] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
   certificate validity on equipment
-- [ ] **TCP / UDP proxy**: relay placed between a real client and a real device (several forwards,
+- [X] **TCP / UDP proxy**: relay placed between a real client and a real device (several forwards,
   local port → remote host:port), hexadecimal log of the exchanges with export, and fault injection
   on the traffic (latency, packet loss, disconnections, frame corruption) to test devices without
   modifying them

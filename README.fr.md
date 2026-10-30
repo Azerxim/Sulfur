@@ -22,7 +22,7 @@ n'importe quelle valeur.
 | Famille | Modules |
 | --- | --- |
 | Protocoles industriels | [OPC UA](docs/fr/modules/opcua.md) · [Modbus](docs/fr/modules/modbus.md) (TCP, TLS, RTU, ASCII) · [Siemens S7](docs/fr/modules/s7.md) · [PLCSim Advanced](docs/fr/modules/plcsim.md) |
-| Protocoles informatiques et réseau | [HTTP / REST](docs/fr/modules/http.md) · [MQTT](docs/fr/modules/mqtt.md) · [SNMP](docs/fr/modules/snmp.md) · [Syslog](docs/fr/modules/syslog.md) · [NTP](docs/fr/modules/ntp.md) · [DNS](docs/fr/modules/dns.md) · [DHCP](docs/fr/modules/dhcp.md) · [LDAP / RADIUS](docs/fr/modules/ldap.md) · [FTP / SFTP](docs/fr/modules/ftp.md) · [TFTP](docs/fr/modules/tftp.md) |
+| Protocoles informatiques et réseau | [HTTP / REST](docs/fr/modules/http.md) · [MQTT](docs/fr/modules/mqtt.md) · [SNMP](docs/fr/modules/snmp.md) · [Syslog](docs/fr/modules/syslog.md) · [NTP](docs/fr/modules/ntp.md) · [DNS](docs/fr/modules/dns.md) · [DHCP](docs/fr/modules/dhcp.md) · [LDAP / RADIUS](docs/fr/modules/ldap.md) · [FTP / SFTP](docs/fr/modules/ftp.md) · [TFTP](docs/fr/modules/tftp.md) · [Proxy TCP / UDP](docs/fr/modules/proxy.md) |
 | Outils | [Simulateur](docs/fr/modules/simulator.md) (défauts et flux) · [Courbes](docs/fr/modules/trends.md) · [Autorité de certification](docs/fr/modules/ca.md) · [Explorateur réseau](docs/fr/modules/explorer.md) · [Terminal série](docs/fr/modules/serial.md) |
 
 ## Installation

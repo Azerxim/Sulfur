@@ -12,6 +12,7 @@ import dhcp from '@modules/dhcp/renderer'
 import ldap from '@modules/ldap/renderer'
 import tftp from '@modules/tftp/renderer'
 import ftp from '@modules/ftp/renderer'
+import proxy from '@modules/proxy/renderer'
 import simulator from '@modules/simulator/renderer'
 import trends from '@modules/trends/renderer'
 import ca from '@modules/ca/renderer'
@@ -25,7 +26,7 @@ import serial from '@modules/serial/renderer'
  */
 export const moduleGroups = [
   { id: 'automation', modules: [opcua, modbus, s7, plcsim] },
-  { id: 'it', modules: [http, ntp, mqtt, snmp, syslog, dns, dhcp, ldap, ftp, tftp] },
+  { id: 'it', modules: [http, ntp, mqtt, snmp, syslog, dns, dhcp, ldap, ftp, tftp, proxy] },
   { id: 'tools', modules: [simulator, trends, ca, explorer, serial] }
 ]
 

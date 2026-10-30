@@ -54,6 +54,8 @@ import ftpEn from '@modules/ftp/shared/locales/en'
 import ftpFr from '@modules/ftp/shared/locales/fr'
 import serialEn from '@modules/serial/shared/locales/en'
 import serialFr from '@modules/serial/shared/locales/fr'
+import proxyEn from '@modules/proxy/shared/locales/en'
+import proxyFr from '@modules/proxy/shared/locales/fr'
 
 /** Fusion profonde : l'application et le SDK partagent des espaces de noms (errors). */
 const merge = (a, b) =>
@@ -85,7 +87,8 @@ const dictionaries = {
     ...ldapEn,
     ...tftpEn,
     ...ftpEn,
-    ...serialEn
+    ...serialEn,
+    ...proxyEn
   },
   fr: {
     ...merge(sdkFr, coreFr),
@@ -107,7 +110,8 @@ const dictionaries = {
     ...ldapFr,
     ...tftpFr,
     ...ftpFr,
-    ...serialFr
+    ...serialFr,
+    ...proxyFr
   }
 }
 

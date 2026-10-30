@@ -21,7 +21,7 @@ behaviours in Node-RED style flows and chart any value.
 | Family | Modules |
 | --- | --- |
 | Industrial protocols | [OPC UA](docs/en/modules/opcua.md) · [Modbus](docs/en/modules/modbus.md) (TCP, TLS, RTU, ASCII) · [Siemens S7](docs/en/modules/s7.md) · [PLCSim Advanced](docs/en/modules/plcsim.md) |
-| IT and network protocols | [HTTP / REST](docs/en/modules/http.md) · [MQTT](docs/en/modules/mqtt.md) · [SNMP](docs/en/modules/snmp.md) · [Syslog](docs/en/modules/syslog.md) · [NTP](docs/en/modules/ntp.md) · [DNS](docs/en/modules/dns.md) · [DHCP](docs/en/modules/dhcp.md) · [LDAP / RADIUS](docs/en/modules/ldap.md) · [FTP / SFTP](docs/en/modules/ftp.md) · [TFTP](docs/en/modules/tftp.md) |
+| IT and network protocols | [HTTP / REST](docs/en/modules/http.md) · [MQTT](docs/en/modules/mqtt.md) · [SNMP](docs/en/modules/snmp.md) · [Syslog](docs/en/modules/syslog.md) · [NTP](docs/en/modules/ntp.md) · [DNS](docs/en/modules/dns.md) · [DHCP](docs/en/modules/dhcp.md) · [LDAP / RADIUS](docs/en/modules/ldap.md) · [FTP / SFTP](docs/en/modules/ftp.md) · [TFTP](docs/en/modules/tftp.md) · [TCP / UDP proxy](docs/en/modules/proxy.md) |
 | Tools | [Simulator](docs/en/modules/simulator.md) (faults and flows) · [Trends](docs/en/modules/trends.md) · [Certificate authority](docs/en/modules/ca.md) · [Network explorer](docs/en/modules/explorer.md) · [Serial terminal](docs/en/modules/serial.md) |
 
 ## Installation

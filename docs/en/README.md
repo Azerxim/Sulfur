@@ -40,6 +40,7 @@
 | [LDAP / RADIUS](modules/ldap.md) | Test directory (LDAP / LDAPS) and RADIUS server, with their clients |
 | [FTP / SFTP](modules/ftp.md) | FTP / FTPS and SFTP servers on a confined folder, with their clients |
 | [TFTP](modules/tftp.md) | TFTP server and client |
+| [TCP / UDP proxy](modules/proxy.md) | Relay between a client and a device: log and faults on the traffic |
 
 **Tools**
 

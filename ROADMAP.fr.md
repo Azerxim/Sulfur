@@ -143,7 +143,7 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
 - [X] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
 - [X] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
   l'horodatage et la validité des certificats sur les équipements
-- [ ] **Proxy TCP / UDP** : relais placé entre un client et un équipement réels (plusieurs
+- [X] **Proxy TCP / UDP** : relais placé entre un client et un équipement réels (plusieurs
   redirections port local → hôte:port distant), journal des échanges en hexadécimal et export, et
   injection de défauts sur le trafic (latence, perte de paquets, coupures, altération de trames)
   pour tester des équipements sans les modifier
