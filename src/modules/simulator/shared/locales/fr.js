@@ -78,7 +78,10 @@ export default {
       recording: 'Enregistrement… {count} changement(s)',
       stopRecording: "Arrêter l'enregistrement",
       recordPoints: 'Points à enregistrer',
-      recordHint: 'Les évolutions des points choisis sont enregistrées dans un nouveau flux.'
+      recordHint: 'Les évolutions des points choisis sont enregistrées dans un nouveau flux.',
+      flowTitle: 'Flux affiché',
+      fullscreen: 'Plein écran',
+      exitFullscreen: 'Quitter le plein écran (Échap)'
     },
     editor: {
       properties: 'Propriétés',

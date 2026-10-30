@@ -53,9 +53,14 @@ export default function SimulatorView() {
           badge: status.faults?.length > 0 && <span className="size-1.5 rounded-full bg-amber-400" />
         }
       ]}
-      className="overflow-auto"
+      // Flux : l'éditeur occupe toute la surface sous les onglets, sans marge.
+      className={tab === 'flows' ? 'gap-0! overflow-auto p-0!' : 'overflow-auto'}
     >
-      <ErrorBanner error={error} onClose={() => setError(null)} />
+      {error && (
+        <div className={tab === 'flows' ? 'p-3 pb-0' : ''}>
+          <ErrorBanner error={error} onClose={() => setError(null)} />
+        </div>
+      )}
       {tab === 'faults' ? (
         <FaultsCard faults={faults} onChange={setFaults} targets={targets} status={status} onError={setError} />
       ) : (

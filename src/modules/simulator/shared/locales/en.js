@@ -78,7 +78,10 @@ export default {
       recording: 'Recording… {count} change(s)',
       stopRecording: 'Stop recording',
       recordPoints: 'Points to record',
-      recordHint: 'The changes of the chosen points are recorded as a new flow.'
+      recordHint: 'The changes of the chosen points are recorded as a new flow.',
+      flowTitle: 'Displayed flow',
+      fullscreen: 'Full screen',
+      exitFullscreen: 'Exit full screen (Esc)'
     },
     editor: {
       properties: 'Properties',
