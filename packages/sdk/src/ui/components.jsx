@@ -227,7 +227,7 @@ export function Tabs({ tabs, value, onChange, variant = 'segmented' }) {
     return (
       <div
         role="tablist"
-        className="page-tabs sticky top-0 z-10 flex shrink-0 gap-1 overflow-x-auto border-b border-ink-800 bg-ink-900 px-1"
+        className="page-tabs sticky top-0 z-10 flex shrink-0 gap-1 overflow-x-auto border-b border-ink-800 bg-ink-900 px-1 [scrollbar-width:none]"
       >
         {tabs.map((tab) => (
           <button
@@ -235,7 +235,7 @@ export function Tabs({ tabs, value, onChange, variant = 'segmented' }) {
             role="tab"
             aria-selected={value === tab.id}
             onClick={() => onChange(tab.id)}
-            className={`-mb-px flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors ${
+            className={`flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors ${
               value === tab.id
                 ? 'border-sulfur-400 font-medium text-slate-100'
                 : 'border-transparent text-slate-400 hover:text-slate-200'

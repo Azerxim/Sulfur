@@ -34,7 +34,8 @@
   --color-slate-600: #8b93a1;
   --color-sulfur-200: #5c4500;
   --color-sulfur-300: #7a5c00;
-  --color-sulfur-400: #b08600;
+  /* Focus clavier : jaune assombri, lisible sur fond clair. */
+  --focus-ring: #9a7400;
   --color-emerald-300: #047857;
   --color-emerald-400: #059669;
   --color-red-200: #991b1b;
@@ -44,6 +45,14 @@
   --color-violet-300: #6d28d9;
   --color-orange-300: #c2410c;
   --color-pink-300: #be185d;
+}
+
+/*
+ * Thème clair : le soufre garde son éclat en aplat (boutons, logo, interrupteurs, soulignés) ; en
+ * texte et en icône, il est assombri pour rester lisible sur fond blanc.
+ */
+:root[data-theme='light'] .text-sulfur-400 {
+  color: #9a7400;
 }
 
 html,
@@ -74,7 +83,7 @@ main:has(.page-tabs) > .page-header {
 /* Focus clavier visible partout ; dans la couche de base pour que les utilitaires le remplacent. */
 @layer base {
   :focus-visible {
-    outline: 2px solid var(--color-sulfur-400);
+    outline: 2px solid var(--focus-ring, var(--color-sulfur-400));
     outline-offset: 2px;
   }
 }
