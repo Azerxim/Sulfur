@@ -173,7 +173,10 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
     Message-Authenticator, accounting, Status-Server) et client (Access-Request, Status-Server,
     accounting)
     - [ ] EAP (PEAP / EAP-TLS, 802.1X), MS-CHAPv2, attributs de réponse par groupe LDAP, RadSec (RADIUS sur TLS)
-- [ ] **CoAP / LwM2M** : serveur et client pour capteurs IoT contraints, en complément de MQTT
+- [X] **CoAP / LwM2M** : serveur et client pour capteurs IoT contraints, en complément de MQTT :
+  serveur CoAP simulé (observation, découverte) et client, serveur LwM2M (enregistrement, lecture,
+  écriture, exécution, observation ; TLV, SenML JSON) et appareil LwM2M simulé
+  - [ ] CoAP sur DTLS (`coaps`), transfert par blocs (RFC 7959), bootstrap LwM2M
 
 ## Nouveaux modules : automatismes industriels
 

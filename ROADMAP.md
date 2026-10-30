@@ -166,7 +166,10 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
     local and LDAP directory accounts, reply attributes including Cisco-AVPair, Message-Authenticator,
     accounting, Status-Server) and client (Access-Request, Status-Server, accounting)
     - [ ] EAP (PEAP / EAP-TLS, 802.1X), MS-CHAPv2, reply attributes by LDAP group, RadSec (RADIUS over TLS)
-- [ ] **CoAP / LwM2M**: server and client for constrained IoT sensors, alongside MQTT
+- [X] **CoAP / LwM2M**: server and client for constrained IoT sensors, alongside MQTT: simulated
+  CoAP server (observe, discovery) and client, LwM2M server (registration, read, write, execute,
+  observe; TLV, SenML JSON) and simulated LwM2M device
+  - [ ] CoAP over DTLS (`coaps`), block-wise transfers (RFC 7959), LwM2M bootstrap
 
 ## New modules: industrial automation
 

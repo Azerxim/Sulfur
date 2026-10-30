@@ -40,6 +40,7 @@
 | [LDAP / RADIUS](modules/ldap.md) | Annuaire de test (LDAP / LDAPS) et serveur RADIUS, avec leurs clients |
 | [FTP / SFTP](modules/ftp.md) | Serveurs FTP / FTPS et SFTP sur un dossier confiné, avec leurs clients |
 | [TFTP](modules/tftp.md) | Serveur et client TFTP |
+| [CoAP / LwM2M](modules/coap.md) | Serveur et client CoAP, serveur LwM2M et appareil LwM2M simulé |
 | [Proxy TCP / UDP](modules/proxy.md) | Relais entre un client et un équipement : journal et défauts sur le trafic |
 
 **Outils**

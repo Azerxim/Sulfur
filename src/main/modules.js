@@ -13,6 +13,7 @@ import { ldapMainModule } from '@modules/ldap/main'
 import { tftpMainModule } from '@modules/tftp/main'
 import { ftpMainModule } from '@modules/ftp/main'
 import { proxyMainModule } from '@modules/proxy/main'
+import { coapMainModule } from '@modules/coap/main'
 import { simulatorMainModule } from '@modules/simulator/main'
 import { trendsMainModule } from '@modules/trends/main'
 import { caMainModule } from '@modules/ca/main'
@@ -40,6 +41,7 @@ export const mainModules = [
   tftpMainModule,
   ftpMainModule,
   proxyMainModule,
+  coapMainModule,
   simulatorMainModule,
   trendsMainModule,
   caMainModule,
