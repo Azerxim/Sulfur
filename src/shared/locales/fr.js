@@ -12,7 +12,26 @@ export default {
     resetModuleConfig: 'Rétablir la configuration par défaut du module',
     retry: 'Réessayer',
     updateAvailable: 'Mise à jour disponible : v{version}',
-    updateReady: 'Mise à jour prête : v{version}'
+    updateReady: 'Mise à jour prête : v{version}',
+    search: 'Rechercher…',
+    searchPlaceholder: 'Aller à un module ou une page…',
+    noResult: 'Aucun résultat pour « {query} »',
+    paletteKeys: {
+      navigate: 'naviguer',
+      open: 'ouvrir',
+      close: 'fermer'
+    },
+    activity: {
+      sessions: 'En marche · {count} session(s)',
+      running: 'En marche',
+      client: 'Client connecté',
+      active: 'Actif',
+      stopped: 'Arrêté'
+    },
+    statusBar: {
+      active: '{count} module(s) actif(s)',
+      sessions: '{count} session(s)'
+    }
   },
   errors: {
     externalBusy: 'Arrêtez les serveurs et clients de ces modules avant d’actualiser les modules externes : {modules}',
@@ -53,7 +72,6 @@ export default {
     headline: 'Simulateur modulaire de protocoles industriels et informatiques',
     intro:
       "Sulfur simule les serveurs et les clients des protocoles de l'automatisme et de la supervision : OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Testez des équipements, des logiciels de supervision et des intégrations sans l'installation réelle, et reproduisez les pannes à la demande.",
-    stepsTitle: 'Prise en main',
     steps: {
       start: {
         title: 'Démarrer un module',
@@ -77,6 +95,23 @@ export default {
       automation: 'Protocoles industriels et automates.',
       it: 'Services réseau, messagerie et supervision.'
     },
+    stats: {
+      active: 'Modules actifs',
+      activeOf: 'sur {count}',
+      sessions: 'Sessions clientes',
+      sessionsHint: 'Clients connectés aux serveurs simulés',
+      available: 'Modules disponibles',
+      availableHint: '{count} groupe(s)'
+    },
+    activeTitle: 'Modules actifs',
+    activeEmpty: 'Aucun serveur ni client en marche. Démarrez un module : il apparaîtra ici avec son point d’accès.',
+    columns: {
+      module: 'Module',
+      endpoint: 'Point d’accès',
+      activity: 'Activité'
+    },
+    open: 'Ouvrir {name}',
+    allModules: 'Tous les modules',
     license: 'Licence Apache 2.0 — © 2026 Maxime MALLET',
     repository: 'Code source et documentation'
   },

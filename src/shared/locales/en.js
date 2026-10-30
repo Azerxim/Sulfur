@@ -12,7 +12,26 @@ export default {
     resetModuleConfig: 'Restore the module default configuration',
     retry: 'Retry',
     updateAvailable: 'Update available: v{version}',
-    updateReady: 'Update ready: v{version}'
+    updateReady: 'Update ready: v{version}',
+    search: 'Search…',
+    searchPlaceholder: 'Go to a module or a page…',
+    noResult: 'No result for “{query}”',
+    paletteKeys: {
+      navigate: 'navigate',
+      open: 'open',
+      close: 'close'
+    },
+    activity: {
+      sessions: 'Running · {count} session(s)',
+      running: 'Running',
+      client: 'Client connected',
+      active: 'Active',
+      stopped: 'Stopped'
+    },
+    statusBar: {
+      active: '{count} active module(s)',
+      sessions: '{count} session(s)'
+    }
   },
   errors: {
     externalBusy: 'Stop the servers and clients of these modules before refreshing the external modules: {modules}',
@@ -51,7 +70,6 @@ export default {
     headline: 'Modular simulator of industrial and IT protocols',
     intro:
       'Sulfur simulates the servers and clients of the protocols found in automation and supervision: OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Test devices, supervision software and integrations without the real installation, and reproduce faults on demand.',
-    stepsTitle: 'Getting started',
     steps: {
       start: {
         title: 'Start a module',
@@ -75,6 +93,23 @@ export default {
       automation: 'Industrial protocols and PLCs.',
       it: 'Network services, messaging and supervision.'
     },
+    stats: {
+      active: 'Active modules',
+      activeOf: 'of {count}',
+      sessions: 'Client sessions',
+      sessionsHint: 'Clients connected to the simulated servers',
+      available: 'Available modules',
+      availableHint: '{count} group(s)'
+    },
+    activeTitle: 'Active modules',
+    activeEmpty: 'No server or client running. Start a module: it will show up here with its endpoint.',
+    columns: {
+      module: 'Module',
+      endpoint: 'Endpoint',
+      activity: 'Activity'
+    },
+    open: 'Open {name}',
+    allModules: 'All modules',
     license: 'Apache License 2.0 — © 2026 Maxime MALLET',
     repository: 'Source code and documentation'
   },

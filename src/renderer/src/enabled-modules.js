@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { externalModules } from './external-modules'
 import { moduleGroups, rendererModules } from './modules'
 import { usePreferences } from './preferences'
+import { loadModuleActivity } from './activity'
 
 /**
  * Modules refusés par le process principal au chargement (manifeste invalide ou incompatible) et
@@ -68,5 +69,7 @@ export function useEnabledModules() {
 export async function setDisabledModules(ids, update) {
   const disabled = await window.sulfur.invoke('modules:setDisabled', ids)
   update({ disabledModules: disabled })
+  // Modules réactivés : leurs canaux d'état sont de nouveau disponibles.
+  loadModuleActivity()
   return disabled
 }

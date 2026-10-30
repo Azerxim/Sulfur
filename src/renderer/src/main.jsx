@@ -5,6 +5,7 @@ import { PreferencesProvider, applyLanguage, applyTheme, loadPreferences } from 
 import { loadModuleConfigs } from '@azerxim/sulfur-sdk/host'
 import { availableModules, loadDisabledModules, loadRejectedModules } from './enabled-modules'
 import { loadExternalModules } from './external-modules'
+import { loadModuleActivity } from './activity'
 import App from './App'
 import './index.css'
 
@@ -24,7 +25,9 @@ loadExternalModules()
       loadDisabledModules().then((list) => (preferences.disabledModules = list))
     ])
   )
-  .then(() =>
+  .then(() => {
+    // Activité des modules (barre latérale, accueil) : suivie sans retarder le premier rendu.
+    loadModuleActivity()
     createRoot(document.getElementById('root')).render(
       <StrictMode>
         <PreferencesProvider initial={preferences}>
@@ -32,4 +35,4 @@ loadExternalModules()
         </PreferencesProvider>
       </StrictMode>
     )
-  )
+  })
