@@ -1,15 +1,15 @@
 # Creating a module for Sulfur
 
-**English** · [Français](module-guide.fr.md)
+[Documentation](README.md) · **English** · [Français](../fr/module-guide.md)
 
 This guide explains how to write a module for Sulfur outside its repository, build it, install it
 and share it. Anyone can do it: a module needs no approval and no signature.
 
-It starts from the **module template** ([`examples/module-template`](../examples/module-template)),
+It starts from the **module template** ([`examples/module-template`](../../examples/module-template)),
 a small but complete module: a counter in the main process, published as a data point, with its
 interface and translations. For a richer example (chart, several points, own CSS), see
-[`examples/test-signal`](../examples/test-signal). The API reference is the
-[SDK README](../packages/sdk/README.md) and its TypeScript declarations.
+[`examples/test-signal`](../../examples/test-signal). The API reference is the
+[SDK README](../../packages/sdk/README.md) and its TypeScript declarations.
 
 ## How a module works
 
@@ -41,7 +41,7 @@ The SDK is installed from npm, with no configuration or token needed.
 
 ## 1. Start from the template
 
-Copy the [`examples/module-template`](../examples/module-template) folder wherever you like (it is a
+Copy the [`examples/module-template`](../../examples/module-template) folder wherever you like (it is a
 standalone project), then:
 
 ```sh
@@ -206,8 +206,8 @@ npm run build
 
 1. In Sulfur: **Settings → Modules → External modules → Install a package…**, choose
    `dist/<id>-<version>.sulfur-module` and confirm.
-2. Check **Load the external modules**, then **Refresh**. The module shows up in the sidebar, with
-   the *External* badge in Settings → Modules.
+2. Check **Load the external modules**, then **Refresh**. The module shows up in the sidebar and in
+   Settings → Modules.
 
 **During development**, it is faster to copy (or link) the `dist/<id>` folder into the packages
 folder (**Open** button of the same card), then click **Refresh** after each `npm run build`: the

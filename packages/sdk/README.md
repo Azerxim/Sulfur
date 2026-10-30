@@ -161,6 +161,10 @@ dist/demo/
   (see the
   [roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-additional-modules)).
 
+## Roadmap
+
+Planned changes to the module API: [SDK roadmap](ROADMAP.md).
+
 ## License
 
 [Apache License 2.0](LICENSE). Additional modules built with the SDK may use their own license.

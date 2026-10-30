@@ -86,11 +86,10 @@ export function Panel({ title, subtitle, actions, children, labelledBy }) {
   )
 }
 
-/** Petite étiquette (Externe, Chargé, Nouvelle…), colorée selon `tone`. */
+/** Petite étiquette (Additionnel, Chargé, Nouvelle…), colorée selon `tone`. */
 const BADGE_TONES = {
   neutral: 'bg-ink-850 text-slate-400',
   accent: 'bg-sulfur-400/12 text-sulfur-300',
-  info: 'bg-sky-400/12 text-sky-300',
   ok: 'bg-emerald-400/12 text-emerald-300',
   warn: 'bg-amber-400/12 text-amber-300'
 }

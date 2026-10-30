@@ -5,7 +5,7 @@
 Point de départ pour votre propre module Sulfur : un compteur dans le process principal, publié comme
 point de données pour le simulateur et les courbes, avec son interface, ses réglages enregistrés et
 ses traductions (anglais, français). Copiez ce dossier, puis suivez le
-[guide de développement de module](../../docs/module-guide.fr.md).
+[guide de développement de module](../../docs/fr/module-guide.md).
 
 ```sh
 npm install

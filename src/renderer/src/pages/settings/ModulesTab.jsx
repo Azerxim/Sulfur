@@ -28,7 +28,6 @@ function ModulesPanel() {
   const disabled = prefs.disabledModules ?? []
   const { groups, modules } = availableModules()
   const rejected = rejectedModules()
-  const externalIds = externalModules().ids
   const running = modules.filter((m) => activity(m.manifest.id).active).length
 
   async function apply(next) {
@@ -133,9 +132,6 @@ function ModulesPanel() {
                   <div className="flex min-w-0 flex-col">
                     <span className="flex min-w-0 items-center gap-2">
                       <span className="truncate text-[13px] font-medium text-slate-100">{name}</span>
-                      {externalIds.includes(manifest.id) && (
-                        <Badge tone="info">{t('settings.moduleSwitch.external')}</Badge>
-                      )}
                       {manifest.edition === 'additional' && (
                         <Badge tone="accent">{t('settings.moduleSwitch.additional')}</Badge>
                       )}

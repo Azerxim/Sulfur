@@ -35,7 +35,7 @@ Pendant le développement, on peut plutôt copier le dossier `dist/test-signal` 
 paquets (bouton **Ouvrir**) : `module-packages/test-signal/module.json`, puis cliquer sur
 **Actualiser** après chaque reconstruction (la nouvelle version est chargée sans redémarrer Sulfur).
 
-Le module apparaît dans le groupe *Outils*, avec le badge *Externe* dans Paramètres → Modules.
+Le module apparaît dans le groupe *Outils* et dans Paramètres → Modules.
 
 Dossier des paquets : `<données utilisateur>/module-packages`, soit `~/.config/sulfur` en
 développement (`npm run dev`), `~/.config/Sulfur` (Linux), `%APPDATA%\Sulfur` (Windows) ou
