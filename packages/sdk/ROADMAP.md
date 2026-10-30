@@ -21,3 +21,17 @@ the [Sulfur roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#stan
   - Manifest: optional `extends: [<target id>]` field, shown before installation; a module whose
     target is missing or disabled still loads, its tabs are simply not shown.
   - TypeScript declarations and module guide updated; module template example.
+
+## Module API 1.3
+
+- [ ] **Licences and trial mode** of paid modules (see the
+  [Sulfur roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-additional-modules));
+  a module without this field stays free, nothing changes for it.
+  - Manifest: optional `license: { trialDays, purchaseUrl, publicKey }` field (trial period, 30 days
+    by default; purchase page; publisher's Ed25519 public key), shown before installation.
+  - `ctx.license` (main process) and `useLicense()` (`@azerxim/sulfur-sdk/ui`): status (`trial`,
+    `licensed`, `expired`), trial days left, licence holder and end of maintenance, event on each
+    change; the module decides what it restricts according to the status.
+  - Licence file signature checked in the SDK, offline; `sulfur-license` command-line tool
+    (`@azerxim/sulfur-sdk/license`) to generate the publisher's key pair and sign licences.
+  - TypeScript declarations, module guide (paid modules section) and tests.

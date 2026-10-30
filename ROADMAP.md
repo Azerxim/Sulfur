@@ -55,9 +55,10 @@ Make the simulators more useful for testing real equipment and software.
 
 Sulfur is distributed under the [Apache License 2.0](LICENSE). The application and the **standard**
 modules are built into this repository; **additional** modules, marked *(additional)* in this
-roadmap, are distributed as separate packages and installed on demand. Anyone can build their own
-module with the module SDK and install it in Sulfur, without any approval or signature. Unmarked
-modules are standard.
+roadmap, are distributed as separate packages and installed on demand. An additional module is free
+or paid, as its developer chooses; a paid module can be evaluated free of charge in trial mode
+before buying a licence. Anyone can build their own module with the module SDK and install it in
+Sulfur, without any approval or signature. Unmarked modules are standard.
 
 | Type                                    | Modules                                                                                                         |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -107,6 +108,20 @@ Structure to set up before the first additional module:
   show them after their own tabs (Siemens S7 first, then OPC UA). The tabs follow the enabling,
   disabling and refreshing of the module that brings them; Settings → Modules shows which module
   a package extends.
+- [ ] **Licences and trial mode** of the paid additional modules (module API 1.3, see the
+  [SDK roadmap](packages/sdk/ROADMAP.md)); free modules are not concerned.
+  - **Trial mode**: from its first activation, a paid module works fully for a period set by its
+    publisher in the manifest (30 days by default). At the end of the trial, the module stays
+    installed and its configurations are kept; it chooses what remains available (for example
+    view only, without starting any server or client) until a licence is imported. A single trial
+    period per module and major version.
+  - **Offline licence**: file signed (Ed25519) by the module publisher (customer, module, number of
+    workstations, end of maintenance date), checked offline with the public key of the manifest; a
+    licence covers the versions published before the end of its maintenance.
+  - **Settings → Modules**: status of each module (free, trial with the days left, licensed,
+    licence expired), import and removal of the licence file, publisher's purchase link.
+  - No connection or account required; the trial and the licence rely on the user's good faith,
+    with no copy protection.
 
 ## New modules: tools
 
@@ -228,8 +243,8 @@ The order within each version will be set according to needs.
     instead of downloading the package by hand;
   - verification of the signature of the marketplace packages and of the publisher, shown before
     installation; packages installed by hand remain possible, unsigned, as today;
-  - licences of paid modules: import of the licence file, status (trial, valid, expired) shown per
-    module, offline verification;
+  - purchase of a paid module from its page, licence then added automatically (see *Licences and
+    trial mode*);
   - works offline: the catalogue is optional and can be disabled, no data is sent apart from
     browsing the catalogue.
 

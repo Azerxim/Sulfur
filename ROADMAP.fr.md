@@ -58,9 +58,10 @@ Rendre les simulateurs plus utiles pour tester des équipements et logiciels ré
 
 Sulfur est distribué sous [licence Apache 2.0](LICENSE). L'application et les modules **standard**
 sont intégrés à ce dépôt ; les modules **additionnels**, marqués *(additionnel)* dans cette
-roadmap, sont distribués en paquets séparés et installés à la demande. Chacun peut créer son propre
-module avec le SDK de module et l'installer dans Sulfur, sans validation ni signature. Les modules
-sans marque sont standard.
+roadmap, sont distribués en paquets séparés et installés à la demande. Un module additionnel est
+gratuit ou payant, au choix de son développeur ; un module payant s'évalue gratuitement en mode
+d'essai avant l'achat d'une licence. Chacun peut créer son propre module avec le SDK de module et
+l'installer dans Sulfur, sans validation ni signature. Les modules sans marque sont standard.
 
 | Type                                      | Modules                                                                                                         |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -111,6 +112,20 @@ Structure à mettre en place avant le premier module additionnel :
   modules extensibles les affichent après leurs propres onglets (Siemens S7 d'abord, puis OPC UA).
   Les onglets suivent l'activation, la désactivation et l'actualisation du module qui les apporte ;
   Paramètres → Modules indique quel module un paquet complète.
+- [ ] **Licences et mode d'essai** des modules additionnels payants (API des modules 1.3, voir la
+  [roadmap du SDK](packages/sdk/ROADMAP.fr.md)) ; les modules gratuits ne sont pas concernés.
+  - **Mode d'essai** : à sa première activation, un module payant fonctionne complètement pendant
+    une durée fixée par son éditeur dans le manifeste (30 jours par défaut). À la fin de l'essai, le
+    module reste installé et ses configurations sont conservées ; il choisit ce qui reste disponible
+    (par exemple consultation seule, sans démarrer de serveur ni de client) jusqu'à l'import d'une
+    licence. Une seule période d'essai par module et par version majeure.
+  - **Licence hors ligne** : fichier signé (Ed25519) par l'éditeur du module (client, module, nombre
+    de postes, date de fin de maintenance), vérifié sans connexion avec la clé publique du
+    manifeste ; une licence couvre les versions publiées avant la fin de sa maintenance.
+  - **Paramètres → Modules** : état de chaque module (gratuit, essai avec les jours restants, sous
+    licence, licence expirée), import et retrait du fichier de licence, lien d'achat de l'éditeur.
+  - Aucune connexion ni compte requis ; l'essai et la licence reposent sur la bonne foi de
+    l'utilisateur, sans protection contre la copie.
 
 ## Nouveaux modules : outils
 
@@ -239,8 +254,8 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
   - vérification de la signature des paquets de la place de marché et de l'éditeur, affichées avant
     l'installation ; les paquets installés à la main restent possibles, sans signature, comme
     aujourd'hui ;
-  - licences des modules payants : import du fichier de licence, état (essai, valide, expirée)
-    affiché par module, vérification hors ligne ;
+  - achat d'un module payant depuis sa fiche, licence ajoutée ensuite automatiquement (voir
+    *Licences et mode d'essai*) ;
   - fonctionne sans connexion : le catalogue est facultatif et désactivable, aucune donnée envoyée
     hors de la consultation du catalogue.
 

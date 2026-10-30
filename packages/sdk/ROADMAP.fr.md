@@ -25,3 +25,19 @@ application (hôte des modules, Paramètres, modules intégrés) est dans la
     dont la cible est absente ou désactivée se charge quand même, ses onglets ne sont simplement
     pas affichés.
   - Déclarations TypeScript et guide des modules mis à jour ; exemple dans le modèle de module.
+
+## API des modules 1.3
+
+- [ ] **Licences et mode d'essai** des modules payants (voir la
+  [roadmap de Sulfur](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.fr.md#modules-standard-et-additionnels)) ;
+  un module sans ce champ reste gratuit, rien ne change pour lui.
+  - Manifeste : champ facultatif `license: { trialDays, purchaseUrl, publicKey }` (durée de l'essai,
+    30 jours par défaut ; page d'achat ; clé publique Ed25519 de l'éditeur), affiché avant
+    l'installation.
+  - `ctx.license` (process principal) et `useLicense()` (`@azerxim/sulfur-sdk/ui`) : état
+    (`trial`, `licensed`, `expired`), jours d'essai restants, titulaire et fin de maintenance de la
+    licence, événement à chaque changement ; le module décide de ce qu'il limite selon l'état.
+  - Vérification de la signature du fichier de licence dans le SDK, hors ligne ; outil en ligne de
+    commande `sulfur-license` (`@azerxim/sulfur-sdk/license`) pour générer la paire de clés de
+    l'éditeur et signer les licences.
+  - Déclarations TypeScript, guide des modules (section modules payants) et tests.
