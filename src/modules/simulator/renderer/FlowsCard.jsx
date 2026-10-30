@@ -167,6 +167,16 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
     setSide(tab)
     setSideMode('open')
   }
+  /** Nœud sélectionné sur le canevas (clic, ajout) : ses propriétés s'ouvrent, panneau réduit compris. */
+  const selectNode = useCallback(
+    (id) => {
+      setSelectedId(id)
+      if (!id) return
+      setSide('properties')
+      setSideMode('open')
+    },
+    [setSideMode]
+  )
   const [onlyCurrent, setOnlyCurrent] = useState(false)
   const [recordKeys, setRecordKeys] = useState([])
   const rootRef = useRef(null)
@@ -363,7 +373,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
             injectable={injectable}
             onInject={onInject}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={selectNode}
             labelOf={labelOf}
           />
           {sideCollapsed ? (
