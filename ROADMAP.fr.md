@@ -231,6 +231,18 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
     plus de l'épinglage ;
   - jetons utilisateur X.509 pour OPC UA.
 - **Interface** : plusieurs fenêtres, raccourcis clavier, revue d'accessibilité, nouvelles langues.
+- **Place de marché des modules** : modules de la communauté, gratuits ou payants, publiés sur le
+  [site de Sulfur](https://sulfur.topazdev.fr) (catalogue, publication avec revue, vente et
+  reversement aux éditeurs). Dans l'application :
+  - catalogue dans Paramètres → Modules : recherche, fiche du module, installation et mises à jour
+    en un clic, à la place du téléchargement manuel du paquet ;
+  - vérification de la signature des paquets de la place de marché et de l'éditeur, affichées avant
+    l'installation ; les paquets installés à la main restent possibles, sans signature, comme
+    aujourd'hui ;
+  - licences des modules payants : import du fichier de licence, état (essai, valide, expirée)
+    affiché par module, vérification hors ligne ;
+  - fonctionne sans connexion : le catalogue est facultatif et désactivable, aucune donnée envoyée
+    hors de la consultation du catalogue.
 
 ## Limites connues
 

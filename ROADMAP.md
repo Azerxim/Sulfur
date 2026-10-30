@@ -221,6 +221,17 @@ The order within each version will be set according to needs.
     pinning;
   - OPC UA X.509 user tokens.
 - **Interface**: several windows, keyboard shortcuts, accessibility review, more languages.
+- **Module marketplace**: community modules, free or paid, published on the
+  [Sulfur website](https://sulfur.topazdev.fr) (catalogue, publishing with review, sales and
+  payouts to the publishers). In the application:
+  - catalogue in Settings → Modules: search, module page, one-click installation and updates,
+    instead of downloading the package by hand;
+  - verification of the signature of the marketplace packages and of the publisher, shown before
+    installation; packages installed by hand remain possible, unsigned, as today;
+  - licences of paid modules: import of the licence file, status (trial, valid, expired) shown per
+    module, offline verification;
+  - works offline: the catalogue is optional and can be disabled, no data is sent apart from
+    browsing the catalogue.
 
 ## Known limitations
 
