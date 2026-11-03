@@ -72,8 +72,8 @@ export default {
       'Sulfur simulates the servers and clients of the protocols found in automation and supervision: OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Test devices, supervision software and integrations without the real installation, and reproduce faults on demand.',
     steps: {
       start: {
-        title: 'Start a module',
-        text: 'Choose a protocol, start its simulated server or connect its client to a real device.'
+        title: 'Create and start',
+        text: 'Open a protocol, add as many simulated servers and clients as needed, then start them.'
       },
       simulate: {
         title: 'Simulate',
@@ -86,6 +86,10 @@ export default {
       save: {
         title: 'Save and share',
         text: 'Settings are saved automatically; export them to JSON to share a test setup.'
+      },
+      modules: {
+        title: 'Choose modules',
+        text: 'Enable or disable modules, by group or one by one, and install external modules.'
       }
     },
     groups: {
@@ -95,7 +99,7 @@ export default {
     },
     stats: {
       active: 'Active modules',
-      activeOf: 'of {count}',
+      activeOf: 'of {count} · {instances} instance(s) created',
       servers: 'Running servers',
       serversHint: '{count} client session(s)',
       clients: 'Connected clients',
@@ -103,15 +107,23 @@ export default {
       tools: 'Active tools',
       toolsHint: 'Simulator, trends, serial terminal…'
     },
-    activeTitle: 'Active modules',
-    activeEmpty: 'No server or client running. Start a module: it will show up here with its endpoint.',
+    activeTitle: 'Running now',
+    activeEmpty:
+      'No server or client yet. Open a module, add a server or a client to it and start it: it will show up here with its endpoint.',
+    activeStopped:
+      '{count} instance(s) created, none running. Start a server or connect a client: it will show up here with its endpoint.',
     columns: {
-      module: 'Module',
+      module: 'Module · instance',
       endpoint: 'Endpoint',
       activity: 'Activity'
     },
     open: 'Open {name}',
+    target: 'Client target',
+    running: '{count} running',
+    instances: '{count} instance(s)',
+    extends: 'Extends {names}',
     statusTitle: 'Module status',
+    version: 'Sulfur {version} · module SDK {sdk}',
     license: 'Apache License 2.0 — © 2026 Maxime MALLET',
     repository: 'Source code and documentation'
   },

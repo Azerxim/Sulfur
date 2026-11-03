@@ -74,8 +74,8 @@ export default {
       "Sulfur simule les serveurs et les clients des protocoles de l'automatisme et de la supervision : OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Testez des équipements, des logiciels de supervision et des intégrations sans l'installation réelle, et reproduisez les pannes à la demande.",
     steps: {
       start: {
-        title: 'Démarrer un module',
-        text: 'Choisissez un protocole, démarrez son serveur simulé ou connectez son client à un équipement réel.'
+        title: 'Créer et démarrer',
+        text: 'Ouvrez un protocole, ajoutez autant de serveurs simulés et de clients que nécessaire, puis démarrez-les.'
       },
       simulate: {
         title: 'Simuler',
@@ -88,6 +88,10 @@ export default {
       save: {
         title: 'Enregistrer et partager',
         text: 'Les réglages sont enregistrés automatiquement ; exportez-les en JSON pour partager un banc de test.'
+      },
+      modules: {
+        title: 'Choisir les modules',
+        text: 'Activez ou désactivez des modules, par groupe ou un par un, et installez des modules externes.'
       }
     },
     groups: {
@@ -97,7 +101,7 @@ export default {
     },
     stats: {
       active: 'Modules actifs',
-      activeOf: 'sur {count}',
+      activeOf: 'sur {count} · {instances} instance(s) créée(s)',
       servers: 'Serveurs en marche',
       serversHint: '{count} session(s) cliente(s)',
       clients: 'Clients connectés',
@@ -105,15 +109,23 @@ export default {
       tools: 'Outils actifs',
       toolsHint: 'Simulateur, courbes, terminal série…'
     },
-    activeTitle: 'Modules actifs',
-    activeEmpty: 'Aucun serveur ni client en marche. Démarrez un module : il apparaîtra ici avec son point d’accès.',
+    activeTitle: 'En marche',
+    activeEmpty:
+      'Aucun serveur ni client pour l’instant. Ouvrez un module, ajoutez-y un serveur ou un client et démarrez-le : il apparaîtra ici avec son point d’accès.',
+    activeStopped:
+      '{count} instance(s) créée(s), aucune en marche. Démarrez un serveur ou connectez un client : il apparaîtra ici avec son point d’accès.',
     columns: {
-      module: 'Module',
+      module: 'Module · instance',
       endpoint: 'Point d’accès',
       activity: 'Activité'
     },
     open: 'Ouvrir {name}',
+    target: 'Cible du client',
+    running: '{count} en marche',
+    instances: '{count} instance(s)',
+    extends: 'Complète {names}',
     statusTitle: 'État des modules',
+    version: 'Sulfur {version} · SDK des modules {sdk}',
     license: 'Licence Apache 2.0 — © 2026 Maxime MALLET',
     repository: 'Code source et documentation'
   },

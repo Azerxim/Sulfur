@@ -53,27 +53,60 @@ const sessionsOf = (status) =>
       ? status.connections.length
       : 0
 
-const isClientChannel = (channel) => /client:status$/.test(channel)
+/** Rôle d'un canal d'état (`<module>:<rôle>:status`), null pour `<module>:status`. */
+const roleOf = (channel) => channel.split(':').slice(1, -1).join(':') || null
+
+/** Rôles clients : client, radiusClient, sftpClient, device (LwM2M), manager (SNMP)… */
+const isClientRole = (role) => !!role && /(client|device|manager)$/i.test(role)
 
 /**
- * Résumé de l'activité d'un module à partir de ses états par canal : `active` (au moins un serveur,
- * client ou outil en marche), `server`, `client`, premier point d'accès d'un serveur en marche,
- * nombre de sessions ou connexions clientes.
+ * Résumé de l'activité d'un module à partir de ses états par canal :
+ * - `active` (au moins un serveur, client ou outil en marche), `server`, `client` ;
+ * - `servers`, `clients` : nombre de serveurs en marche et de clients actifs ;
+ * - premier point d'accès d'un serveur en marche (`endpoint`, `port`), nombre de sessions ou
+ *   connexions clientes (`sessions`) ;
+ * - `instanced` (le module a des rôles à instances) et `instances` : chaque instance créée
+ *   `{ id, name, role, client, active, running, endpoint, sessions }` dans l'ordre des canaux.
  */
 export function summarizeActivity(byChannel = {}) {
-  const entries = Object.entries(byChannel)
-    .flatMap(([channel, status]) => (Array.isArray(status) ? status.map((s) => [channel, s]) : [[channel, status]]))
-    .filter(([, status]) => isActive(status))
-  const clients = entries.filter(([channel]) => isClientChannel(channel))
-  const others = entries.filter(([channel]) => !isClientChannel(channel)).map(([, status]) => status)
-  const endpoint = others.map(endpointOf).find(Boolean) ?? null
+  const units = Object.entries(byChannel).flatMap(([channel, status]) => {
+    const role = roleOf(channel)
+    const client = isClientRole(role)
+    const unit = (s, instance) => ({
+      instance,
+      role,
+      client,
+      status: s,
+      active: isActive(s),
+      running: !client && !!s?.running
+    })
+    return Array.isArray(status) ? status.map((s) => unit(s, true)) : status ? [unit(status, false)] : []
+  })
+  const active = units.filter((u) => u.active)
+  const servers = active.filter((u) => !u.client)
+  const endpoint = servers.map((u) => endpointOf(u.status)).find(Boolean) ?? null
   return {
-    active: entries.length > 0,
-    server: others.some((status) => status.running),
-    client: clients.length > 0,
+    active: active.length > 0,
+    server: servers.some((u) => u.running),
+    client: active.some((u) => u.client),
+    servers: servers.filter((u) => u.running).length,
+    clients: active.filter((u) => u.client).length,
     endpoint,
     port: endpoint?.match(/:(\d+)(?:\/|$)/)?.[1] ?? null,
-    sessions: others.reduce((n, status) => n + sessionsOf(status), 0)
+    sessions: servers.reduce((n, u) => n + sessionsOf(u.status), 0),
+    instanced: Object.values(byChannel).some(Array.isArray),
+    instances: units
+      .filter((u) => u.instance)
+      .map((u) => ({
+        id: u.status.instance,
+        name: u.status.name ?? u.status.instance,
+        role: u.role,
+        client: u.client,
+        active: u.active,
+        running: u.running,
+        endpoint: endpointOf(u.status),
+        sessions: u.client ? 0 : sessionsOf(u.status)
+      }))
   }
 }
 
