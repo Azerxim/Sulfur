@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Play, Send, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPaperPlane, faPlay, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG } from '../shared/constants'
@@ -130,15 +131,15 @@ export default function ClientPanel({ status, serverPort }) {
               disabled={busy || polling || !config.host}
               onClick={() => run(() => ntpApi.client.query(config))}
             >
-              <Send className="size-4" /> {t('ntp.client.query')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('ntp.client.query')}
             </Button>
             {polling ? (
               <Button variant="danger" onClick={() => run(ntpApi.client.stopPolling)}>
-                <Square className="size-4" /> {t('ntp.client.stopPolling')}
+                <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ntp.client.stopPolling')}
               </Button>
             ) : (
               <Button disabled={busy || !config.host} onClick={() => run(() => ntpApi.client.startPolling(config))}>
-                <Play className="size-4" /> {t('ntp.client.startPolling')}
+                <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('ntp.client.startPolling')}
               </Button>
             )}
           </div>
@@ -180,7 +181,7 @@ export default function ClientPanel({ status, serverPort }) {
             title={t('ntp.client.clearHistory')}
             onClick={() => ntpApi.client.clearHistory().then(setHistory)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         }
       >

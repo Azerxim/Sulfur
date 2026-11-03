@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Download, Square, Trash2, Upload } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDownload, faStop, faTrashCan, faUpload } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { BLOCK_SIZES, DEFAULT_CLIENT_CONFIG, MODES } from '../shared/constants'
@@ -136,14 +137,14 @@ export default function ClientPanel({ serverPort }) {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="primary" disabled={busy} onClick={() => transfer(tftpApi.client.get)}>
-              <Download className="size-4" /> {t('tftp.client.get')}
+              <FontAwesomeIcon icon={faDownload} className="size-4" /> {t('tftp.client.get')}
             </Button>
             <Button disabled={busy} onClick={() => transfer(tftpApi.client.put)}>
-              <Upload className="size-4" /> {t('tftp.client.put')}
+              <FontAwesomeIcon icon={faUpload} className="size-4" /> {t('tftp.client.put')}
             </Button>
             {busy && (
               <Button variant="ghost" onClick={() => tftpApi.client.abort()}>
-                <Square className="size-3.5" /> {t('tftp.client.abort')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('tftp.client.abort')}
               </Button>
             )}
             {busy && progress && (
@@ -175,7 +176,7 @@ export default function ClientPanel({ serverPort }) {
             disabled={!history.length}
             onClick={() => tftpApi.client.clear().then(setHistory)}
           >
-            <Trash2 className="size-3.5" /> {t('tftp.server.clearLog')}
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('tftp.server.clearLog')}
           </Button>
         }
       >

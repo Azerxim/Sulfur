@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Plug, RefreshCw, Unplug, Zap } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faBolt, faPlug, faPlugCircleXmark } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import {
   BAUD_RATES,
@@ -43,7 +44,7 @@ function PortField({ value, onChange, disabled }) {
           onChange={(e) => onChange(e.target.value)}
         />
         <Button variant="ghost" className="shrink-0 px-2" title={t('serial.port.refresh')} onClick={refresh}>
-          <RefreshCw className="size-3.5" />
+          <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" />
         </Button>
       </div>
       <datalist id="serial-ports">
@@ -152,11 +153,12 @@ export default function PortCard({ status }) {
           />
           {open ? (
             <Button variant="danger" size="sm" disabled={busy} onClick={() => run(serialApi.close)}>
-              <Unplug className="size-3.5" /> {t('serial.port.close')}
+              <FontAwesomeIcon icon={faPlugCircleXmark} className="size-3.5" /> {t('serial.port.close')}
             </Button>
           ) : (
             <Button variant="primary" size="sm" disabled={busy} onClick={() => run(() => serialApi.open(config, rx))}>
-              <Plug className="size-3.5" /> {busy ? t('serial.port.opening') : t('serial.port.open')}
+              <FontAwesomeIcon icon={faPlug} className="size-3.5" />{' '}
+              {busy ? t('serial.port.opening') : t('serial.port.open')}
             </Button>
           )}
         </>
@@ -246,7 +248,7 @@ export default function PortCard({ status }) {
                 title={t('serial.port.breakHint')}
                 onClick={() => run(serialApi.sendBreak)}
               >
-                <Zap className="size-3.5" /> {t('serial.port.break')}
+                <FontAwesomeIcon icon={faBolt} className="size-3.5" /> {t('serial.port.break')}
               </Button>
             </div>
           </Group>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Cpu, MonitorSmartphone, Server, ServerCog } from 'lucide-react'
+import { faComputer, faGears, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons'
 import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { coapApi } from './api'
 import ServerPanel from './ServerPanel'
@@ -39,10 +39,10 @@ export default function CoapView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'server', label: t('coap.tabs.server'), icon: Server, badge: dot(server.running) },
-        { id: 'client', label: t('coap.tabs.client'), icon: MonitorSmartphone, badge: dot(client.connected) },
-        { id: 'lwm2mServer', label: t('coap.tabs.lwm2mServer'), icon: ServerCog, badge: dot(lwm2mServer.running) },
-        { id: 'device', label: t('coap.tabs.device'), icon: Cpu, badge: dot(device.state === 'registered') }
+        { id: 'server', label: t('coap.tabs.server'), icon: faServer, badge: dot(server.running) },
+        { id: 'client', label: t('coap.tabs.client'), icon: faComputer, badge: dot(client.connected) },
+        { id: 'lwm2mServer', label: t('coap.tabs.lwm2mServer'), icon: faGears, badge: dot(lwm2mServer.running) },
+        { id: 'device', label: t('coap.tabs.device'), icon: faMicrochip, badge: dot(device.state === 'registered') }
       ]}
     >
       {/* Les panneaux restent montés pour conserver leur état local. */}

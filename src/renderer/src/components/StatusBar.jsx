@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Download } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDownload } from '@fortawesome/free-solid-svg-icons'
 import { StatusDot } from '@azerxim/sulfur-sdk/ui'
 import { useI18n } from '../preferences'
 import { useUpdater } from '../updater'
@@ -59,7 +60,7 @@ export default function StatusBar({ modules, onSelect }) {
           }}
           className="inline-flex items-center gap-1.5 text-sulfur-300 hover:text-sulfur-200"
         >
-          <Download className="size-3.5" />
+          <FontAwesomeIcon icon={faDownload} className="size-3.5" />
           {t(state.status === 'downloaded' ? 'app.updateReady' : 'app.updateAvailable', { version: state.version })}
         </button>
       )}

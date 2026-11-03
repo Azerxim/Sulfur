@@ -1,5 +1,15 @@
 import { useState } from 'react'
-import { BookOpen, Eye, Pencil, Play, Radar, Square, Zap, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faBolt,
+  faBookOpen,
+  faEye,
+  faPen,
+  faPlay,
+  faSatelliteDish,
+  faStop,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { formatName } from '../shared/codec'
@@ -112,16 +122,16 @@ function DevicePanel({ registration }) {
       </div>
       <div className="flex flex-wrap items-end gap-2">
         <Button disabled={busy || !p} onClick={() => run(() => coapApi.lwm2mServer.read(id, form.path, form.format))}>
-          <BookOpen className="size-4" /> {t('coap.lwm2m.ops.read')}
+          <FontAwesomeIcon icon={faBookOpen} className="size-4" /> {t('coap.lwm2m.ops.read')}
         </Button>
         <Button disabled={busy || !p} onClick={() => run(() => coapApi.lwm2mServer.discover(id, form.path))}>
-          <Radar className="size-4" /> {t('coap.lwm2m.ops.discover')}
+          <FontAwesomeIcon icon={faSatelliteDish} className="size-4" /> {t('coap.lwm2m.ops.discover')}
         </Button>
         <Button
           disabled={busy || !p}
           onClick={() => run(() => coapApi.lwm2mServer.observe(id, form.path, form.format))}
         >
-          <Eye className="size-4" /> {t('coap.lwm2m.ops.observe')}
+          <FontAwesomeIcon icon={faEye} className="size-4" /> {t('coap.lwm2m.ops.observe')}
         </Button>
         <span className="mx-1 h-6 w-px bg-ink-800" />
         <Field label={t('coap.lwm2m.value')} className="w-44">
@@ -136,13 +146,13 @@ function DevicePanel({ registration }) {
           disabled={busy || !isResource}
           onClick={() => run(() => coapApi.lwm2mServer.write(id, form.path, form.value))}
         >
-          <Pencil className="size-4" /> {t('coap.lwm2m.ops.write')}
+          <FontAwesomeIcon icon={faPen} className="size-4" /> {t('coap.lwm2m.ops.write')}
         </Button>
         <Button
           disabled={busy || !isResource}
           onClick={() => run(() => coapApi.lwm2mServer.execute(id, form.path, form.value))}
         >
-          <Zap className="size-4" /> {t('coap.lwm2m.ops.execute')}
+          <FontAwesomeIcon icon={faBolt} className="size-4" /> {t('coap.lwm2m.ops.execute')}
         </Button>
       </div>
       <ErrorBanner error={error} onClose={() => setError(null)} />
@@ -196,11 +206,11 @@ export default function Lwm2mServerPanel({ status }) {
             </Field>
             {running ? (
               <Button disabled={busy} onClick={() => run(coapApi.lwm2mServer.stop)}>
-                <Square className="size-4" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button variant="primary" disabled={busy} onClick={() => run(() => coapApi.lwm2mServer.start(config))}>
-                <Play className="size-4" /> {t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('ui.start')}
               </Button>
             )}
             <StatusDot
@@ -290,7 +300,7 @@ export default function Lwm2mServerPanel({ status }) {
                   className="ml-auto"
                   onClick={() => coapApi.lwm2mServer.cancel(o.token).catch((err) => setError(err.message))}
                 >
-                  <X className="size-3.5" /> {t('coap.client.cancel')}
+                  <FontAwesomeIcon icon={faXmark} className="size-3.5" /> {t('coap.client.cancel')}
                 </Button>
               </div>
             ))}

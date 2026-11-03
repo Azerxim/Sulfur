@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Play, RefreshCw, Square } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -135,7 +136,7 @@ export default function DevicePanel({ status, lwm2mServer }) {
             {running ? (
               <>
                 <Button disabled={busy} onClick={() => run(coapApi.device.stop)}>
-                  <Square className="size-4" /> {t('ui.stop')}
+                  <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ui.stop')}
                 </Button>
                 <Button
                   variant="ghost"
@@ -143,12 +144,12 @@ export default function DevicePanel({ status, lwm2mServer }) {
                   title={t('coap.device.updateHint')}
                   onClick={() => run(coapApi.device.update)}
                 >
-                  <RefreshCw className="size-4" /> {t('coap.device.update')}
+                  <FontAwesomeIcon icon={faArrowsRotate} className="size-4" /> {t('coap.device.update')}
                 </Button>
               </>
             ) : (
               <Button variant="primary" disabled={busy} onClick={() => run(() => coapApi.device.start(config))}>
-                <Play className="size-4" /> {t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('ui.start')}
               </Button>
             )}
             <StatusDot on={status.state === 'registered'} />

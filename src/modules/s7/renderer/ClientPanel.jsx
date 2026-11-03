@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, Eye, Fingerprint, Plug, PlugZap, Power, PowerOff, RefreshCw, Send, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowsRotate,
+  faBookOpen,
+  faCircleStop,
+  faEye,
+  faFingerprint,
+  faPaperPlane,
+  faPlug,
+  faPlugCircleBolt,
+  faPowerOff,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -211,11 +223,12 @@ export default function ClientPanel({ status, serverPort }) {
             </Field>
             {connected ? (
               <Button variant="danger" disabled={busy} onClick={() => run(s7Api.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
+                <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button variant="primary" disabled={busy || !config.host} onClick={connect}>
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+                <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+                {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
@@ -302,7 +315,7 @@ export default function ClientPanel({ status, serverPort }) {
           <>
             <CpuBadge state={connected ? status.cpuState : null} />
             <Button size="sm" disabled={!connected || busy} onClick={() => run(s7Api.client.identify)}>
-              <Fingerprint className="size-3.5" /> {t('s7.client.identify')}
+              <FontAwesomeIcon icon={faFingerprint} className="size-3.5" /> {t('s7.client.identify')}
             </Button>
           </>
         }
@@ -324,7 +337,7 @@ export default function ClientPanel({ status, serverPort }) {
           )}
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" disabled={!connected || busy} onClick={() => run(s7Api.client.cpuState)}>
-              <RefreshCw className="size-3.5" /> {t('s7.client.readState')}
+              <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('s7.client.readState')}
             </Button>
             <ConfirmButton
               size="sm"
@@ -332,7 +345,7 @@ export default function ClientPanel({ status, serverPort }) {
               confirmLabel={t('s7.client.confirm')}
               onConfirm={() => run(() => s7Api.client.startCpu('hot'))}
             >
-              <Power className="size-3.5" /> {t('s7.client.hotStart')}
+              <FontAwesomeIcon icon={faPowerOff} className="size-3.5" /> {t('s7.client.hotStart')}
             </ConfirmButton>
             <ConfirmButton
               size="sm"
@@ -340,7 +353,7 @@ export default function ClientPanel({ status, serverPort }) {
               confirmLabel={t('s7.client.confirm')}
               onConfirm={() => run(() => s7Api.client.startCpu('cold'))}
             >
-              <Power className="size-3.5" /> {t('s7.client.coldStart')}
+              <FontAwesomeIcon icon={faPowerOff} className="size-3.5" /> {t('s7.client.coldStart')}
             </ConfirmButton>
             <ConfirmButton
               size="sm"
@@ -348,7 +361,7 @@ export default function ClientPanel({ status, serverPort }) {
               confirmLabel={t('s7.client.confirm')}
               onConfirm={() => run(s7Api.client.stopCpu)}
             >
-              <PowerOff className="size-3.5" /> STOP
+              <FontAwesomeIcon icon={faCircleStop} className="size-3.5" /> STOP
             </ConfirmButton>
             <span className="text-xs text-slate-500">{t('s7.client.controlHint')}</span>
           </div>
@@ -395,10 +408,10 @@ export default function ClientPanel({ status, serverPort }) {
             </Field>
             <div className="flex gap-2">
               <Button variant="primary" disabled={!connected || busy} onClick={read}>
-                <BookOpen className="size-4" /> {t('ui.read')}
+                <FontAwesomeIcon icon={faBookOpen} className="size-4" /> {t('ui.read')}
               </Button>
               <Button disabled={busy} onClick={watch} title={t('s7.client.watchHint')}>
-                <Eye className="size-4" /> {t('s7.client.watch')}
+                <FontAwesomeIcon icon={faEye} className="size-4" /> {t('s7.client.watch')}
               </Button>
             </div>
           </div>
@@ -412,7 +425,7 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             <Button variant="primary" disabled={!connected || busy || writeValue === ''} onClick={write}>
-              <Send className="size-4" /> {t('ui.write')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('ui.write')}
             </Button>
           </div>
           {result && (
@@ -472,7 +485,7 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             <Button variant="primary" disabled={!connected || busy} onClick={readRaw}>
-              <BookOpen className="size-4" /> {t('ui.read')}
+              <FontAwesomeIcon icon={faBookOpen} className="size-4" /> {t('ui.read')}
             </Button>
           </div>
           <div className="flex items-end gap-3">
@@ -485,7 +498,7 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             <Button variant="primary" disabled={!connected || busy || !writeBytes.trim()} onClick={writeRaw}>
-              <Send className="size-4" /> {t('ui.write')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('ui.write')}
             </Button>
           </div>
           {raw && (
@@ -586,7 +599,7 @@ export default function ClientPanel({ status, serverPort }) {
                         title={t('ui.remove2')}
                         onClick={() => run(() => s7Api.client.removeWatch(w.id))}
                       >
-                        <X className="size-3.5" />
+                        <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>

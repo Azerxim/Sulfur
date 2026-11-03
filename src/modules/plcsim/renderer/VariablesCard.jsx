@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Eye, RefreshCw, Search } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faEye, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { ADDRESS_TYPES } from '../shared/constants'
 import { plcsimApi } from './api'
@@ -135,14 +136,15 @@ export default function VariablesCard({ status, instance, onSelect }) {
               />
             </Field>
             <Button disabled={busy} onClick={watchAddress}>
-              <Eye className="size-4" /> {t('plcsim.variables.watch')}
+              <FontAwesomeIcon icon={faEye} className="size-4" /> {t('plcsim.variables.watch')}
             </Button>
           </div>
           <p className="text-xs text-slate-500">{t('plcsim.variables.addressHint')}</p>
 
           <div className="flex flex-wrap items-end gap-3">
             <Button variant="primary" disabled={busy || !running} onClick={load}>
-              <RefreshCw className="size-4" /> {tags ? t('plcsim.variables.reload') : t('plcsim.variables.load')}
+              <FontAwesomeIcon icon={faArrowsRotate} className="size-4" />{' '}
+              {tags ? t('plcsim.variables.reload') : t('plcsim.variables.load')}
             </Button>
             <Checkbox
               className="mb-2"
@@ -152,7 +154,10 @@ export default function VariablesCard({ status, instance, onSelect }) {
             />
             {tags && (
               <div className="relative ml-auto w-72">
-                <Search className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-slate-500" />
+                <FontAwesomeIcon
+                  icon={faMagnifyingGlass}
+                  className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-slate-500"
+                />
                 <Input
                   className="pl-8"
                   value={filter}
@@ -184,7 +189,7 @@ export default function VariablesCard({ status, instance, onSelect }) {
                         <td className="px-3 py-1 font-mono text-xs text-slate-500">{tagAddress(tag)}</td>
                         <td className="px-2 py-1 text-right">
                           <Button size="sm" variant="ghost" disabled={busy} onClick={() => watchTag(tag)}>
-                            <Eye className="size-3.5" /> {t('plcsim.variables.watch')}
+                            <FontAwesomeIcon icon={faEye} className="size-3.5" /> {t('plcsim.variables.watch')}
                           </Button>
                         </td>
                       </tr>

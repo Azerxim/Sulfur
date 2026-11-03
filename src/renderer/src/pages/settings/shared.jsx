@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { compareVersions, parseVersion } from '@azerxim/sulfur-sdk'
 
 /** Interrupteur (case à cocher accessible) : jaune activé, neutre désactivé. */
@@ -45,7 +46,7 @@ export function Segmented({ label, options, value, onChange, size = 'md' }) {
       aria-label={label}
       className="flex flex-wrap gap-0.5 rounded-lg border border-ink-800 bg-ink-950 p-0.5"
     >
-      {options.map(({ id, label: text, title, icon: Icon }) => (
+      {options.map(({ id, label: text, title, icon }) => (
         <button
           key={id}
           type="button"
@@ -57,7 +58,7 @@ export function Segmented({ label, options, value, onChange, size = 'md' }) {
             value === id ? 'bg-ink-850 font-medium text-slate-100 shadow-sm' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          {Icon && <Icon className={`size-4 ${value === id ? 'text-sulfur-400' : ''}`} />}
+          {icon && <FontAwesomeIcon icon={icon} className={`size-4 ${value === id ? 'text-sulfur-400' : ''}`} />}
           {text}
         </button>
       ))}

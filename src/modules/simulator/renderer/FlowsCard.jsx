@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  Bug,
-  Circle,
-  Copy,
-  Maximize2,
-  Minimize2,
-  PanelRightClose,
-  PanelRightOpen,
-  Play,
-  Plus,
-  Rocket,
-  SlidersHorizontal,
-  Square,
-  Trash2
-} from 'lucide-react'
+  faAnglesLeft,
+  faAnglesRight,
+  faBug,
+  faCircle,
+  faCopy,
+  faDownLeftAndUpRightToCenter,
+  faPlay,
+  faPlus,
+  faRocket,
+  faSliders,
+  faStop,
+  faTrashCan,
+  faUpRightAndDownLeftFromCenter
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Checkbox, CommitInput, Field, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { getLocale } from '@azerxim/sulfur-sdk'
 import { DEBUG_LIMIT, createNode, nodeOutputs, stepsToFlow } from '../shared/flows'
@@ -71,8 +72,8 @@ function useFlowRuntime() {
 
 /** Onglets du panneau latéral et leur icône (panneau réduit). */
 const SIDE_TABS = [
-  ['properties', SlidersHorizontal],
-  ['debug', Bug]
+  ['properties', faSliders],
+  ['debug', faBug]
 ]
 
 const SIDE_KEY = 'sulfur:simulator:sideWidth'
@@ -304,7 +305,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
               })
             }
           >
-            <Plus className="size-3.5" />
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" />
           </Button>
         </div>
 
@@ -315,7 +316,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
               {t('simulator.flows.recording', { count: recording.count })}
             </span>
             <Button variant="danger" size="sm" onClick={stopRecording}>
-              <Square className="size-3.5" /> {t('simulator.flows.stopRecording')}
+              <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('simulator.flows.stopRecording')}
             </Button>
           </span>
         )}
@@ -329,7 +330,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
         </span>
         {state.running ? (
           <Button variant="danger" size="sm" onClick={() => call(async () => setState(await simulatorApi.stopFlows()))}>
-            <Square className="size-3.5" /> {t('simulator.flows.stop')}
+            <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('simulator.flows.stop')}
           </Button>
         ) : (
           <Button
@@ -338,7 +339,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
             title={t('simulator.flows.restartHint')}
             onClick={() => call(async () => setState(await simulatorApi.restartFlows()))}
           >
-            <Play className="size-3.5" /> {t('simulator.flows.restart')}
+            <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {t('simulator.flows.restart')}
           </Button>
         )}
         <Button
@@ -347,7 +348,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
           title={t('simulator.flows.deployHint')}
           onClick={() => call(async () => setState(await simulatorApi.deploy(flows)))}
         >
-          <Rocket className="size-3.5" /> {t('simulator.flows.deploy')}
+          <FontAwesomeIcon icon={faRocket} className="size-3.5" /> {t('simulator.flows.deploy')}
         </Button>
         <Button
           variant="ghost"
@@ -356,7 +357,11 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
           aria-pressed={fullscreen}
           onClick={toggleFullscreen}
         >
-          {fullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+          {fullscreen ? (
+            <FontAwesomeIcon icon={faDownLeftAndUpRightToCenter} className="size-3.5" />
+          ) : (
+            <FontAwesomeIcon icon={faUpRightAndDownLeftFromCenter} className="size-3.5" />
+          )}
         </Button>
       </div>
 
@@ -385,9 +390,9 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
                 onClick={() => setSideMode('open')}
                 className="mb-1 grid size-7 place-items-center rounded text-slate-400 hover:bg-ink-850 hover:text-slate-200"
               >
-                <PanelRightOpen className="size-4" />
+                <FontAwesomeIcon icon={faAnglesLeft} className="size-4" />
               </button>
-              {SIDE_TABS.map(([tab, Icon]) => (
+              {SIDE_TABS.map(([tab, icon]) => (
                 <button
                   key={tab}
                   type="button"
@@ -396,7 +401,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
                   onClick={() => openSide(tab)}
                   className="relative grid size-7 place-items-center rounded text-slate-400 hover:bg-ink-850 hover:text-slate-200"
                 >
-                  <Icon className="size-4" />
+                  <FontAwesomeIcon icon={icon} className="size-4" />
                   {tab === 'debug' && debug.length > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-4 rounded-full bg-sulfur-400 px-1 font-mono text-[9px] leading-4 text-on-accent">
                       {debug.length > 99 ? '99+' : debug.length}
@@ -442,7 +447,7 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
                   onClick={() => setSideMode('collapsed')}
                   className="grid size-7 shrink-0 place-items-center self-center rounded text-slate-400 hover:bg-ink-850 hover:text-slate-200"
                 >
-                  <PanelRightClose className="size-4" />
+                  <FontAwesomeIcon icon={faAnglesRight} className="size-4" />
                 </button>
               </div>
               <div className="min-h-0 flex-1">
@@ -508,10 +513,10 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
                           title={t('simulator.flows.duplicate')}
                           onClick={() => addFlow(cloneFlow(flow, `${flow.name} (2)`))}
                         >
-                          <Copy className="size-3.5" />
+                          <FontAwesomeIcon icon={faCopy} className="size-3.5" />
                         </Button>
                         <Button variant="ghost" size="icon" title={t('simulator.flows.remove')} onClick={removeFlow}>
-                          <Trash2 className="size-3.5" />
+                          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                         </Button>
                       </div>
                     </section>
@@ -535,7 +540,8 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
                           disabled={!recordKeys.length}
                           onClick={() => call(() => simulatorApi.startRecording(recordKeys))}
                         >
-                          <Circle className="size-3.5 text-red-400" /> {t('simulator.flows.record')}
+                          <FontAwesomeIcon icon={faCircle} className="size-3.5 text-red-400" />{' '}
+                          {t('simulator.flows.record')}
                         </Button>
                       )}
                     </section>

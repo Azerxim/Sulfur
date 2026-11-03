@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Copy, Lock, Play, Plus, Square, Trash2, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faLock, faPlay, faPlus, faStop, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -122,7 +123,7 @@ function AuthCard({ value, locked, onChange, onError }) {
             set({ users: [...auth.users, { username: `user${auth.users.length + 1}`, passwordHash: '' }] })
           }
         >
-          <Plus className="size-3.5" /> {t('ui.add')}
+          <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
         </Button>
       }
     >
@@ -159,7 +160,7 @@ function AuthCard({ value, locked, onChange, onError }) {
                 title={t('ui.remove')}
                 onClick={() => set({ users: auth.users.filter((_, j) => j !== i) })}
               >
-                <X className="size-3.5" />
+                <FontAwesomeIcon icon={faXmark} className="size-3.5" />
               </Button>
             </div>
           ))
@@ -372,7 +373,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(mqttApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -381,7 +382,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy || invalid}
                 onClick={() => run(() => mqttApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -438,7 +439,7 @@ export default function ServerPanel({ status }) {
           </div>
           {status.url && (
             <div className="flex items-center gap-2 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
-              {config.tls && <Lock className="size-3.5 text-emerald-400" />}
+              {config.tls && <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />}
               {status.url}
               {status.certificate && (
                 <span className="font-sans text-xs text-slate-500">
@@ -454,7 +455,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.url)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -472,7 +473,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" disabled={busy} onClick={addTopic}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -634,7 +635,7 @@ export default function ServerPanel({ status }) {
                           title={t('ui.remove')}
                           onClick={() => removeTopic(d.id)}
                         >
-                          <Trash2 className="size-3.5" />
+                          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                         </Button>
                       </td>
                     </tr>

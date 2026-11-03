@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MonitorSmartphone, Server } from 'lucide-react'
+import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
 import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { ldapApi, radiusApi } from './api'
 import ServerPanel from './ServerPanel'
@@ -33,10 +33,10 @@ export default function LdapView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'server', label: t('ldap.tabs.server'), icon: Server, badge: dot(status.running) },
-        { id: 'client', label: t('ldap.tabs.client'), icon: MonitorSmartphone },
-        { id: 'radiusServer', label: t('ldap.tabs.radiusServer'), icon: Server, badge: dot(radius.running) },
-        { id: 'radiusClient', label: t('ldap.tabs.radiusClient'), icon: MonitorSmartphone }
+        { id: 'server', label: t('ldap.tabs.server'), icon: faServer, badge: dot(status.running) },
+        { id: 'client', label: t('ldap.tabs.client'), icon: faComputer },
+        { id: 'radiusServer', label: t('ldap.tabs.radiusServer'), icon: faServer, badge: dot(radius.running) },
+        { id: 'radiusClient', label: t('ldap.tabs.radiusClient'), icon: faComputer }
       ]}
     >
       {/* Les panneaux restent montés pour conserver leur état local. */}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MonitorSmartphone, Server } from 'lucide-react'
+import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
 import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { ftpApi, sftpApi } from './api'
 import FtpServerPanel from './ftp/ServerPanel'
@@ -34,13 +34,13 @@ export default function FtpView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'ftpServer', label: t('ftp.tabs.ftpServer'), icon: Server, badge: dot(ftpServer.running) },
-        { id: 'ftpClient', label: t('ftp.tabs.ftpClient'), icon: MonitorSmartphone, badge: dot(ftpClient.connected) },
-        { id: 'sftpServer', label: t('ftp.tabs.sftpServer'), icon: Server, badge: dot(sftpServer.running) },
+        { id: 'ftpServer', label: t('ftp.tabs.ftpServer'), icon: faServer, badge: dot(ftpServer.running) },
+        { id: 'ftpClient', label: t('ftp.tabs.ftpClient'), icon: faComputer, badge: dot(ftpClient.connected) },
+        { id: 'sftpServer', label: t('ftp.tabs.sftpServer'), icon: faServer, badge: dot(sftpServer.running) },
         {
           id: 'sftpClient',
           label: t('ftp.tabs.sftpClient'),
-          icon: MonitorSmartphone,
+          icon: faComputer,
           badge: dot(sftpClient.connected)
         }
       ]}

@@ -10,7 +10,7 @@ pour le simulateur et les courbes.
 | ------------------ | --------------------------------------------------------------------------------------- |
 | process principal  | canaux `test-signal:start` / `stop` / `status` / `setpoint` / `ping`, événement `tick`, `busy()` |
 | points de données  | `test-signal/sine`, `ramp`, `square`, `running` (lecture) et `setpoint` (écriture)        |
-| interface          | composants du SDK, configuration enregistrée (`usePersistentState`), icône `lucide-react` |
+| interface          | composants du SDK, configuration enregistrée (`usePersistentState`), icône FontAwesome      |
 | traductions        | anglais et français (`registerMessages`, `moduleT`), textes communs du SDK (`ui.start`)  |
 | styles             | utilitaires Tailwind sur le thème de Sulfur (thème clair compris) et CSS propre          |
 

@@ -1,4 +1,4 @@
-import { Network } from 'lucide-react'
+import { faSitemap } from '@fortawesome/free-solid-svg-icons'
 import { OPCUA_MODULE } from '../shared/constants'
 import OpcuaView from './OpcuaView'
 import '../shared/locales'
@@ -6,6 +6,6 @@ import '../shared/locales'
 /** Partie "renderer" du module OPC UA. */
 export default {
   manifest: OPCUA_MODULE,
-  icon: Network,
+  icon: faSitemap,
   Component: OpcuaView
 }

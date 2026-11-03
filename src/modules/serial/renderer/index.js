@@ -1,4 +1,4 @@
-import { Cable } from 'lucide-react'
+import { faPlug } from '@fortawesome/free-solid-svg-icons'
 import { SERIAL_MODULE } from '../shared/constants'
 import SerialView from './SerialView'
 import '../shared/locales'
@@ -6,6 +6,6 @@ import '../shared/locales'
 /** Partie "renderer" du module Terminal série. */
 export default {
   manifest: SERIAL_MODULE,
-  icon: Cable,
+  icon: faPlug,
   Component: SerialView
 }

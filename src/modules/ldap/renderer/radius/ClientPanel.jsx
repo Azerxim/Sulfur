@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, KeyRound, Play, RefreshCw, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faKey, faPlay, faStop, faTrashCan, faWaveSquare } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_RADIUS_CLIENT_CONFIG, METHODS, parseAttributes } from '../../shared/radius'
@@ -196,14 +197,14 @@ export default function ClientPanel({ server }) {
               disabled={busy || errors.length > 0}
               onClick={() => run(() => radiusApi.client.authenticate(config))}
             >
-              <KeyRound className="size-4" /> {t('ldap.client.authenticate')}
+              <FontAwesomeIcon icon={faKey} className="size-4" /> {t('ldap.client.authenticate')}
             </Button>
             <Button
               disabled={busy}
               title={t('radius.client.statusServerHint')}
               onClick={() => run(() => radiusApi.client.statusServer(config))}
             >
-              <Activity className="size-4" /> Status-Server
+              <FontAwesomeIcon icon={faWaveSquare} className="size-4" /> Status-Server
             </Button>
           </div>
           <Field label={t('radius.client.attributes')}>
@@ -237,13 +238,13 @@ export default function ClientPanel({ server }) {
               />
             </Field>
             <Button disabled={busy || errors.length > 0} onClick={() => accounting('start')}>
-              <Play className="size-3.5" /> {t('radius.client.acct.start')}
+              <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {t('radius.client.acct.start')}
             </Button>
             <Button disabled={busy || errors.length > 0 || !session} onClick={() => accounting('interim')}>
-              <RefreshCw className="size-3.5" /> {t('radius.client.acct.interim')}
+              <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('radius.client.acct.interim')}
             </Button>
             <Button disabled={busy || errors.length > 0 || !session} onClick={() => accounting('stop')}>
-              <Square className="size-3.5" /> {t('radius.client.acct.stop')}
+              <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('radius.client.acct.stop')}
             </Button>
             <span className="mb-2 text-xs text-slate-500">
               {session
@@ -276,7 +277,7 @@ export default function ClientPanel({ server }) {
               })
             }
           >
-            <Trash2 className="size-3.5" /> {t('ldap.server.clearLog')}
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ldap.server.clearLog')}
           </Button>
         }
       >

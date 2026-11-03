@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Check, Copy } from 'lucide-react'
-import { Button } from '@azerxim/sulfur-sdk/ui'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheck, faCopy } from '@fortawesome/free-solid-svg-icons'
+import { Button, Icon } from '@azerxim/sulfur-sdk/ui'
 import { useI18n } from '../preferences'
 
 /** Libellé de l'activité d'un module : serveur en marche (et sessions), client connecté, outil actif. */
@@ -46,7 +47,11 @@ function EndpointChip({ endpoint }) {
           setTimeout(() => setCopied(false), 1200)
         }}
       >
-        {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+        {copied ? (
+          <FontAwesomeIcon icon={faCheck} className="size-3.5 text-emerald-400" />
+        ) : (
+          <FontAwesomeIcon icon={faCopy} className="size-3.5" />
+        )}
       </Button>
     </span>
   )
@@ -56,11 +61,11 @@ function EndpointChip({ endpoint }) {
  * En-tête d'une page : icône, nom et description ; pour un module, son activité et le point d'accès
  * de son serveur en marche.
  */
-export default function PageHeader({ icon: Icon, name, description, activity }) {
+export default function PageHeader({ icon, name, description, activity }) {
   return (
     <header className="page-header flex items-center gap-3 border-b border-ink-800 bg-ink-900 px-4 py-3">
       <span className="grid size-9 shrink-0 place-items-center rounded-[9px] bg-sulfur-400/12 text-sulfur-400">
-        <Icon className="size-[18px]" />
+        <Icon icon={icon} className="size-[18px]" />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

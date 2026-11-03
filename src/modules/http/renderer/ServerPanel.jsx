@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Copy, Lock, Play, Plus, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faLock, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -162,7 +163,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(httpApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -171,7 +172,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy || invalid}
                 onClick={() => run(() => httpApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -245,7 +246,7 @@ export default function ServerPanel({ status }) {
 
           {status.url && (
             <div className="flex items-center gap-2 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
-              {config.https && <Lock className="size-3.5 text-emerald-400" />}
+              {config.https && <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />}
               {status.url}
               {status.certificate && (
                 <span className="font-sans text-xs text-slate-500">
@@ -260,7 +261,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.url)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -283,7 +284,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" disabled={busy} onClick={addVariable}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -402,7 +403,7 @@ export default function ServerPanel({ status }) {
                         title={t('ui.remove')}
                         onClick={() => removeVariable(v.id)}
                       >
-                        <Trash2 className="size-3.5" />
+                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>

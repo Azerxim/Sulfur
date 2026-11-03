@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { TABLES } from '../shared/constants'
 import { decodeValue, pointSize } from '../shared/codec'
@@ -160,7 +161,7 @@ export default function RegisterExplorer({ units, running, wordOrder }) {
               disabled={start === 0}
               onClick={() => setStart(Math.max(0, start - count))}
             >
-              <ChevronLeft className="size-4" />
+              <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
             </Button>
             <Button
               size="icon"
@@ -168,7 +169,7 @@ export default function RegisterExplorer({ units, running, wordOrder }) {
               title={t('modbus.explorer.next')}
               onClick={() => setStart(start + count)}
             >
-              <ChevronRight className="size-4" />
+              <FontAwesomeIcon icon={faChevronRight} className="size-4" />
             </Button>
           </div>
         </div>

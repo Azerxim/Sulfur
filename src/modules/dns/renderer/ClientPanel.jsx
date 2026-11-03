@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Search, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMagnifyingGlass, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG, QUERY_TYPES } from '../shared/constants'
@@ -139,7 +140,7 @@ export default function ClientPanel({ serverPort }) {
               />
             </Field>
             <Button variant="primary" disabled={busy} onClick={query}>
-              <Search className="size-4" /> {t('dns.client.query')}
+              <FontAwesomeIcon icon={faMagnifyingGlass} className="size-4" /> {t('dns.client.query')}
             </Button>
           </div>
           <div className="flex gap-6">
@@ -181,7 +182,7 @@ export default function ClientPanel({ serverPort }) {
               })
             }
           >
-            <Trash2 className="size-3.5" /> {t('dns.queries.clear')}
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('dns.queries.clear')}
           </Button>
         }
       >

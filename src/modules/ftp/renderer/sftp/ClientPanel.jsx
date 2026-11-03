@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  ArrowUp,
-  Download,
-  File,
-  FileUp,
-  Folder,
-  FolderPlus,
-  Link,
-  Pencil,
-  Plug,
-  PlugZap,
-  RefreshCw,
-  Trash2
-} from 'lucide-react'
+  faArrowUp,
+  faArrowsRotate,
+  faDownload,
+  faFile,
+  faFileArrowUp,
+  faFolder,
+  faFolderPlus,
+  faLink,
+  faPen,
+  faPlug,
+  faPlugCircleBolt,
+  faTrashCan
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatDate, formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG } from '../../shared/sftp'
@@ -20,7 +21,7 @@ import { sftpApi } from '../api'
 import { formatSize } from '../format'
 import { t } from '../../shared/i18n'
 
-const ICONS = { dir: Folder, file: File, link: Link }
+const ICONS = { dir: faFolder, file: faFile, link: faLink }
 
 export default function ClientPanel({ status, serverPort }) {
   // Mot de passe, clé privée et phrase secrète ne sont pas enregistrés.
@@ -155,11 +156,12 @@ export default function ClientPanel({ status, serverPort }) {
             </Field>
             {connected ? (
               <Button variant="danger" disabled={busy} onClick={() => run(sftpApi.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
+                <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button variant="primary" disabled={busy} onClick={connect}>
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+                <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+                {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
@@ -239,13 +241,13 @@ export default function ClientPanel({ status, serverPort }) {
           actions={
             <>
               <Button size="sm" disabled={busy} onClick={mkdir}>
-                <FolderPlus className="size-3.5" /> {t('sftp.client.mkdir')}
+                <FontAwesomeIcon icon={faFolderPlus} className="size-3.5" /> {t('sftp.client.mkdir')}
               </Button>
               <Button size="sm" disabled={busy} onClick={upload}>
-                <FileUp className="size-3.5" /> {t('sftp.client.upload')}
+                <FontAwesomeIcon icon={faFileArrowUp} className="size-3.5" /> {t('sftp.client.upload')}
               </Button>
               <Button size="sm" variant="ghost" disabled={busy} onClick={() => refresh(listing.path)}>
-                <RefreshCw className="size-3.5" /> {t('ui.refresh')}
+                <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('ui.refresh')}
               </Button>
             </>
           }
@@ -258,7 +260,7 @@ export default function ClientPanel({ status, serverPort }) {
               disabled={busy || listing.path === '/'}
               onClick={() => refresh(`${listing.path}/..`)}
             >
-              <ArrowUp className="size-4" />
+              <FontAwesomeIcon icon={faArrowUp} className="size-4" />
             </Button>
             <span className="font-mono text-sm text-slate-200 select-text">{listing.path}</span>
             {message && <span className="ml-auto text-xs text-emerald-300">{message}</span>}
@@ -275,7 +277,7 @@ export default function ClientPanel({ status, serverPort }) {
               </thead>
               <tbody>
                 {listing.entries.map((entry) => {
-                  const Icon = ICONS[entry.type]
+                  const icon = ICONS[entry.type]
                   return (
                     <tr key={entry.name} className="border-t border-ink-800 hover:bg-ink-800/40">
                       <td className="px-2 py-1">
@@ -285,7 +287,7 @@ export default function ClientPanel({ status, serverPort }) {
                           onDoubleClick={() => open(entry)}
                           onClick={() => entry.type === 'dir' && open(entry)}
                         >
-                          <Icon className="size-4 shrink-0" /> {entry.name}
+                          <FontAwesomeIcon icon={icon} className="size-4 shrink-0" /> {entry.name}
                         </button>
                       </td>
                       <td className="px-2 py-1 text-right font-mono text-xs text-slate-400">
@@ -303,7 +305,7 @@ export default function ClientPanel({ status, serverPort }) {
                               title={t('sftp.client.download')}
                               onClick={() => download(entry)}
                             >
-                              <Download className="size-3.5" />
+                              <FontAwesomeIcon icon={faDownload} className="size-3.5" />
                             </Button>
                           )}
                           <Button
@@ -312,10 +314,10 @@ export default function ClientPanel({ status, serverPort }) {
                             title={t('sftp.client.rename')}
                             onClick={() => rename(entry)}
                           >
-                            <Pencil className="size-3.5" />
+                            <FontAwesomeIcon icon={faPen} className="size-3.5" />
                           </Button>
                           <Button size="icon" variant="ghost" title={t('ui.remove')} onClick={() => remove(entry)}>
-                            <Trash2 className="size-3.5" />
+                            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                           </Button>
                         </div>
                       </td>

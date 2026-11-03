@@ -142,7 +142,9 @@ code) are not supported.
 ## 4. The interface
 
 `src/renderer/index.jsx` has a default export `{ manifest, icon, Component }`: the sidebar icon (a
-[lucide-react](https://lucide.dev/icons) component) and the React component of the page.
+[FontAwesome](https://fontawesome.com/search?ic=free&o=r) icon definition, `faCube` from
+`@fortawesome/free-solid-svg-icons`…) and the React component of the page. In the page, icons are
+rendered with the SDK's `Icon`: `<Icon icon={faPlay} className="size-3.5" />`.
 
 ```jsx
 const invoke = (action, ...args) => window.sulfur.invoke(`${ID}:${action}`, ...args)

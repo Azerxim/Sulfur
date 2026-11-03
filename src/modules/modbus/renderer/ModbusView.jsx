@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MonitorSmartphone, Server } from 'lucide-react'
+import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
 import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { modbusApi } from './api'
 import ServerPanel from './ServerPanel'
@@ -28,8 +28,8 @@ export default function ModbusView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
-        { id: 'client', label: t('ui.client'), icon: MonitorSmartphone, badge: dot(clientStatus.connected) }
+        { id: 'server', label: t('ui.server'), icon: faServer, badge: dot(serverStatus.running) },
+        { id: 'client', label: t('ui.client'), icon: faComputer, badge: dot(clientStatus.connected) }
       ]}
     >
       {/* Les deux panneaux restent montés pour conserver leur état local. */}

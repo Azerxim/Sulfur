@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Eye, EyeOff, Plug, PlugZap, RefreshCw, Send, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowsRotate,
+  faEye,
+  faEyeSlash,
+  faPaperPlane,
+  faPlug,
+  faPlugCircleBolt,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_CLIENT_SECURITY, ROOT_NODES } from '../shared/constants'
 import { opcuaApi } from './api'
@@ -126,7 +135,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
             </Field>
             {connected ? (
               <Button variant="danger" disabled={busy} onClick={() => run(opcuaApi.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
+                <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button
@@ -134,7 +143,8 @@ export default function ClientPanel({ status, serverEndpoint }) {
                 disabled={busy || !endpoint}
                 onClick={() => run(() => opcuaApi.client.connect(endpoint, security))}
               >
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+                <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+                {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
@@ -161,7 +171,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
               title={t('opcua.client.reload')}
               onClick={() => setTreeKey((k) => k + 1)}
             >
-              <RefreshCw className="size-3.5" />
+              <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" />
             </Button>
           }
         >
@@ -182,10 +192,14 @@ export default function ClientPanel({ status, serverEndpoint }) {
               details && (
                 <>
                   <Button variant="ghost" size="sm" onClick={refresh}>
-                    <RefreshCw className="size-3.5" /> {t('opcua.client.read')}
+                    <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('opcua.client.read')}
                   </Button>
                   <Button size="sm" onClick={toggleMonitor}>
-                    {isMonitored ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                    {isMonitored ? (
+                      <FontAwesomeIcon icon={faEyeSlash} className="size-3.5" />
+                    ) : (
+                      <FontAwesomeIcon icon={faEye} className="size-3.5" />
+                    )}
                     {isMonitored ? t('opcua.client.unmonitor') : t('opcua.client.monitor')}
                   </Button>
                 </>
@@ -227,7 +241,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
                       />
                     </Field>
                     <Button variant="primary" disabled={busy} onClick={write}>
-                      <Send className="size-4" /> {t('opcua.client.write')}
+                      <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('opcua.client.write')}
                     </Button>
                   </div>
                 )}
@@ -278,7 +292,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
                                 run(() => opcuaApi.client.unsubscribe(nodeId).then(() => dropLive(nodeId)))
                               }
                             >
-                              <X className="size-3.5" />
+                              <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                             </Button>
                           </td>
                         </tr>

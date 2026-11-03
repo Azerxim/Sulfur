@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { CONTENT_TYPES, ROUTE_METHODS } from '../shared/constants'
 import HeadersEditor from './HeadersEditor'
@@ -47,7 +48,7 @@ function Route({ route, variables, busy, onChange, onRemove }) {
           title={open ? t('ui.collapse') : t('ui.expand')}
           onClick={() => setOpen((o) => !o)}
         >
-          <ChevronDown className={`size-4 transition-transform ${open ? '' : '-rotate-90'}`} />
+          <FontAwesomeIcon icon={faChevronDown} className={`size-4 transition-transform ${open ? '' : '-rotate-90'}`} />
         </button>
         <Select value={route.method} disabled={busy} onChange={(e) => set({ method: e.target.value })}>
           {ROUTE_METHODS.map((m) => (
@@ -74,7 +75,7 @@ function Route({ route, variables, busy, onChange, onRemove }) {
           onChange={(e) => set({ status: Number(e.target.value) })}
         />
         <Button variant="ghost" size="icon" title={t('ui.remove')} disabled={busy} onClick={onRemove}>
-          <Trash2 className="size-3.5" />
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
         </Button>
       </div>
       {open && (
@@ -155,7 +156,7 @@ export default function RoutesCard({ routes, variables, running, busy, onChange 
         <>
           {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
           <Button size="sm" disabled={busy} onClick={() => onChange([...routes, newRoute(routes)])}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }

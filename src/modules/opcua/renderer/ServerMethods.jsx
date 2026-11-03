@@ -1,4 +1,5 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, CommitInput, Select } from '@azerxim/sulfur-sdk/ui'
 import { METHOD_BEHAVIORS, METHOD_FAILURES } from '../shared/constants'
 import FieldsInput from './FieldsInput'
@@ -20,7 +21,7 @@ export default function ServerMethods({ methods, busy, running, duplicates, onAd
         <>
           {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
           <Button size="sm" disabled={busy} onClick={onAdd}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }
@@ -87,7 +88,7 @@ export default function ServerMethods({ methods, busy, running, duplicates, onAd
                       title={t('ui.remove')}
                       onClick={() => onRemove(m.id)}
                     >
-                      <Trash2 className="size-3.5" />
+                      <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                     </Button>
                   </td>
                 </tr>

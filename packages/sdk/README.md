@@ -87,7 +87,7 @@ export default {
 
 ```jsx
 // renderer/index.js — interface
-import { Box } from 'lucide-react'
+import { faCube } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { DEMO_MODULE } from '../shared/constants'
 
@@ -100,7 +100,7 @@ function DemoView() {
   )
 }
 
-export default { manifest: DEMO_MODULE, icon: Box, Component: DemoView }
+export default { manifest: DEMO_MODULE, icon: faCube, Component: DemoView }
 ```
 
 Translations: `registerMessages({ en, fr }, 'demo')` then `moduleT('demo')`; the displayed name and
@@ -143,8 +143,10 @@ dist/demo/
 
 - **Shared modules**: React (`react`, `react/jsx-runtime`, `react-dom`) and the SDK are not
   bundled; Sulfur provides its own at run time (a single instance: same translations, same
-  language, same React state). The other dependencies (`lucide-react`, npm libraries) are bundled
-  in the package. Native dependencies are not supported.
+  language, same React state). The other dependencies (`@fortawesome/free-solid-svg-icons` icon
+  definitions, npm libraries) are bundled in the package. Icons are rendered with the SDK's `Icon`
+  (`<Icon icon={faCube} className="size-4" />`), never by importing `@fortawesome/react-fontawesome`:
+  it would be bundled and the styles it adds to the page would override the Tailwind sizes. Native dependencies are not supported.
 - **Styles**: the CSS imported by the interface becomes `style.css`. With Tailwind CSS v4, start
   from `@import '@azerxim/sulfur-sdk/module.css';` (then `@source` to the module sources): only the
   utilities of the module are generated, on the variables of the Sulfur theme (light theme

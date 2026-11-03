@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Lock, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faLock, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { modbusApi } from './api'
@@ -54,7 +55,7 @@ export default function ServerActivity({ status }) {
                     {c.tls ? (
                       <>
                         <div className="flex items-center gap-1 text-emerald-300">
-                          <Lock className="size-3" />{' '}
+                          <FontAwesomeIcon icon={faLock} className="size-3" />{' '}
                           {t('modbus.activity.tlsRole', { protocol: c.tls.protocol, role: c.tls.role })}
                         </div>
                         <div className="text-slate-500">
@@ -103,7 +104,7 @@ export default function ServerActivity({ status }) {
               title={t('modbus.activity.clearLog')}
               onClick={() => modbusApi.server.clearLogs().then(setLogs)}
             >
-              <Trash2 className="size-3.5" />
+              <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
             </Button>
           </>
         }

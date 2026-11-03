@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Download, Eye, FileSignature, FolderOpen, Import, Plus, RefreshCw, ShieldOff, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowsRotate,
+  faBan,
+  faDownload,
+  faEye,
+  faFileImport,
+  faFileSignature,
+  faFolderOpen,
+  faPlus,
+  faTrashCan
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -81,10 +92,10 @@ function AuthorityDetails({ authority, onChange, onCreateChild, setDialog }) {
       </dl>
       <div className="flex flex-wrap gap-2">
         <Button size="sm" onClick={() => setDialog({ type: 'details', serial: null })}>
-          <Eye className="size-3.5" /> {t('ca.authority.view')}
+          <FontAwesomeIcon icon={faEye} className="size-3.5" /> {t('ca.authority.view')}
         </Button>
         <Button size="sm" onClick={() => setDialog({ type: 'export', serial: null, hasKey: true, name: c.commonName })}>
-          <Download className="size-3.5" /> {t('ca.authority.export')}
+          <FontAwesomeIcon icon={faDownload} className="size-3.5" /> {t('ca.authority.export')}
         </Button>
         <Button
           size="sm"
@@ -92,14 +103,14 @@ function AuthorityDetails({ authority, onChange, onCreateChild, setDialog }) {
           title={t('ca.authority.updateCrlHint')}
           onClick={() => run(async () => onChange(await caApi.updateCrl(authority.id)))}
         >
-          <RefreshCw className="size-3.5" /> {t('ca.authority.updateCrl')}
+          <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('ca.authority.updateCrl')}
         </Button>
         <Button size="sm" onClick={() => setDialog({ type: 'crl' })}>
-          <Download className="size-3.5" /> {t('ca.authority.exportCrl')}
+          <FontAwesomeIcon icon={faDownload} className="size-3.5" /> {t('ca.authority.exportCrl')}
         </Button>
         {c.pathLength !== 0 && (
           <Button size="sm" onClick={onCreateChild}>
-            <Plus className="size-3.5" /> {t('ca.authority.createIntermediate')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ca.authority.createIntermediate')}
           </Button>
         )}
         <Button
@@ -107,10 +118,10 @@ function AuthorityDetails({ authority, onChange, onCreateChild, setDialog }) {
           variant="ghost"
           onClick={() => caApi.openFolder(authority.id).catch((e) => setError(e.message))}
         >
-          <FolderOpen className="size-3.5" /> {t('ca.openFolder')}
+          <FontAwesomeIcon icon={faFolderOpen} className="size-3.5" /> {t('ca.openFolder')}
         </Button>
         <Button size="sm" variant="danger" className="ml-auto" disabled={busy} onClick={remove}>
-          <Trash2 className="size-3.5" /> {t('ca.authority.remove')}
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ca.authority.remove')}
         </Button>
       </div>
       <ErrorBanner error={error} onClose={() => setError(null)} />
@@ -295,11 +306,11 @@ function IssueCard({ authority, onIssued }) {
 
         <div className="flex items-center gap-3">
           <Button onClick={addHost} disabled={busy}>
-            <Plus className="size-3.5" /> {t('ca.issue.addHost')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ca.issue.addHost')}
           </Button>
           {message && <span className="text-xs text-emerald-300">{message}</span>}
           <Button variant="primary" className="ml-auto" disabled={disabled} onClick={submit}>
-            <FileSignature className="size-4" />{' '}
+            <FontAwesomeIcon icon={faFileSignature} className="size-4" />{' '}
             {busy ? t('ca.issue.issuing') : csrMode ? t('ca.issue.sign') : t('ca.issue.submit')}
           </Button>
         </div>
@@ -376,7 +387,7 @@ function IssuedList({ authority, onChange, setDialog }) {
                         title={t('ca.list.details')}
                         onClick={() => setDialog({ type: 'details', serial: entry.serial })}
                       >
-                        <Eye className="size-3.5" />
+                        <FontAwesomeIcon icon={faEye} className="size-3.5" />
                       </Button>
                       <Button
                         size="icon"
@@ -386,7 +397,7 @@ function IssuedList({ authority, onChange, setDialog }) {
                           setDialog({ type: 'export', serial: entry.serial, hasKey: entry.hasKey, name: c.commonName })
                         }
                       >
-                        <Download className="size-3.5" />
+                        <FontAwesomeIcon icon={faDownload} className="size-3.5" />
                       </Button>
                       <Button
                         size="icon"
@@ -395,7 +406,7 @@ function IssuedList({ authority, onChange, setDialog }) {
                         disabled={!!entry.revoked}
                         onClick={() => setDialog({ type: 'revoke', entry })}
                       >
-                        <ShieldOff className="size-3.5" />
+                        <FontAwesomeIcon icon={faBan} className="size-3.5" />
                       </Button>
                       <Button
                         size="icon"
@@ -404,7 +415,7 @@ function IssuedList({ authority, onChange, setDialog }) {
                         disabled={!!entry.revoked}
                         onClick={() => remove(entry)}
                       >
-                        <Trash2 className="size-3.5" />
+                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                       </Button>
                     </div>
                   </td>
@@ -452,13 +463,13 @@ export default function CaView() {
         actions={
           <>
             <Button size="sm" variant="ghost" onClick={() => caApi.openFolder().catch((e) => setError(e.message))}>
-              <FolderOpen className="size-3.5" /> {t('ca.openFolder')}
+              <FontAwesomeIcon icon={faFolderOpen} className="size-3.5" /> {t('ca.openFolder')}
             </Button>
             <Button size="sm" onClick={() => setDialog({ type: 'import' })}>
-              <Import className="size-3.5" /> {t('ca.authorities.import')}
+              <FontAwesomeIcon icon={faFileImport} className="size-3.5" /> {t('ca.authorities.import')}
             </Button>
             <Button size="sm" variant="primary" onClick={() => setDialog({ type: 'create', parentId: '' })}>
-              <Plus className="size-3.5" /> {t('ca.authorities.create')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ca.authorities.create')}
             </Button>
           </>
         }

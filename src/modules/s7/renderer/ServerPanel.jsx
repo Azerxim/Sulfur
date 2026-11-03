@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, Plus, Power, PowerOff, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleStop, faPlay, faPlus, faPowerOff, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -250,7 +251,7 @@ export default function ServerPanel({ status }) {
             </Field>
             {running ? (
               <Button variant="danger" disabled={busy} onClick={() => run(s7Api.server.stop)}>
-                <Square className="size-4" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -259,7 +260,7 @@ export default function ServerPanel({ status }) {
                 title={firstProblem ?? undefined}
                 onClick={() => run(() => s7Api.server.start(config))}
               >
-                <Play className="size-4" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-4" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </div>
@@ -280,14 +281,14 @@ export default function ServerPanel({ status }) {
                 disabled={!running || cpuState === 'run'}
                 onClick={() => live(() => s7Api.server.setCpuState('run'))}
               >
-                <Power className="size-3.5" /> RUN
+                <FontAwesomeIcon icon={faPowerOff} className="size-3.5" /> RUN
               </Button>
               <Button
                 size="sm"
                 disabled={!running || cpuState === 'stop'}
                 onClick={() => live(() => s7Api.server.setCpuState('stop'))}
               >
-                <PowerOff className="size-3.5" /> STOP
+                <FontAwesomeIcon icon={faCircleStop} className="size-3.5" /> STOP
               </Button>
             </div>
           </div>
@@ -364,7 +365,7 @@ export default function ServerPanel({ status }) {
                       disabled={running}
                       onClick={() => update({ dbs: config.dbs.filter((_, j) => j !== i) })}
                     >
-                      <Trash2 className="size-3.5" />
+                      <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                     </Button>
                   </td>
                 </tr>
@@ -373,7 +374,7 @@ export default function ServerPanel({ status }) {
           </table>
           <div className="flex items-center justify-between">
             <Button size="sm" disabled={running} onClick={addDb}>
-              <Plus className="size-3.5" /> {t('s7.server.addDb')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('s7.server.addDb')}
             </Button>
             {running && <span className="text-xs text-slate-500">{t('ui.lockedWhileRunning')}</span>}
           </div>
@@ -404,7 +405,7 @@ export default function ServerPanel({ status }) {
         className="shrink-0"
         actions={
           <Button size="sm" onClick={addPoint}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         }
       >
@@ -527,7 +528,7 @@ export default function ServerPanel({ status }) {
                       </td>
                       <td className="py-1.5 text-right">
                         <Button variant="ghost" size="icon" title={t('ui.remove')} onClick={() => removePoint(p.id)}>
-                          <Trash2 className="size-3.5" />
+                          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                         </Button>
                       </td>
                     </tr>

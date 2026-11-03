@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { History } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faClockRotateLeft } from '@fortawesome/free-solid-svg-icons'
 import { Button, Select } from '@azerxim/sulfur-sdk/ui'
 import { HISTORY_RANGES } from '../shared/constants'
 import { opcuaApi } from './api'
@@ -39,7 +40,7 @@ export default function HistoryView({ nodeId, onError }) {
           ))}
         </Select>
         <Button size="sm" className="shrink-0 whitespace-nowrap" disabled={busy} onClick={read}>
-          <History className="size-3.5" /> {t('opcua.client.readHistory')}
+          <FontAwesomeIcon icon={faClockRotateLeft} className="size-3.5" /> {t('opcua.client.readHistory')}
         </Button>
       </div>
       {rows &&

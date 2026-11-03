@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Puzzle } from 'lucide-react'
+import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons'
 import { moduleT } from '@azerxim/sulfur-sdk'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { manifest } from './shared'
@@ -17,4 +17,4 @@ function DemoView() {
   )
 }
 
-export default { manifest, icon: Puzzle, Component: DemoView }
+export default { manifest, icon: faPuzzlePiece, Component: DemoView }

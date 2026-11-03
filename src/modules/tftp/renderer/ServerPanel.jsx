@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { FolderOpen, Play, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFolderOpen, faPlay, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -39,7 +40,7 @@ function ServerLog() {
           disabled={!entries.length}
           onClick={() => tftpApi.server.clearLogs().then(setEntries)}
         >
-          <Trash2 className="size-3.5" /> {t('tftp.server.clearLog')}
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('tftp.server.clearLog')}
         </Button>
       }
     >
@@ -125,7 +126,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(tftpApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -134,7 +135,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy}
                 onClick={() => run(() => tftpApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -173,7 +174,7 @@ export default function ServerPanel({ status }) {
                   title={t('tftp.server.openRoot')}
                   onClick={() => tftpApi.server.openRoot(config.root).catch((err) => setError(err.message))}
                 >
-                  <FolderOpen className="size-4" />
+                  <FontAwesomeIcon icon={faFolderOpen} className="size-4" />
                 </Button>
               </div>
             </Field>

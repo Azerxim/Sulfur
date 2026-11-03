@@ -1,4 +1,5 @@
-import { Copy, Plus, Trash2, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faPlus, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { Button, Checkbox, CommitInput, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { GENERATOR_FUNCTIONS, NODE_TYPES, PAYLOAD_TYPES, SWITCH_OPERATORS, UNARY_OPERATORS } from '../shared/flows'
 import { CATEGORY_STYLES, NODE_ICONS } from './FlowNode'
@@ -55,7 +56,7 @@ function RulesEditor({ rules, onChange }) {
             disabled={rules.length <= 1}
             onClick={() => onChange(rules.filter((_, j) => j !== i))}
           >
-            <X className="size-3.5" />
+            <FontAwesomeIcon icon={faXmark} className="size-3.5" />
           </Button>
         </div>
       ))}
@@ -64,7 +65,7 @@ function RulesEditor({ rules, onChange }) {
         className="self-start"
         onClick={() => onChange([...rules, { op: 'eq', value: '', value2: '' }])}
       >
-        <Plus className="size-3.5" /> {t('simulator.props.addRule')}
+        <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('simulator.props.addRule')}
       </Button>
     </div>
   )
@@ -378,7 +379,7 @@ function ConfigFields({ type, config, points, faults, set }) {
 /** Propriétés du nœud sélectionné : nom, réglages de son type, duplication et suppression. */
 export default function NodeProperties({ node, points, faults, onChange, onDuplicate, onRemove }) {
   const def = NODE_TYPES[node.type]
-  const Icon = NODE_ICONS[node.type]
+  const icon = NODE_ICONS[node.type]
   const config = { ...def?.defaults, ...node.config }
   const set = (patch) => onChange({ config: { ...config, ...patch } })
 
@@ -386,15 +387,15 @@ export default function NodeProperties({ node, points, faults, onChange, onDupli
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <span className={`grid size-6 place-items-center rounded ${CATEGORY_STYLES[def?.category] ?? ''}`}>
-          {Icon && <Icon className="size-3.5" />}
+          {icon && <FontAwesomeIcon icon={icon} className="size-3.5" />}
         </span>
         <span className="text-sm font-medium text-slate-200">{t(`simulator.nodes.${node.type}`)}</span>
         <div className="ml-auto flex items-center gap-1">
           <Button variant="ghost" size="icon" title={t('simulator.editor.duplicateNode')} onClick={onDuplicate}>
-            <Copy className="size-3.5" />
+            <FontAwesomeIcon icon={faCopy} className="size-3.5" />
           </Button>
           <Button variant="ghost" size="icon" title={t('ui.remove')} onClick={onRemove}>
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </div>
       </div>

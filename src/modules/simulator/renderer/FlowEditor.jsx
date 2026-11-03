@@ -8,7 +8,8 @@ import {
   useNodesState,
   useReactFlow
 } from '@xyflow/react'
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faAnglesLeft, faAnglesRight } from '@fortawesome/free-solid-svg-icons'
 import { useStoredState } from '@azerxim/sulfur-sdk/ui'
 import '@xyflow/react/dist/style.css'
 import './flows.css'
@@ -23,7 +24,7 @@ const DROP_OFFSET = { x: 88, y: 18 }
 
 /** Bouton de la palette : un type de nœud, à glisser sur le canevas ou à ajouter d'un clic. */
 function PaletteItem({ type, category, compact, onAdd }) {
-  const Icon = NODE_ICONS[type]
+  const icon = NODE_ICONS[type]
   const name = t(`simulator.nodes.${type}`)
   return (
     <button
@@ -43,7 +44,7 @@ function PaletteItem({ type, category, compact, onAdd }) {
       <span
         className={`grid shrink-0 place-items-center ${compact ? 'size-full' : 'size-6'} ${CATEGORY_STYLES[category]}`}
       >
-        <Icon className="size-3.5" />
+        <FontAwesomeIcon icon={icon} className="size-3.5" />
       </span>
       {!compact && <span className="truncate px-2">{name}</span>}
     </button>
@@ -55,7 +56,7 @@ function PaletteItem({ type, category, compact, onAdd }) {
  * glissables, nom et description au survol).
  */
 function Palette({ onAdd, collapsed, onToggle }) {
-  const Toggle = collapsed ? PanelLeftOpen : PanelLeftClose
+  const toggleIcon = collapsed ? faAnglesRight : faAnglesLeft
   const toggleLabel = t(collapsed ? 'simulator.editor.expandPalette' : 'simulator.editor.collapsePalette')
   const types = (category) => Object.entries(NODE_TYPES).filter(([, def]) => def.category === category)
 
@@ -69,7 +70,7 @@ function Palette({ onAdd, collapsed, onToggle }) {
           onClick={onToggle}
           className="mb-1 grid size-7 shrink-0 place-items-center rounded text-slate-400 hover:bg-ink-850 hover:text-slate-200"
         >
-          <Toggle className="size-4" />
+          <FontAwesomeIcon icon={toggleIcon} className="size-4" />
         </button>
         {NODE_CATEGORIES.map((category, i) => (
           <div
@@ -96,7 +97,7 @@ function Palette({ onAdd, collapsed, onToggle }) {
           onClick={onToggle}
           className="grid size-7 place-items-center rounded text-slate-400 hover:bg-ink-850 hover:text-slate-200"
         >
-          <Toggle className="size-4" />
+          <FontAwesomeIcon icon={toggleIcon} className="size-4" />
         </button>
       </div>
       {NODE_CATEGORIES.map((category) => (

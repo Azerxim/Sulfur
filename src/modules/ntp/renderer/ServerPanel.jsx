@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Copy, Play, RotateCcw, Snowflake, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faPlay, faRotateLeft, faSnowflake, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -68,7 +69,7 @@ function ClockCard({ status, config, setConfig, run, live }) {
               {running ? t('ntp.clock.simulated') : t('ntp.clock.preview')}
               {status.frozen && (
                 <span className="inline-flex items-center gap-1 text-sky-300">
-                  <Snowflake className="size-3" /> {t('ntp.clock.frozen')}
+                  <FontAwesomeIcon icon={faSnowflake} className="size-3" /> {t('ntp.clock.frozen')}
                 </span>
               )}
             </div>
@@ -116,7 +117,7 @@ function ClockCard({ status, config, setConfig, run, live }) {
                   title={t('ntp.clock.resetHint')}
                   onClick={() => apply({ mode: 'offset', offset: 0 })}
                 >
-                  <RotateCcw className="size-3.5" /> {t('ntp.clock.reset')}
+                  <FontAwesomeIcon icon={faRotateLeft} className="size-3.5" /> {t('ntp.clock.reset')}
                 </Button>
               </div>
             </Field>
@@ -269,7 +270,7 @@ function Activity({ status }) {
             title={t('ntp.activity.clear')}
             onClick={() => ntpApi.server.clearLogs().then(setLogs)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         }
       >
@@ -327,7 +328,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(ntpApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -336,7 +337,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy}
                 onClick={() => run(() => ntpApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -371,7 +372,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}

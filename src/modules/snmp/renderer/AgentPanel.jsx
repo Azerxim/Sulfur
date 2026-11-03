@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { BellRing, Copy, Play, Plus, Square, Trash2, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBullhorn, faCopy, faPlay, faPlus, faStop, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -81,7 +82,7 @@ function UsersCard({ users, locked, onChange }) {
           disabled={locked}
           onClick={() => onChange([...users, { ...DEFAULT_USER, name: `user${users.length + 1}` }])}
         >
-          <Plus className="size-3.5" /> {t('ui.add')}
+          <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
         </Button>
       }
     >
@@ -97,7 +98,7 @@ function UsersCard({ users, locked, onChange }) {
                 title={t('ui.remove')}
                 onClick={() => onChange(users.filter((_, j) => j !== i))}
               >
-                <X className="size-3.5" />
+                <FontAwesomeIcon icon={faXmark} className="size-3.5" />
               </Button>
             </div>
           ))}
@@ -159,7 +160,7 @@ function TrapsCard({ traps, objects, users, status, running, onChange, onError }
       className="shrink-0"
       actions={
         <Button size="sm" variant="primary" disabled={!running || sending} onClick={send}>
-          <BellRing className="size-3.5" /> {t('snmp.traps.send')}
+          <FontAwesomeIcon icon={faBullhorn} className="size-3.5" /> {t('snmp.traps.send')}
         </Button>
       }
     >
@@ -205,7 +206,7 @@ function TrapsCard({ traps, objects, users, status, running, onChange, onError }
                 })
               }
             >
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </div>
           {traps.targets.length ? (
@@ -270,7 +271,7 @@ function TrapsCard({ traps, objects, users, status, running, onChange, onError }
                   title={t('ui.remove')}
                   onClick={() => set({ targets: traps.targets.filter((x) => x.id !== tg.id) })}
                 >
-                  <X className="size-3.5" />
+                  <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                 </Button>
               </div>
             ))
@@ -313,7 +314,7 @@ function RequestLog() {
           title={t('snmp.log.clear')}
           onClick={() => snmpApi.agent.clearLogs().then(setLogs)}
         >
-          <Trash2 className="size-3.5" />
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
         </Button>
       }
     >
@@ -456,7 +457,7 @@ export default function AgentPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(snmpApi.agent.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -465,7 +466,7 @@ export default function AgentPanel({ status }) {
                 disabled={busy || bad.size > 0}
                 onClick={() => run(() => snmpApi.agent.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -538,7 +539,7 @@ export default function AgentPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -561,7 +562,7 @@ export default function AgentPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" disabled={busy} onClick={addObject}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -688,7 +689,7 @@ export default function AgentPanel({ status }) {
                           title={t('ui.remove')}
                           onClick={() => removeObject(d.id)}
                         >
-                          <Trash2 className="size-3.5" />
+                          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                         </Button>
                       </td>
                     </tr>

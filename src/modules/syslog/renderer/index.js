@@ -1,4 +1,4 @@
-import { ScrollText } from 'lucide-react'
+import { faScroll } from '@fortawesome/free-solid-svg-icons'
 import { SYSLOG_MODULE } from '../shared/constants'
 import SyslogView from './SyslogView'
 import '../shared/locales'
@@ -6,6 +6,6 @@ import '../shared/locales'
 /** Partie "renderer" du module Syslog. */
 export default {
   manifest: SYSLOG_MODULE,
-  icon: ScrollText,
+  icon: faScroll,
   Component: SyslogView
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { MonitorSmartphone, Server } from 'lucide-react'
+import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
 import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { dhcpApi } from './api'
 import ServerPanel from './ServerPanel'
@@ -31,8 +31,8 @@ export default function DhcpView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
-        { id: 'client', label: t('ui.client'), icon: MonitorSmartphone }
+        { id: 'server', label: t('ui.server'), icon: faServer, badge: dot(serverStatus.running) },
+        { id: 'client', label: t('ui.client'), icon: faComputer }
       ]}
     >
       {/* Les deux panneaux restent montés pour conserver leur état local. */}

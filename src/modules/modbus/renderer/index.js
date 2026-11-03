@@ -1,4 +1,4 @@
-import { Cable } from 'lucide-react'
+import { faEthernet } from '@fortawesome/free-solid-svg-icons'
 import { MODBUS_MODULE } from '../shared/constants'
 import ModbusView from './ModbusView'
 import '../shared/locales'
@@ -6,6 +6,6 @@ import '../shared/locales'
 /** Partie "renderer" du module Modbus TCP. */
 export default {
   manifest: MODBUS_MODULE,
-  icon: Cable,
+  icon: faEthernet,
   Component: ModbusView
 }

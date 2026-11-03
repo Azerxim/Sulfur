@@ -1,5 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Play, Plus, Scissors, Square, Trash2, TriangleAlert, Zap } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowRight,
+  faBolt,
+  faPlay,
+  faPlus,
+  faScissors,
+  faStop,
+  faTrashCan,
+  faTriangleExclamation
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, CommitInput, ErrorBanner, Field, Select, StatusDot } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_FAULTS, DIRECTIONS, PROTOCOLS, newRule } from '../shared/constants'
@@ -93,7 +103,7 @@ function FaultsPanel({ rule, running, onFaults, onCut }) {
             {t('proxy.faults.reset')}
           </Button>
           <Button size="sm" variant="danger" disabled={!running} title={t('proxy.faults.cutHint')} onClick={onCut}>
-            <Scissors className="size-3.5" /> {t('proxy.faults.cut')}
+            <FontAwesomeIcon icon={faScissors} className="size-3.5" /> {t('proxy.faults.cut')}
           </Button>
         </div>
       </div>
@@ -197,7 +207,7 @@ function RuleRow({
             onCommit={(port) => onChange({ listenPort: Number(port) })}
           />
         </span>
-        <ArrowRight className="size-4 shrink-0 text-slate-500" />
+        <FontAwesomeIcon icon={faArrowRight} className="size-4 shrink-0 text-slate-500" />
         <span className="flex items-center gap-1" title={t('proxy.rules.target')}>
           <CommitInput
             className="h-8! w-40! font-mono"
@@ -237,20 +247,20 @@ function RuleRow({
           className={faultCount ? 'bg-amber-400/12 text-amber-300! hover:bg-amber-400/20' : ''}
           onClick={onToggleExpand}
         >
-          <Zap className="size-3.5" /> {t('proxy.rules.faults')}
+          <FontAwesomeIcon icon={faBolt} className="size-3.5" /> {t('proxy.rules.faults')}
           {faultCount > 0 && <span className="font-mono">{faultCount}</span>}
         </Button>
         {running ? (
           <Button size="sm" disabled={busy} onClick={onStop}>
-            <Square className="size-3.5" /> {t('ui.stop')}
+            <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
           </Button>
         ) : (
           <Button size="sm" disabled={busy} onClick={onStart}>
-            <Play className="size-3.5 text-emerald-400" /> {t('ui.start')}
+            <FontAwesomeIcon icon={faPlay} className="size-3.5 text-emerald-400" /> {t('ui.start')}
           </Button>
         )}
         <Button variant="ghost" size="icon" title={t('ui.remove')} disabled={locked} onClick={onRemove}>
-          <Trash2 className="size-3.5" />
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
         </Button>
       </div>
       {expanded && <FaultsPanel rule={rule} running={running} onFaults={onFaults} onCut={onCut} />}
@@ -328,7 +338,7 @@ export default function RulesCard({ status, rules, setRules }) {
           )}
           {runningCount > 0 ? (
             <Button size="sm" disabled={busy} onClick={() => run(proxyApi.stopAll)}>
-              <Square className="size-3.5" /> {t('proxy.rules.stopAll')}
+              <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('proxy.rules.stopAll')}
             </Button>
           ) : (
             <Button
@@ -337,11 +347,11 @@ export default function RulesCard({ status, rules, setRules }) {
               disabled={busy || !rules.length}
               onClick={() => run(() => proxyApi.startAll(rules))}
             >
-              <Play className="size-3.5" /> {t('proxy.rules.startAll')}
+              <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {t('proxy.rules.startAll')}
             </Button>
           )}
           <Button size="sm" disabled={busy} onClick={add}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }
@@ -350,7 +360,7 @@ export default function RulesCard({ status, rules, setRules }) {
         <p className="px-3.5 pt-3 pb-2 text-xs text-slate-500">{t('proxy.rules.hint')}</p>
         {simulatorFaults.length > 0 && (
           <p className="mx-3.5 mb-2 flex items-center gap-2 rounded-md bg-amber-400/12 px-3 py-2 text-xs text-amber-300">
-            <TriangleAlert className="size-3.5 shrink-0" />
+            <FontAwesomeIcon icon={faTriangleExclamation} className="size-3.5 shrink-0" />
             {t('proxy.faults.simulator', {
               types: simulatorFaults.map((type) => t(`proxy.faults.simulatorTypes.${type}`)).join(', ')
             })}

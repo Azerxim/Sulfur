@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Copy, Lock, Play, Plus, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faLock, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -276,7 +277,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(modbusApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -285,7 +286,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy || invalid}
                 onClick={() => run(() => modbusApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -391,7 +392,7 @@ export default function ServerPanel({ status }) {
           {status.endpoint && (
             <div className="flex items-center gap-2 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
               {config.transport === 'tcp' && config.security?.mode === 'tls' && (
-                <Lock className="size-3.5 text-emerald-400" />
+                <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />
               )}
               {status.endpoint}
               {status.certificate && (
@@ -407,7 +408,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -432,7 +433,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" disabled={busy || units.length > MAX_UNIT_ID} onClick={addUnit}>
-              <Plus className="size-3.5" /> {t('modbus.server.addUnit')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('modbus.server.addUnit')}
             </Button>
           </>
         }
@@ -488,7 +489,7 @@ export default function ServerPanel({ status }) {
             disabled={busy || units.length <= 1}
             onClick={() => removeUnit(unit.id)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </div>
 
@@ -512,7 +513,7 @@ export default function ServerPanel({ status }) {
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm text-slate-300">{t('modbus.server.points', { count: unit.points.length })}</h3>
           <Button size="sm" disabled={busy} onClick={addPoint}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </div>
         <div className="overflow-auto">
@@ -635,7 +636,7 @@ export default function ServerPanel({ status }) {
                         onClick={() => removePoint(p.id)}
                         title={t('ui.remove')}
                       >
-                        <Trash2 className="size-3.5" />
+                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Copy, Lock, Play, RotateCcw, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faLock, faPlay, faRotateLeft, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -43,7 +44,7 @@ function ServerLog() {
           disabled={!entries.length}
           onClick={() => ldapApi.server.clearLogs().then(setEntries)}
         >
-          <Trash2 className="size-3.5" /> {t('ldap.server.clearLog')}
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ldap.server.clearLog')}
         </Button>
       }
     >
@@ -131,7 +132,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(ldapApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -140,7 +141,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy || parsed.errors.length > 0}
                 onClick={() => run(() => ldapApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -193,7 +194,7 @@ export default function ServerPanel({ status }) {
           <p className="text-xs text-slate-500">{t('ldap.server.hint')}</p>
           {status.endpoint && (
             <div className="flex items-center gap-2 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
-              {status.certificate && <Lock className="size-3.5 text-emerald-400" />}
+              {status.certificate && <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />}
               {status.endpoint}
               <span className="font-sans text-xs text-slate-500">
                 · {t('ldap.server.counters', { entries: status.entries, ...status.counters })}
@@ -207,7 +208,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -227,7 +228,7 @@ export default function ServerPanel({ status }) {
               variant="ghost"
               onClick={() => confirm(t('ldap.server.confirmReset')) && update({ ldif: DEFAULT_LDIF }, true)}
             >
-              <RotateCcw className="size-3.5" /> {t('ldap.server.resetLdif')}
+              <FontAwesomeIcon icon={faRotateLeft} className="size-3.5" /> {t('ldap.server.resetLdif')}
             </Button>
           </>
         }

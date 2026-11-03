@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Plug, Plus, Send, Unplug, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPaperPlane, faPlug, faPlugCircleXmark, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -64,7 +65,7 @@ function ConnectionCard({ config, update, status, server, busy, run }) {
           />
           {status.connecting || connected ? (
             <Button variant="danger" size="sm" onClick={() => run(mqttApi.client.disconnect)}>
-              <Unplug className="size-3.5" /> {t('ui.disconnect')}
+              <FontAwesomeIcon icon={faPlugCircleXmark} className="size-3.5" /> {t('ui.disconnect')}
             </Button>
           ) : (
             <Button
@@ -73,7 +74,7 @@ function ConnectionCard({ config, update, status, server, busy, run }) {
               disabled={busy || !config.host}
               onClick={() => run(() => mqttApi.client.connect(config))}
             >
-              <Plug className="size-3.5" /> {busy ? t('ui.connecting') : t('ui.connect')}
+              <FontAwesomeIcon icon={faPlug} className="size-3.5" /> {busy ? t('ui.connecting') : t('ui.connect')}
             </Button>
           )}
         </>
@@ -255,7 +256,7 @@ function SubscriptionsCard({ config, update, status, last, onError }) {
           size="sm"
           onClick={() => set([...subscriptions, { id: crypto.randomUUID(), topic: 'sulfur/#', qos: 0, field: '' }])}
         >
-          <Plus className="size-3.5" /> {t('ui.add')}
+          <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
         </Button>
       }
     >
@@ -316,7 +317,7 @@ function SubscriptionsCard({ config, update, status, last, onError }) {
                       title={t('ui.remove')}
                       onClick={() => set(subscriptions.filter((x) => x.id !== s.id))}
                     >
-                      <X className="size-3.5" />
+                      <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                     </Button>
                   </td>
                 </tr>
@@ -364,7 +365,7 @@ function PublishCard({ config, update, connected, run }) {
             disabled={!connected || !message.topic}
             onClick={() => run(() => mqttApi.client.publish(message))}
           >
-            <Send className="size-4" /> {t('mqtt.publish.send')}
+            <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('mqtt.publish.send')}
           </Button>
         </div>
       </div>

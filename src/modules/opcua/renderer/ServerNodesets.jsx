@@ -1,4 +1,5 @@
-import { FileUp, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFileArrowUp, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { getLocale } from '@azerxim/sulfur-sdk'
 import { opcuaApi } from './api'
@@ -33,7 +34,7 @@ export default function ServerNodesets({ nodesets, loaded, locked, onChange, onE
         <>
           {locked && <span className="text-xs text-slate-500">{t('ui.lockedWhileRunning')}</span>}
           <Button size="sm" disabled={locked} onClick={pick}>
-            <FileUp className="size-3.5" /> {t('opcua.nodesets.import')}
+            <FontAwesomeIcon icon={faFileArrowUp} className="size-3.5" /> {t('opcua.nodesets.import')}
           </Button>
         </>
       }
@@ -71,7 +72,7 @@ export default function ServerNodesets({ nodesets, loaded, locked, onChange, onE
                   title={t('ui.remove')}
                   onClick={() => onChange(nodesets.filter((x) => x.id !== n.id))}
                 >
-                  <Trash2 className="size-3.5" />
+                  <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                 </Button>
               </li>
             ))}

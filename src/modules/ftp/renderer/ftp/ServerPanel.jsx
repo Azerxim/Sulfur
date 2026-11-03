@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { FolderOpen, Lock, Play, Plus, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFolderOpen, faLock, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -64,7 +65,7 @@ function ServerLog() {
           disabled={!entries.length}
           onClick={() => ftpApi.server.clearLogs().then(setEntries)}
         >
-          <Trash2 className="size-3.5" /> {t('ftp.server.clearLog')}
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ftp.server.clearLog')}
         </Button>
       }
     >
@@ -159,7 +160,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(ftpApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -168,7 +169,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy || !canStart}
                 onClick={() => run(() => ftpApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -207,7 +208,7 @@ export default function ServerPanel({ status }) {
                   title={t('ftp.server.openRoot')}
                   onClick={() => ftpApi.server.openRoot(config.root).catch((err) => setError(err.message))}
                 >
-                  <FolderOpen className="size-4" />
+                  <FontAwesomeIcon icon={faFolderOpen} className="size-4" />
                 </Button>
               </div>
             </Field>
@@ -270,7 +271,7 @@ export default function ServerPanel({ status }) {
           <p className="text-xs text-slate-500">{t('ftp.server.hint')}</p>
           {status.certificate && (
             <div className="flex items-center gap-2 rounded-md bg-ink-950 px-3 py-2 font-mono text-xs text-slate-300">
-              <Lock className="size-3.5 text-emerald-400" />
+              <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />
               <span className="font-sans text-slate-500">{t('ftp.server.certificate')}</span>
               {status.certificate.commonName}
               <span className="truncate text-slate-500 select-text">{status.certificate.thumbprint}</span>
@@ -297,7 +298,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" onClick={addUser}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -327,7 +328,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.remove')}
                 onClick={() => live({ users: config.users.filter((x) => x.id !== u.id) })}
               >
-                <Trash2 className="size-3.5" />
+                <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
               </Button>
             </div>
           ))}

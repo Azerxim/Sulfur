@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Search, Server } from 'lucide-react'
+import { faMagnifyingGlass, faServer } from '@fortawesome/free-solid-svg-icons'
 import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { dnsApi } from './api'
 import ServerPanel from './ServerPanel'
@@ -22,8 +22,8 @@ export default function DnsView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'server', label: t('ui.server'), icon: Server, badge: dot(status.running) },
-        { id: 'client', label: t('ui.client'), icon: Search }
+        { id: 'server', label: t('ui.server'), icon: faServer, badge: dot(status.running) },
+        { id: 'client', label: t('ui.client'), icon: faMagnifyingGlass }
       ]}
     >
       {/* Les deux panneaux restent montés pour conserver leur état local. */}

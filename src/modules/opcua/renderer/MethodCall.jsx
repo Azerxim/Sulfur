@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Play } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlay } from '@fortawesome/free-solid-svg-icons'
 import { Button, Field, Input } from '@azerxim/sulfur-sdk/ui'
 import { opcuaApi } from './api'
 import { formatValue } from './format'
@@ -62,7 +63,7 @@ export default function MethodCall({ nodeId, onError }) {
       ))}
       <div>
         <Button variant="primary" disabled={busy} onClick={call}>
-          <Play className="size-4" /> {t('opcua.client.call')}
+          <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('opcua.client.call')}
         </Button>
       </div>
       {result && (

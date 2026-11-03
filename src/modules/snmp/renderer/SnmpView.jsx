@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MonitorSmartphone, Server } from 'lucide-react'
+import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
 import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { snmpApi } from './api'
 import AgentPanel from './AgentPanel'
@@ -25,11 +25,11 @@ export default function SnmpView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'server', label: t('snmp.tabs.agent'), icon: Server, badge: dot(agentStatus.running) },
+        { id: 'server', label: t('snmp.tabs.agent'), icon: faServer, badge: dot(agentStatus.running) },
         {
           id: 'client',
           label: t('snmp.tabs.manager'),
-          icon: MonitorSmartphone,
+          icon: faComputer,
           badge: dot(managerStatus.polling || managerStatus.receiving)
         }
       ]}

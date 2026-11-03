@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeftRight, BookOpen, Eye, Fingerprint, Lock, Plug, PlugZap, ShieldCheck, Send, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowsLeftRight,
+  faBookOpen,
+  faEye,
+  faFingerprint,
+  faLock,
+  faPaperPlane,
+  faPlug,
+  faPlugCircleBolt,
+  faShieldHalved,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -294,7 +306,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
             </Field>
             {connected ? (
               <Button variant="danger" disabled={busy} onClick={() => run(modbusApi.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
+                <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button
@@ -302,7 +314,8 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                 disabled={busy || (serial ? !config.serial.path?.trim() : !config.host)}
                 onClick={connect}
               >
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+                <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+                {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
@@ -340,7 +353,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
               onChange={(e) => updateSecurity({ autoAcceptCertificates: e.target.checked })}
             />
             <Button size="sm" className="mb-1" onClick={() => setCertsOpen(true)}>
-              <ShieldCheck className="size-3.5" /> {t('ui.certificates')}
+              <FontAwesomeIcon icon={faShieldHalved} className="size-3.5" /> {t('ui.certificates')}
             </Button>
           </div>
           {tlsMode && !connected && <p className="text-xs text-slate-500">{t('modbus.client.roleHint')}</p>}
@@ -415,10 +428,10 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
             </Field>
             <div className="flex gap-2">
               <Button variant="primary" disabled={!connected || busy} onClick={read}>
-                <BookOpen className="size-4" /> {t('modbus.client.read')}
+                <FontAwesomeIcon icon={faBookOpen} className="size-4" /> {t('modbus.client.read')}
               </Button>
               <Button disabled={!connected || busy} onClick={watch} title={t('modbus.client.watchHint')}>
-                <Eye className="size-4" /> {t('modbus.client.watch')}
+                <FontAwesomeIcon icon={faEye} className="size-4" /> {t('modbus.client.watch')}
               </Button>
             </div>
           </div>
@@ -445,7 +458,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                 />
               </Field>
               <Button variant="primary" disabled={!connected || busy || !writeValue} onClick={write}>
-                <Send className="size-4" /> {t('modbus.client.write')}
+                <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('modbus.client.write')}
               </Button>
             </div>
           )}
@@ -462,7 +475,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                 />
               </Field>
               <Button disabled={!connected || busy || !writeValue} onClick={readWrite}>
-                <ArrowLeftRight className="size-4" /> {t('modbus.client.readWrite')}
+                <FontAwesomeIcon icon={faArrowsLeftRight} className="size-4" /> {t('modbus.client.readWrite')}
               </Button>
               <p className="mb-2 text-xs text-slate-500">{t('modbus.client.readWriteHint')}</p>
             </div>
@@ -524,7 +537,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
               ))}
             </Select>
             <Button size="sm" disabled={!connected || busy} onClick={identify}>
-              <Fingerprint className="size-3.5" /> {t('modbus.client.identify')}
+              <FontAwesomeIcon icon={faFingerprint} className="size-3.5" /> {t('modbus.client.identify')}
             </Button>
           </>
         }
@@ -611,7 +624,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                         title={t('ui.remove2')}
                         onClick={() => run(() => modbusApi.client.removeWatch(w.id))}
                       >
-                        <X className="size-3.5" />
+                        <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>
@@ -626,7 +639,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
 
       {connected && status.tls && (
         <p className="flex shrink-0 items-center gap-1.5 text-xs text-emerald-300/80">
-          <Lock className="size-3" />{' '}
+          <FontAwesomeIcon icon={faLock} className="size-3" />{' '}
           {t('modbus.client.encrypted', {
             protocol: status.tls.protocol,
             cipher: status.tls.cipher,

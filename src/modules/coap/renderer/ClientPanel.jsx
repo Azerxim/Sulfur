@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Eye, Radar, Send, Trash2, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faPaperPlane, faSatelliteDish, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { CONTENT_FORMATS, METHODS, formatName } from '../shared/codec'
@@ -135,21 +136,21 @@ export default function ClientPanel({ status, server }) {
           )}
           <div className="flex flex-wrap gap-2">
             <Button variant="primary" disabled={busy} onClick={() => run(() => coapApi.client.request(config))}>
-              <Send className="size-4" /> {t('coap.client.send')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('coap.client.send')}
             </Button>
             <Button
               disabled={busy || config.method !== 'GET'}
               title={t('coap.client.observeHint')}
               onClick={() => run(() => coapApi.client.observe(config))}
             >
-              <Eye className="size-4" /> {t('coap.client.observe')}
+              <FontAwesomeIcon icon={faEye} className="size-4" /> {t('coap.client.observe')}
             </Button>
             <Button
               disabled={busy}
               title={t('coap.client.discoverHint')}
               onClick={() => run(async () => setLinks((await coapApi.client.discover(config)).links))}
             >
-              <Radar className="size-4" /> {t('coap.client.discover')}
+              <FontAwesomeIcon icon={faSatelliteDish} className="size-4" /> {t('coap.client.discover')}
             </Button>
           </div>
           <ErrorBanner error={error} onClose={() => setError(null)} />
@@ -207,7 +208,7 @@ export default function ClientPanel({ status, server }) {
                   className="ml-auto"
                   onClick={() => coapApi.client.cancel(o.token).catch((err) => setError(err.message))}
                 >
-                  <X className="size-3.5" /> {t('coap.client.cancel')}
+                  <FontAwesomeIcon icon={faXmark} className="size-3.5" /> {t('coap.client.cancel')}
                 </Button>
               </div>
             ))}
@@ -226,7 +227,7 @@ export default function ClientPanel({ status, server }) {
             title={t('coap.log.clear')}
             onClick={() => coapApi.client.clear().then(setHistory)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         }
       >

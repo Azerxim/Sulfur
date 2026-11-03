@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from 'react'
-import { ArrowDownLeft, ArrowUpRight, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowDown, faArrowUp, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { MAX_LOG } from '../shared/constants'
@@ -49,7 +50,7 @@ export default function ServerLog() {
             title={t('http.log.clear')}
             onClick={() => httpApi.server.clearLogs().then(setLogs)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </>
       }
@@ -78,9 +79,9 @@ export default function ServerLog() {
                     <td className="py-1 text-slate-500 tabular-nums">{formatTime(l.time)}</td>
                     <td className="py-1" title={t(`http.log.directions.${l.direction}`)}>
                       {l.direction === 'out' ? (
-                        <ArrowUpRight className="size-3.5 text-violet-300" />
+                        <FontAwesomeIcon icon={faArrowUp} className="size-3.5 text-violet-300" />
                       ) : (
-                        <ArrowDownLeft className="size-3.5 text-slate-400" />
+                        <FontAwesomeIcon icon={faArrowDown} className="size-3.5 text-slate-400" />
                       )}
                     </td>
                     <td className="truncate py-1 pr-2 text-slate-400">{l.remote}</td>

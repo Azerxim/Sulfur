@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Ear, Eye, Play, Plus, Send, Square, Trash2, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faEarListen,
+  faEye,
+  faPaperPlane,
+  faPlay,
+  faPlus,
+  faStop,
+  faTrashCan,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_MANAGER_CONFIG, MAX_TRAPS, MAX_WALK, OBJECT_TYPES, OPERATIONS, VERSIONS } from '../shared/constants'
@@ -164,7 +174,7 @@ function RequestCard({ config, update, onMonitor }) {
             </Field>
           )}
           <Button variant="primary" disabled={busy || !config.host || !request.oid} onClick={send}>
-            <Send className="size-4" /> {t('snmp.request.send')}
+            <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('snmp.request.send')}
           </Button>
         </div>
         <ErrorBanner error={error} onClose={() => setError(null)} />
@@ -201,7 +211,7 @@ function RequestCard({ config, update, onMonitor }) {
                               title={t('snmp.request.monitor')}
                               onClick={() => onMonitor(vb.oid)}
                             >
-                              <Eye className="size-3.5" />
+                              <FontAwesomeIcon icon={faEye} className="size-3.5" />
                             </Button>
                           )}
                         </td>
@@ -247,7 +257,7 @@ function MonitorsCard({ config, update, status, run }) {
             disabled={polling}
             onClick={() => set([...monitors, { id: crypto.randomUUID(), oid: '', label: '' }])}
           >
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }
@@ -300,7 +310,7 @@ function MonitorsCard({ config, update, status, run }) {
                       title={t('ui.remove')}
                       onClick={() => set(monitors.filter((x) => x.id !== m.id))}
                     >
-                      <X className="size-3.5" />
+                      <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                     </Button>
                   </td>
                 </tr>
@@ -321,14 +331,14 @@ function MonitorsCard({ config, update, status, run }) {
           </Field>
           {polling ? (
             <Button variant="danger" onClick={() => run(snmpApi.manager.stopPolling)}>
-              <Square className="size-4" /> {t('snmp.monitors.stop')}
+              <FontAwesomeIcon icon={faStop} className="size-4" /> {t('snmp.monitors.stop')}
             </Button>
           ) : (
             <Button
               disabled={!monitors.length || !config.host}
               onClick={() => run(() => snmpApi.manager.startPolling(config))}
             >
-              <Play className="size-4" /> {t('snmp.monitors.start')}
+              <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('snmp.monitors.start')}
             </Button>
           )}
         </div>
@@ -368,7 +378,7 @@ function ReceiverCard({ config, update, status, run }) {
             title={t('snmp.receiver.clear')}
             onClick={() => snmpApi.manager.clearTraps().then(setTraps)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </>
       }
@@ -388,11 +398,11 @@ function ReceiverCard({ config, update, status, run }) {
           </Field>
           {receiving ? (
             <Button variant="danger" onClick={() => run(snmpApi.manager.stopReceiver)}>
-              <Square className="size-4" /> {t('snmp.receiver.stop')}
+              <FontAwesomeIcon icon={faStop} className="size-4" /> {t('snmp.receiver.stop')}
             </Button>
           ) : (
             <Button onClick={() => run(() => snmpApi.manager.startReceiver(config))}>
-              <Ear className="size-4" /> {t('snmp.receiver.start')}
+              <FontAwesomeIcon icon={faEarListen} className="size-4" /> {t('snmp.receiver.start')}
             </Button>
           )}
         </div>

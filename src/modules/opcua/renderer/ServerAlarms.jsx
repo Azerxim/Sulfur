@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Plus, Send, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPaperPlane, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, CommitInput, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { ALARM_LIMITS, NUMERIC_TYPES } from '../shared/constants'
 import { t } from '../shared/i18n'
@@ -59,7 +60,7 @@ export default function ServerAlarms({
         <>
           {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
           <Button size="sm" disabled={busy} onClick={onAdd}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }
@@ -138,7 +139,7 @@ export default function ServerAlarms({
                         title={t('ui.remove')}
                         onClick={() => onRemove(a.id)}
                       >
-                        <Trash2 className="size-3.5" />
+                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>
@@ -163,7 +164,7 @@ export default function ServerAlarms({
             />
           </Field>
           <Button disabled={!running} onClick={() => onRaise({ message, severity })}>
-            <Send className="size-4" /> {t('opcua.alarms.raise')}
+            <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('opcua.alarms.raise')}
           </Button>
         </div>
       </div>

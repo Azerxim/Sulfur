@@ -1,4 +1,5 @@
-import { Plus, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { Button, Input } from '@azerxim/sulfur-sdk/ui'
 import { t } from '../shared/i18n'
 
@@ -31,7 +32,7 @@ export default function HeadersEditor({ value = [], onChange, disabled }) {
             disabled={disabled}
             onClick={() => onChange(value.filter((_, j) => j !== i))}
           >
-            <X className="size-3.5" />
+            <FontAwesomeIcon icon={faXmark} className="size-3.5" />
           </Button>
         </div>
       ))}
@@ -41,7 +42,7 @@ export default function HeadersEditor({ value = [], onChange, disabled }) {
         disabled={disabled}
         onClick={() => onChange([...value, { name: '', value: '' }])}
       >
-        <Plus className="size-3.5" /> {t('http.headers.add')}
+        <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('http.headers.add')}
       </Button>
     </div>
   )

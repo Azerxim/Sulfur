@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { KeyRound, Plus, RefreshCw, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faKey, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { AUTH_TYPES, DEFAULT_SERVER_AUTH } from '../shared/constants'
 import { httpApi } from './api'
@@ -81,7 +82,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
                   disabled={locked}
                   onClick={() => set({ users: auth.users.filter((_, j) => j !== i) })}
                 >
-                  <X className="size-3.5" />
+                  <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                 </Button>
               </div>
             ))}
@@ -91,7 +92,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
               disabled={locked}
               onClick={() => set({ users: [...auth.users, { username: '', passwordHash: '' }] })}
             >
-              <Plus className="size-3.5" /> {t('http.auth.addUser')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('http.auth.addUser')}
             </Button>
           </div>
         )}
@@ -106,7 +107,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
                 onChange={(e) => set({ token: e.target.value })}
               />
               <Button disabled={locked} title={t('http.auth.generate')} onClick={() => set({ token: randomSecret() })}>
-                <RefreshCw className="size-3.5" /> {t('http.auth.generate')}
+                <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('http.auth.generate')}
               </Button>
             </div>
           </Field>
@@ -131,7 +132,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
                   onChange={(e) => set({ apiKey: e.target.value })}
                 />
                 <Button disabled={locked} onClick={() => set({ apiKey: randomSecret() })}>
-                  <KeyRound className="size-3.5" /> {t('http.auth.generate')}
+                  <FontAwesomeIcon icon={faKey} className="size-3.5" /> {t('http.auth.generate')}
                 </Button>
               </div>
             </Field>

@@ -1,5 +1,14 @@
-import { BookOpen, ChartLine, ChevronRight, FlaskConical, Play, Save, Scale } from 'lucide-react'
-import { StatusDot } from '@azerxim/sulfur-sdk/ui'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faBookOpen,
+  faChartLine,
+  faChevronRight,
+  faFlask,
+  faFloppyDisk,
+  faPlay,
+  faScaleBalanced
+} from '@fortawesome/free-solid-svg-icons'
+import { Icon, StatusDot } from '@azerxim/sulfur-sdk/ui'
 import { useEnabledModules } from '../enabled-modules'
 import { useI18n, useManifestText } from '../preferences'
 import { useModuleActivity } from '../activity'
@@ -9,10 +18,10 @@ const REPOSITORY = 'https://github.com/Azerxim/Sulfur'
 
 /** Étapes de prise en main (libellés : home.steps.<id>.*), avec la page qu'elles ouvrent. */
 const STEPS = [
-  { id: 'start', icon: Play, page: 'opcua' },
-  { id: 'simulate', icon: FlaskConical, page: 'simulator' },
-  { id: 'record', icon: ChartLine, page: 'trends' },
-  { id: 'save', icon: Save, page: 'settings' }
+  { id: 'start', icon: faPlay, page: 'opcua' },
+  { id: 'simulate', icon: faFlask, page: 'simulator' },
+  { id: 'record', icon: faChartLine, page: 'trends' },
+  { id: 'save', icon: faFloppyDisk, page: 'settings' }
 ]
 
 /** Colonnes du tableau des modules actifs : module, point d'accès, activité, ouverture. */
@@ -42,7 +51,7 @@ function GettingStarted({ onNavigate }) {
         </p>
       </div>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
-        {STEPS.map(({ id, icon: Icon, page }, i) => (
+        {STEPS.map(({ id, icon, page }, i) => (
           <button
             key={id}
             onClick={() => onNavigate(page)}
@@ -52,7 +61,7 @@ function GettingStarted({ onNavigate }) {
               <span className="grid size-6 place-items-center rounded-full bg-ink-850 font-mono text-xs text-sulfur-300">
                 {i + 1}
               </span>
-              <Icon className="size-4 text-sulfur-400" />
+              <FontAwesomeIcon icon={icon} className="size-4 text-sulfur-400" />
               {t(`home.steps.${id}.title`)}
             </span>
             <span className="text-xs text-slate-400">{t(`home.steps.${id}.text`)}</span>
@@ -134,7 +143,7 @@ export default function HomePage({ onNavigate = () => {} }) {
                       aria-label={t('home.open', { name })}
                       className="grid size-7 place-items-center rounded-md text-slate-400 hover:bg-ink-850 hover:text-slate-200"
                     >
-                      <ChevronRight className="size-4" />
+                      <FontAwesomeIcon icon={faChevronRight} className="size-4" />
                     </button>
                   </div>
                 )
@@ -163,7 +172,7 @@ export default function HomePage({ onNavigate = () => {} }) {
                   <p className="text-xs text-slate-500">{t(`home.groups.${group.id}`)}</p>
                 </div>
                 <div className="flex flex-col p-1.5">
-                  {group.modules.map(({ manifest, icon: Icon }) => {
+                  {group.modules.map(({ manifest, icon }) => {
                     const a = activity(manifest.id)
                     const { name, description } = text(manifest)
                     return (
@@ -173,7 +182,7 @@ export default function HomePage({ onNavigate = () => {} }) {
                         title={description}
                         className="flex h-9 items-center gap-2.5 rounded-md px-2.5 text-left text-sm hover:bg-ink-850"
                       >
-                        <Icon className="size-4 shrink-0 text-slate-500" />
+                        <Icon icon={icon} className="size-4 shrink-0 text-slate-500" />
                         <span className="min-w-0 flex-1 truncate text-slate-200">{name}</span>
                         {a.active ? (
                           <span className="flex min-w-0 items-center gap-2 text-xs text-emerald-300">
@@ -195,7 +204,7 @@ export default function HomePage({ onNavigate = () => {} }) {
 
       <footer className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink-800 pt-4 text-xs text-slate-500">
         <span className="inline-flex items-center gap-1.5">
-          <Scale className="size-3.5" /> {t('home.license')}
+          <FontAwesomeIcon icon={faScaleBalanced} className="size-3.5" /> {t('home.license')}
         </span>
         <a
           href={REPOSITORY}
@@ -203,7 +212,7 @@ export default function HomePage({ onNavigate = () => {} }) {
           rel="noreferrer"
           className="inline-flex items-center gap-1.5 hover:text-sulfur-300"
         >
-          <BookOpen className="size-3.5" /> {t('home.repository')}
+          <FontAwesomeIcon icon={faBookOpen} className="size-3.5" /> {t('home.repository')}
         </a>
       </footer>
     </div>

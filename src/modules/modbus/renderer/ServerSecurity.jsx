@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Plus, ShieldCheck, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faShieldHalved, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, CertificatesDialog, Checkbox, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_SERVER_SECURITY } from '../shared/constants'
 import { certStore } from './api'
@@ -55,7 +56,7 @@ export default function ServerSecurity({ value, onChange, locked, tlsAvailable =
         <>
           {locked && <span className="text-xs text-slate-500">{t('ui.lockedWhileRunning')}</span>}
           <Button size="sm" onClick={() => setCertsOpen(true)}>
-            <ShieldCheck className="size-3.5" /> {t('ui.certificates')}
+            <FontAwesomeIcon icon={faShieldHalved} className="size-3.5" /> {t('ui.certificates')}
           </Button>
         </>
       }
@@ -133,7 +134,7 @@ export default function ServerSecurity({ value, onChange, locked, tlsAvailable =
                       disabled={locked || !tlsMode}
                       onClick={() => set({ roles: security.roles.filter((_, j) => j !== i) })}
                     >
-                      <Trash2 className="size-3.5" />
+                      <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                     </Button>
                   </td>
                 </tr>
@@ -167,7 +168,7 @@ export default function ServerSecurity({ value, onChange, locked, tlsAvailable =
                 })
               }
             >
-              <Plus className="size-3.5" /> {t('modbus.security.addRole')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('modbus.security.addRole')}
             </Button>
           </div>
         </Section>

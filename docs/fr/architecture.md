@@ -176,7 +176,7 @@ Pour écrire un module **hors** de ce dépôt, suivez plutôt [Créer un module]
 2. **Partie main** : exporter `{ manifest, activate(ctx), deactivate(), busy(), migrateConfig() }`. Le
    manifeste vient de `builtinManifest(…)` ; `busy()` (serveur démarré, client connecté) et
    `migrateConfig(config)` (conversion d'une configuration plus ancienne) sont facultatifs.
-3. **Partie renderer** : exporter `{ manifest, icon, Component }` (icône `lucide-react`). Regrouper les
+3. **Partie renderer** : exporter `{ manifest, icon, Component }` (icône FontAwesome). Regrouper les
    canaux dans `renderer/api.js` avec `window.sulfur.invoke` / `window.sulfur.on`.
 4. Enregistrer le module dans `src/main/modules.js` et `src/renderer/src/modules.js`. Les modules
    transverses viennent en dernier.

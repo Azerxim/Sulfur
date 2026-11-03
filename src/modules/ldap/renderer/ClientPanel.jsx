@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { KeyRound, Search, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faKey, faMagnifyingGlass, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG, SCOPES } from '../shared/constants'
@@ -84,7 +85,7 @@ export default function ClientPanel({ serverUrl }) {
               <Input type="password" value={config.password} onChange={(e) => update({ password: e.target.value })} />
             </Field>
             <Button variant="primary" disabled={busy} onClick={() => run(ldapApi.client.authenticate)}>
-              <KeyRound className="size-4" /> {t('ldap.client.authenticate')}
+              <FontAwesomeIcon icon={faKey} className="size-4" /> {t('ldap.client.authenticate')}
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-6">
@@ -149,7 +150,7 @@ export default function ClientPanel({ serverUrl }) {
               />
             </Field>
             <Button variant="primary" disabled={busy} onClick={() => run(ldapApi.client.search)}>
-              <Search className="size-4" /> {t('ldap.client.searchButton')}
+              <FontAwesomeIcon icon={faMagnifyingGlass} className="size-4" /> {t('ldap.client.searchButton')}
             </Button>
           </div>
           <ErrorBanner error={error} onClose={() => setError(null)} />
@@ -189,7 +190,7 @@ export default function ClientPanel({ serverUrl }) {
               })
             }
           >
-            <Trash2 className="size-3.5" /> {t('ldap.server.clearLog')}
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ldap.server.clearLog')}
           </Button>
         }
       >

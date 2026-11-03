@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { Copy, Lock, Pause, Play, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faLock, faPause, faPlay, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -150,7 +151,11 @@ function Messages({ status }) {
             title={paused ? t('syslog.messages.resume') : t('syslog.messages.pause')}
             onClick={togglePause}
           >
-            {paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
+            {paused ? (
+              <FontAwesomeIcon icon={faPlay} className="size-3.5" />
+            ) : (
+              <FontAwesomeIcon icon={faPause} className="size-3.5" />
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -163,7 +168,7 @@ function Messages({ status }) {
               })
             }
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </>
       }
@@ -286,7 +291,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(syslogApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -295,7 +300,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy}
                 onClick={() => run(() => syslogApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -336,7 +341,9 @@ export default function ServerPanel({ status }) {
             <div className="flex flex-col gap-1 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
               {status.endpoints.map((endpoint) => (
                 <div key={endpoint} className="flex items-center gap-2">
-                  {endpoint.startsWith('tls') && <Lock className="size-3.5 text-emerald-400" />}
+                  {endpoint.startsWith('tls') && (
+                    <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />
+                  )}
                   {endpoint}
                   {endpoint.startsWith('tls') && status.certificate && (
                     <span className="font-sans text-xs text-slate-500">
@@ -351,7 +358,7 @@ export default function ServerPanel({ status }) {
                     title={t('ui.copy')}
                     onClick={() => navigator.clipboard.writeText(endpoint)}
                   >
-                    <Copy className="size-3.5" />
+                    <FontAwesomeIcon icon={faCopy} className="size-3.5" />
                   </Button>
                 </div>
               ))}

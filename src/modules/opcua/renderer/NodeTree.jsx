@@ -1,21 +1,29 @@
 import { useState } from 'react'
-import { Box, ChevronRight, Folder, FunctionSquare, Tag, Type } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faChevronRight,
+  faCube,
+  faFolder,
+  faFont,
+  faSquareRootVariable,
+  faTag
+} from '@fortawesome/free-solid-svg-icons'
 import { opcuaApi } from './api'
 
 const icons = {
-  Object: Folder,
-  Variable: Tag,
-  Method: FunctionSquare,
-  ObjectType: Type,
-  VariableType: Type,
-  DataType: Type
+  Object: faFolder,
+  Variable: faTag,
+  Method: faSquareRootVariable,
+  ObjectType: faFont,
+  VariableType: faFont,
+  DataType: faFont
 }
 
 function TreeNode({ node, depth, selectedId, onSelect }) {
   const [open, setOpen] = useState(false)
   const [children, setChildren] = useState(null)
   const [loading, setLoading] = useState(false)
-  const Icon = icons[node.nodeClass] ?? Box
+  const icon = icons[node.nodeClass] ?? faCube
   const leaf = children !== null && children.length === 0
 
   async function toggle() {
@@ -49,11 +57,15 @@ function TreeNode({ node, depth, selectedId, onSelect }) {
             toggle()
           }}
         >
-          <ChevronRight
+          <FontAwesomeIcon
+            icon={faChevronRight}
             className={`size-3.5 transition-transform ${open ? 'rotate-90' : ''} ${loading ? 'animate-pulse' : ''}`}
           />
         </button>
-        <Icon className={`size-3.5 shrink-0 ${node.nodeClass === 'Variable' ? 'text-sulfur-400' : 'text-slate-500'}`} />
+        <FontAwesomeIcon
+          icon={icon}
+          className={`size-3.5 shrink-0 ${node.nodeClass === 'Variable' ? 'text-sulfur-400' : 'text-slate-500'}`}
+        />
         <span className="truncate">{node.displayName}</span>
       </div>
       {open && children?.length > 0 && (

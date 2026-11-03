@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Search } from 'lucide-react'
-import { StatusDot } from '@azerxim/sulfur-sdk/ui'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { Icon, StatusDot } from '@azerxim/sulfur-sdk/ui'
 import { useI18n, useManifestText } from '../preferences'
 import { useModuleActivity } from '../activity'
 
@@ -70,7 +71,7 @@ export default function CommandPalette({ groups, pages, onSelect, onClose }) {
         className="mx-auto flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-ink-800 bg-ink-900 shadow-2xl"
       >
         <label className="flex h-14 shrink-0 items-center gap-3 border-b border-ink-800 px-4">
-          <Search className="size-4 text-slate-500" />
+          <FontAwesomeIcon icon={faMagnifyingGlass} className="size-4 text-slate-500" />
           <input
             autoFocus
             role="combobox"
@@ -106,7 +107,7 @@ export default function CommandPalette({ groups, pages, onSelect, onClose }) {
                 {entry.module ? (
                   <StatusDot on={activity(entry.id).active} />
                 ) : (
-                  <entry.item.icon className="size-4 text-slate-500" />
+                  <Icon icon={entry.item.icon} className="size-4 text-slate-500" />
                 )}
               </span>
               <span className="min-w-0 flex-1 truncate">{entry.name}</span>

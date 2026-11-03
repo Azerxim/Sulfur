@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, Plus, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -132,11 +133,11 @@ export default function ServerPanel({ status }) {
             </Field>
             {running ? (
               <Button disabled={busy} onClick={() => run(coapApi.server.stop)}>
-                <Square className="size-4" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button variant="primary" disabled={busy} onClick={() => run(() => coapApi.server.start(config))}>
-                <Play className="size-4" /> {t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('ui.start')}
               </Button>
             )}
             <StatusDot
@@ -161,7 +162,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" onClick={() => setResources([...config.resources, newResource(config.resources)])}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -266,7 +267,7 @@ export default function ServerPanel({ status }) {
                       title={t('ui.remove')}
                       onClick={() => setResources(config.resources.filter((x) => x.id !== r.id))}
                     >
-                      <Trash2 className="size-3.5" />
+                      <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                     </Button>
                   </td>
                 </tr>

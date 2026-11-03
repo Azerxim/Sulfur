@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Copy, Play, Plus, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -62,7 +63,7 @@ function ServerLog() {
           disabled={!entries.length}
           onClick={() => radiusApi.server.clearLogs().then(setEntries)}
         >
-          <Trash2 className="size-3.5" /> {t('ldap.server.clearLog')}
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ldap.server.clearLog')}
         </Button>
       }
     >
@@ -171,7 +172,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(radiusApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -180,7 +181,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy || invalid}
                 onClick={() => run(() => radiusApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -237,7 +238,7 @@ export default function ServerPanel({ status }) {
                     title={t('ui.copy')}
                     onClick={() => navigator.clipboard.writeText(endpoint)}
                   >
-                    <Copy className="size-3.5" />
+                    <FontAwesomeIcon icon={faCopy} className="size-3.5" />
                   </Button>
                 </div>
               ))}
@@ -256,7 +257,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" onClick={addClient}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -289,7 +290,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.remove')}
                 onClick={() => removeItem('clients', c.id)}
               >
-                <Trash2 className="size-3.5" />
+                <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
               </Button>
             </div>
           ))}
@@ -305,7 +306,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" onClick={addUser}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -336,7 +337,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.remove')}
                 onClick={() => removeItem('users', u.id)}
               >
-                <Trash2 className="size-3.5" />
+                <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
               </Button>
             </div>
           ))}

@@ -9,13 +9,26 @@ import type {
 } from 'react'
 import type { ModuleManifest, Translate } from './index.js'
 
+/** Définition d'icône FontAwesome (`faServer` de @fortawesome/free-solid-svg-icons…). */
+export interface IconDefinition {
+  prefix: string
+  iconName: string
+  icon: readonly unknown[]
+}
+
+/** Icône : définition FontAwesome, ou composant React recevant `className` (modules antérieurs). */
+export type IconSource = IconDefinition | ComponentType<{ className?: string }>
+
 /** Partie "renderer" d'un module. */
 export interface RendererModule {
   manifest: ModuleManifest
-  /** Icône (lucide-react ou composant SVG équivalent). */
-  icon: ComponentType<{ className?: string }>
+  /** Icône de la barre latérale (définition FontAwesome, `faServer`…). */
+  icon: IconSource
   Component: ComponentType<{ onNavigate?: (id: string) => void }>
 }
+
+/** Icône FontAwesome dimensionnée par `className` (`size-4`…) ; rien si `icon` est absent. */
+export function Icon(props: { icon?: IconSource | null; className?: string; title?: string }): ReactElement | null
 
 export function Button(
   props: ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -48,7 +61,7 @@ export function ErrorBanner(props: { error?: string | null; onClose?: () => void
 export function Tabs<T extends string>(props: {
   value: T
   onChange: (id: T) => void
-  tabs: { id: T; label: ReactNode; icon?: ComponentType<{ className?: string }>; badge?: ReactNode }[]
+  tabs: { id: T; label: ReactNode; icon?: IconSource; badge?: ReactNode }[]
 }): ReactElement
 export function Checkbox(props: InputHTMLAttributes<HTMLInputElement> & { label?: ReactNode }): ReactElement
 export function Modal(props: {

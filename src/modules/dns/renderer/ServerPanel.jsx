@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Copy, Play, Plus, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -56,7 +57,7 @@ function QueryLog() {
       className="min-h-64 shrink-0"
       actions={
         <Button size="sm" variant="ghost" onClick={clear} disabled={!queries.length}>
-          <Trash2 className="size-3.5" /> {t('dns.queries.clear')}
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('dns.queries.clear')}
         </Button>
       }
     >
@@ -168,7 +169,7 @@ export default function ServerPanel({ status }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(dnsApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
@@ -177,7 +178,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy || invalid}
                 onClick={() => run(() => dnsApi.server.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -255,7 +256,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -271,7 +272,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" onClick={addRecord}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -322,7 +323,7 @@ export default function ServerPanel({ status }) {
                   )}
                 </span>
                 <Button size="icon" variant="ghost" title={t('ui.remove')} onClick={() => removeRecord(r.id)}>
-                  <Trash2 className="size-3.5" />
+                  <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                 </Button>
               </div>
             )

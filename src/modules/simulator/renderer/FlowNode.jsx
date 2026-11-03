@@ -1,39 +1,40 @@
 import { memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  Activity,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Braces,
-  Bug,
-  Eye,
-  Funnel,
-  Hash,
-  MousePointerClick,
-  Scaling,
-  Split,
-  Timer,
-  TrendingUp,
-  TriangleAlert
-} from 'lucide-react'
+  faArrowRightFromBracket,
+  faArrowRightToBracket,
+  faArrowTrendUp,
+  faBug,
+  faCode,
+  faCodeBranch,
+  faEye,
+  faFilter,
+  faHandPointer,
+  faHashtag,
+  faMaximize,
+  faStopwatch,
+  faTriangleExclamation,
+  faWaveSquare
+} from '@fortawesome/free-solid-svg-icons'
 import { NODE_TYPES, nodeOutputs } from '../shared/flows'
 import { t } from '../shared/i18n'
 
 export const NODE_ICONS = {
-  inject: MousePointerClick,
-  watch: Eye,
-  read: ArrowDownToLine,
-  write: ArrowUpFromLine,
-  delay: Timer,
-  ramp: TrendingUp,
-  fault: TriangleAlert,
-  switch: Split,
-  scale: Scaling,
-  counter: Hash,
-  filter: Funnel,
-  function: Braces,
-  generator: Activity,
-  debug: Bug
+  inject: faHandPointer,
+  watch: faEye,
+  read: faArrowRightToBracket,
+  write: faArrowRightFromBracket,
+  delay: faStopwatch,
+  ramp: faArrowTrendUp,
+  fault: faTriangleExclamation,
+  switch: faCodeBranch,
+  scale: faMaximize,
+  counter: faHashtag,
+  filter: faFilter,
+  function: faCode,
+  generator: faWaveSquare,
+  debug: faBug
 }
 
 /** Couleur d'une famille de nœuds (classes complètes, pour Tailwind). */
@@ -106,7 +107,7 @@ export function nodeLabel(node, { points = [], faults = [] } = {}) {
 function FlowNode({ data, selected }) {
   const { node, label, status, onInject } = data
   const def = NODE_TYPES[node.type]
-  const Icon = NODE_ICONS[node.type] ?? Braces
+  const icon = NODE_ICONS[node.type] ?? faCode
   const outputs = nodeOutputs(node)
   const height = nodeHeight(outputs)
 
@@ -131,7 +132,7 @@ function FlowNode({ data, selected }) {
         } ${node.disabled ? 'opacity-50' : ''}`}
       >
         <div className={`grid w-7 shrink-0 place-items-center ${CATEGORY_STYLES[def?.category] ?? ''}`}>
-          <Icon className="size-3.5" />
+          <FontAwesomeIcon icon={icon} className="size-3.5" />
         </div>
         <div className="flex min-w-0 flex-1 items-center px-2 text-slate-200">
           <span className="truncate">{label}</span>

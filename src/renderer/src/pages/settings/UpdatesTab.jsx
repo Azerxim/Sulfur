@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import { CircleCheck, Download, ExternalLink, Info, RefreshCw, RotateCcw, TriangleAlert } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowUpRightFromSquare,
+  faArrowsRotate,
+  faCircleCheck,
+  faCircleInfo,
+  faDownload,
+  faRotateLeft,
+  faTriangleExclamation
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, ErrorBanner } from '@azerxim/sulfur-sdk/ui'
 import { useI18n } from '../../preferences'
 import { useUpdater } from '../../updater'
@@ -12,12 +21,12 @@ const OFFERED = ['available', 'downloading', 'downloaded']
 
 /** Icône et couleurs du bloc d'état, selon le statut. */
 const TONES = {
-  ok: { icon: CircleCheck, className: 'bg-emerald-400/12 text-emerald-400' },
-  offer: { icon: Download, className: 'bg-sulfur-400/12 text-sulfur-400' },
-  ready: { icon: RotateCcw, className: 'bg-sulfur-400/12 text-sulfur-400' },
-  busy: { icon: RefreshCw, className: 'bg-ink-850 text-slate-400', spin: true },
-  error: { icon: TriangleAlert, className: 'bg-red-400/12 text-red-400' },
-  info: { icon: Info, className: 'bg-ink-850 text-slate-400' }
+  ok: { icon: faCircleCheck, className: 'bg-emerald-400/12 text-emerald-400' },
+  offer: { icon: faDownload, className: 'bg-sulfur-400/12 text-sulfur-400' },
+  ready: { icon: faRotateLeft, className: 'bg-sulfur-400/12 text-sulfur-400' },
+  busy: { icon: faArrowsRotate, className: 'bg-ink-850 text-slate-400', spin: true },
+  error: { icon: faTriangleExclamation, className: 'bg-red-400/12 text-red-400' },
+  info: { icon: faCircleInfo, className: 'bg-ink-850 text-slate-400' }
 }
 
 /**
@@ -31,7 +40,8 @@ function StatusPanel({ updater, onShowNotes }) {
   const installedLine = t('settings.updates.current', { version: current })
   const checkButton = (label = t('settings.updates.check')) => (
     <Button disabled={status === 'checking'} onClick={check}>
-      <RefreshCw className={`size-4 ${status === 'checking' ? 'animate-spin' : ''}`} /> {label}
+      <FontAwesomeIcon icon={faArrowsRotate} className={`size-4 ${status === 'checking' ? 'animate-spin' : ''}`} />{' '}
+      {label}
     </Button>
   )
 
@@ -69,7 +79,11 @@ function StatusPanel({ updater, onShowNotes }) {
             <>
               <Button onClick={() => onShowNotes(version)}>{t('settings.updates.releaseNotes')}</Button>
               <Button variant="primary" onClick={download}>
-                {canInstall ? <Download className="size-4" /> : <ExternalLink className="size-4" />}
+                {canInstall ? (
+                  <FontAwesomeIcon icon={faDownload} className="size-4" />
+                ) : (
+                  <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="size-4" />
+                )}
                 {canInstall ? t('settings.updates.download') : t('settings.updates.openDownload')}
               </Button>
             </>
@@ -87,7 +101,7 @@ function StatusPanel({ updater, onShowNotes }) {
           detail: t('settings.updates.downloadedHint'),
           actions: (
             <Button variant="primary" onClick={install}>
-              <RotateCcw className="size-4" /> {t('settings.updates.install')}
+              <FontAwesomeIcon icon={faRotateLeft} className="size-4" /> {t('settings.updates.install')}
             </Button>
           )
         },
@@ -108,7 +122,7 @@ function StatusPanel({ updater, onShowNotes }) {
     >
       <div className="flex flex-wrap items-center gap-4 p-4">
         <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${tone.className}`}>
-          <tone.icon className={`size-5 ${tone.spin ? 'animate-spin' : ''}`} />
+          <FontAwesomeIcon icon={tone.icon} className={`size-5 ${tone.spin ? 'animate-spin' : ''}`} />
         </span>
         <div role="status" className="flex min-w-0 flex-1 basis-72 flex-col gap-0.5">
           <span className="text-base font-semibold text-slate-100">{view.title}</span>
@@ -146,7 +160,8 @@ function StatusPanel({ updater, onShowNotes }) {
         </SettingRow>
         <SettingRow label={t('settings.updates.source')} hint={t('settings.updates.hint')}>
           <Button size="sm" variant="ghost" onClick={openReleases}>
-            <ExternalLink className="size-3.5" /> {t('settings.updates.openReleases')}
+            <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="size-3.5" />{' '}
+            {t('settings.updates.openReleases')}
           </Button>
         </SettingRow>
       </div>
@@ -192,7 +207,8 @@ function ReleaseNotesPanel({ updater, selected, onSelect }) {
       title={t('settings.updates.notes.title')}
       actions={
         <Button size="sm" variant="ghost" disabled={loading} onClick={() => load(true)}>
-          <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} /> {t('settings.updates.notes.refresh')}
+          <FontAwesomeIcon icon={faArrowsRotate} className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />{' '}
+          {t('settings.updates.notes.refresh')}
         </Button>
       }
     >
@@ -252,7 +268,7 @@ function ReleaseNotesPanel({ updater, selected, onSelect }) {
                   title={t('settings.updates.notes.github')}
                   className="ml-auto inline-flex items-center gap-1 text-xs text-sulfur-300 hover:text-sulfur-200"
                 >
-                  GitHub <ExternalLink className="size-3.5" />
+                  GitHub <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="size-3.5" />
                 </a>
               </div>
               <Markdown text={releaseSection(shown.body, lang)} />

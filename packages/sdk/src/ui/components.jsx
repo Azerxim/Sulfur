@@ -1,8 +1,24 @@
 /** Composants d'interface partagés par tous les modules (SDK : @azerxim/sulfur-sdk/ui). */
 
 import { useCallback, useEffect, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { t } from '../i18n.js'
+
+/** Définition d'icône FontAwesome (`{ prefix, iconName, icon }`, `faServer`…). */
+const isIconDefinition = (icon) => typeof icon?.iconName === 'string' && Array.isArray(icon.icon)
+
+/**
+ * Icône FontAwesome : `icon` est une définition (`faServer` de @fortawesome/free-solid-svg-icons…),
+ * dimensionnée par `className` (`size-4`…). Un composant React recevant `className` (icônes des
+ * modules antérieurs, lucide-react…) est aussi accepté.
+ */
+export function Icon({ icon, ...props }) {
+  if (!icon) return null
+  if (isIconDefinition(icon)) return <FontAwesomeIcon icon={icon} {...props} />
+  const Component = icon
+  return <Component {...props} />
+}
 
 /** Un seul bouton plein (primary) par écran : les autres actions sont bordées ou discrètes. */
 const buttonVariants = {
@@ -121,7 +137,10 @@ export function Card({
                   toggle()
                 }}
               >
-                <ChevronDown className={`size-4 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`size-4 transition-transform ${isCollapsed ? '-rotate-90' : ''}`}
+                />
               </button>
             )}
             {title}
@@ -241,7 +260,7 @@ export function Tabs({ tabs, value, onChange, variant = 'segmented' }) {
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            {tab.icon && <tab.icon className={`size-4 ${value === tab.id ? 'text-sulfur-400' : ''}`} />}
+            <Icon icon={tab.icon} className={`size-4 ${value === tab.id ? 'text-sulfur-400' : ''}`} />
             {tab.label}
             {tab.badge}
           </button>
@@ -262,7 +281,7 @@ export function Tabs({ tabs, value, onChange, variant = 'segmented' }) {
               : 'text-slate-400 hover:bg-ink-900 hover:text-slate-200'
           }`}
         >
-          {tab.icon && <tab.icon className="size-4" />}
+          <Icon icon={tab.icon} className="size-4" />
           {tab.label}
           {tab.badge}
         </button>

@@ -1,4 +1,5 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, CommitInput } from '@azerxim/sulfur-sdk/ui'
 import { DATA_TYPES } from '../shared/constants'
 import { NAME_PATTERN } from '../shared/fields'
@@ -46,7 +47,7 @@ export default function ServerStructures({ structures, locked, onChange, onError
         <>
           {locked && <span className="text-xs text-slate-500">{t('ui.lockedWhileRunning')}</span>}
           <Button size="sm" disabled={locked} onClick={add}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }
@@ -93,7 +94,7 @@ export default function ServerStructures({ structures, locked, onChange, onError
                         title={t('ui.remove')}
                         onClick={() => onChange(structures.filter((x) => x.id !== s.id))}
                       >
-                        <Trash2 className="size-3.5" />
+                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>

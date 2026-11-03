@@ -1,4 +1,4 @@
-import { ArrowRightLeft } from 'lucide-react'
+import { faArrowRightArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import { PROXY_MODULE } from '../shared/constants'
 import ProxyView from './ProxyView'
 import '../shared/locales'
@@ -6,6 +6,6 @@ import '../shared/locales'
 /** Partie "renderer" du module Proxy TCP / UDP. */
 export default {
   manifest: PROXY_MODULE,
-  icon: ArrowRightLeft,
+  icon: faArrowRightArrowLeft,
   Component: ProxyView
 }

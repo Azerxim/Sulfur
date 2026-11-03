@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+/* Icônes FontAwesome : leurs styles dans la couche base, pour que les utilitaires (size-4…) priment. */
+@import '@fortawesome/fontawesome-svg-core/styles.css' layer(base);
 /* Thème partagé avec les modules externes (SDK). */
 @import '../../../packages/sdk/src/ui/theme.css';
 

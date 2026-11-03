@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Copy, Download, FileUp } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faDownload, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { Button, ErrorBanner, Field, Input, Modal, Select } from '@azerxim/sulfur-sdk/ui'
 import { formatDate } from '@azerxim/sulfur-sdk'
 import { DEFAULT_AUTHORITY, EXPORT_FORMATS, KEY_ALGORITHMS, REVOCATION_REASONS } from '../shared/constants'
@@ -130,7 +131,7 @@ export function PemField({ label, kind, value, onChange, placeholder }) {
       <TextArea value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
       <div className="flex items-center gap-2">
         <Button size="sm" onClick={pick}>
-          <FileUp className="size-3.5" /> {t('ca.import.pickFile')}
+          <FontAwesomeIcon icon={faFileArrowUp} className="size-3.5" /> {t('ca.import.pickFile')}
         </Button>
         {error && <span className="text-xs text-red-300">{error}</span>}
       </div>
@@ -251,7 +252,7 @@ export function ExportDialog({ authorityId, serial, hasKey, name, onClose }) {
             {t('ui.close')}
           </Button>
           <Button variant="primary" disabled={busy || mismatch} onClick={submit}>
-            <Download className="size-3.5" /> {t('ca.export.submit')}
+            <FontAwesomeIcon icon={faDownload} className="size-3.5" /> {t('ca.export.submit')}
           </Button>
         </div>
       </div>
@@ -331,7 +332,8 @@ export function DetailsDialog({ authorityId, serial, onClose }) {
       actions={
         data && (
           <Button size="sm" variant="ghost" onClick={copy}>
-            <Copy className="size-3.5" /> {copied ? t('ca.details.copied') : t('ca.details.copyPem')}
+            <FontAwesomeIcon icon={faCopy} className="size-3.5" />{' '}
+            {copied ? t('ca.details.copied') : t('ca.details.copyPem')}
           </Button>
         )
       }

@@ -1,5 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChartLine, Circle, Download, Eraser, Eye, EyeOff, List, LocateFixed, Square, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faChartLine,
+  faCircle,
+  faDownload,
+  faEraser,
+  faEye,
+  faEyeSlash,
+  faList,
+  faLocationCrosshairs,
+  faStop,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -120,10 +132,10 @@ export default function TrendsView() {
         {
           id: 'chart',
           label: t('trends.chart.title'),
-          icon: ChartLine,
+          icon: faChartLine,
           badge: recording && <span className="size-1.5 animate-pulse rounded-full bg-red-400" />
         },
-        { id: 'series', label: t('trends.series.title', { count: config.series.length }), icon: List }
+        { id: 'series', label: t('trends.series.title', { count: config.series.length }), icon: faList }
       ]}
       className="overflow-auto"
     >
@@ -141,7 +153,7 @@ export default function TrendsView() {
               </span>
               {recording ? (
                 <Button variant="danger" size="sm" onClick={() => run(trendsApi.stop)}>
-                  <Square className="size-3.5" /> {t('trends.recording.stop')}
+                  <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('trends.recording.stop')}
                 </Button>
               ) : (
                 <Button
@@ -152,7 +164,7 @@ export default function TrendsView() {
                     run(() => trendsApi.start({ series: config.series.map((s) => s.key), interval: config.interval }))
                   }
                 >
-                  <Circle className="size-3.5" /> {t('trends.recording.start')}
+                  <FontAwesomeIcon icon={faCircle} className="size-3.5" /> {t('trends.recording.start')}
                 </Button>
               )}
               <Button
@@ -166,7 +178,7 @@ export default function TrendsView() {
                   })
                 }
               >
-                <Eraser className="size-3.5" /> {t('trends.recording.clear')}
+                <FontAwesomeIcon icon={faEraser} className="size-3.5" /> {t('trends.recording.clear')}
               </Button>
               <Button
                 size="sm"
@@ -178,7 +190,7 @@ export default function TrendsView() {
                   })
                 }
               >
-                <Download className="size-3.5" /> {t('trends.recording.export')}
+                <FontAwesomeIcon icon={faDownload} className="size-3.5" /> {t('trends.recording.export')}
               </Button>
             </>
           }
@@ -225,7 +237,7 @@ export default function TrendsView() {
                 <div className="ml-auto flex items-center gap-2 text-xs text-slate-500">
                   {t('trends.chart.paused')}
                   <Button size="sm" onClick={() => setPaused(false)}>
-                    <LocateFixed className="size-3.5" /> {t('trends.chart.follow')}
+                    <FontAwesomeIcon icon={faLocationCrosshairs} className="size-3.5" /> {t('trends.chart.follow')}
                   </Button>
                 </div>
               )}
@@ -361,7 +373,11 @@ export default function TrendsView() {
                             })
                           }
                         >
-                          {s.hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                          {s.hidden ? (
+                            <FontAwesomeIcon icon={faEyeSlash} className="size-3.5" />
+                          ) : (
+                            <FontAwesomeIcon icon={faEye} className="size-3.5" />
+                          )}
                         </Button>
                         <Button
                           variant="ghost"
@@ -369,7 +385,7 @@ export default function TrendsView() {
                           title={t('trends.series.remove')}
                           onClick={() => changeSeries(config.series.filter((x) => x.key !== s.key))}
                         >
-                          <X className="size-3.5" />
+                          <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                         </Button>
                       </td>
                     </tr>

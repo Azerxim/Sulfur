@@ -144,7 +144,9 @@ du code compilé) ne sont pas pris en charge.
 ## 4. L'interface
 
 `src/renderer/index.jsx` exporte par défaut `{ manifest, icon, Component }` : l'icône de la barre
-latérale (un composant [lucide-react](https://lucide.dev/icons)) et le composant React de la page.
+latérale (une définition d'icône [FontAwesome](https://fontawesome.com/search?ic=free&o=r), `faCube` de
+`@fortawesome/free-solid-svg-icons`…) et le composant React de la page. Dans la page, les icônes
+s'affichent avec `Icon` du SDK : `<Icon icon={faPlay} className="size-3.5" />`.
 
 ```jsx
 const invoke = (action, ...args) => window.sulfur.invoke(`${ID}:${action}`, ...args)

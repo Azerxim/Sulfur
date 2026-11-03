@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { s7Api } from './api'
@@ -72,7 +73,7 @@ export default function ServerActivity({ status }) {
             title={t('s7.activity.clearLog')}
             onClick={() => s7Api.server.clearLogs().then(setLogs)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         }
       >

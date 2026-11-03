@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { WEBHOOK_MODES } from '../shared/constants'
 import { t } from '../shared/i18n'
@@ -27,7 +28,7 @@ function VariablesPicker({ variables, value = [], disabled, onChange }) {
         <span className="min-w-0 flex-1 truncate">
           {names.length ? names.join(', ') : t('http.webhooks.allVariables')}
         </span>
-        <ChevronDown className="size-3.5 shrink-0 text-slate-500" />
+        <FontAwesomeIcon icon={faChevronDown} className="size-3.5 shrink-0 text-slate-500" />
       </button>
       {open && (
         <div className="absolute z-20 mt-1 max-h-64 w-full min-w-48 overflow-auto rounded-md border border-ink-700 bg-ink-900 p-2 shadow-2xl">
@@ -76,7 +77,7 @@ export default function WebhooksCard({ webhooks, variables, running, busy, onCha
         <>
           {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
           <Button size="sm" disabled={busy} onClick={() => onChange([...webhooks, newHook()])}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }
@@ -164,7 +165,7 @@ export default function WebhooksCard({ webhooks, variables, running, busy, onCha
                       disabled={busy}
                       onClick={() => onChange(webhooks.filter((x) => x.id !== w.id))}
                     >
-                      <Trash2 className="size-3.5" />
+                      <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                     </Button>
                   </td>
                 </tr>

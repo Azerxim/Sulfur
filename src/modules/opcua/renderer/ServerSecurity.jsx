@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { KeyRound, Plus, ShieldCheck, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faKey, faPlus, faShieldHalved, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, CertificatesDialog, Checkbox, Input } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_SERVER_SECURITY, DEPRECATED_POLICIES, SECURITY_MODES, SECURITY_POLICIES } from '../shared/constants'
 import { certStore, opcuaApi } from './api'
@@ -46,7 +47,10 @@ function PasswordField({ hasPassword, disabled, onHash, onError }) {
         onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
       />
       {hasPassword && !draft && (
-        <KeyRound className="pointer-events-none absolute top-2.5 right-2.5 size-4 text-emerald-400/70" />
+        <FontAwesomeIcon
+          icon={faKey}
+          className="pointer-events-none absolute top-2.5 right-2.5 size-4 text-emerald-400/70"
+        />
       )}
     </div>
   )
@@ -85,7 +89,7 @@ export default function ServerSecurity({ value, onChange, locked, onError }) {
         <>
           {locked && <span className="text-xs text-slate-500">{t('ui.lockedWhileRunning')}</span>}
           <Button size="sm" onClick={() => setCertsOpen(true)}>
-            <ShieldCheck className="size-3.5" /> {t('ui.certificates')}
+            <FontAwesomeIcon icon={faShieldHalved} className="size-3.5" /> {t('ui.certificates')}
           </Button>
         </>
       }
@@ -142,7 +146,7 @@ export default function ServerSecurity({ value, onChange, locked, onError }) {
                 })
               }
             >
-              <Plus className="size-3.5" /> {t('opcua.security.user')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('opcua.security.user')}
             </Button>
           </div>
           {security.users.map((u, i) => (
@@ -168,7 +172,7 @@ export default function ServerSecurity({ value, onChange, locked, onError }) {
                 title={t('ui.remove')}
                 onClick={() => set({ users: security.users.filter((_, j) => j !== i) })}
               >
-                <Trash2 className="size-3.5" />
+                <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
               </Button>
             </div>
           ))}

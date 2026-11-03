@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { FolderOpen, RefreshCw, ShieldCheck, ShieldX, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faBan, faFolderOpen, faShieldHalved, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { formatDate, t as appT } from '../i18n.js'
 import { Button, ErrorBanner, Modal } from './components.jsx'
 
@@ -24,17 +25,17 @@ function CertRow({ cert, store, onAction, t }) {
       </div>
       {store === 'rejected' && (
         <Button size="sm" variant="primary" onClick={() => onAction('trust', cert)}>
-          <ShieldCheck className="size-3.5" /> {t('certs.approve')}
+          <FontAwesomeIcon icon={faShieldHalved} className="size-3.5" /> {t('certs.approve')}
         </Button>
       )}
       {store === 'trusted' && (
         <Button size="sm" onClick={() => onAction('reject', cert)}>
-          <ShieldX className="size-3.5" /> {t('certs.reject')}
+          <FontAwesomeIcon icon={faBan} className="size-3.5" /> {t('certs.reject')}
         </Button>
       )}
       {store !== 'own' && (
         <Button size="icon" variant="ghost" title={t('ui.remove')} onClick={() => onAction('remove', cert)}>
-          <Trash2 className="size-3.5" />
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
         </Button>
       )}
     </div>
@@ -81,10 +82,10 @@ export default function CertificatesDialog({ title, api, onClose, t = appT }) {
       actions={
         <>
           <Button size="sm" variant="ghost" onClick={() => call(api.openFolder())}>
-            <FolderOpen className="size-3.5" /> {t('certs.openFolder')}
+            <FontAwesomeIcon icon={faFolderOpen} className="size-3.5" /> {t('certs.openFolder')}
           </Button>
           <Button size="sm" variant="ghost" onClick={load}>
-            <RefreshCw className="size-3.5" /> {t('ui.refresh')}
+            <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('ui.refresh')}
           </Button>
         </>
       }

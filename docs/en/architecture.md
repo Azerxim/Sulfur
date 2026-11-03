@@ -175,7 +175,7 @@ To write a module **outside** this repository, follow [Creating a module](module
 2. **Main part**: export `{ manifest, activate(ctx), deactivate(), busy(), migrateConfig() }`. The
    manifest comes from `builtinManifest(…)`; `busy()` (server running, client connected) and
    `migrateConfig(config)` (conversion of an older configuration) are optional.
-3. **Renderer part**: export `{ manifest, icon, Component }` (`lucide-react` icon). Wrap the channels
+3. **Renderer part**: export `{ manifest, icon, Component }` (FontAwesome icon). Wrap the channels
    in `renderer/api.js` with `window.sulfur.invoke` / `window.sulfur.on`.
 4. Register the module in `src/main/modules.js` and `src/renderer/src/modules.js`. Cross-cutting
    modules come last.

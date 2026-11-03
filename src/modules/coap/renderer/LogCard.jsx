@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { CODE_LABELS, codeName } from '../shared/codec'
@@ -48,7 +49,7 @@ export default function LogCard({ id, load, subscribe, clear, renderEntry }) {
       className="min-h-64 flex-1"
       actions={
         <Button variant="ghost" size="icon" title={t('coap.log.clear')} onClick={() => clear().then(setEntries)}>
-          <Trash2 className="size-3.5" />
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
         </Button>
       }
     >

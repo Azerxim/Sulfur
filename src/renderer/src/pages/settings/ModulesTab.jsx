@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import { FolderOpen, Package, PackagePlus, RefreshCw, Search, ShieldAlert, Trash2, TriangleAlert } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowsRotate,
+  faBox,
+  faFileImport,
+  faFolderOpen,
+  faMagnifyingGlass,
+  faTrashCan,
+  faTriangleExclamation
+} from '@fortawesome/free-solid-svg-icons'
 import { MODULE_API_VERSION } from '@azerxim/sulfur-sdk'
 import { Button, ErrorBanner, Modal } from '@azerxim/sulfur-sdk/ui'
 import { availableModules, rejectedModules, setDisabledModules } from '../../enabled-modules'
@@ -67,7 +76,7 @@ function ModulesPanel() {
       actions={
         <>
           <label className="flex h-8 w-56 items-center gap-2 rounded-md border border-ink-800 bg-ink-950 px-2.5 text-slate-500 focus-within:border-sulfur-400">
-            <Search className="size-3.5 shrink-0" />
+            <FontAwesomeIcon icon={faMagnifyingGlass} className="size-3.5 shrink-0" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -163,7 +172,7 @@ function ModulesPanel() {
 
       {rejected.length > 0 && (
         <div className="mx-3.5 mt-1 flex gap-2.5 rounded-lg bg-amber-400/12 px-3 py-2.5">
-          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-400" />
+          <FontAwesomeIcon icon={faTriangleExclamation} className="mt-0.5 size-4 shrink-0 text-amber-400" />
           <div className="flex flex-col gap-1 text-xs">
             <span className="font-semibold text-amber-300">
               {t('settings.moduleSwitch.rejected', { count: rejected.length })}
@@ -240,7 +249,7 @@ function InstallPackageModal({ info, busy, onConfirm, onClose }) {
           ))}
         </dl>
         <p className="flex gap-2.5 rounded-lg bg-amber-400/12 px-3 py-2.5 text-xs text-slate-200">
-          <ShieldAlert className="mt-px size-4 shrink-0 text-amber-400" />
+          <FontAwesomeIcon icon={faTriangleExclamation} className="mt-px size-4 shrink-0 text-amber-400" />
           {t('settings.externalModules.confirm.warning')}
         </p>
         <div className="flex justify-end gap-2">
@@ -248,7 +257,7 @@ function InstallPackageModal({ info, busy, onConfirm, onClose }) {
             {t('settings.externalModules.cancel')}
           </Button>
           <Button variant="primary" disabled={busy} onClick={onConfirm}>
-            <PackagePlus className="size-4" /> {label}
+            <FontAwesomeIcon icon={faFileImport} className="size-4" /> {label}
           </Button>
         </div>
       </div>
@@ -333,10 +342,11 @@ function ExternalModulesPanel() {
       actions={
         <>
           <Button size="sm" disabled={busy} onClick={reload} title={t('settings.externalModules.reloadHint')}>
-            <RefreshCw className={`size-3.5 ${busy ? 'animate-spin' : ''}`} /> {t('settings.externalModules.reload')}
+            <FontAwesomeIcon icon={faArrowsRotate} className={`size-3.5 ${busy ? 'animate-spin' : ''}`} />{' '}
+            {t('settings.externalModules.reload')}
           </Button>
           <Button size="sm" variant="primary" disabled={busy} onClick={choose}>
-            <PackagePlus className="size-3.5" /> {t('settings.externalModules.install')}
+            <FontAwesomeIcon icon={faFileImport} className="size-3.5" /> {t('settings.externalModules.install')}
           </Button>
         </>
       }
@@ -346,7 +356,7 @@ function ExternalModulesPanel() {
         <div className="flex flex-col gap-1">
           <span className="text-[13px] font-medium text-slate-100">{t('settings.externalModules.enable')}</span>
           <span className="flex gap-1.5 text-xs text-amber-300">
-            <ShieldAlert className="mt-px size-3.5 shrink-0" />
+            <FontAwesomeIcon icon={faTriangleExclamation} className="mt-px size-3.5 shrink-0" />
             {t('settings.externalModules.warning')}
           </span>
         </div>
@@ -383,7 +393,7 @@ function ExternalModulesPanel() {
             className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-ink-800/70 px-3.5 py-2.5"
           >
             <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-ink-850 text-slate-400">
-              <Package className="size-4" />
+              <FontAwesomeIcon icon={faBox} className="size-4" />
             </span>
             <div className="flex min-w-0 flex-1 basis-64 flex-col">
               <span className="flex flex-wrap items-center gap-2">
@@ -406,12 +416,13 @@ function ExternalModulesPanel() {
                   {t('settings.externalModules.cancel')}
                 </Button>
                 <Button size="sm" variant="danger" disabled={busy} onClick={() => remove(pkg)}>
-                  <Trash2 className="size-3.5" /> {t('settings.externalModules.confirmRemove', { name: pkg.name })}
+                  <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />{' '}
+                  {t('settings.externalModules.confirmRemove', { name: pkg.name })}
                 </Button>
               </span>
             ) : (
               <Button size="sm" variant="ghost" disabled={busy} onClick={() => setRemoving(pkg.id)}>
-                <Trash2 className="size-3.5" /> {t('settings.externalModules.remove')}
+                <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('settings.externalModules.remove')}
               </Button>
             )}
           </div>
@@ -425,7 +436,7 @@ function ExternalModulesPanel() {
             {dir}
           </code>
           <Button size="sm" disabled={busy} onClick={() => run(() => window.sulfur.invoke('modules:openPackagesDir'))}>
-            <FolderOpen className="size-3.5" /> {t('settings.externalModules.open')}
+            <FontAwesomeIcon icon={faFolderOpen} className="size-3.5" /> {t('settings.externalModules.open')}
           </Button>
         </div>
       )}

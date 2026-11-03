@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { resolveAddress } from '../shared/address'
 import { s7Api } from './api'
@@ -105,7 +106,7 @@ export default function MemoryExplorer({ running, config, values }) {
               title={t('s7.explorer.previous')}
               onClick={() => setStart((s) => Math.max(0, s - PAGE))}
             >
-              <ChevronLeft className="size-4" />
+              <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
             </Button>
             <Button
               size="icon"
@@ -113,7 +114,7 @@ export default function MemoryExplorer({ running, config, values }) {
               disabled={!!size && start + PAGE >= size}
               onClick={() => setStart((s) => s + PAGE)}
             >
-              <ChevronRight className="size-4" />
+              <FontAwesomeIcon icon={faChevronRight} className="size-4" />
             </Button>
           </div>
           {memory && <span className="mb-2 text-xs text-slate-500">{t('s7.explorer.size', { size })}</span>}

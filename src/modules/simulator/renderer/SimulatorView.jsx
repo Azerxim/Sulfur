@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ShieldAlert, Workflow } from 'lucide-react'
+import { faBolt, faDiagramProject } from '@fortawesome/free-solid-svg-icons'
 import { ErrorBanner, TabbedPage, usePersistentState, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { pointKey } from '@azerxim/sulfur-sdk'
 import { DEFAULT_FAULTS, DEFAULT_FLOWS } from '../shared/constants'
@@ -45,11 +45,11 @@ export default function SimulatorView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'flows', label: t('simulator.flows.title', { count: flows.length }), icon: Workflow },
+        { id: 'flows', label: t('simulator.flows.title', { count: flows.length }), icon: faDiagramProject },
         {
           id: 'faults',
           label: t('simulator.faults.title', { count: faults.length }),
-          icon: ShieldAlert,
+          icon: faBolt,
           badge: status.faults?.length > 0 && <span className="size-1.5 rounded-full bg-amber-400" />
         }
       ]}

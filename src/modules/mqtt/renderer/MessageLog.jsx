@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, Field, Input } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { isValidFilter, matchTopic } from '../shared/topics'
@@ -45,7 +46,7 @@ export default function MessageLog({
       className="min-h-64 shrink-0"
       actions={
         <Button variant="ghost" size="icon" title={clearLabel} onClick={onClear}>
-          <Trash2 className="size-3.5" />
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
         </Button>
       }
     >

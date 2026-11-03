@@ -1,5 +1,6 @@
-import { Search } from 'lucide-react'
-import { StatusDot } from '@azerxim/sulfur-sdk/ui'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { Icon, StatusDot } from '@azerxim/sulfur-sdk/ui'
 import { useI18n, useManifestText } from '../preferences'
 import { useModuleActivity } from '../activity'
 
@@ -7,7 +8,7 @@ import { useModuleActivity } from '../activity'
 export const PALETTE_SHORTCUT = /Mac/.test(navigator.platform) ? '⌘ K' : 'Ctrl K'
 
 /** Page de l'application : icône et nom. */
-function PageItem({ item: { manifest, icon: Icon }, active, onSelect }) {
+function PageItem({ item: { manifest, icon }, active, onSelect }) {
   const text = useManifestText()
   return (
     <button
@@ -17,7 +18,7 @@ function PageItem({ item: { manifest, icon: Icon }, active, onSelect }) {
         active ? 'bg-ink-850 font-medium text-slate-100' : 'text-slate-400 hover:bg-ink-850 hover:text-slate-200'
       }`}
     >
-      <Icon className={`size-4 ${active ? 'text-sulfur-400' : ''}`} />
+      <Icon icon={icon} className={`size-4 ${active ? 'text-sulfur-400' : ''}`} />
       {text(manifest).name}
     </button>
   )
@@ -68,7 +69,7 @@ export default function Sidebar({ groups, pages = [], activeId, onSelect, onSear
         onClick={onSearch}
         className="mx-2.5 mt-3 mb-2 flex h-8 items-center gap-2 rounded-lg border border-ink-800 bg-ink-950 px-2.5 text-left text-[13px] text-slate-500 transition-colors hover:border-ink-700 hover:text-slate-400"
       >
-        <Search className="size-3.5" />
+        <FontAwesomeIcon icon={faMagnifyingGlass} className="size-3.5" />
         <span className="flex-1">{t('app.search')}</span>
         <kbd className="rounded border border-ink-800 px-1.5 font-mono text-[10px]">{PALETTE_SHORTCUT}</kbd>
       </button>

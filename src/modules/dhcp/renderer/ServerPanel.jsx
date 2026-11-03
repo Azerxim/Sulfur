@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { FileText, Play, Square, Trash2, TriangleAlert } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFileLines, faPlay, faStop, faTrashCan, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -61,7 +62,7 @@ function ServerLog({ logFile }) {
             title={logFile}
             onClick={() => dhcpApi.server.openLogFile().catch((err) => setError(err.message))}
           >
-            <FileText className="size-3.5" /> {t('dhcp.server.openLogFile')}
+            <FontAwesomeIcon icon={faFileLines} className="size-3.5" /> {t('dhcp.server.openLogFile')}
           </Button>
           <Button
             size="sm"
@@ -69,7 +70,7 @@ function ServerLog({ logFile }) {
             disabled={!entries.length}
             onClick={() => dhcpApi.server.clearLogs().then(setEntries)}
           >
-            <Trash2 className="size-3.5" /> {t('dhcp.server.clearLog')}
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('dhcp.server.clearLog')}
           </Button>
         </>
       }
@@ -104,7 +105,7 @@ function StartWarning({ summary, config, busy, error, onCancel, onStart }) {
     <Modal title={t('dhcp.warning.title')} onClose={onCancel} className="max-w-xl">
       <div className="flex flex-col gap-3 text-sm text-slate-300">
         <div className="flex gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-200">
-          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+          <FontAwesomeIcon icon={faTriangleExclamation} className="mt-0.5 size-4 shrink-0" />
           <p>{t('dhcp.warning.text')}</p>
         </div>
         <p>{t('dhcp.warning.effects')}</p>
@@ -131,7 +132,7 @@ function StartWarning({ summary, config, busy, error, onCancel, onStart }) {
             {t('dhcp.warning.cancel')}
           </Button>
           <Button variant="primary" disabled={!accepted || busy} onClick={onStart}>
-            <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+            <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
           </Button>
         </div>
       </div>
@@ -192,11 +193,11 @@ export default function ServerPanel({ status, network, onReload }) {
             />
             {running ? (
               <Button variant="danger" size="sm" disabled={busy} onClick={() => run(dhcpApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button variant="primary" size="sm" disabled={busy} onClick={askStart}>
-                <Play className="size-3.5" /> {t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {t('ui.start')}
               </Button>
             )}
           </>

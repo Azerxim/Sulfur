@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Eye, History, Send, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faClockRotateLeft, faEye, faPaperPlane, faXmark } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -222,7 +223,7 @@ export default function ClientPanel({ status, serverUrl }) {
               onKeyDown={(e) => e.key === 'Enter' && send()}
             />
             <Button variant="primary" disabled={busy || !request.path} onClick={send}>
-              <Send className="size-4" /> {t('http.client.send')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('http.client.send')}
             </Button>
           </div>
           <div className="self-start">
@@ -232,7 +233,7 @@ export default function ClientPanel({ status, serverUrl }) {
               tabs={[
                 { id: 'body', label: t('http.client.body') },
                 { id: 'headers', label: t('http.client.headers', { count: request.headers.length }) },
-                { id: 'history', label: t('http.client.history', { count: history.length }), icon: History }
+                { id: 'history', label: t('http.client.history', { count: history.length }), icon: faClockRotateLeft }
               ]}
             />
           </div>
@@ -375,7 +376,7 @@ export default function ClientPanel({ status, serverUrl }) {
               title={t('http.client.watchHint')}
               onClick={addWatch}
             >
-              <Eye className="size-4" /> {t('http.client.watch')}
+              <FontAwesomeIcon icon={faEye} className="size-4" /> {t('http.client.watch')}
             </Button>
           </div>
           {status.watches?.length ? (
@@ -415,7 +416,7 @@ export default function ClientPanel({ status, serverUrl }) {
                           title={t('ui.remove2')}
                           onClick={() => run(() => httpApi.client.removeWatch(w.id))}
                         >
-                          <X className="size-3.5" />
+                          <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                         </Button>
                       </td>
                     </tr>

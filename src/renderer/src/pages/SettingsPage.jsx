@@ -1,5 +1,14 @@
 import { useState } from 'react'
-import { Download, Monitor, Moon, Puzzle, SlidersHorizontal, Sun, Upload } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faDesktop,
+  faDownload,
+  faMoon,
+  faPuzzlePiece,
+  faSliders,
+  faSun,
+  faUpload
+} from '@fortawesome/free-solid-svg-icons'
 import { LANGUAGES } from '@azerxim/sulfur-sdk'
 import { Button, Card, ErrorBanner, Select, TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { exportConfigurations, importConfigurations } from '../module-config'
@@ -10,7 +19,7 @@ import { Segmented, SettingRow } from './settings/shared'
 import ModulesTab from './settings/ModulesTab'
 import UpdatesTab from './settings/UpdatesTab'
 
-const THEME_ICONS = { dark: Moon, light: Sun, system: Monitor }
+const THEME_ICONS = { dark: faMoon, light: faSun, system: faDesktop }
 
 /** Onglets des Paramètres, onglet affiché mémorisé localement sous SETTINGS_TAB_KEY. */
 const TABS = ['general', 'modules', 'updates']
@@ -65,10 +74,10 @@ function ConfigurationsCard() {
           <p className="min-w-0 flex-1 basis-64 text-xs text-slate-500">{t('settings.configurations.hint')}</p>
           <div className="flex shrink-0 flex-wrap gap-2">
             <Button disabled={busy} onClick={exportAll}>
-              <Download className="size-4" /> {t('settings.configurations.export')}
+              <FontAwesomeIcon icon={faDownload} className="size-4" /> {t('settings.configurations.export')}
             </Button>
             <Button disabled={busy} onClick={importAll}>
-              <Upload className="size-4" /> {t('settings.configurations.import')}
+              <FontAwesomeIcon icon={faUpload} className="size-4" /> {t('settings.configurations.import')}
             </Button>
           </div>
         </div>
@@ -99,9 +108,9 @@ export default function SettingsPage() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'general', label: t('settings.tabs.general'), icon: SlidersHorizontal },
-        { id: 'modules', label: t('settings.tabs.modules'), icon: Puzzle },
-        { id: 'updates', label: t('settings.tabs.updates'), icon: Download }
+        { id: 'general', label: t('settings.tabs.general'), icon: faSliders },
+        { id: 'modules', label: t('settings.tabs.modules'), icon: faPuzzlePiece },
+        { id: 'updates', label: t('settings.tabs.updates'), icon: faDownload }
       ]}
       // Les cartes gardent leur hauteur : le contenu défile au lieu de les écraser.
       className="*:shrink-0"

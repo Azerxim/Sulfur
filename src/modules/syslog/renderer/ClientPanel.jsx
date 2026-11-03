@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Play, Send, Square, Trash2, Unplug } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPaperPlane, faPlay, faPlugCircleXmark, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -85,7 +86,7 @@ export default function ClientPanel({ status, server }) {
                 title={t('syslog.client.disconnect')}
                 onClick={() => run(syslogApi.client.disconnect)}
               >
-                <Unplug className="size-3.5" />
+                <FontAwesomeIcon icon={faPlugCircleXmark} className="size-3.5" />
               </Button>
             )}
           </>
@@ -287,15 +288,15 @@ export default function ClientPanel({ status, server }) {
               disabled={busy || repeating || !config.host}
               onClick={() => run(() => syslogApi.client.send(config))}
             >
-              <Send className="size-4" /> {t('syslog.compose.send')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('syslog.compose.send')}
             </Button>
             {repeating ? (
               <Button variant="danger" onClick={() => run(syslogApi.client.stopRepeat)}>
-                <Square className="size-4" /> {t('syslog.compose.stopRepeat')}
+                <FontAwesomeIcon icon={faStop} className="size-4" /> {t('syslog.compose.stopRepeat')}
               </Button>
             ) : (
               <Button disabled={busy || !config.host} onClick={() => run(() => syslogApi.client.startRepeat(config))}>
-                <Play className="size-4" /> {t('syslog.compose.startRepeat')}
+                <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('syslog.compose.startRepeat')}
               </Button>
             )}
           </div>
@@ -314,7 +315,7 @@ export default function ClientPanel({ status, server }) {
             title={t('syslog.history.clear')}
             onClick={() => syslogApi.client.clearHistory().then(setHistory)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         }
       >

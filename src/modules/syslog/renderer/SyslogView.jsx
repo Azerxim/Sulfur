@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MonitorSmartphone, Server } from 'lucide-react'
+import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
 import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { syslogApi } from './api'
 import ServerPanel from './ServerPanel'
@@ -25,11 +25,11 @@ export default function SyslogView() {
       value={tab}
       onChange={setTab}
       tabs={[
-        { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
+        { id: 'server', label: t('ui.server'), icon: faServer, badge: dot(serverStatus.running) },
         {
           id: 'client',
           label: t('ui.client'),
-          icon: MonitorSmartphone,
+          icon: faComputer,
           badge: dot(clientStatus.repeating || clientStatus.connected)
         }
       ]}

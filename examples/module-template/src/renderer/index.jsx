@@ -4,7 +4,7 @@
  * événements reçus par `window.sulfur.on('<id>:<event>')`.
  */
 import { useEffect, useState } from 'react'
-import { Play, RotateCcw, Square, Timer } from 'lucide-react'
+import { faPlay, faRotateLeft, faStop, faStopwatch } from '@fortawesome/free-solid-svg-icons'
 import { pointKey } from '@azerxim/sulfur-sdk'
 import {
   Button,
@@ -14,7 +14,8 @@ import {
   Field,
   Input,
   StatusDot,
-  usePersistentState
+  usePersistentState,
+  Icon
 } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULTS, manifest } from '../manifest.js'
 import { t } from '../i18n.js'
@@ -69,15 +70,15 @@ function MyModuleView() {
         <div className="mt-3 flex items-center gap-2">
           {running ? (
             <Button variant="danger" onClick={() => run(invoke('stop'))}>
-              <Square className="size-4" /> {t('ui.stop')}
+              <Icon icon={faStop} className="size-4" /> {t('ui.stop')}
             </Button>
           ) : (
             <Button variant="primary" onClick={() => run(invoke('start', settings))}>
-              <Play className="size-4" /> {t('ui.start')}
+              <Icon icon={faPlay} className="size-4" /> {t('ui.start')}
             </Button>
           )}
           <Button onClick={() => run(invoke('reset'))}>
-            <RotateCcw className="size-4" />
+            <Icon icon={faRotateLeft} className="size-4" />
           </Button>
           <span className="ml-auto font-mono text-2xl text-slate-100 tabular-nums">{state?.value ?? '—'}</span>
         </div>
@@ -89,5 +90,5 @@ function MyModuleView() {
   )
 }
 
-/** Export par défaut : manifeste, icône de la barre latérale (lucide-react) et composant. */
-export default { manifest, icon: Timer, Component: MyModuleView }
+/** Export par défaut : manifeste, icône de la barre latérale (FontAwesome) et composant. */
+export default { manifest, icon: faStopwatch, Component: MyModuleView }
