@@ -25,7 +25,7 @@
  * Version de l'API des modules décrite par ce SDK (celle du paquet) : un module écrit avec le SDK
  * 1.x fonctionne avec toute version de Sulfur qui fournit une API 1.x au moins égale.
  */
-export const MODULE_API_VERSION = '1.2.0-dev'
+export const MODULE_API_VERSION = '1.2.0'
 
 export const EDITIONS = ['standard', 'additional']
 

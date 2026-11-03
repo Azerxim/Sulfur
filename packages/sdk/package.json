@@ -1,6 +1,6 @@
 {
   "name": "@azerxim/sulfur-sdk",
-  "version": "1.2.0-dev",
+  "version": "1.2.0",
   "description": "SDK des modules Sulfur : contrat des modules, traductions, points de données et composants d'interface partagés",
   "license": "Apache-2.0",
   "author": "Maxime MALLET <mallet.maxime@topazdev.fr>",
