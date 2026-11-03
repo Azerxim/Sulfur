@@ -4,8 +4,8 @@ import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { Select } from '@azerxim/sulfur-sdk/ui'
 import { t } from '../shared/i18n'
 
-/** Libellé d'un groupe de points : « OPC UA · Serveur ». */
-export const groupLabel = (p) => `${p.moduleName} · ${t(`simulator.groups.${p.group}`)}`
+/** Libellé d'un groupe de points : « OPC UA · Serveur », ou le nom de l'instance qui les porte. */
+export const groupLabel = (p) => `${p.moduleName} · ${p.groupName ?? t(`simulator.groups.${p.group}`)}`
 
 const grouped = (points) => Object.entries(Object.groupBy(points, groupLabel))
 

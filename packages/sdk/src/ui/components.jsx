@@ -241,30 +241,30 @@ export function ErrorBanner({ error, onClose }) {
  * Onglets. `variant` : `segmented` (par défaut, sélecteur compact dans le contenu) ou `bar` (barre
  * pleine largeur soulignée, collée sous l'en-tête de la page : voir TabbedPage).
  */
-export function Tabs({ tabs, value, onChange, variant = 'segmented' }) {
+export function Tabs({ tabs, value, onChange, variant = 'segmented', actions }) {
   if (variant === 'bar') {
     return (
-      <div
-        role="tablist"
-        className="page-tabs sticky top-0 z-10 flex shrink-0 gap-1 overflow-x-auto border-b border-ink-800 bg-ink-900 px-1 [scrollbar-width:none]"
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            role="tab"
-            aria-selected={value === tab.id}
-            onClick={() => onChange(tab.id)}
-            className={`flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors ${
-              value === tab.id
-                ? 'border-sulfur-400 font-medium text-slate-100'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Icon icon={tab.icon} className={`size-4 ${value === tab.id ? 'text-sulfur-400' : ''}`} />
-            {tab.label}
-            {tab.badge}
-          </button>
-        ))}
+      <div className="page-tabs sticky top-0 z-10 flex shrink-0 items-center border-b border-ink-800 bg-ink-900 px-1">
+        <div role="tablist" className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none]">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={value === tab.id}
+              onClick={() => onChange(tab.id)}
+              className={`flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors ${
+                value === tab.id
+                  ? 'border-sulfur-400 font-medium text-slate-100'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Icon icon={tab.icon} className={`size-4 ${value === tab.id ? 'text-sulfur-400' : ''}`} />
+              {tab.label}
+              {tab.badge}
+            </button>
+          ))}
+        </div>
+        {actions && <div className="flex shrink-0 items-center gap-1 pl-2">{actions}</div>}
       </div>
     )
   }
@@ -292,12 +292,13 @@ export function Tabs({ tabs, value, onChange, variant = 'segmented' }) {
 
 /**
  * Page de module à onglets : barre d'onglets pleine largeur sous l'en-tête (toujours visible au
- * défilement), puis le contenu avec les marges standard. `className` complète le conteneur du contenu.
+ * défilement, `actions` à droite), puis le contenu avec les marges standard. `className` complète
+ * le conteneur du contenu.
  */
-export function TabbedPage({ tabs, value, onChange, className = '', children }) {
+export function TabbedPage({ tabs, value, onChange, actions, className = '', children }) {
   return (
     <div className="flex h-full flex-col">
-      <Tabs variant="bar" tabs={tabs} value={value} onChange={onChange} />
+      <Tabs variant="bar" tabs={tabs} value={value} onChange={onChange} actions={actions} />
       <div className={`flex min-h-0 flex-1 flex-col gap-3 p-4 ${className}`}>{children}</div>
     </div>
   )

@@ -40,6 +40,18 @@ export default {
     renameRecreates: 'Renommer recrée le nœud (son identifiant change)',
     typeRecreates: 'Changer le type recrée le nœud',
     certificates: 'Certificats',
+    instances: {
+      add: 'Ajouter',
+      addRole: 'Nouveau : {role}',
+      rename: 'Renommer',
+      remove: 'Supprimer',
+      removeTitle: 'Supprimer « {name} » ?',
+      removeText:
+        'Ses réglages sont supprimés avec lui. Les flux du simulateur et les courbes qui utilisent ses points ne les trouveront plus.',
+      removeRunning: 'Arrêtez-le avant de le supprimer',
+      empty: 'Aucune instance',
+      emptyHint: 'Ajoutez un serveur ou un client pour commencer. Vous pouvez en créer autant que nécessaire.'
+    },
     autoAcceptServerCert: 'Accepter automatiquement le certificat du serveur',
     autoAcceptUnknownCerts: 'Accepter automatiquement les certificats inconnus',
     security: 'Sécurité',
@@ -56,7 +68,11 @@ export default {
     minPeriod: 'Période minimale : {min} ms',
     unknownStore: 'Magasin de certificats inconnu : {name}',
     certNotFound: 'Certificat introuvable',
-    emptyPassword: 'Le mot de passe est vide'
+    emptyPassword: 'Le mot de passe est vide',
+    emptyName: 'Le nom est vide',
+    unknownInstance: 'Instance inconnue : {id}',
+    unknownRole: "Type d'instance inconnu : {role}",
+    instanceBusy: '« {name} » est en marche : arrêtez-le avant de le supprimer'
   },
   simulations: {
     none: 'Statique',

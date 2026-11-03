@@ -50,7 +50,17 @@ beforeAll(async () => {
   modbus = {
     server: modbusServer,
     client: modbusClient,
-    api: modbusPoints({ server: modbusServer, client: modbusClient })
+    // Instances d'identifiants `server` et `client`, comme après la migration d'une configuration
+    // antérieure : les clés de points (`modbus/server:<id>`) sont celles d'avant les instances.
+    api: modbusPoints({
+      instances: {
+        all: (role) =>
+          [
+            { instance: { id: 'server', role: 'server', name: 'Serveur 1' }, object: modbusServer },
+            { instance: { id: 'client', role: 'client', name: 'Client 1' }, object: modbusClient }
+          ].filter((e) => !role || e.instance.role === role)
+      }
+    })
   }
   peers = [
     { id: 'opcua', api: opcua.api },

@@ -35,6 +35,11 @@ Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 - [X] **Mises à jour** : nouvelles versions détectées depuis les releases GitHub, téléchargées et
   installées depuis les paramètres (Windows, AppImage, .deb ; sous macOS, lien vers la release).
   Recherche automatique désactivable.
+- [ ] **Serveurs et clients multiples** : autant d'instances que nécessaire par module, aucune par
+  défaut (socle du SDK : `defineInstances`, `InstancesPage`).
+  - [X] Socle (SDK, activité, simulateur, courbes, migration des configurations) et module Modbus.
+  - [ ] Autres modules de protocole : OPC UA, HTTP, NTP, Siemens S7, MQTT, SNMP, Syslog, DNS,
+    DHCP, LDAP / RADIUS, TFTP, FTP / SFTP, CoAP / LwM2M ; module additionnel Siemens S7 Enhanced.
 
 ## Fonctions de simulation
 

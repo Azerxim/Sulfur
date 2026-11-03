@@ -1,49 +1,28 @@
-import { useEffect, useState } from 'react'
 import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
-import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
-import { modbusApi } from './api'
+import { InstancesPage, useInstanceStatuses } from '@azerxim/sulfur-sdk/ui'
 import ServerPanel from './ServerPanel'
 import ClientPanel from './ClientPanel'
 import { t } from '../shared/i18n'
 
-const dot = (on) => <span className={`size-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+const IDLE = { server: { running: false, connections: [] }, client: { connected: false, watches: [] } }
 
+/** Page du module : un onglet par serveur ou client (aucun par défaut). */
 export default function ModbusView() {
-  const [tab, setTab] = useStoredState('sulfur:tab:modbus', 'server', ['server', 'client'])
-  const [serverStatus, setServerStatus] = useState({ running: false, connections: [] })
-  const [clientStatus, setClientStatus] = useState({ connected: false, watches: [] })
-  // Serveur local joignable en TCP : le client peut s'y aligner (port, transport, TLS).
-  const serverTransport = serverStatus.running ? serverStatus.config?.transport : null
-  const networkServer = serverTransport === 'tcp' || serverTransport === 'rtuOverTcp'
-
-  useEffect(() => {
-    modbusApi.server.status().then(setServerStatus)
-    modbusApi.client.status().then(setClientStatus)
-    const offs = [modbusApi.server.onStatus(setServerStatus), modbusApi.client.onStatus(setClientStatus)]
-    return () => offs.forEach((off) => off())
-  }, [])
-
+  const statuses = { ...useInstanceStatuses('modbus', 'server'), ...useInstanceStatuses('modbus', 'client') }
+  const roles = [
+    { role: 'server', label: t('ui.server'), icon: faServer },
+    { role: 'client', label: t('ui.client'), icon: faComputer }
+  ]
   return (
-    <TabbedPage
-      value={tab}
-      onChange={setTab}
-      tabs={[
-        { id: 'server', label: t('ui.server'), icon: faServer, badge: dot(serverStatus.running) },
-        { id: 'client', label: t('ui.client'), icon: faComputer, badge: dot(clientStatus.connected) }
-      ]}
-    >
-      {/* Les deux panneaux restent montés pour conserver leur état local. */}
-      <div className={tab === 'server' ? 'contents' : 'hidden'}>
-        <ServerPanel status={serverStatus} />
-      </div>
-      <div className={tab === 'client' ? 'contents' : 'hidden'}>
-        <ClientPanel
-          status={clientStatus}
-          serverPort={networkServer ? serverStatus.config?.port : null}
-          serverMode={networkServer ? serverStatus.config?.security?.mode : null}
-          serverTransport={networkServer ? serverTransport : null}
-        />
-      </div>
-    </TabbedPage>
+    <InstancesPage moduleId="modbus" roles={roles} statuses={statuses}>
+      {(instance) => {
+        const status = statuses[instance.id] ?? IDLE[instance.role]
+        return instance.role === 'server' ? (
+          <ServerPanel instance={instance} status={status} />
+        ) : (
+          <ClientPanel instance={instance} status={status} />
+        )
+      }}
+    </InstancesPage>
   )
 }

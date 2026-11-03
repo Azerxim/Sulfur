@@ -4,6 +4,8 @@ import { useMemo, useSyncExternalStore } from 'react'
  * Activité des modules, déduite de leurs canaux d'état (`<id>:server:status`, `<id>:client:status`,
  * `<id>:status`…, listés par le process principal) : lus au chargement puis suivis par les
  * événements du même nom. Sert à la barre latérale, à l'en-tête des modules et à l'accueil.
+ * Le canal d'un rôle à instances (voir `defineInstances` du SDK) donne la liste des états de ses
+ * instances : chacune compte comme un serveur ou un client.
  */
 let statuses = {}
 const listeners = new Set()
@@ -59,7 +61,9 @@ const isClientChannel = (channel) => /client:status$/.test(channel)
  * nombre de sessions ou connexions clientes.
  */
 export function summarizeActivity(byChannel = {}) {
-  const entries = Object.entries(byChannel).filter(([, status]) => isActive(status))
+  const entries = Object.entries(byChannel)
+    .flatMap(([channel, status]) => (Array.isArray(status) ? status.map((s) => [channel, s]) : [[channel, status]]))
+    .filter(([, status]) => isActive(status))
   const clients = entries.filter(([channel]) => isClientChannel(channel))
   const others = entries.filter(([channel]) => !isClientChannel(channel)).map(([, status]) => status)
   const endpoint = others.map(endpointOf).find(Boolean) ?? null

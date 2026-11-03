@@ -5,7 +5,6 @@ import { Button, Card, CommitInput, ErrorBanner, Field, Input, Select } from '@a
 import { TABLES } from '../shared/constants'
 import { decodeValue, pointSize } from '../shared/codec'
 import { unitLabel } from '../shared/units'
-import { modbusApi } from './api'
 import { t } from '../shared/i18n'
 
 /** Rafraîchissement de la mémoire affichée (ms). */
@@ -37,7 +36,7 @@ const formatNumber = (v) =>
  * Explorateur de la mémoire brute du serveur : une table d'un équipement, par pages, rafraîchie en
  * continu. Les adresses occupées par un point sont repérées ; chaque valeur est modifiable.
  */
-export default function RegisterExplorer({ units, running, wordOrder }) {
+export default function RegisterExplorer({ api, units, running, wordOrder }) {
   const [unitId, setUnitId] = useState(units[0]?.id)
   const [table, setTable] = useState('holdingRegisters')
   const [start, setStart] = useState(0)
@@ -56,7 +55,7 @@ export default function RegisterExplorer({ units, running, wordOrder }) {
     }
     let stopped = false
     const load = () =>
-      modbusApi.server.registers(unit.id, table, start, count).then(
+      api.registers(unit.id, table, start, count).then(
         (values) => {
           if (stopped) return
           setData({ unitId: unit.id, table, start, values })
@@ -70,7 +69,7 @@ export default function RegisterExplorer({ units, running, wordOrder }) {
       stopped = true
       clearInterval(timer)
     }
-  }, [running, unit, table, start, count])
+  }, [api, running, unit, table, start, count])
 
   // Adresse → point qui l'occupe, pour la table affichée.
   const owners = useMemo(() => {
@@ -83,7 +82,7 @@ export default function RegisterExplorer({ units, running, wordOrder }) {
   }, [unit, table])
 
   const write = (address, value) =>
-    modbusApi.server
+    api
       .writeRegister(unit.id, table, address, value)
       .then(() => setError(null))
       .catch((err) => setError(err.message))

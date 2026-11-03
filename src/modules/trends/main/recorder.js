@@ -41,7 +41,7 @@ export class TrendRecorder {
     return this.status()
   }
 
-  /** Points numériques publiés par les modules : [{ key, module, moduleName, group, name, dataType }] */
+  /** Points numériques publiés par les modules : [{ key, module, moduleName, group, groupName, name, dataType }] */
   points() {
     return this.peers().flatMap(({ id, api }) =>
       api
@@ -52,6 +52,7 @@ export class TrendRecorder {
           module: id,
           moduleName: api.name,
           group: p.group,
+          groupName: p.groupName,
           name: p.name,
           dataType: p.dataType
         }))

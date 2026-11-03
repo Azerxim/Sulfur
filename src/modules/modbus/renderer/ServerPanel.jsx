@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCopy, faLock, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -13,6 +13,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
+import { instanceSection } from '@azerxim/sulfur-sdk'
 import {
   DATA_TYPES,
   DEFAULT_IDENTITY,
@@ -104,8 +105,13 @@ function LiveValue({ point, value, onSet }) {
   return <CommitInput className="font-mono text-sulfur-300" value={formatValue(value)} onCommit={onSet} />
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('modbus', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => modbusApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'modbus',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -126,9 +132,9 @@ export default function ServerPanel({ status }) {
   }, [running])
 
   useEffect(() => {
-    modbusApi.server.values().then(setValues)
-    return modbusApi.server.onValues(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onValues(setValues)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -146,7 +152,7 @@ export default function ServerPanel({ status }) {
   const liveSync = (action) =>
     action().catch(async (err) => {
       setError(err.message)
-      const current = await modbusApi.server.status()
+      const current = await api.status()
       if (current.config) setConfig(current.config)
     })
 
@@ -165,7 +171,7 @@ export default function ServerPanel({ status }) {
     setUnits((list) => list.map((u) => (u.id === id ? next : u)))
     if (running) {
       const { points: _points, ...def } = next
-      debounce(`unit:${id}`, () => liveSync(() => modbusApi.server.updateUnit(def)), immediate)
+      debounce(`unit:${id}`, () => liveSync(() => api.updateUnit(def)), immediate)
     }
   }
 
@@ -173,14 +179,14 @@ export default function ServerPanel({ status }) {
     const u = newUnit(units)
     setUnits((list) => [...list, u])
     setSelectedUnit(u.id)
-    if (running) liveSync(() => modbusApi.server.addUnit(u))
+    if (running) liveSync(() => api.addUnit(u))
   }
 
   function removeUnit(id) {
     const rest = units.filter((u) => u.id !== id)
     setUnits(() => rest)
     setSelectedUnit(rest[0]?.id)
-    if (running) liveSync(() => modbusApi.server.removeUnit(id))
+    if (running) liveSync(() => api.removeUnit(id))
   }
 
   const setPoints = (fn) => setUnits((list) => list.map((u) => (u.id === unit.id ? { ...u, points: fn(u.points) } : u)))
@@ -189,7 +195,7 @@ export default function ServerPanel({ status }) {
     const next = { ...unit.points.find((p) => p.id === id), ...patch }
     setPoints((points) => points.map((p) => (p.id === id ? next : p)))
     const unitId = unit.id
-    if (running) debounce(id, () => liveSync(() => modbusApi.server.upsertPoint(next, unitId)), immediate)
+    if (running) debounce(id, () => liveSync(() => api.upsertPoint(next, unitId)), immediate)
   }
 
   function changeTable(point, table) {
@@ -213,13 +219,13 @@ export default function ServerPanel({ status }) {
   function addPoint() {
     const p = newPoint(unit.points)
     setPoints((points) => [...points, p])
-    if (running) liveSync(() => modbusApi.server.upsertPoint(p, unit.id))
+    if (running) liveSync(() => api.upsertPoint(p, unit.id))
   }
 
   function removePoint(id) {
     clearTimeout(timers.current[id])
     setPoints((points) => points.filter((p) => p.id !== id))
-    if (running) liveSync(() => modbusApi.server.removePoint(id))
+    if (running) liveSync(() => api.removePoint(id))
   }
 
   function setSecurity(security) {
@@ -276,7 +282,7 @@ export default function ServerPanel({ status }) {
               label={running ? t('modbus.server.running', { count: status.connections?.length ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(modbusApi.server.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
@@ -284,7 +290,7 @@ export default function ServerPanel({ status }) {
                 variant="primary"
                 size="sm"
                 disabled={busy || invalid}
-                onClick={() => run(() => modbusApi.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
@@ -360,7 +366,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy}
                 onCommit={(raw) => {
                   update({ updateRate: Number(raw) })
-                  if (running) live(() => modbusApi.server.setUpdateRate(Number(raw)))
+                  if (running) live(() => api.setUpdateRate(Number(raw)))
                 }}
               />
             </Field>
@@ -583,7 +589,7 @@ export default function ServerPanel({ status }) {
                         <LiveValue
                           point={p}
                           value={values[p.id]}
-                          onSet={(raw) => live(() => modbusApi.server.setValue(p.id, raw))}
+                          onSet={(raw) => live(() => api.setValue(p.id, raw))}
                         />
                       ) : (
                         <Input
@@ -647,9 +653,9 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <RegisterExplorer units={units} running={running} wordOrder={config.wordOrder} />
+      <RegisterExplorer api={api} units={units} running={running} wordOrder={config.wordOrder} />
 
-      <ServerActivity status={status} />
+      <ServerActivity api={api} status={status} />
     </div>
   )
 }

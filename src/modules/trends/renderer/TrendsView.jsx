@@ -34,7 +34,10 @@ import { t } from '../shared/i18n'
 /** Fréquence de rafraîchissement de la liste des points (les surveillances des clients changent). */
 const POINTS_REFRESH = 3000
 
-const pointLabel = (p) => `${p.moduleName} · ${t(`trends.groups.${p.group}`)} · ${p.name}`
+/** Groupe d'un point : « Modbus · Serveur », ou le nom de l'instance qui le porte. */
+const groupLabel = (p) => `${p.moduleName} · ${p.groupName ?? t(`trends.groups.${p.group}`)}`
+
+const pointLabel = (p) => `${groupLabel(p)} · ${p.name}`
 
 export default function TrendsView() {
   const [config, setConfig] = usePersistentState('trends', 'config', DEFAULT_CONFIG)
@@ -120,7 +123,7 @@ export default function TrendsView() {
   }
 
   const available = points.filter((p) => !config.series.some((s) => s.key === p.key))
-  const groups = Object.entries(Object.groupBy(available, (p) => `${p.moduleName} · ${t(`trends.groups.${p.group}`)}`))
+  const groups = Object.entries(Object.groupBy(available, groupLabel))
   const visible = series.filter((s) => !s.hidden)
   const split = config.layout === 'split'
 

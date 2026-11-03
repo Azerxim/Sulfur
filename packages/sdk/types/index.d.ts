@@ -100,7 +100,7 @@ export interface ModuleContext {
   emit(event: string, payload?: unknown): void
   /** Configuration enregistrée du module : `{ <section>: valeur }`. */
   config(): Record<string, unknown>
-  /** Remplace une section de la configuration enregistrée (état propre au process principal). */
+  /** Remplace une section de la configuration enregistrée (`undefined` : la supprime). */
   setConfig(section: string, value: unknown): void
   /** Publie les points de données du module pour les autres modules (simulateur, courbes). */
   expose(api: PointsApi): void
@@ -124,7 +124,10 @@ export interface MainModule {
 export interface Point {
   /** Identifiant local au module (hors du module : `<moduleId>/<id>`). */
   id: string
-  group: 'server' | 'client'
+  /** Rôle de ce qui porte le point. */
+  group: 'server' | 'client' | (string & {})
+  /** Nom de l'instance qui porte le point (« Serveur atelier »), affiché à la place du rôle. */
+  groupName?: string
   name: string
   dataType: string
   numeric: boolean
@@ -165,6 +168,34 @@ export function pointKey(moduleId: string, id: string): string
 export function parsePointKey(key: string): { moduleId: string; id: string }
 /** Valeur numérique pour un graphique ou un CSV (booléen → 0 / 1), null sinon. */
 export function toNumber(value: unknown): number | null
+
+// --- Instances (serveurs, clients… en nombre libre) ------------------------------------------------
+
+export interface Instance {
+  /** Identifiant (`[a-zA-Z0-9_-]`), entre dans les canaux IPC et les identifiants des points. */
+  id: string
+  /** Rôle : `server`, `client`… */
+  role: string
+  name: string
+}
+
+/** Section de configuration qui liste les instances (`instances`). */
+export const INSTANCES_SECTION: string
+export const INSTANCE_ID_PATTERN: RegExp
+/** Section de configuration d'une instance : `<section>:<id>`. */
+export function instanceSection(section: string, instanceId: string): string
+/** Identifiant local d'un point d'instance : `<id instance>:<id du point>`. */
+export function instancePointId(instanceId: string, id: string): string
+export function parseInstancePointId(pointId: string): { instanceId: string; id: string }
+/** Instances d'une configuration de module (entrées invalides écartées). */
+export function instancesOf(config: unknown): Instance[]
+/**
+ * Configuration antérieure aux instances convertie : une instance d'identifiant égal au rôle par
+ * rôle dont une section existe (`server` → section `server:server`). Sans effet si la liste existe.
+ */
+export function migrateToInstances<T>(config: T, roles: Record<string, { sections: string[]; name: string }>): T
+/** Premier nom libre « <libellé> <n> ». */
+export function nextInstanceName(label: string, instances: { name: string }[]): string
 
 // --- Traductions ---------------------------------------------------------------------------------
 

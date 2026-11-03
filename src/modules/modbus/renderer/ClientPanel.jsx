@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowsLeftRight,
@@ -25,6 +25,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
+import { instanceSection } from '@azerxim/sulfur-sdk'
 import { getLocale } from '@azerxim/sulfur-sdk'
 import {
   DATA_TYPES,
@@ -100,12 +101,21 @@ function parseWrite(raw, format, wordOrder) {
     })
 }
 
-export default function ClientPanel({ status, serverPort, serverMode, serverTransport }) {
-  const [config, setConfig] = usePersistentState('modbus', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance, status }) {
+  const api = useMemo(() => modbusApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'modbus',
+    instanceSection('client', instance.id),
+    DEFAULT_CLIENT_CONFIG
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [certsOpen, setCertsOpen] = useState(false)
-  const [op, setOp] = usePersistentState('modbus', 'clientRequest', DEFAULT_CLIENT_REQUEST)
+  const [op, setOp] = usePersistentState(
+    'modbus',
+    instanceSection('clientRequest', instance.id),
+    DEFAULT_CLIENT_REQUEST
+  )
   const [result, setResult] = useState(null)
   const [writeValue, setWriteValue] = useState('')
   const [live, setLive] = useState({})
@@ -117,19 +127,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
   const tlsMode = config.transport === 'tcp' && security.mode === 'tls'
   const bit = TABLES[op.table].bit
 
-  // Aligne le port et le transport sur le serveur local (TCP) lorsqu'il démarre.
-  useEffect(() => {
-    if (serverPort && !connected) {
-      setConfig((c) => ({
-        ...c,
-        port: serverPort,
-        transport: serverTransport ?? c.transport,
-        security: { ...c.security, mode: serverMode ?? c.security.mode }
-      }))
-    }
-  }, [serverPort, serverMode, serverTransport, connected, setConfig])
-
-  useEffect(() => modbusApi.client.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [])
+  useEffect(() => api.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [api])
   useEffect(() => {
     if (!connected) {
       setLive({})
@@ -152,10 +150,10 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
   const updateSecurity = (patch) => setConfig((c) => ({ ...c, security: { ...c.security, ...patch } }))
   const updateOp = (patch) => setOp((o) => ({ ...o, ...patch }))
-  const connect = () => run(() => modbusApi.client.connect(config))
+  const connect = () => run(() => api.connect(config))
 
   async function read() {
-    const data = await run(() => modbusApi.client.read(op.table, Number(op.address), Number(op.quantity)))
+    const data = await run(() => api.read(op.table, Number(op.address), Number(op.quantity)))
     if (data) setResult({ ...op, address: Number(op.address), data, time: new Date().toISOString() })
   }
 
@@ -166,9 +164,9 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
           .split(/[,;\s]+/)
           .filter(Boolean)
         if (!values.length) throw new Error(t('modbus.client.errors.enterBits'))
-        await modbusApi.client.write(op.table, Number(op.address), values)
+        await api.write(op.table, Number(op.address), values)
       } else {
-        await modbusApi.client.write(op.table, Number(op.address), parseWrite(writeValue, op.format, op.wordOrder))
+        await api.write(op.table, Number(op.address), parseWrite(writeValue, op.format, op.wordOrder))
       }
       await read()
     })
@@ -177,7 +175,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
   /** Fonction 23 : écrit la saisie à l'adresse d'écriture puis lit la plage demandée, en une requête. */
   function readWrite() {
     run(async () => {
-      const data = await modbusApi.client.readWrite(
+      const data = await api.readWrite(
         Number(op.address),
         Number(op.quantity),
         Number(op.writeAddress ?? op.address),
@@ -189,13 +187,13 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
 
   const identify = () =>
     run(async () => {
-      const data = await modbusApi.client.identify(identificationCode)
+      const data = await api.identify(identificationCode)
       setIdentification({ ...data, time: new Date().toISOString() })
     })
 
   const watch = () =>
     run(() =>
-      modbusApi.client.addWatch({
+      api.addWatch({
         table: op.table,
         address: Number(op.address),
         dataType: bit ? 'Boolean' : FORMATS[op.format].type,
@@ -305,7 +303,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
               />
             </Field>
             {connected ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(modbusApi.client.disconnect)}>
+              <Button variant="danger" disabled={busy} onClick={() => run(api.disconnect)}>
                 <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
@@ -581,7 +579,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
               min={50}
               className="h-7! w-20!"
               value={status.pollInterval ?? DEFAULT_CLIENT_CONFIG.pollInterval}
-              onCommit={(raw) => run(() => modbusApi.client.setPollInterval(Number(raw)))}
+              onCommit={(raw) => run(() => api.setPollInterval(Number(raw)))}
             />
             ms
           </label>
@@ -622,7 +620,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                         variant="ghost"
                         size="icon"
                         title={t('ui.remove2')}
-                        onClick={() => run(() => modbusApi.client.removeWatch(w.id))}
+                        onClick={() => run(() => api.removeWatch(w.id))}
                       >
                         <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                       </Button>

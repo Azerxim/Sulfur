@@ -235,8 +235,8 @@ describe('Passerelle : plusieurs Unit ID', () => {
       { unitId: 4, points: DEFAULT_POINTS.map((p) => ({ id: p.id })) }
     ])
     const migrated = migrateModbusConfig({ server: { ...legacy, unitId: 4, points: DEFAULT_POINTS }, client: {} })
-    expect(migrated.server.units[0]).toMatchObject({ id: 'unit-1', unitId: 4 })
-    expect(migrated.server.points).toBeUndefined()
+    expect(migrated['server:server'].units[0]).toMatchObject({ id: 'unit-1', unitId: 4 })
+    expect(migrated['server:server'].points).toBeUndefined()
     expect(migrateModbusConfig(migrated)).toBe(migrated)
   })
 

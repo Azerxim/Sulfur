@@ -7,7 +7,7 @@ import type {
   ReactNode,
   SelectHTMLAttributes
 } from 'react'
-import type { ModuleManifest, Translate } from './index.js'
+import type { Instance, ModuleManifest, Translate } from './index.js'
 
 /** Définition d'icône FontAwesome (`faServer` de @fortawesome/free-solid-svg-icons…). */
 export interface IconDefinition {
@@ -62,6 +62,18 @@ export function Tabs<T extends string>(props: {
   value: T
   onChange: (id: T) => void
   tabs: { id: T; label: ReactNode; icon?: IconSource; badge?: ReactNode }[]
+  variant?: 'segmented' | 'bar'
+  /** Variante `bar` : contenu affiché à droite de la barre (boutons d'ajout…). */
+  actions?: ReactNode
+}): ReactElement
+/** Page à onglets : barre collée sous l'en-tête (`actions` à droite), puis le contenu. */
+export function TabbedPage<T extends string>(props: {
+  value: T
+  onChange: (id: T) => void
+  tabs: { id: T; label: ReactNode; icon?: IconSource; badge?: ReactNode }[]
+  actions?: ReactNode
+  className?: string
+  children?: ReactNode
 }): ReactElement
 export function Checkbox(props: InputHTMLAttributes<HTMLInputElement> & { label?: ReactNode }): ReactElement
 export function Modal(props: {
@@ -110,3 +122,27 @@ export function CertificatesDialog(props: {
   onClose: () => void
   t?: Translate
 }): ReactElement
+
+// --- Instances (serveurs, clients… en nombre libre) ------------------------------------------------
+
+/** Instances du module : liste (événement `<moduleId>:instances`) et actions. */
+export function useInstances(moduleId: string): {
+  instances: Instance[]
+  loaded: boolean
+  create(role: string, name?: string): Promise<Instance>
+  rename(id: string, name: string): Promise<string>
+  remove(id: string): Promise<void>
+}
+/** État des instances d'un rôle : `{ [id instance]: état }`. */
+export function useInstanceStatuses(moduleId: string, role: string): Record<string, Record<string, unknown>>
+/**
+ * Page à un onglet par instance (ajout par rôle, renommage, suppression d'une instance arrêtée) ;
+ * sans instance, propose d'en créer une.
+ */
+export function InstancesPage(props: {
+  moduleId: string
+  roles: { role: string; label: ReactNode; icon: IconSource }[]
+  statuses?: Record<string, Record<string, unknown>>
+  emptyHint?: ReactNode
+  children: (instance: Instance) => ReactNode
+}): ReactElement | null

@@ -126,6 +126,31 @@ Hors de son module, un point est désigné par `<moduleId>/<id local>` (`pointKe
 Types de défauts communs : `delay`, `noResponse`, `cut`, `exception`, `badStatus`, `kissOfDeath`,
 `freeze`.
 
+## Instances : serveurs et clients multiples
+
+Un module peut avoir autant de serveurs, de clients… (« rôles ») que l'on veut ; **aucune instance
+n'existe par défaut**. Le SDK fournit le mécanisme commun (Modbus l'utilise ; les autres modules de
+protocole suivront) :
+
+- **Process principal** : `defineInstances(ctx, { server: { label, create, busy, dispose }, … })`
+  (`@azerxim/sulfur-sdk/main`) crée un objet par instance et enregistre les canaux
+  `instances:list|create|rename|remove` et `<role>:status`. `instances.handle('server', 'start', fn)`
+  enregistre `<id>:server:start`, appelé avec l'identifiant de l'instance en premier argument ;
+  les événements d'une instance sont `<id>:<role>:<instance>:<événement>`. Une instance en marche
+  ne peut pas être supprimée.
+- **Configuration** : la liste est la section `instances` (`[{ id, role, name }]`) ; les réglages
+  d'une instance sont dans `<section>:<instance>` (`server:server-3fa2c1`), supprimés avec elle.
+  La liste est relue à chaque accès : import et réinitialisation sont pris en compte d'eux-mêmes.
+- **Interface** : `InstancesPage` (`@azerxim/sulfur-sdk/ui`) affiche un onglet par instance, les
+  boutons d'ajout par rôle, le nom modifiable et la suppression ; `useInstanceStatuses` donne l'état
+  de chaque instance. L'activité d'un module (barre latérale, accueil) compte chaque instance.
+- **Points** : l'identifiant local d'un point est `<instance>:<point>` et son groupe porte le nom de
+  l'instance (`groupName`), affiché par le simulateur et les courbes.
+- **Migration** : `migrateToInstances` convertit un serveur et un client uniques d'une version
+  antérieure en instances d'identifiants `server` et `client` (« Serveur 1 », « Client 1 ») : les
+  clés de points (`modbus/server:<point>`) restent les mêmes, les flux et courbes existants
+  continuent de fonctionner.
+
 ## SDK des modules
 
 Les modules n'utilisent l'application qu'à travers le **SDK des modules** `@azerxim/sulfur-sdk`

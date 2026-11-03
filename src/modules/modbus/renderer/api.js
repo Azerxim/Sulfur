@@ -2,44 +2,61 @@
 const invoke = (action, ...args) => window.sulfur.invoke(`modbus:${action}`, ...args)
 const on = (event, listener) => window.sulfur.on(`modbus:${event}`, listener)
 
+/** Canaux d'une instance : identifiant en premier argument, événements `<role>:<id>:<event>`. */
+const call =
+  (role, id) =>
+  (action, ...args) =>
+    invoke(`${role}:${action}`, id, ...args)
+const listen = (role, id) => (event, fn) => on(`${role}:${id}:${event}`, fn)
+
 export const modbusApi = {
   serialPorts: () => invoke('serial:list'),
-  server: {
-    status: () => invoke('server:status'),
-    start: (config) => invoke('server:start', config),
-    stop: () => invoke('server:stop'),
-    values: () => invoke('server:values'),
-    logs: () => invoke('server:logs'),
-    clearLogs: () => invoke('server:clearLogs'),
-    upsertPoint: (def, unitId) => invoke('server:upsertPoint', def, unitId),
-    removePoint: (id) => invoke('server:removePoint', id),
-    setValue: (id, value) => invoke('server:setValue', id, value),
-    setUpdateRate: (rate) => invoke('server:setUpdateRate', rate),
-    addUnit: (def) => invoke('server:addUnit', def),
-    updateUnit: (def) => invoke('server:updateUnit', def),
-    removeUnit: (id) => invoke('server:removeUnit', id),
-    registers: (unitId, table, address, count) => invoke('server:registers', unitId, table, address, count),
-    writeRegister: (unitId, table, address, value) => invoke('server:writeRegister', unitId, table, address, value),
-    onStatus: (fn) => on('server:status', fn),
-    onValues: (fn) => on('server:values', fn),
-    onLog: (fn) => on('server:log', fn)
+  /** Serveur `id` (voir InstancesPage du SDK). */
+  server(id) {
+    const run = call('server', id)
+    const sub = listen('server', id)
+    return {
+      status: () => run('status'),
+      start: (config) => run('start', config),
+      stop: () => run('stop'),
+      values: () => run('values'),
+      logs: () => run('logs'),
+      clearLogs: () => run('clearLogs'),
+      upsertPoint: (def, unitId) => run('upsertPoint', def, unitId),
+      removePoint: (pointId) => run('removePoint', pointId),
+      setValue: (pointId, value) => run('setValue', pointId, value),
+      setUpdateRate: (rate) => run('setUpdateRate', rate),
+      addUnit: (def) => run('addUnit', def),
+      updateUnit: (def) => run('updateUnit', def),
+      removeUnit: (unitId) => run('removeUnit', unitId),
+      registers: (unitId, table, address, count) => run('registers', unitId, table, address, count),
+      writeRegister: (unitId, table, address, value) => run('writeRegister', unitId, table, address, value),
+      onStatus: (fn) => sub('status', fn),
+      onValues: (fn) => sub('values', fn),
+      onLog: (fn) => sub('log', fn)
+    }
   },
-  client: {
-    status: () => invoke('client:status'),
-    connect: (config) => invoke('client:connect', config),
-    disconnect: () => invoke('client:disconnect'),
-    read: (table, address, quantity) => invoke('client:read', table, address, quantity),
-    write: (table, address, values) => invoke('client:write', table, address, values),
-    readWrite: (readAddress, readQuantity, writeAddress, values) =>
-      invoke('client:readWrite', readAddress, readQuantity, writeAddress, values),
-    identify: (code) => invoke('client:identify', code),
-    writeValue: (table, address, value, dataType, wordOrder) =>
-      invoke('client:writeValue', table, address, value, dataType, wordOrder),
-    addWatch: (item) => invoke('client:addWatch', item),
-    removeWatch: (id) => invoke('client:removeWatch', id),
-    setPollInterval: (ms) => invoke('client:setPollInterval', ms),
-    onStatus: (fn) => on('client:status', fn),
-    onData: (fn) => on('client:data', fn)
+  /** Client `id`. */
+  client(id) {
+    const run = call('client', id)
+    const sub = listen('client', id)
+    return {
+      status: () => run('status'),
+      connect: (config) => run('connect', config),
+      disconnect: () => run('disconnect'),
+      read: (table, address, quantity) => run('read', table, address, quantity),
+      write: (table, address, values) => run('write', table, address, values),
+      readWrite: (readAddress, readQuantity, writeAddress, values) =>
+        run('readWrite', readAddress, readQuantity, writeAddress, values),
+      identify: (code) => run('identify', code),
+      writeValue: (table, address, value, dataType, wordOrder) =>
+        run('writeValue', table, address, value, dataType, wordOrder),
+      addWatch: (item) => run('addWatch', item),
+      removeWatch: (watchId) => run('removeWatch', watchId),
+      setPollInterval: (ms) => run('setPollInterval', ms),
+      onStatus: (fn) => sub('status', fn),
+      onData: (fn) => sub('data', fn)
+    }
   }
 }
 
