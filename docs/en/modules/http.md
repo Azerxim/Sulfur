@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/http.md)
 
+- **Multiple instances**: as many servers and clients as needed, each in its own tab, with its name
+  and settings; none exists at first. A stopped instance can be renamed or removed. Those of an
+  earlier version become "Server 1" and "Client 1".
+
 - **Server** HTTP or HTTPS (self-signed certificate `HTTP@Sulfur`, generated on first start), default
   port 8080:
   - **simulated variables** (number, integer, boolean, text, JSON; sine, ramp, random, toggle),

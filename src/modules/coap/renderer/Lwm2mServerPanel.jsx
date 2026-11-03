@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faBolt,
@@ -11,7 +11,7 @@ import {
   faXmark
 } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { formatName } from '../shared/codec'
 import { DEFAULT_LWM2M_SERVER_CONFIG, READ_FORMATS } from '../shared/constants'
 import { OBJECTS, parsePath, pathLabel } from '../shared/lwm2m'
@@ -61,8 +61,8 @@ function OperationResult({ result }) {
 }
 
 /** Opérations sur un appareil enregistré : lecture, écriture, exécution, découverte, observation. */
-function DevicePanel({ registration }) {
-  const [form, setForm] = usePersistentState('coap', 'lwm2mOperation', {
+function DevicePanel({ api, instance, registration }) {
+  const [form, setForm] = usePersistentState('coap', instanceSection('lwm2mOperation', instance.id), {
     path: '/3303/0/5700',
     format: 11542,
     value: ''
@@ -121,16 +121,13 @@ function DevicePanel({ registration }) {
         </Field>
       </div>
       <div className="flex flex-wrap items-end gap-2">
-        <Button disabled={busy || !p} onClick={() => run(() => coapApi.lwm2mServer.read(id, form.path, form.format))}>
+        <Button disabled={busy || !p} onClick={() => run(() => api.read(id, form.path, form.format))}>
           <FontAwesomeIcon icon={faBookOpen} className="size-4" /> {t('coap.lwm2m.ops.read')}
         </Button>
-        <Button disabled={busy || !p} onClick={() => run(() => coapApi.lwm2mServer.discover(id, form.path))}>
+        <Button disabled={busy || !p} onClick={() => run(() => api.discover(id, form.path))}>
           <FontAwesomeIcon icon={faSatelliteDish} className="size-4" /> {t('coap.lwm2m.ops.discover')}
         </Button>
-        <Button
-          disabled={busy || !p}
-          onClick={() => run(() => coapApi.lwm2mServer.observe(id, form.path, form.format))}
-        >
+        <Button disabled={busy || !p} onClick={() => run(() => api.observe(id, form.path, form.format))}>
           <FontAwesomeIcon icon={faEye} className="size-4" /> {t('coap.lwm2m.ops.observe')}
         </Button>
         <span className="mx-1 h-6 w-px bg-ink-800" />
@@ -142,16 +139,10 @@ function DevicePanel({ registration }) {
             onChange={(e) => set({ value: e.target.value })}
           />
         </Field>
-        <Button
-          disabled={busy || !isResource}
-          onClick={() => run(() => coapApi.lwm2mServer.write(id, form.path, form.value))}
-        >
+        <Button disabled={busy || !isResource} onClick={() => run(() => api.write(id, form.path, form.value))}>
           <FontAwesomeIcon icon={faPen} className="size-4" /> {t('coap.lwm2m.ops.write')}
         </Button>
-        <Button
-          disabled={busy || !isResource}
-          onClick={() => run(() => coapApi.lwm2mServer.execute(id, form.path, form.value))}
-        >
+        <Button disabled={busy || !isResource} onClick={() => run(() => api.execute(id, form.path, form.value))}>
           <FontAwesomeIcon icon={faBolt} className="size-4" /> {t('coap.lwm2m.ops.execute')}
         </Button>
       </div>
@@ -162,8 +153,13 @@ function DevicePanel({ registration }) {
 }
 
 /** Serveur LwM2M : adresse, appareils enregistrés, opérations, observations et journal. */
-export default function Lwm2mServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('coap', 'lwm2mServer', DEFAULT_LWM2M_SERVER_CONFIG)
+export default function Lwm2mServerPanel({ instance, status }) {
+  const api = useMemo(() => coapApi.lwm2mServer(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'coap',
+    instanceSection('lwm2mServer', instance.id),
+    DEFAULT_LWM2M_SERVER_CONFIG
+  )
   const [selected, setSelected] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -205,11 +201,11 @@ export default function Lwm2mServerPanel({ status }) {
               />
             </Field>
             {running ? (
-              <Button disabled={busy} onClick={() => run(coapApi.lwm2mServer.stop)}>
+              <Button disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ui.stop')}
               </Button>
             ) : (
-              <Button variant="primary" disabled={busy} onClick={() => run(() => coapApi.lwm2mServer.start(config))}>
+              <Button variant="primary" disabled={busy} onClick={() => run(() => api.start(config))}>
                 <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('ui.start')}
               </Button>
             )}
@@ -267,7 +263,7 @@ export default function Lwm2mServerPanel({ status }) {
                       {t('coap.lwm2m.operations')}
                     </Button>
                   </div>
-                  {selected === reg.id && <DevicePanel registration={reg} />}
+                  {selected === reg.id && <DevicePanel api={api} instance={instance} registration={reg} />}
                 </div>
               ))}
             </div>
@@ -298,7 +294,7 @@ export default function Lwm2mServerPanel({ status }) {
                   size="sm"
                   variant="ghost"
                   className="ml-auto"
-                  onClick={() => coapApi.lwm2mServer.cancel(o.token).catch((err) => setError(err.message))}
+                  onClick={() => api.cancel(o.token).catch((err) => setError(err.message))}
                 >
                   <FontAwesomeIcon icon={faXmark} className="size-3.5" /> {t('coap.client.cancel')}
                 </Button>
@@ -310,9 +306,9 @@ export default function Lwm2mServerPanel({ status }) {
 
       <LogCard
         id="coap.lwm2m.log"
-        load={coapApi.lwm2mServer.log}
-        subscribe={coapApi.lwm2mServer.onLog}
-        clear={coapApi.lwm2mServer.clearLog}
+        load={api.log}
+        subscribe={api.onLog}
+        clear={api.clearLog}
         renderEntry={(e) => (
           <>
             <span className="w-20 shrink-0 font-sans text-sky-300">{t(`coap.lwm2m.ops.${e.op}`)}</span>

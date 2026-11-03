@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faKey, faMagnifyingGlass, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG, SCOPES } from '../shared/constants'
 import { ldapApi } from './api'
 import { t } from '../shared/i18n'
@@ -28,11 +28,17 @@ function Entries({ entries }) {
   )
 }
 
-export default function ClientPanel({ serverUrl }) {
+export default function ClientPanel({ instance }) {
+  const api = useMemo(() => ldapApi.client(instance.id), [instance.id])
   // Le mot de passe n'est pas enregistré dans la configuration.
-  const [config, setConfig] = usePersistentState('ldap', 'client', DEFAULT_CLIENT_CONFIG, {
-    persist: (c) => ({ ...c, password: '' })
-  })
+  const [config, setConfig] = usePersistentState(
+    'ldap',
+    instanceSection('client', instance.id),
+    DEFAULT_CLIENT_CONFIG,
+    {
+      persist: (c) => ({ ...c, password: '' })
+    }
+  )
   const [history, setHistory] = useState([])
   const [selected, setSelected] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -40,16 +46,11 @@ export default function ClientPanel({ serverUrl }) {
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
   useEffect(() => {
-    ldapApi.client.history().then((list) => {
+    api.history().then((list) => {
       setHistory(list)
       setSelected(list[0] ?? null)
     })
-  }, [])
-
-  // Aligne l'URL sur le serveur local lorsqu'il démarre.
-  useEffect(() => {
-    if (serverUrl) setConfig((c) => ({ ...c, url: serverUrl.replace('0.0.0.0', '127.0.0.1') }))
-  }, [serverUrl, setConfig])
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -84,7 +85,7 @@ export default function ClientPanel({ serverUrl }) {
             <Field label={t('ldap.client.password')}>
               <Input type="password" value={config.password} onChange={(e) => update({ password: e.target.value })} />
             </Field>
-            <Button variant="primary" disabled={busy} onClick={() => run(ldapApi.client.authenticate)}>
+            <Button variant="primary" disabled={busy} onClick={() => run(api.authenticate)}>
               <FontAwesomeIcon icon={faKey} className="size-4" /> {t('ldap.client.authenticate')}
             </Button>
           </div>
@@ -130,7 +131,7 @@ export default function ClientPanel({ serverUrl }) {
                 className="font-mono"
                 value={config.filter}
                 onChange={(e) => update({ filter: e.target.value })}
-                onKeyDown={(e) => e.key === 'Enter' && run(ldapApi.client.search)}
+                onKeyDown={(e) => e.key === 'Enter' && run(api.search)}
               />
             </Field>
             <Field label={t('ldap.client.attributes')}>
@@ -149,7 +150,7 @@ export default function ClientPanel({ serverUrl }) {
                 onChange={(e) => update({ sizeLimit: Number(e.target.value) })}
               />
             </Field>
-            <Button variant="primary" disabled={busy} onClick={() => run(ldapApi.client.search)}>
+            <Button variant="primary" disabled={busy} onClick={() => run(api.search)}>
               <FontAwesomeIcon icon={faMagnifyingGlass} className="size-4" /> {t('ldap.client.searchButton')}
             </Button>
           </div>
@@ -184,7 +185,7 @@ export default function ClientPanel({ serverUrl }) {
             variant="ghost"
             disabled={!history.length}
             onClick={() =>
-              ldapApi.client.clear().then(() => {
+              api.clear().then(() => {
                 setHistory([])
                 setSelected(null)
               })

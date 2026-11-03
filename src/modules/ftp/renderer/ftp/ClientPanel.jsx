@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowUp,
@@ -26,7 +26,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatDate, formatTime } from '@azerxim/sulfur-sdk'
+import { formatDate, formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG, TLS_MODES } from '../../shared/constants'
 import { formatSize } from '../format'
 import { ftpApi } from '../api'
@@ -37,24 +37,19 @@ const ICONS = { dir: faFolder, file: faFile, link: faLink }
 const DIRECTION_STYLES = { '>': 'text-sulfur-300', '<': 'text-slate-300' }
 
 /** Dialogue de commandes du client (réponses du serveur, commandes envoyées, mots de passe masqués). */
-function Dialog() {
+function Dialog({ api }) {
   const [entries, setEntries] = useState([])
   useEffect(() => {
-    ftpApi.client.dialog().then(setEntries)
-    return ftpApi.client.onDialog((entry) => setEntries((list) => [...list.slice(-299), entry]))
-  }, [])
+    api.dialog().then(setEntries)
+    return api.onDialog((entry) => setEntries((list) => [...list.slice(-299), entry]))
+  }, [api])
   return (
     <Card
       id="ftp.client.dialog"
       title={t('ftp.client.dialog', { count: entries.length })}
       className="min-h-48 shrink-0"
       actions={
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={!entries.length}
-          onClick={() => ftpApi.client.clearDialog().then(setEntries)}
-        >
+        <Button size="sm" variant="ghost" disabled={!entries.length} onClick={() => api.clearDialog().then(setEntries)}>
           <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ftp.server.clearLog')}
         </Button>
       }
@@ -80,9 +75,10 @@ function Dialog() {
   )
 }
 
-export default function ClientPanel({ status, serverPort }) {
+export default function ClientPanel({ instance, status }) {
+  const api = useMemo(() => ftpApi.client(instance.id), [instance.id])
   // Le mot de passe n'est pas enregistré.
-  const [config, setConfig] = usePersistentState('ftp', 'client', DEFAULT_CLIENT_CONFIG, {
+  const [config, setConfig] = usePersistentState('ftp', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG, {
     persist: (c) => ({ ...c, password: '' })
   })
   const [listing, setListing] = useState(null)
@@ -92,9 +88,6 @@ export default function ClientPanel({ status, serverPort }) {
   const connected = status.connected
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
-  useEffect(() => {
-    if (serverPort && !connected) setConfig((c) => ({ ...c, port: serverPort }))
-  }, [serverPort, connected, setConfig])
   useEffect(() => {
     if (!connected) setListing(null)
   }, [connected])
@@ -114,10 +107,10 @@ export default function ClientPanel({ status, serverPort }) {
     }
   }
 
-  const refresh = (dir) => run(() => ftpApi.client.list(dir), setListing)
+  const refresh = (dir) => run(() => api.list(dir), setListing)
   const connect = () =>
     run(
-      () => ftpApi.client.connect(config),
+      () => api.connect(config),
       () => refresh()
     )
   const join = (name) => `${listing.path.replace(/\/$/, '')}/${name}`
@@ -127,12 +120,12 @@ export default function ClientPanel({ status, serverPort }) {
   }
   const download = (entry) =>
     run(
-      () => ftpApi.client.download(join(entry.name)),
+      () => api.download(join(entry.name)),
       (result) => result && setMessage(t('ftp.client.downloaded', { path: result.local }))
     )
   const upload = () =>
     run(
-      () => ftpApi.client.upload(),
+      () => api.upload(),
       (result) => {
         if (!result) return
         setMessage(t('ftp.client.uploaded', { count: result.length }))
@@ -143,7 +136,7 @@ export default function ClientPanel({ status, serverPort }) {
     const name = prompt(t('ftp.client.newFolder'))
     if (name)
       run(
-        () => ftpApi.client.mkdir(join(name)),
+        () => api.mkdir(join(name)),
         () => refresh(listing.path)
       )
   }
@@ -151,14 +144,14 @@ export default function ClientPanel({ status, serverPort }) {
     const name = prompt(t('ftp.client.renameTo'), entry.name)
     if (name && name !== entry.name)
       run(
-        () => ftpApi.client.rename(join(entry.name), join(name)),
+        () => api.rename(join(entry.name), join(name)),
         () => refresh(listing.path)
       )
   }
   const remove = (entry) => {
     if (!confirm(t('ftp.client.confirmRemove', { name: entry.name }))) return
     run(
-      () => ftpApi.client.remove(join(entry.name), entry.type),
+      () => api.remove(join(entry.name), entry.type),
       () => refresh(listing.path)
     )
   }
@@ -211,7 +204,7 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             {connected ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(ftpApi.client.disconnect)}>
+              <Button variant="danger" disabled={busy} onClick={() => run(api.disconnect)}>
                 <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
@@ -353,7 +346,7 @@ export default function ClientPanel({ status, serverPort }) {
         </Card>
       )}
 
-      <Dialog />
+      <Dialog api={api} />
     </div>
   )
 }

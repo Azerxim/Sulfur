@@ -36,8 +36,9 @@ Make what exists reliable before adding features.
 - [ ] **Multiple servers and clients**: as many instances as needed per module, none by default
   (SDK foundation: `defineInstances`, `InstancesPage`).
   - [X] Foundation (SDK, activity, simulator, trends, configuration migration) and the Modbus module.
-  - [ ] Other protocol modules: OPC UA, HTTP, NTP, Siemens S7, MQTT, SNMP, Syslog, DNS, DHCP,
-    LDAP / RADIUS, TFTP, FTP / SFTP, CoAP / LwM2M; additional module Siemens S7 Enhanced.
+  - [X] Other protocol modules: OPC UA, HTTP, NTP, Siemens S7, MQTT, SNMP, Syslog, DNS, DHCP,
+    LDAP / RADIUS, TFTP, FTP / SFTP, CoAP / LwM2M.
+  - [ ] Additional module Siemens S7 Enhanced.
 
 ## Simulation features
 

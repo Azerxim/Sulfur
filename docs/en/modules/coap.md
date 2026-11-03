@@ -2,8 +2,12 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/coap.md)
 
+- **Multiple instances**: as many CoAP servers and clients, LwM2M servers and LwM2M devices as
+  needed, each in its own tab, with its name and settings; none exists at first. A stopped instance
+  can be renamed or removed. Those of an earlier version become "CoAP server 1", "CoAP client 1"…
+
 Protocols of constrained sensors and connected devices, alongside MQTT: CoAP (RFC 7252) over UDP and
-LwM2M (OMA), which builds on CoAP to manage devices remotely. Four tabs.
+LwM2M (OMA), which builds on CoAP to manage devices remotely.
 
 - **Simulated CoAP server** (port 5683 by default):
   - resources simulated like the MQTT topics (number, integer, boolean or text; fixed or generated

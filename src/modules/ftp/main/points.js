@@ -1,3 +1,4 @@
+import { instancesPointsApi } from '@azerxim/sulfur-sdk'
 import { FORCED_REPLIES } from '../shared/constants'
 import { t } from '../shared/i18n'
 
@@ -9,61 +10,49 @@ const COUNTERS = [
   { key: 'failures', name: 'failed logins' }
 ]
 
-/** Points d'un serveur : sessions ouvertes et compteurs, préfixés par le protocole (ftp:…, sftp:…). */
-const serverPoints = (protocol, label) => [
-  { id: `${protocol}:sessions`, name: `${label} sessions` },
-  ...COUNTERS.map(({ key, name }) => ({ id: `${protocol}:${key}`, name: `${label} ${name}` }))
-]
-
-/**
- * Points de données du module FTP / SFTP (contrat : `points.js` du SDK) : compteurs des deux serveurs.
- * Les défauts s'appliquent aux deux serveurs (SFTP : délai et coupure uniquement).
- */
-export function createPointsApi({ ftpServer, sftpServer }) {
-  const servers = { ftp: ftpServer, sftp: sftpServer }
+/** Points d'un serveur FTP ou SFTP : sessions ouvertes et compteurs. */
+export function serverPoints(server, label) {
   return {
-    name: 'FTP / SFTP',
-
-    points() {
-      return [...serverPoints('ftp', 'FTP'), ...serverPoints('sftp', 'SFTP')].map((p) => ({
-        ...p,
-        group: 'server',
-        dataType: 'Int32',
-        numeric: true,
-        writable: false
-      }))
-    },
-
-    read(ids) {
-      return Object.fromEntries(
-        ids.map((id) => {
-          const [protocol, key] = id.split(':')
-          const server = servers[protocol]
-          if (!server?.running) return [id, undefined]
-          return [id, key === 'sessions' ? server.sessions.size : server.counters[key]]
-        })
-      )
-    },
-
+    points: () =>
+      [
+        { id: 'sessions', name: `${label} sessions` },
+        ...COUNTERS.map(({ key, name }) => ({ id: key, name: `${label} ${name}` }))
+      ].map((p) => ({ ...p, dataType: 'Int32', numeric: true, writable: false })),
+    read: (ids) =>
+      Object.fromEntries(
+        ids.map((id) => [
+          id,
+          !server.running ? undefined : id === 'sessions' ? server.sessions.size : server.counters[id]
+        ])
+      ),
     async write(id) {
       throw new Error(t('ftp.errors.readOnlyPoint', { id }))
     },
-
-    faultTypes() {
-      return [
-        { type: 'delay' },
-        { type: 'noResponse' },
-        { type: 'cut' },
-        {
-          type: 'exception',
-          codes: FORCED_REPLIES.map((code) => ({ value: code, label: t(`ftp.replyCodes.${code}`) }))
-        }
-      ]
-    },
-
-    setFaults(faults) {
-      ftpServer.setFaults(faults)
-      sftpServer.setFaults(faults)
-    }
+    setFaults: (faults) => server.setFaults(faults)
   }
+}
+
+/**
+ * Points de données du module FTP / SFTP (contrat : `points.js` du SDK) : compteurs de chaque
+ * serveur, `<id instance>:<id>`. Les défauts s'appliquent aux serveurs (SFTP : délai et coupure
+ * uniquement).
+ */
+export function createPointsApi({ instances }) {
+  return instancesPointsApi({
+    name: 'FTP / SFTP',
+    instances,
+    roles: {
+      server: (server) => serverPoints(server, 'FTP'),
+      sftpServer: (server) => serverPoints(server, 'SFTP')
+    },
+    faultTypes: () => [
+      { type: 'delay' },
+      { type: 'noResponse' },
+      { type: 'cut' },
+      {
+        type: 'exception',
+        codes: FORCED_REPLIES.map((code) => ({ value: code, label: t(`ftp.replyCodes.${code}`) }))
+      }
+    ]
+  })
 }

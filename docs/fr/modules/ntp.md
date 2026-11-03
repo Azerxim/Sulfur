@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/ntp.md) · **Français**
 
+- **Instances multiples** : autant de serveurs et clients que nécessaire, chacun dans son onglet,
+  avec son nom et ses réglages ; aucun n'existe au départ. Une instance arrêtée peut être renommée
+  ou supprimée. Ceux d'une version antérieure deviennent « Serveur 1 » et « Client 1 ».
+
 - **Serveur** (UDP, port par défaut 1123 ; le port standard 123 demande des droits administrateur
   sous Linux) : répond aux requêtes client NTP v1 à v4 avec une **horloge simulée** : décalage par
   rapport à l'heure réelle (sauts de ±1 min à ±1 an en un clic) ou heure de départ fixée, dérive en

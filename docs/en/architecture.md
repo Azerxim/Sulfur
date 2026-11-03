@@ -128,7 +128,7 @@ Common fault types: `delay`, `noResponse`, `cut`, `exception`, `badStatus`, `kis
 ## Instances: multiple servers and clients
 
 A module can have as many servers, clients… ("roles") as wanted; **no instance exists by default**.
-The SDK provides the common mechanism (Modbus uses it; the other protocol modules will follow):
+The SDK provides the common mechanism, used by every protocol module:
 
 - **Main process**: `defineInstances(ctx, { server: { label, create, busy, dispose }, … })`
   (`@azerxim/sulfur-sdk/main`) creates one object per instance and registers the
@@ -143,7 +143,8 @@ The SDK provides the common mechanism (Modbus uses it; the other protocol module
   buttons per role, the editable name and removal; `useInstanceStatuses` gives each instance's
   status. A module's activity (sidebar, home) counts every instance.
 - **Points**: a point's local id is `<instance>:<point>` and its group carries the instance name
-  (`groupName`), shown by the simulator and trends.
+  (`groupName`), shown by the simulator and trends. `instancesPointsApi` builds the module's points
+  from those of each instance (reads, writes, faults).
 - **Migration**: `migrateToInstances` turns a single server and client from an earlier version into
   instances with ids `server` and `client` ("Server 1", "Client 1"): point keys
   (`modbus/server:<point>`) stay the same, existing flows and trends keep working.

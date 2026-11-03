@@ -2,8 +2,13 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/coap.md) · **Français**
 
+- **Instances multiples** : autant de serveurs et clients CoAP, serveurs LwM2M et appareils LwM2M
+  que nécessaire, chacun dans son onglet, avec son nom et ses réglages ; aucun n'existe au départ.
+  Une instance arrêtée peut être renommée ou supprimée. Ceux d'une version antérieure deviennent «
+  Serveur CoAP 1 », « Client CoAP 1 »…
+
 Protocoles des capteurs et objets connectés contraints, en complément de MQTT : CoAP (RFC 7252) sur UDP
-et LwM2M (OMA), qui s'appuie sur CoAP pour gérer des appareils à distance. Quatre onglets.
+et LwM2M (OMA), qui s'appuie sur CoAP pour gérer des appareils à distance.
 
 - **Serveur CoAP** simulé (port 5683 par défaut) :
   - ressources simulées comme les topics MQTT (nombre, entier, booléen ou texte ; valeur fixe ou

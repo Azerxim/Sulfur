@@ -1,92 +1,120 @@
+import { migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
 import { COAP_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { CoapServer } from './server'
 import { CoapClient } from './client'
 import { Lwm2mServer } from './lwm2m-server'
 import { Lwm2mDevice } from './lwm2m-client'
 import { createPointsApi } from './points'
 
-let server = null
-let client = null
-let lwm2mServer = null
-let device = null
+/** Instances uniques d'une version antérieure, converties en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('coap.tabs.server')} 1` },
+    client: { sections: ['client'], name: `${t('coap.tabs.client')} 1` },
+    lwm2mServer: { id: 'lwm2m', sections: ['lwm2mServer', 'lwm2mOperation'], name: `${t('coap.tabs.lwm2mServer')} 1` },
+    device: { sections: ['device'], name: `${t('coap.tabs.device')} 1` }
+  })
+
+let instances = null
 
 /**
- * Partie "main" du module CoAP / LwM2M. Canaux : `coap:server:*` (serveur CoAP simulé),
- * `coap:client:*` (client CoAP), `coap:lwm2m:server:*` (serveur LwM2M) et `coap:lwm2m:client:*`
- * (appareil LwM2M simulé).
+ * Partie "main" du module CoAP / LwM2M : serveurs et clients CoAP, serveurs LwM2M et appareils
+ * LwM2M simulés en nombre libre (aucun par défaut, voir `defineInstances` du SDK). Canaux :
+ * `coap:instances:*`, `coap:server:*`, `coap:client:*`, `coap:lwm2mServer:*` et `coap:device:*`
+ * (identifiant de l'instance en premier argument).
  */
 export const coapMainModule = {
   manifest: COAP_MODULE,
 
+  migrateConfig,
+
   activate(ctx) {
-    server = new CoapServer({
-      onStatus: (status) => ctx.emit('server:status', status),
-      onLog: (batch) => ctx.emit('server:log', batch),
-      onValues: (values) => ctx.emit('server:values', values)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('coap.tabs.server'),
+        create: (_instance, { emit }) =>
+          new CoapServer({
+            onStatus: (status) => emit('status', status),
+            onLog: (batch) => emit('log', batch),
+            onValues: (values) => emit('values', values)
+          }),
+        busy: (server) => server.running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('coap.tabs.client'),
+        create: (_instance, { emit }) =>
+          new CoapClient({
+            onStatus: (status) => emit('status', status),
+            onEntry: (entry) => emit('entry', entry)
+          }),
+        busy: (client) => client.observations.size > 0,
+        dispose: (client) => client.dispose()
+      },
+      lwm2mServer: {
+        label: () => t('coap.tabs.lwm2mServer'),
+        create: (_instance, { emit }) =>
+          new Lwm2mServer({
+            onStatus: (status) => emit('status', status),
+            onLog: (batch) => emit('log', batch)
+          }),
+        busy: (server) => server.running,
+        dispose: (server) => server.stop()
+      },
+      device: {
+        label: () => t('coap.tabs.device'),
+        create: (_instance, { emit }) =>
+          new Lwm2mDevice({
+            onStatus: (status) => emit('status', status),
+            onLog: (batch) => emit('log', batch)
+          }),
+        busy: (device) => device.running,
+        dispose: (device) => device.stop()
+      }
     })
-    client = new CoapClient({
-      onStatus: (status) => ctx.emit('client:status', status),
-      onEntry: (entry) => ctx.emit('client:entry', entry)
-    })
-    lwm2mServer = new Lwm2mServer({
-      onStatus: (status) => ctx.emit('lwm2m:server:status', status),
-      onLog: (batch) => ctx.emit('lwm2m:server:log', batch)
-    })
-    device = new Lwm2mDevice({
-      onStatus: (status) => ctx.emit('lwm2m:client:status', status),
-      onLog: (batch) => ctx.emit('lwm2m:client:log', batch)
-    })
 
-    ctx.expose(createPointsApi({ server, lwm2mServer, device, savedConfig: ctx.config }))
-
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:update', (config) => server.update(config))
-    ctx.handle('server:values', () => server.currentValues())
-    ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
-    ctx.handle('server:log', () => server.log)
-    ctx.handle('server:clearLog', () => server.clearLog())
-
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:request', (config) => client.request(config))
-    ctx.handle('client:discover', (config) => client.discover(config))
-    ctx.handle('client:observe', (config) => client.observe(config))
-    ctx.handle('client:cancel', (token) => client.cancel(token))
-    ctx.handle('client:history', () => client.history)
-    ctx.handle('client:clear', () => client.clear())
-
-    ctx.handle('lwm2m:server:status', () => lwm2mServer.status())
-    ctx.handle('lwm2m:server:start', (config) => lwm2mServer.start(config))
-    ctx.handle('lwm2m:server:stop', () => lwm2mServer.stop())
-    ctx.handle('lwm2m:server:read', (id, path, format) => lwm2mServer.read(id, path, format))
-    ctx.handle('lwm2m:server:write', (id, path, value) => lwm2mServer.write(id, path, value))
-    ctx.handle('lwm2m:server:execute', (id, path, args) => lwm2mServer.execute(id, path, args))
-    ctx.handle('lwm2m:server:discover', (id, path) => lwm2mServer.discover(id, path))
-    ctx.handle('lwm2m:server:observe', (id, path, format) => lwm2mServer.observe(id, path, format))
-    ctx.handle('lwm2m:server:cancel', (token) => lwm2mServer.cancelObservation(token))
-    ctx.handle('lwm2m:server:log', () => lwm2mServer.log)
-    ctx.handle('lwm2m:server:clearLog', () => lwm2mServer.clearLog())
-
-    ctx.handle('lwm2m:client:status', () => device.status())
-    ctx.handle('lwm2m:client:start', (config) => device.start(config))
-    ctx.handle('lwm2m:client:stop', () => device.stop())
-    ctx.handle('lwm2m:client:update', () => device.update().then(() => device.status()))
-    ctx.handle('lwm2m:client:setValue', (path, value) => device.setValue(path, value))
-    ctx.handle('lwm2m:client:log', () => device.log)
-    ctx.handle('lwm2m:client:clearLog', () => device.clearLog())
+    ctx.expose(createPointsApi({ instances, savedConfig: ctx.config }))
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'update', (server, config) => server.update(config))
+    instances.handle('server', 'values', (server) => server.currentValues())
+    instances.handle('server', 'setValue', (server, id, value) => server.setValue(id, value))
+    instances.handle('server', 'log', (server) => server.log)
+    instances.handle('server', 'clearLog', (server) => server.clearLog())
+    instances.handle('client', 'request', (client, config) => client.request(config))
+    instances.handle('client', 'discover', (client, config) => client.discover(config))
+    instances.handle('client', 'observe', (client, config) => client.observe(config))
+    instances.handle('client', 'cancel', (client, token) => client.cancel(token))
+    instances.handle('client', 'history', (client) => client.history)
+    instances.handle('client', 'clear', (client) => client.clear())
+    instances.handle('lwm2mServer', 'start', (lwm2mServer, config) => lwm2mServer.start(config))
+    instances.handle('lwm2mServer', 'stop', (lwm2mServer) => lwm2mServer.stop())
+    instances.handle('lwm2mServer', 'read', (lwm2mServer, id, path, format) => lwm2mServer.read(id, path, format))
+    instances.handle('lwm2mServer', 'write', (lwm2mServer, id, path, value) => lwm2mServer.write(id, path, value))
+    instances.handle('lwm2mServer', 'execute', (lwm2mServer, id, path, args) => lwm2mServer.execute(id, path, args))
+    instances.handle('lwm2mServer', 'discover', (lwm2mServer, id, path) => lwm2mServer.discover(id, path))
+    instances.handle('lwm2mServer', 'observe', (lwm2mServer, id, path, format) => lwm2mServer.observe(id, path, format))
+    instances.handle('lwm2mServer', 'cancel', (lwm2mServer, token) => lwm2mServer.cancelObservation(token))
+    instances.handle('lwm2mServer', 'log', (lwm2mServer) => lwm2mServer.log)
+    instances.handle('lwm2mServer', 'clearLog', (lwm2mServer) => lwm2mServer.clearLog())
+    instances.handle('device', 'start', (device, config) => device.start(config))
+    instances.handle('device', 'stop', (device) => device.stop())
+    instances.handle('device', 'update', (device) => device.update().then(() => device.status()))
+    instances.handle('device', 'setValue', (device, path, value) => device.setValue(path, value))
+    instances.handle('device', 'log', (device) => device.log)
+    instances.handle('device', 'clearLog', (device) => device.clearLog())
   },
 
-  /** Serveur CoAP ou LwM2M démarré, observation en cours ou appareil LwM2M démarré. */
+  /** Au moins un serveur CoAP ou LwM2M démarré, une observation en cours ou un appareil démarré. */
   busy() {
-    return !!(server?.running || lwm2mServer?.running || device?.running || client?.observations.size)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    await device?.stop().catch(() => {})
-    await lwm2mServer?.stop().catch(() => {})
-    await server?.stop().catch(() => {})
-    await client?.dispose().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

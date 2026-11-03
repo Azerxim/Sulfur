@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/opcua.md)
 
+- **Multiple instances**: as many servers and clients as needed, each in its own tab, with its name
+  and settings; none exists at first. A stopped instance can be renamed or removed. Those of an
+  earlier version become "Server 1" and "Client 1".
+
 - **Server**: simulated variables (sine, ramp, random, toggle, static) exposed under
   `Objects/<root folder>` with NodeIds `ns=1;s=<folder>.<variable>`. Default endpoint:
   `opc.tcp://localhost:4840/UA/Sulfur`. A String variable receives the generated value as text.

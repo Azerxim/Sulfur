@@ -12,7 +12,7 @@ application (hôte des modules, Paramètres, modules intégrés) est dans la
 
 - [x] **Instances** : serveurs, clients… en nombre libre, aucun par défaut. `defineInstances`
   (`/main`), `InstancesPage`, `useInstances`, `useInstanceStatuses` (`/ui`), `instanceSection`,
-  `instancePointId`, `migrateToInstances`… ; `Tabs` / `TabbedPage` acceptent `actions` ; champ
+  `instancePointId`, `migrateToInstances`, `instancesPointsApi`… ; `Tabs` / `TabbedPage` acceptent `actions` ; champ
   facultatif `groupName` des points.
 - [x] **Icônes FontAwesome** : `Icon` (`@azerxim/sulfur-sdk/ui`) affiche une définition d'icône
   FontAwesome (`<Icon icon={faCube} className="size-4" />`) ; `RendererModule.icon` et les icônes

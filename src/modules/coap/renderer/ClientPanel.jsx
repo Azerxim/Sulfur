@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEye, faPaperPlane, faSatelliteDish, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { CONTENT_FORMATS, METHODS, formatName } from '../shared/codec'
 import { DEFAULT_CLIENT_CONFIG, MAX_LOG } from '../shared/constants'
 import { coapApi } from './api'
@@ -17,8 +17,9 @@ const codeTone = (code) => {
 }
 
 /** Client CoAP : requête, découverte des ressources, observations et historique des échanges. */
-export default function ClientPanel({ status, server }) {
-  const [config, setConfig] = usePersistentState('coap', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance, status, server }) {
+  const api = useMemo(() => coapApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('coap', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG)
   const [history, setHistory] = useState([])
   const [links, setLinks] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -27,9 +28,9 @@ export default function ClientPanel({ status, server }) {
   const withBody = config.method === 'POST' || config.method === 'PUT'
 
   useEffect(() => {
-    coapApi.client.history().then(setHistory)
-    return coapApi.client.onEntry((entry) => setHistory((list) => [...list, entry].slice(-MAX_LOG)))
-  }, [])
+    api.history().then(setHistory)
+    return api.onEntry((entry) => setHistory((list) => [...list, entry].slice(-MAX_LOG)))
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -135,20 +136,20 @@ export default function ClientPanel({ status, server }) {
             </Field>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" disabled={busy} onClick={() => run(() => coapApi.client.request(config))}>
+            <Button variant="primary" disabled={busy} onClick={() => run(() => api.request(config))}>
               <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('coap.client.send')}
             </Button>
             <Button
               disabled={busy || config.method !== 'GET'}
               title={t('coap.client.observeHint')}
-              onClick={() => run(() => coapApi.client.observe(config))}
+              onClick={() => run(() => api.observe(config))}
             >
               <FontAwesomeIcon icon={faEye} className="size-4" /> {t('coap.client.observe')}
             </Button>
             <Button
               disabled={busy}
               title={t('coap.client.discoverHint')}
-              onClick={() => run(async () => setLinks((await coapApi.client.discover(config)).links))}
+              onClick={() => run(async () => setLinks((await api.discover(config)).links))}
             >
               <FontAwesomeIcon icon={faSatelliteDish} className="size-4" /> {t('coap.client.discover')}
             </Button>
@@ -206,7 +207,7 @@ export default function ClientPanel({ status, server }) {
                   size="sm"
                   variant="ghost"
                   className="ml-auto"
-                  onClick={() => coapApi.client.cancel(o.token).catch((err) => setError(err.message))}
+                  onClick={() => api.cancel(o.token).catch((err) => setError(err.message))}
                 >
                   <FontAwesomeIcon icon={faXmark} className="size-3.5" /> {t('coap.client.cancel')}
                 </Button>
@@ -221,12 +222,7 @@ export default function ClientPanel({ status, server }) {
         title={t('coap.client.history', { count: history.length })}
         className="min-h-64 flex-1"
         actions={
-          <Button
-            variant="ghost"
-            size="icon"
-            title={t('coap.log.clear')}
-            onClick={() => coapApi.client.clear().then(setHistory)}
-          >
+          <Button variant="ghost" size="icon" title={t('coap.log.clear')} onClick={() => api.clear().then(setHistory)}>
             <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         }

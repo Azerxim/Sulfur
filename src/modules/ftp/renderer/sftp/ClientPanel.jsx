@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowUp,
@@ -15,7 +15,7 @@ import {
   faTrashCan
 } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatDate, formatTime } from '@azerxim/sulfur-sdk'
+import { formatDate, formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG } from '../../shared/sftp'
 import { sftpApi } from '../api'
 import { formatSize } from '../format'
@@ -23,11 +23,17 @@ import { t } from '../../shared/i18n'
 
 const ICONS = { dir: faFolder, file: faFile, link: faLink }
 
-export default function ClientPanel({ status, serverPort }) {
+export default function ClientPanel({ instance, status }) {
+  const api = useMemo(() => sftpApi.client(instance.id), [instance.id])
   // Mot de passe, clé privée et phrase secrète ne sont pas enregistrés.
-  const [config, setConfig] = usePersistentState('ftp', 'sftpClient', DEFAULT_CLIENT_CONFIG, {
-    persist: (c) => ({ ...c, password: '', privateKey: '', passphrase: '' })
-  })
+  const [config, setConfig] = usePersistentState(
+    'ftp',
+    instanceSection('sftpClient', instance.id),
+    DEFAULT_CLIENT_CONFIG,
+    {
+      persist: (c) => ({ ...c, password: '', privateKey: '', passphrase: '' })
+    }
+  )
   const [listing, setListing] = useState(null)
   const [message, setMessage] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -35,9 +41,6 @@ export default function ClientPanel({ status, serverPort }) {
   const connected = status.connected
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
-  useEffect(() => {
-    if (serverPort && !connected) setConfig((c) => ({ ...c, port: serverPort }))
-  }, [serverPort, connected, setConfig])
   useEffect(() => {
     if (!connected) setListing(null)
   }, [connected])
@@ -57,10 +60,10 @@ export default function ClientPanel({ status, serverPort }) {
     }
   }
 
-  const refresh = (dir) => run(() => sftpApi.client.list(dir), setListing)
+  const refresh = (dir) => run(() => api.list(dir), setListing)
   const connect = () =>
     run(
-      () => sftpApi.client.connect(config),
+      () => api.connect(config),
       () => refresh()
     )
   const join = (name) => `${listing.path.replace(/\/$/, '')}/${name}`
@@ -70,12 +73,12 @@ export default function ClientPanel({ status, serverPort }) {
   }
   const download = (entry) =>
     run(
-      () => sftpApi.client.download(join(entry.name)),
+      () => api.download(join(entry.name)),
       (result) => result && setMessage(t('sftp.client.downloaded', { path: result.local }))
     )
   const upload = () =>
     run(
-      () => sftpApi.client.upload(),
+      () => api.upload(),
       (result) => {
         if (!result) return
         setMessage(t('sftp.client.uploaded', { count: result.length }))
@@ -86,7 +89,7 @@ export default function ClientPanel({ status, serverPort }) {
     const name = prompt(t('sftp.client.newFolder'))
     if (name)
       run(
-        () => sftpApi.client.mkdir(join(name)),
+        () => api.mkdir(join(name)),
         () => refresh(listing.path)
       )
   }
@@ -94,14 +97,14 @@ export default function ClientPanel({ status, serverPort }) {
     const name = prompt(t('sftp.client.renameTo'), entry.name)
     if (name && name !== entry.name)
       run(
-        () => sftpApi.client.rename(join(entry.name), join(name)),
+        () => api.rename(join(entry.name), join(name)),
         () => refresh(listing.path)
       )
   }
   const remove = (entry) => {
     if (!confirm(t('sftp.client.confirmRemove', { name: entry.name }))) return
     run(
-      () => sftpApi.client.remove(join(entry.name), entry.type),
+      () => api.remove(join(entry.name), entry.type),
       () => refresh(listing.path)
     )
   }
@@ -155,7 +158,7 @@ export default function ClientPanel({ status, serverPort }) {
               </Select>
             </Field>
             {connected ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(sftpApi.client.disconnect)}>
+              <Button variant="danger" disabled={busy} onClick={() => run(api.disconnect)}>
                 <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
@@ -191,7 +194,7 @@ export default function ClientPanel({ status, serverPort }) {
                   size="sm"
                   className="self-start"
                   disabled={connected || busy}
-                  onClick={() => sftpApi.client.pickKey().then((key) => key && update({ privateKey: key }))}
+                  onClick={() => api.pickKey().then((key) => key && update({ privateKey: key }))}
                 >
                   {t('sftp.client.pickKey')}
                 </Button>

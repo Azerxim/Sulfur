@@ -129,8 +129,7 @@ Types de défauts communs : `delay`, `noResponse`, `cut`, `exception`, `badStatu
 ## Instances : serveurs et clients multiples
 
 Un module peut avoir autant de serveurs, de clients… (« rôles ») que l'on veut ; **aucune instance
-n'existe par défaut**. Le SDK fournit le mécanisme commun (Modbus l'utilise ; les autres modules de
-protocole suivront) :
+n'existe par défaut**. Le SDK fournit le mécanisme commun, utilisé par tous les modules de protocole :
 
 - **Process principal** : `defineInstances(ctx, { server: { label, create, busy, dispose }, … })`
   (`@azerxim/sulfur-sdk/main`) crée un objet par instance et enregistre les canaux
@@ -145,7 +144,8 @@ protocole suivront) :
   boutons d'ajout par rôle, le nom modifiable et la suppression ; `useInstanceStatuses` donne l'état
   de chaque instance. L'activité d'un module (barre latérale, accueil) compte chaque instance.
 - **Points** : l'identifiant local d'un point est `<instance>:<point>` et son groupe porte le nom de
-  l'instance (`groupName`), affiché par le simulateur et les courbes.
+  l'instance (`groupName`), affiché par le simulateur et les courbes. `instancesPointsApi` assemble
+  les points du module à partir de ceux de chaque instance (lectures, écritures, défauts).
 - **Migration** : `migrateToInstances` convertit un serveur et un client uniques d'une version
   antérieure en instances d'identifiants `server` et `client` (« Serveur 1 », « Client 1 ») : les
   clés de points (`modbus/server:<point>`) restent les mêmes, les flux et courbes existants

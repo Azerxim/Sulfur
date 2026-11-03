@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/dns.md) · **Français**
 
+- **Instances multiples** : autant de serveurs et clients que nécessaire, chacun dans son onglet,
+  avec son nom et ses réglages ; aucun n'existe au départ. Une instance arrêtée peut être renommée
+  ou supprimée. Ceux d'une version antérieure deviennent « Serveur 1 » et « Client 1 ».
+
 - **Serveur** faisant autorité sur un domaine de test, en UDP et TCP (port 1053 par défaut, port
   standard 53 avec droits administrateur sous Linux) :
   - enregistrements A, AAAA, CNAME, MX, TXT, SRV, PTR, NS, modifiables serveur démarré ; noms

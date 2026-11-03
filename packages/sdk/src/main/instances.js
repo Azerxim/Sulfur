@@ -27,6 +27,8 @@ import { INSTANCES_SECTION, instancesOf, nextInstanceName } from '../instances.j
 export function defineInstances(ctx, roles) {
   /** Objets des instances : id → { role, object }. */
   const live = new Map()
+  /** Instances en cours de création : un état émis par `create` ne relance pas leur création. */
+  const creating = new Set()
 
   const listed = () => instancesOf(ctx.config()).filter((i) => Object.hasOwn(roles, i.role))
   const save = (list) => ctx.setConfig(INSTANCES_SECTION, list)
@@ -46,9 +48,13 @@ export function defineInstances(ctx, roles) {
       Promise.resolve(roles[entry.role].dispose?.(entry.object)).catch(() => {})
     }
     for (const instance of list) {
-      if (!live.has(instance.id)) {
+      if (live.has(instance.id) || creating.has(instance.id)) continue
+      creating.add(instance.id)
+      try {
         const object = roles[instance.role].create({ ...instance }, { emit: emitter(instance) })
         live.set(instance.id, { role: instance.role, object })
+      } finally {
+        creating.delete(instance.id)
       }
     }
     return list
@@ -65,7 +71,7 @@ export function defineInstances(ctx, roles) {
 
   function statuses(role) {
     return sync()
-      .filter((i) => i.role === role)
+      .filter((i) => i.role === role && live.has(i.id))
       .map((i) => ({ ...statusOf(live.get(i.id).object), instance: i.id, name: i.name }))
   }
 
@@ -150,7 +156,7 @@ export function defineInstances(ctx, roles) {
     /** Instances (d'un rôle, ou toutes), avec leur objet : [{ instance, object }]. */
     all(role) {
       return sync()
-        .filter((i) => !role || i.role === role)
+        .filter((i) => (!role || i.role === role) && live.has(i.id))
         .map((instance) => ({ instance, object: live.get(instance.id).object }))
     },
     /** Au moins une instance en marche. */

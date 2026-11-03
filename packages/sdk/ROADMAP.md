@@ -11,7 +11,7 @@ the [Sulfur roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#stan
 
 - [x] **Instances**: servers, clients… in any number, none by default. `defineInstances`
   (`/main`), `InstancesPage`, `useInstances`, `useInstanceStatuses` (`/ui`), `instanceSection`,
-  `instancePointId`, `migrateToInstances`…; `Tabs` / `TabbedPage` accept `actions`; optional
+  `instancePointId`, `migrateToInstances`, `instancesPointsApi`…; `Tabs` / `TabbedPage` accept `actions`; optional
   `groupName` field on points.
 - [x] **FontAwesome icons**: `Icon` (`@azerxim/sulfur-sdk/ui`) renders a FontAwesome icon
   definition (`<Icon icon={faCube} className="size-4" />`); `RendererModule.icon` and `Tabs` icons

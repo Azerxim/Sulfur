@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { formatName } from '../shared/codec'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, RESOURCE_FORMATS, SIMULATIONS } from '../shared/constants'
 import { coapApi } from './api'
@@ -49,8 +49,13 @@ function newResource(resources) {
 }
 
 /** Serveur CoAP simulé : adresse, ressources simulées, observateurs et journal des requêtes. */
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('coap', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => coapApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'coap',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -65,9 +70,9 @@ export default function ServerPanel({ status }) {
   }, [running])
 
   useEffect(() => {
-    coapApi.server.values().then(setValues)
-    return coapApi.server.onValues(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onValues(setValues)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -87,7 +92,7 @@ export default function ServerPanel({ status }) {
     setConfig(next)
     if (!running) return
     clearTimeout(timer.current)
-    timer.current = setTimeout(() => coapApi.server.update(next).catch((err) => setError(err.message)), LIVE_DEBOUNCE)
+    timer.current = setTimeout(() => api.update(next).catch((err) => setError(err.message)), LIVE_DEBOUNCE)
   }
 
   const updateResource = (id, patch) =>
@@ -132,11 +137,11 @@ export default function ServerPanel({ status }) {
               />
             </Field>
             {running ? (
-              <Button disabled={busy} onClick={() => run(coapApi.server.stop)}>
+              <Button disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ui.stop')}
               </Button>
             ) : (
-              <Button variant="primary" disabled={busy} onClick={() => run(() => coapApi.server.start(config))}>
+              <Button variant="primary" disabled={busy} onClick={() => run(() => api.start(config))}>
                 <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('ui.start')}
               </Button>
             )}
@@ -212,7 +217,7 @@ export default function ServerPanel({ status }) {
                       <CommitInput
                         className="font-mono text-sulfur-300"
                         value={formatValue(values[r.id])}
-                        onCommit={(v) => coapApi.server.setValue(r.id, v).catch((err) => setError(err.message))}
+                        onCommit={(v) => api.setValue(r.id, v).catch((err) => setError(err.message))}
                       />
                     ) : (
                       <CommitInput
@@ -314,9 +319,9 @@ export default function ServerPanel({ status }) {
 
       <LogCard
         id="coap.server.log"
-        load={coapApi.server.log}
-        subscribe={coapApi.server.onLog}
-        clear={coapApi.server.clearLog}
+        load={api.log}
+        subscribe={api.onLog}
+        clear={api.clearLog}
         renderEntry={(e) => (
           <>
             <span className="w-36 shrink-0 truncate text-slate-500">{e.remote}</span>

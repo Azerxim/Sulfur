@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/ntp.md)
 
+- **Multiple instances**: as many servers and clients as needed, each in its own tab, with its name
+  and settings; none exists at first. A stopped instance can be renamed or removed. Those of an
+  earlier version become "Server 1" and "Client 1".
+
 - **Server** (UDP, default port 1123; standard port 123 needs administrator rights on Linux):
   responds to NTP v1 to v4 client requests with a **simulated clock**: offset from real time (time
   jumps of ±1 min to ±1 year in one click) or fixed start time, drift in ppm; announced stratum

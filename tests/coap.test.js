@@ -30,7 +30,7 @@ import { CoapClient } from '@modules/coap/main/client'
 import { Lwm2mServer } from '@modules/coap/main/lwm2m-server'
 import { Lwm2mDevice } from '@modules/coap/main/lwm2m-client'
 import { createPointsApi } from '@modules/coap/main/points'
-import { errorOf, freePort, sleep } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep } from './helpers'
 
 /** Attend qu'une condition soit vraie (au plus `timeout` ms). */
 async function until(predicate, timeout = 3000) {
@@ -235,7 +235,12 @@ describe('Serveur et client CoAP', () => {
       'The /.well-known path is reserved for discovery'
     )
     await start()
-    const api = createPointsApi({ server, lwm2mServer: { running: false }, device: { running: false } })
+    const api = createPointsApi({
+      instances: fakeInstances(
+        { server, lwm2mServer: { running: false }, device: { running: false } },
+        { lwm2mServer: 'lwm2m' }
+      )
+    })
     expect(api.points().map((p) => p.id)).toContain('server:relay')
     await api.write('server:relay', 'on')
     expect(api.read(['server:relay'])).toEqual({ 'server:relay': true })

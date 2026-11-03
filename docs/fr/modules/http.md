@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/http.md) · **Français**
 
+- **Instances multiples** : autant de serveurs et clients que nécessaire, chacun dans son onglet,
+  avec son nom et ses réglages ; aucun n'existe au départ. Une instance arrêtée peut être renommée
+  ou supprimée. Ceux d'une version antérieure deviennent « Serveur 1 » et « Client 1 ».
+
 - **Serveur** HTTP ou HTTPS (certificat auto-signé `HTTP@Sulfur`, généré au premier démarrage), port
   par défaut 8080 :
   - **variables simulées** (nombre, entier, booléen, texte, JSON ; sinus, rampe, aléatoire,

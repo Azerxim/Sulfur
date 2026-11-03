@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFolderOpen, faLock, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatDate, formatTime } from '@azerxim/sulfur-sdk'
+import { formatDate, formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, TLS_MODES } from '../../shared/constants'
 import { ftpApi } from '../api'
 import { t } from '../../shared/i18n'
@@ -22,12 +22,12 @@ const LIVE_DEBOUNCE = 500
 const LEVEL_STYLES = { info: 'text-slate-300', warn: 'text-amber-300', error: 'text-red-300' }
 
 /** Mot de passe : saisi puis haché aussitôt (seule l'empreinte est conservée). */
-function PasswordField({ hasHash, onHash, onError }) {
+function PasswordField({ api, hasHash, onHash, onError }) {
   const [draft, setDraft] = useState('')
   const commit = async () => {
     if (!draft) return
     try {
-      onHash(await ftpApi.server.hashPassword(draft))
+      onHash(await api.hashPassword(draft))
       setDraft('')
     } catch (err) {
       onError(err.message)
@@ -47,24 +47,19 @@ function PasswordField({ hasHash, onHash, onError }) {
   )
 }
 
-function ServerLog() {
+function ServerLog({ api }) {
   const [entries, setEntries] = useState([])
   useEffect(() => {
-    ftpApi.server.logs().then(setEntries)
-    return ftpApi.server.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
-  }, [])
+    api.logs().then(setEntries)
+    return api.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
+  }, [api])
   return (
     <Card
       id="ftp.server.log"
       title={t('ftp.server.log', { count: entries.length })}
       className="min-h-56 shrink-0"
       actions={
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={!entries.length}
-          onClick={() => ftpApi.server.clearLogs().then(setEntries)}
-        >
+        <Button size="sm" variant="ghost" disabled={!entries.length} onClick={() => api.clearLogs().then(setEntries)}>
           <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ftp.server.clearLog')}
         </Button>
       }
@@ -89,8 +84,13 @@ function ServerLog() {
   )
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('ftp', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => ftpApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'ftp',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [defaultRoot, setDefaultRoot] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -99,8 +99,8 @@ export default function ServerPanel({ status }) {
   const locked = running || busy
 
   useEffect(() => {
-    ftpApi.server.defaultRoot().then(setDefaultRoot)
-  }, [])
+    api.defaultRoot().then(setDefaultRoot)
+  }, [api])
   useEffect(() => {
     if (running && status.config) setConfig((c) => ({ ...c, ...status.config }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,7 +115,7 @@ export default function ServerPanel({ status }) {
     clearTimeout(timer.current)
     timer.current = setTimeout(
       () =>
-        ftpApi.server
+        api
           .update(next)
           .then(() => setError(null))
           .catch((err) => setError(err.message)),
@@ -159,7 +159,7 @@ export default function ServerPanel({ status }) {
               label={running ? t('ftp.server.running', { count: status.sessions?.length ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(ftpApi.server.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
@@ -167,7 +167,7 @@ export default function ServerPanel({ status }) {
                 variant="primary"
                 size="sm"
                 disabled={busy || !canStart}
-                onClick={() => run(() => ftpApi.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
@@ -197,16 +197,13 @@ export default function ServerPanel({ status }) {
                   disabled={locked}
                   onChange={(e) => update({ root: e.target.value })}
                 />
-                <Button
-                  disabled={locked}
-                  onClick={() => ftpApi.server.pickRoot().then((root) => root && update({ root }))}
-                >
+                <Button disabled={locked} onClick={() => api.pickRoot().then((root) => root && update({ root }))}>
                   {t('ftp.server.choose')}
                 </Button>
                 <Button
                   variant="ghost"
                   title={t('ftp.server.openRoot')}
-                  onClick={() => ftpApi.server.openRoot(config.root).catch((err) => setError(err.message))}
+                  onClick={() => api.openRoot(config.root).catch((err) => setError(err.message))}
                 >
                   <FontAwesomeIcon icon={faFolderOpen} className="size-4" />
                 </Button>
@@ -311,6 +308,7 @@ export default function ServerPanel({ status }) {
               </Field>
               <Field label={t('ftp.users.password')}>
                 <PasswordField
+                  api={api}
                   hasHash={!!u.passwordHash}
                   onHash={(passwordHash) => setUser(u.id, { passwordHash })}
                   onError={setError}
@@ -340,7 +338,7 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <ServerLog />
+      <ServerLog api={api} />
     </div>
   )
 }

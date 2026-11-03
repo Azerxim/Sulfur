@@ -1,7 +1,9 @@
+import { instanceSection, migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances, ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { join } from 'path'
-import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { DEFAULT_LDIF, LDAP_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { LdapServer, buildDirectory } from './server'
 import { LdapClient } from './client'
 import { RadiusServer } from './radius/server'
@@ -10,31 +12,40 @@ import { createPointsApi } from './points'
 
 const SERVER_COMMON_NAME = 'LDAP@Sulfur'
 
-let server = null
-let client = null
-let radiusServer = null
-let radiusClient = null
+/** Instances uniques d'une version antérieure, converties en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('ldap.tabs.server')} 1` },
+    client: { sections: ['client'], name: `${t('ldap.tabs.client')} 1` },
+    radiusServer: { id: 'radius', sections: ['radiusServer'], name: `${t('ldap.tabs.radiusServer')} 1` },
+    radiusClient: { sections: ['radiusClient'], name: `${t('ldap.tabs.radiusClient')} 1` }
+  })
+
+let instances = null
 
 /**
- * Partie "main" du module LDAP / RADIUS. Canaux : `ldap:server:*`, `ldap:client:*` (LDAP),
- * `ldap:radius:server:*`, `ldap:radius:client:*` (RADIUS). Le serveur RADIUS authentifie aussi les
- * comptes de l'annuaire du serveur LDAP.
+ * Partie "main" du module LDAP / RADIUS : serveurs et clients LDAP et RADIUS en nombre libre (aucun
+ * par défaut, voir `defineInstances` du SDK). Canaux : `ldap:instances:*`, `ldap:server:*`,
+ * `ldap:client:*`, `ldap:radiusServer:*` et `ldap:radiusClient:*` (identifiant de l'instance en
+ * premier argument). Un serveur RADIUS authentifie aussi les comptes de l'annuaire LDAP.
  */
 export const ldapMainModule = {
   manifest: LDAP_MODULE,
 
-  activate(ctx) {
-    server = new LdapServer(() => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME), {
-      onStatus: (status) => ctx.emit('server:status', status),
-      onLog: (entry) => ctx.emit('server:log', entry)
-    })
-    client = new LdapClient()
+  migrateConfig,
 
-    // Annuaire vu par RADIUS : celui du serveur LDAP en marche, sinon l'annuaire enregistré.
+  activate(ctx) {
+    const certificate = () => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME)
+
+    // Annuaire vu par RADIUS : celui du premier serveur LDAP en marche, sinon l'annuaire enregistré
+    // du premier serveur LDAP (l'annuaire par défaut s'il n'y en a aucun).
     let saved = { ldif: null, directory: null }
     const directory = () => {
-      if (server.running) return server.directory
-      const ldif = ctx.config().server?.ldif ?? DEFAULT_LDIF
+      const servers = instances.all('server')
+      const running = servers.find(({ object }) => object.running)
+      if (running) return running.object.directory
+      const first = servers[0]?.instance
+      const ldif = (first && ctx.config()[instanceSection('server', first.id)]?.ldif) ?? DEFAULT_LDIF
       if (saved.ldif !== ldif) {
         try {
           saved = { ldif, directory: buildDirectory(ldif) }
@@ -44,47 +55,64 @@ export const ldapMainModule = {
       }
       return saved.directory
     }
-    radiusServer = new RadiusServer(directory, {
-      onStatus: (status) => ctx.emit('radius:server:status', status),
-      onLog: (entry) => ctx.emit('radius:server:log', entry)
+
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ldap.tabs.server'),
+        create: (_instance, { emit }) =>
+          new LdapServer(certificate, {
+            onStatus: (status) => emit('status', status),
+            onLog: (entry) => emit('log', entry)
+          }),
+        busy: (server) => server.running,
+        dispose: (server) => server.stop()
+      },
+      client: { label: () => t('ldap.tabs.client'), create: () => new LdapClient() },
+      radiusServer: {
+        label: () => t('ldap.tabs.radiusServer'),
+        create: (_instance, { emit }) =>
+          new RadiusServer(directory, {
+            onStatus: (status) => emit('status', status),
+            onLog: (entry) => emit('log', entry)
+          }),
+        busy: (server) => server.running,
+        dispose: (server) => server.stop()
+      },
+      radiusClient: { label: () => t('ldap.tabs.radiusClient'), create: () => new RadiusClient() }
     })
-    radiusClient = new RadiusClient()
 
-    ctx.expose(createPointsApi({ server, radiusServer }))
+    ctx.expose(createPointsApi({ instances }))
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'update', (server, config) => server.update(config))
+    instances.handle('server', 'logs', (server) => server.logs())
+    instances.handle('server', 'clearLogs', (server) => server.clearLogs())
 
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:update', (config) => server.update(config))
-    ctx.handle('server:logs', () => server.logs())
-    ctx.handle('server:clearLogs', () => server.clearLogs())
-
-    ctx.handle('client:authenticate', (config) => client.authenticate(config))
-    ctx.handle('client:search', (config) => client.search(config))
-    ctx.handle('client:history', () => client.history)
-    ctx.handle('client:clear', () => client.clear())
-
-    ctx.handle('radius:server:status', () => radiusServer.status())
-    ctx.handle('radius:server:start', (config) => radiusServer.start(config))
-    ctx.handle('radius:server:stop', () => radiusServer.stop())
-    ctx.handle('radius:server:update', (config) => radiusServer.update(config))
-    ctx.handle('radius:server:logs', () => radiusServer.logs())
-    ctx.handle('radius:server:clearLogs', () => radiusServer.clearLogs())
-
-    ctx.handle('radius:client:status', () => radiusClient.status())
-    ctx.handle('radius:client:authenticate', (config) => radiusClient.authenticate(config))
-    ctx.handle('radius:client:statusServer', (config) => radiusClient.statusServer(config))
-    ctx.handle('radius:client:accounting', (config, action) => radiusClient.accounting(config, action))
-    ctx.handle('radius:client:history', () => radiusClient.history)
-    ctx.handle('radius:client:clear', () => radiusClient.clear())
+    instances.handle('client', 'authenticate', (client, config) => client.authenticate(config))
+    instances.handle('client', 'search', (client, config) => client.search(config))
+    instances.handle('client', 'history', (client) => client.history)
+    instances.handle('client', 'clear', (client) => client.clear())
+    instances.handle('radiusServer', 'start', (radiusServer, config) => radiusServer.start(config))
+    instances.handle('radiusServer', 'stop', (radiusServer) => radiusServer.stop())
+    instances.handle('radiusServer', 'update', (radiusServer, config) => radiusServer.update(config))
+    instances.handle('radiusServer', 'logs', (radiusServer) => radiusServer.logs())
+    instances.handle('radiusServer', 'clearLogs', (radiusServer) => radiusServer.clearLogs())
+    instances.handle('radiusClient', 'authenticate', (radiusClient, config) => radiusClient.authenticate(config))
+    instances.handle('radiusClient', 'statusServer', (radiusClient, config) => radiusClient.statusServer(config))
+    instances.handle('radiusClient', 'accounting', (radiusClient, config, action) =>
+      radiusClient.accounting(config, action)
+    )
+    instances.handle('radiusClient', 'history', (radiusClient) => radiusClient.history)
+    instances.handle('radiusClient', 'clear', (radiusClient) => radiusClient.clear())
   },
 
-  /** Un serveur démarré. */
+  /** Au moins un serveur LDAP ou RADIUS démarré. */
   busy() {
-    return !!(server?.running || radiusServer?.running)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    await Promise.all([server?.stop().catch(() => {}), radiusServer?.stop().catch(() => {})])
+    await instances?.dispose()
+    instances = null
   }
 }

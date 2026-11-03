@@ -7,7 +7,7 @@ import { FtpServer, parsePortRange } from '@modules/ftp/main/ftp/server'
 import { FtpClient } from '@modules/ftp/main/ftp/client'
 import { createPointsApi } from '@modules/ftp/main/points'
 import { DEFAULT_SERVER_CONFIG } from '@modules/ftp/shared/constants'
-import { errorOf, freePort, sleep, tempDir } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep, tempDir } from './helpers'
 
 let tmp, root, server, port
 const clients = []
@@ -267,7 +267,9 @@ describe('Serveur et client FTP', () => {
   it('publie les compteurs des deux serveurs et leur transmet les défauts', async () => {
     let sftpFaults = null
     const sftp = { running: false, setFaults: (faults) => (sftpFaults = faults) }
-    const api = createPointsApi({ ftpServer: server, sftpServer: sftp })
+    const api = createPointsApi({
+      instances: fakeInstances({ server, sftpServer: sftp }, { server: 'ftp', sftpServer: 'sftp' })
+    })
     expect(api.points().map((p) => p.id)).toContain('sftp:uploads')
     await connect()
     expect(api.read(['ftp:sessions', 'ftp:failures', 'sftp:sessions'])).toEqual({
@@ -276,7 +278,7 @@ describe('Serveur et client FTP', () => {
       'sftp:sessions': undefined
     })
     api.setFaults([{ type: 'delay', params: { ms: 1 } }])
-    expect(sftpFaults).toEqual([{ type: 'delay', params: { ms: 1 } }])
+    expect(sftpFaults).toEqual([{ type: 'delay', params: { ms: 1 }, points: [] }])
     expect(server.fault('delay')).toBeTruthy()
   })
 

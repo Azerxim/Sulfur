@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowsRotate, faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_DEVICE_CONFIG } from '../shared/constants'
 import { parsePath, resourceDef } from '../shared/lwm2m'
 import { coapApi } from './api'
@@ -33,8 +33,9 @@ const writable = (path) => {
 }
 
 /** Appareil LwM2M simulé : réglages, enregistrement, ressources en direct et journal. */
-export default function DevicePanel({ status, lwm2mServer }) {
-  const [config, setConfig] = usePersistentState('coap', 'device', DEFAULT_DEVICE_CONFIG)
+export default function DevicePanel({ instance, status, lwm2mServer }) {
+  const api = useMemo(() => coapApi.device(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('coap', instanceSection('device', instance.id), DEFAULT_DEVICE_CONFIG)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const running = status.running
@@ -135,20 +136,20 @@ export default function DevicePanel({ status, lwm2mServer }) {
           <div className="flex flex-wrap items-center gap-3">
             {running ? (
               <>
-                <Button disabled={busy} onClick={() => run(coapApi.device.stop)}>
+                <Button disabled={busy} onClick={() => run(api.stop)}>
                   <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ui.stop')}
                 </Button>
                 <Button
                   variant="ghost"
                   disabled={busy || status.state !== 'registered'}
                   title={t('coap.device.updateHint')}
-                  onClick={() => run(coapApi.device.update)}
+                  onClick={() => run(api.update)}
                 >
                   <FontAwesomeIcon icon={faArrowsRotate} className="size-4" /> {t('coap.device.update')}
                 </Button>
               </>
             ) : (
-              <Button variant="primary" disabled={busy} onClick={() => run(() => coapApi.device.start(config))}>
+              <Button variant="primary" disabled={busy} onClick={() => run(() => api.start(config))}>
                 <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('ui.start')}
               </Button>
             )}
@@ -190,9 +191,7 @@ export default function DevicePanel({ status, lwm2mServer }) {
                       <CommitInput
                         className="h-8! font-mono text-sulfur-300"
                         value={r.value}
-                        onCommit={(value) =>
-                          coapApi.device.setValue(r.path, value).catch((err) => setError(err.message))
-                        }
+                        onCommit={(value) => api.setValue(r.path, value).catch((err) => setError(err.message))}
                       />
                     ) : (
                       <span className="block px-3 text-right font-mono text-slate-200">{r.value}</span>
@@ -207,9 +206,9 @@ export default function DevicePanel({ status, lwm2mServer }) {
 
       <LogCard
         id="coap.device.log"
-        load={coapApi.device.log}
-        subscribe={coapApi.device.onLog}
-        clear={coapApi.device.clearLog}
+        load={api.log}
+        subscribe={api.onLog}
+        clear={api.clearLog}
         renderEntry={(e) => (
           <>
             <span className="w-36 shrink-0 truncate text-slate-500">{e.remote}</span>

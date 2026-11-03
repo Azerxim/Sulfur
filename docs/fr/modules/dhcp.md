@@ -2,6 +2,11 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/dhcp.md) · **Français**
 
+- **Instances multiples** : autant de serveurs et clients que nécessaire, chacun dans son onglet,
+  avec son nom et ses réglages ; aucun n'existe au départ. Une instance arrêtée peut être renommée
+  ou supprimée. Ceux d'une version antérieure deviennent « Serveur 1 » et « Client 1 ». Chaque
+  serveur a son propre journal.
+
 Serveur DHCP de test pour un **réseau isolé, limité aux réseaux privés** (10.0.0.0/8,
 172.16.0.0/12, 192.168.0.0/16), pour mettre en service des équipements sur un banc.
 

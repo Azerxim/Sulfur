@@ -120,6 +120,22 @@ describe('Instances : registre du process principal', () => {
     expect(() => call('instances:create', 'agent')).toThrow(t('errors.unknownRole', { role: 'agent' }))
   })
 
+  it('accepte un état émis pendant la création d’une instance', () => {
+    const ctx = fakeContext()
+    defineInstances(ctx, {
+      client: {
+        label: () => 'Client',
+        create(instance, { emit }) {
+          const object = { status: () => ({ connected: false }) }
+          emit('status', object.status()) // comme HttpClient.configure
+          return object
+        }
+      }
+    })
+    const created = ctx.handlers['instances:create']('client')
+    expect(ctx.handlers['client:status']()).toEqual([{ connected: false, instance: created.id, name: 'Client 1' }])
+  })
+
   it('suit la configuration importée ou réinitialisée', () => {
     const { ctx, instances, call } = setup()
     const a = call('instances:create', 'server')

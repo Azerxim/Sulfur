@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_LDIF, DEFAULT_SERVER_CONFIG, SECURITY_MODES } from '../shared/constants'
 import { parseLdif } from '../shared/ldif'
 import { ldapApi } from './api'
@@ -26,24 +26,19 @@ const PORT_SWAP = { plain: { 636: 389, 1636: 1389 }, ldaps: { 389: 636, 1389: 16
 
 const LEVEL_STYLES = { info: 'text-slate-300', warn: 'text-amber-300', error: 'text-red-300' }
 
-function ServerLog() {
+function ServerLog({ api }) {
   const [entries, setEntries] = useState([])
   useEffect(() => {
-    ldapApi.server.logs().then(setEntries)
-    return ldapApi.server.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
-  }, [])
+    api.logs().then(setEntries)
+    return api.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
+  }, [api])
   return (
     <Card
       id="ldap.server.log"
       title={t('ldap.server.log', { count: entries.length })}
       className="min-h-56 shrink-0"
       actions={
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={!entries.length}
-          onClick={() => ldapApi.server.clearLogs().then(setEntries)}
-        >
+        <Button size="sm" variant="ghost" disabled={!entries.length} onClick={() => api.clearLogs().then(setEntries)}>
           <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ldap.server.clearLog')}
         </Button>
       }
@@ -68,8 +63,13 @@ function ServerLog() {
   )
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('ldap', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => ldapApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'ldap',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const timer = useRef(null)
@@ -91,7 +91,7 @@ export default function ServerPanel({ status }) {
     if (parseLdif(next.ldif).errors.length) return
     timer.current = setTimeout(
       () =>
-        ldapApi.server
+        api
           .update(next)
           .then(() => setError(null))
           .catch((err) => setError(err.message)),
@@ -131,7 +131,7 @@ export default function ServerPanel({ status }) {
               label={running ? t('ldap.server.running', { count: status.sessions?.length ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(ldapApi.server.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
@@ -139,7 +139,7 @@ export default function ServerPanel({ status }) {
                 variant="primary"
                 size="sm"
                 disabled={busy || parsed.errors.length > 0}
-                onClick={() => run(() => ldapApi.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
@@ -268,7 +268,7 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <ServerLog />
+      <ServerLog api={api} />
     </div>
   )
 }

@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/tftp.md) · **Français**
 
+- **Instances multiples** : autant de serveurs et clients que nécessaire, chacun dans son onglet,
+  avec son nom et ses réglages ; aucun n'existe au départ. Une instance arrêtée peut être renommée
+  ou supprimée. Ceux d'une version antérieure deviennent « Serveur 1 » et « Client 1 ».
+
 - **Serveur** TFTP (port 6969 par défaut) servant un dossier, pour tester les téléchargements de
   firmware et les sauvegardes de configuration des équipements réseau :
   - modes octet et netascii, options blksize, tsize et timeout (RFC 2347 à 2349), retour à zéro du
