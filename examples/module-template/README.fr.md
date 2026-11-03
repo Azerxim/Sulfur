@@ -15,5 +15,8 @@ npm run build               # dist/my-module/ et dist/my-module-0.1.0.sulfur-mod
 Installez l'archive dans Sulfur : Paramètres → Modules → *Modules externes* → **Installer un
 paquet…**, puis cochez **Charger les modules externes** et cliquez sur **Actualiser**.
 
+Le modèle ajoute aussi un onglet à la page Modbus (extension : `extends` dans `src/manifest.js`,
+`extensions` dans `src/renderer/index.jsx`) ; retirez-les si votre module n'en a pas besoin.
+
 Avant de partager votre module, remplacez `my-module` par votre propre identifiant
 (`src/manifest.js`, `src/i18n.js`) et renseignez `name`, `description` et `author`.

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { faPen, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, CommitInput, ErrorBanner, Icon, Modal, TabbedPage, useStoredState } from './components.jsx'
 import { forgetInstanceSections, onModuleConfigsReplaced } from './module-config.js'
+import { useExtensions } from './extensions.jsx'
 import { t } from '../i18n.js'
 import { nextInstanceName } from '../instances.js'
 
@@ -133,21 +134,52 @@ function InstanceBar({ instance, running, onRename, onRemove }) {
   )
 }
 
+/** État sans instance : invitation à en créer une, un bouton par rôle. */
+function EmptyInstances({ roles, emptyHint, error, onError, onAdd }) {
+  return (
+    <div className="grid min-h-0 flex-1 place-items-center p-6">
+      <div className="flex max-w-md flex-col items-center gap-3 text-center">
+        <div className="flex gap-2 text-slate-600">
+          {roles.map(({ role, icon }) => (
+            <Icon key={role} icon={icon} className="size-6" />
+          ))}
+        </div>
+        <h2 className="text-sm font-semibold text-slate-200">{t('ui.instances.empty')}</h2>
+        <p className="text-sm text-slate-400">{emptyHint ?? t('ui.instances.emptyHint')}</p>
+        <div className="flex flex-wrap justify-center gap-2">
+          {roles.map(({ role, label }) => (
+            <Button key={role} variant={role === roles[0].role ? 'primary' : 'secondary'} onClick={() => onAdd(role)}>
+              <Icon icon={faPlus} className="size-3.5" /> {label}
+            </Button>
+          ))}
+        </div>
+        <ErrorBanner error={error} onClose={() => onError(null)} />
+      </div>
+    </div>
+  )
+}
+
+/** Identifiant d'onglet d'un onglet apporté par un autre module (distinct de ceux des instances). */
+const extensionTab = (extension) => `ext:${extension.key}`
+
 /**
  * Page d'un module à instances : un onglet par instance (pastille verte si elle est en marche),
- * boutons d'ajout par rôle à droite de la barre, nom modifiable et suppression au-dessus du panneau.
- * Sans instance, la page propose d'en créer une.
+ * boutons d'ajout par rôle à droite de la barre, nom modifiable et suppression au-dessus du panneau,
+ * puis les onglets apportés par d'autres modules (voir useExtensions). Sans instance, la page
+ * propose d'en créer une.
  *  - `moduleId` ; `roles` : `[{ role, label, icon }]` (ordre des boutons d'ajout) ;
  *  - `statuses` : `{ [id instance]: état }` (voir useInstanceStatuses) ;
  *  - `children(instance)` : panneau de l'instance. Les panneaux restent montés (état local conservé).
  */
 export function InstancesPage({ moduleId, roles, statuses = {}, emptyHint, children }) {
   const { instances, loaded, create, rename, remove } = useInstances(moduleId)
+  const extensions = useExtensions(moduleId)
   const [selected, setSelected] = useStoredState(`sulfur:tab:${moduleId}`, '')
   const [error, setError] = useState(null)
   const roleOf = useMemo(() => Object.fromEntries(roles.map((r) => [r.role, r])), [roles])
   const shown = instances.filter((i) => roleOf[i.role])
-  const current = shown.find((i) => i.id === selected) ?? shown[0]
+  const extension = extensions.find((e) => extensionTab(e) === selected)
+  const current = extension ? null : (shown.find((i) => i.id === selected) ?? shown[0])
 
   const add = async (role) => {
     setError(null)
@@ -183,45 +215,32 @@ export function InstancesPage({ moduleId, roles, statuses = {}, emptyHint, child
 
   if (!loaded) return null
 
-  if (!shown.length) {
-    return (
-      <div className="grid h-full place-items-center p-6">
-        <div className="flex max-w-md flex-col items-center gap-3 text-center">
-          <div className="flex gap-2 text-slate-600">
-            {roles.map(({ role, icon }) => (
-              <Icon key={role} icon={icon} className="size-6" />
-            ))}
-          </div>
-          <h2 className="text-sm font-semibold text-slate-200">{t('ui.instances.empty')}</h2>
-          <p className="text-sm text-slate-400">{emptyHint ?? t('ui.instances.emptyHint')}</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {roles.map(({ role, label }) => (
-              <Button key={role} variant={role === roles[0].role ? 'primary' : 'secondary'} onClick={() => add(role)}>
-                <Icon icon={faPlus} className="size-3.5" /> {label}
-              </Button>
-            ))}
-          </div>
-          <ErrorBanner error={error} onClose={() => setError(null)} />
-        </div>
-      </div>
-    )
-  }
+  const empty = <EmptyInstances roles={roles} emptyHint={emptyHint} error={error} onError={setError} onAdd={add} />
+  if (!shown.length && !extensions.length) return empty
 
   return (
     <TabbedPage
-      value={current.id}
+      value={extension ? extensionTab(extension) : (current?.id ?? '')}
       onChange={setSelected}
       actions={addButtons}
-      tabs={shown.map((i) => ({
-        id: i.id,
-        label: i.name,
-        icon: roleOf[i.role].icon,
-        badge: dot(isRunning(statuses[i.id]))
-      }))}
+      tabs={[
+        ...shown.map((i) => ({
+          id: i.id,
+          label: i.name,
+          icon: roleOf[i.role].icon,
+          badge: dot(isRunning(statuses[i.id]))
+        })),
+        ...extensions.map((e) => ({
+          id: extensionTab(e),
+          label: typeof e.label === 'function' ? e.label() : e.label,
+          icon: e.icon
+        }))
+      ]}
     >
-      <ErrorBanner error={error} onClose={() => setError(null)} />
+      {shown.length > 0 && <ErrorBanner error={error} onClose={() => setError(null)} />}
+      {!current && !extension && empty}
       {shown.map((instance) => (
-        <div key={instance.id} className={instance.id === current.id ? 'contents' : 'hidden'}>
+        <div key={instance.id} className={instance.id === current?.id ? 'contents' : 'hidden'}>
           <InstanceBar
             instance={instance}
             running={isRunning(statuses[instance.id])}
@@ -229,6 +248,11 @@ export function InstancesPage({ moduleId, roles, statuses = {}, emptyHint, child
             onRemove={() => remove(instance.id)}
           />
           {children(instance)}
+        </div>
+      ))}
+      {extensions.map((e) => (
+        <div key={e.key} className={e === extension ? 'contents' : 'hidden'}>
+          <e.Component />
         </div>
       ))}
     </TabbedPage>

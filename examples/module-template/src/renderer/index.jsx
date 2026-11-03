@@ -90,5 +90,42 @@ function MyModuleView() {
   )
 }
 
-/** Export par défaut : manifeste, icône de la barre latérale (FontAwesome) et composant. */
-export default { manifest, icon: faStopwatch, Component: MyModuleView }
+/**
+ * Extension : onglet ajouté à la page d'un autre module (`target`, déclaré dans `extends` du
+ * manifeste). Il reçoit `target` et `module` et n'appelle que les canaux de son propre module.
+ */
+function CounterTab({ target, module }) {
+  const [state, setState] = useState(null)
+  useEffect(() => {
+    invoke('state')
+      .then(setState)
+      .catch(() => {})
+    return window.sulfur.on(`${module}:state`, setState)
+  }, [module])
+  return (
+    <Card id={`${ID}.extension`} title={t('my-module.counter')}>
+      <div className="flex items-center gap-3">
+        <StatusDot on={!!state?.running} label={t(state?.running ? 'my-module.running' : 'my-module.stopped')} />
+        <span className="ml-auto font-mono text-2xl text-slate-100 tabular-nums">{state?.value ?? '—'}</span>
+      </div>
+      <p className="mt-3 text-xs text-slate-500">{t('my-module.extensionHint', { target, module })}</p>
+    </Card>
+  )
+}
+
+/**
+ * Export par défaut : manifeste, icône de la barre latérale (FontAwesome), composant de la page et
+ * onglets apportés à d'autres modules (facultatifs ; sans page, `icon` et `Component` peuvent être
+ * omis : le module ne fait alors que compléter les modules visés).
+ */
+export default {
+  manifest,
+  icon: faStopwatch,
+  Component: MyModuleView,
+  extensions: [
+    {
+      target: 'modbus',
+      tab: { id: 'counter', label: () => t('my-module.extensionTab'), icon: faStopwatch, Component: CounterTab }
+    }
+  ]
+}

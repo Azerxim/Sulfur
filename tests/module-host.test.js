@@ -307,11 +307,30 @@ describe('Modules externes', () => {
         version: '1.0.0',
         author: null,
         description: null,
+        extends: [],
         folder: 'broken',
         loaded: false
       },
-      { id: 'empty', name: 'empty', version: '?', author: null, description: null, folder: 'empty', loaded: false },
-      { id: 'ext', name: 'Package ext', version: '1.0.0', author: null, description: null, folder: 'ext', loaded: true }
+      {
+        id: 'empty',
+        name: 'empty',
+        version: '?',
+        author: null,
+        description: null,
+        extends: [],
+        folder: 'empty',
+        loaded: false
+      },
+      {
+        id: 'ext',
+        name: 'Package ext',
+        version: '1.0.0',
+        author: null,
+        description: null,
+        extends: [],
+        folder: 'ext',
+        loaded: true
+      }
     ])
   })
 
@@ -323,6 +342,7 @@ describe('Modules externes', () => {
       version: '1.0.0',
       author: 'Jane Doe',
       description: 'New module',
+      extends: [],
       files: 3,
       installed: null
     })

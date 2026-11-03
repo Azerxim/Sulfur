@@ -112,7 +112,7 @@ Structure à mettre en place avant le premier module additionnel :
   empaquetage), pour que les utilisateurs puissent créer et partager leurs propres modules.
   [Guide](docs/fr/module-guide.md) (EN / FR) et modèle dans `examples/module-template` (compteur publié
   comme point de données), construit et exécuté par les tests.
-- [ ] **Extensions de modules** : un module additionnel ajoute un onglet à la page d'un module
+- [X] **Extensions de modules** : un module additionnel ajoute un onglet à la page d'un module
   standard (API des modules 1.2, voir la [roadmap du SDK](packages/sdk/ROADMAP.fr.md)). L'hôte des
   modules rassemble les onglets déclarés par les modules chargés et les fournit à leur cible ; les
   modules extensibles les affichent après leurs propres onglets (Siemens S7 d'abord, puis OPC UA).

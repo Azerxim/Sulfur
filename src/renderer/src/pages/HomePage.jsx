@@ -9,7 +9,7 @@ import {
   faScaleBalanced
 } from '@fortawesome/free-solid-svg-icons'
 import { Icon, StatusDot } from '@azerxim/sulfur-sdk/ui'
-import { useEnabledModules } from '../enabled-modules'
+import { hasPage, useEnabledModules } from '../enabled-modules'
 import { useI18n, useManifestText } from '../preferences'
 import { useModuleActivity } from '../activity'
 import { activityLabel } from '../components/PageHeader'
@@ -87,7 +87,7 @@ export default function HomePage({ onNavigate = () => {} }) {
   const servers = count((a) => a.server)
   const clients = count((a) => a.client)
   const sessions = active.reduce((n, m) => n + activity(m.manifest.id).sessions, 0)
-  const tools = groups.find((g) => g.id === 'tools')?.modules ?? []
+  const tools = (groups.find((g) => g.id === 'tools')?.modules ?? []).filter(hasPage)
   const activeTools = tools.filter((m) => activity(m.manifest.id).active).length
 
   return (

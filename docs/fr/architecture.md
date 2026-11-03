@@ -151,6 +151,16 @@ n'existe par défaut**. Le SDK fournit le mécanisme commun, utilisé par tous l
   clés de points (`modbus/server:<point>`) restent les mêmes, les flux et courbes existants
   continuent de fonctionner.
 
+## Extensions de modules
+
+Un module peut ajouter des onglets à la page d'un autre (`RendererModule.extensions`, cibles
+déclarées dans `manifest.extends`). L'interface fournit les modules activés au SDK
+(`setModuleExtensions`, à chaque activation ou désactivation) ; le module visé lit ses onglets avec
+`useExtensions(<id>)` (fait par `InstancesPage`). Un module sans page qui ne fait que compléter
+d'autres modules n'a ni entrée dans la barre latérale ni page : un lien vers lui mène à la page du
+premier module qu'il complète. *Paramètres → Modules* indique les modules complétés, y compris avant
+l'installation d'un paquet.
+
 ## SDK des modules
 
 Les modules n'utilisent l'application qu'à travers le **SDK des modules** `@azerxim/sulfur-sdk`

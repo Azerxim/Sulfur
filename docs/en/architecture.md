@@ -149,6 +149,15 @@ The SDK provides the common mechanism, used by every protocol module:
   instances with ids `server` and `client` ("Server 1", "Client 1"): point keys
   (`modbus/server:<point>`) stay the same, existing flows and trends keep working.
 
+## Module extensions
+
+A module can add tabs to the page of another one (`RendererModule.extensions`, targets declared in
+`manifest.extends`). The interface gives the enabled modules to the SDK (`setModuleExtensions`, on
+every enabling or disabling); the target module reads its tabs with `useExtensions(<id>)` (done by
+`InstancesPage`). A page-less module that only extends other modules has no sidebar entry nor page:
+a link to it leads to the page of the first module it extends. *Settings → Modules* shows the
+extended modules, including before a package is installed.
+
 ## Module SDK
 
 Modules use the application only through the **module SDK** `@azerxim/sulfur-sdk` (`packages/sdk`,

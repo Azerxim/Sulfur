@@ -23,6 +23,11 @@ export interface ModuleManifest {
   apiVersion: string
   /** Version minimale de Sulfur (semver). */
   minAppVersion: string
+  /**
+   * Modules complétés par ce module (identifiants), affichés avant l'installation : ses onglets
+   * apportés (`RendererModule.extensions`) ne peuvent viser que ces modules.
+   */
+  extends?: string[]
 }
 
 export const MODULE_API_VERSION: string

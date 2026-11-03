@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { config as iconConfig } from '@fortawesome/fontawesome-svg-core'
 import '@shared/locales'
 import { PreferencesProvider, applyLanguage, applyTheme, loadPreferences } from './preferences'
-import { loadModuleConfigs } from '@azerxim/sulfur-sdk/host'
+import { loadModuleConfigs, setModuleExtensions } from '@azerxim/sulfur-sdk/host'
 import { availableModules, loadDisabledModules, loadRejectedModules } from './enabled-modules'
 import { loadExternalModules } from './external-modules'
 import { loadModuleActivity } from './activity'
@@ -31,6 +31,9 @@ loadExternalModules()
     ])
   )
   .then(() => {
+    // Onglets apportés par les modules activés (extensions), connus dès le premier rendu.
+    const off = new Set(preferences.disabledModules ?? [])
+    setModuleExtensions(availableModules().modules.filter((m) => !off.has(m.manifest.id)))
     // Activité des modules (barre latérale, accueil) : suivie sans retarder le premier rendu.
     loadModuleActivity()
     createRoot(document.getElementById('root')).render(

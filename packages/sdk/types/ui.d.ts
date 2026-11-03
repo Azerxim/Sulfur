@@ -22,10 +22,49 @@ export type IconSource = IconDefinition | ComponentType<{ className?: string }>
 /** Partie "renderer" d'un module. */
 export interface RendererModule {
   manifest: ModuleManifest
-  /** Icône de la barre latérale (définition FontAwesome, `faServer`…). */
-  icon: IconSource
-  Component: ComponentType<{ onNavigate?: (id: string) => void }>
+  /** Icône de la barre latérale (définition FontAwesome, `faServer`…). Avec `Component`. */
+  icon?: IconSource
+  /** Page du module ; facultative pour un module qui ne fait qu'apporter des onglets à d'autres. */
+  Component?: ComponentType<{ onNavigate?: (id: string) => void }>
+  /** Onglets apportés à d'autres modules, déclarés dans `manifest.extends` (API 1.2). */
+  extensions?: ModuleExtension[]
 }
+
+/** Propriétés d'un onglet apporté : module visé et module qui l'apporte (dont il appelle les canaux). */
+export interface ExtensionTabProps {
+  target: string
+  module: string
+}
+
+/** Onglet apporté par un module à la page d'un autre module (`target`). */
+export interface ModuleExtension {
+  target: string
+  tab: {
+    /** Identifiant unique dans la page visée. */
+    id: string
+    /** Libellé, ou fonction qui le retourne (appelée à l'affichage : suit la langue). */
+    label: ReactNode | (() => ReactNode)
+    icon?: IconSource
+    Component: ComponentType<ExtensionTabProps>
+  }
+}
+
+/** Onglet apporté, tel que le lit le module visé ; `Component` reçoit déjà `target` et `module`. */
+export interface ExtensionEntry {
+  key: string
+  id: string
+  label: ReactNode | (() => ReactNode)
+  icon?: IconSource
+  module: string
+  target: string
+  Component: ComponentType
+}
+
+/**
+ * Onglets apportés au module `target` par les autres modules activés, à afficher après ses propres
+ * onglets (InstancesPage le fait d'elle-même) ; vide si rien ne le complète.
+ */
+export function useExtensions(target: string): ExtensionEntry[]
 
 /** Icône FontAwesome dimensionnée par `className` (`size-4`…) ; rien si `icon` est absent. */
 export function Icon(props: { icon?: IconSource | null; className?: string; title?: string }): ReactElement | null

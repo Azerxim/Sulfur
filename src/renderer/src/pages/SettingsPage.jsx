@@ -100,7 +100,7 @@ export default function SettingsPage() {
   const { t } = useI18n()
   const { prefs, update } = usePreferences()
   const text = useManifestText()
-  const { modules } = useEnabledModules()
+  const { pages: modules } = useEnabledModules()
   const [tab, setTab] = useStoredState(SETTINGS_TAB_KEY, 'general', TABS)
 
   return (

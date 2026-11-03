@@ -46,20 +46,39 @@ export async function loadDisabledModules() {
   }
 }
 
+/** Module qui a sa propre page (un module qui ne fait que compléter d'autres modules n'en a pas). */
+export const hasPage = (mod) => !!mod?.Component
+
 /**
- * Modules activés (Paramètres → Modules) : groupes de la barre latérale sans les modules
- * désactivés ni refusés (groupes vides retirés), liste à plat et test d'un identifiant.
+ * Modules activés (Paramètres → Modules) : groupes sans les modules désactivés ni refusés (groupes
+ * vides retirés), liste à plat et test d'un identifiant. `pageGroups` : groupes de la barre
+ * latérale, limités aux modules qui ont une page ; `pageOf(id)` : page à afficher pour un module
+ * (la sienne, sinon celle du premier module activé qu'il complète, sinon null).
  */
 export function useEnabledModules() {
   const { prefs } = usePreferences()
   const disabled = prefs.disabledModules
   return useMemo(() => {
     const off = new Set([...(disabled ?? []), ...rejected.map((r) => r.id)])
+    const groups = available.groups
+      .map((group) => ({ ...group, modules: group.modules.filter((m) => !off.has(m.manifest.id)) }))
+      .filter((group) => group.modules.length)
+    const modules = available.modules.filter((m) => !off.has(m.manifest.id))
+    const byId = new Map(modules.map((m) => [m.manifest.id, m]))
+    const pageOf = (id) => {
+      const mod = byId.get(id)
+      if (!mod) return null
+      if (hasPage(mod)) return id
+      return (mod.manifest.extends ?? []).find((target) => hasPage(byId.get(target))) ?? null
+    }
     return {
-      groups: available.groups
-        .map((group) => ({ ...group, modules: group.modules.filter((m) => !off.has(m.manifest.id)) }))
+      groups,
+      pageGroups: groups
+        .map((group) => ({ ...group, modules: group.modules.filter(hasPage) }))
         .filter((group) => group.modules.length),
-      modules: available.modules.filter((m) => !off.has(m.manifest.id)),
+      modules,
+      pages: modules.filter(hasPage),
+      pageOf,
       isDisabled: (id) => off.has(id)
     }
   }, [disabled])

@@ -80,7 +80,7 @@ export class ExternalModules {
 
   /**
    * Paquets présents dans le dossier des paquets, chargés ou non :
-   * [{ id, name, version, author, description, folder, loaded }]. Un dossier sans module.json
+   * [{ id, name, version, author, description, extends, folder, loaded }]. Un dossier sans module.json
    * lisible est listé avec son nom (version « ? »), pour pouvoir le supprimer.
    */
   async installed() {
@@ -100,6 +100,7 @@ export class ExternalModules {
         version: typeof d.version === 'string' ? d.version : '?',
         author: typeof d.author === 'string' ? d.author : null,
         description: typeof d.description === 'string' ? d.description : null,
+        extends: Array.isArray(d.extends) ? d.extends.filter((target) => typeof target === 'string') : [],
         folder: entry.name,
         loaded: this.ids().includes(id)
       })
@@ -137,6 +138,7 @@ export class ExternalModules {
       version: manifest.version,
       author: manifest.author ?? null,
       description: manifest.description ?? null,
+      extends: manifest.extends ?? [],
       files: files.size,
       size: [...files.values()].reduce((sum, data) => sum + data.length, 0),
       installed: current?.version ?? null

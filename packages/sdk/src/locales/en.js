@@ -40,6 +40,9 @@ export default {
     renameRecreates: 'Renaming recreates the node (its identifier changes)',
     typeRecreates: 'Changing the type recreates the node',
     certificates: 'Certificates',
+    extensions: {
+      error: 'The tab provided by {module} ran into an error.'
+    },
     instances: {
       add: 'Add',
       addRole: 'New: {role}',

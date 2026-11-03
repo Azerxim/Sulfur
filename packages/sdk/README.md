@@ -147,6 +147,16 @@ function DemoView() {
 instance; `migrateToInstances` converts the configuration of a version that had a single server and
 client.
 
+## Extending another module
+
+A module can add tabs to the page of another module (API 1.2): it declares its targets in its
+manifest (`extends: ['s7']`, shown before installation) and its tabs in its renderer part
+(`extensions: [{ target: 's7', tab: { id, label, icon, Component } }]`, the module's own `icon` and
+`Component` becoming optional). The tab receives `target` and `module` and only calls the channels
+of its own module. `InstancesPage` shows the tabs aimed at its page; any other page reads them with
+`useExtensions(<its id>)`. See the
+[module guide](https://github.com/Azerxim/Sulfur/blob/main/docs/en/module-guide.md).
+
 ## External module
 
 Step by step, from a ready-to-use template: see the

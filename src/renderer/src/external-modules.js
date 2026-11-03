@@ -36,11 +36,19 @@ function addStylesheet(href) {
   document.head.append(link)
 }
 
-/** Interface d'un module externe : export par défaut { manifest, icon, Component } du paquet `pkg`. */
+/**
+ * Interface d'un module externe : export par défaut { manifest, icon, Component, extensions } du
+ * paquet `pkg`. La page (icon et Component) est facultative pour un module qui apporte des onglets
+ * à d'autres modules (extensions).
+ */
 async function importModule(pkg) {
   const mod = (await import(/* @vite-ignore */ pkg.renderer)).default
   if (mod?.manifest?.id !== pkg.id) throw Object.assign(new Error('mismatch'), { reason: 'mismatch' })
-  if (!mod.icon || !mod.Component) throw Object.assign(new Error('invalid'), { reason: 'invalid' })
+  const page = !!(mod.icon && mod.Component)
+  const extensions = Array.isArray(mod.extensions) && mod.extensions.length > 0
+  if ((!page && !extensions) || !!mod.Component !== !!mod.icon) {
+    throw Object.assign(new Error('invalid'), { reason: 'invalid' })
+  }
   return mod
 }
 

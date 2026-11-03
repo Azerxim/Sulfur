@@ -18,7 +18,7 @@ application (hôte des modules, Paramètres, modules intégrés) est dans la
   FontAwesome (`<Icon icon={faCube} className="size-4" />`) ; `RendererModule.icon` et les icônes
   de `Tabs` acceptent une définition FontAwesome, les composants (lucide-react…) restant acceptés
   pour les modules antérieurs.
-- [ ] **Extensions de modules** : un module ajoute un onglet à la page d'un autre module, pour
+- [x] **Extensions de modules** : un module ajoute un onglet à la page d'un autre module, pour
   qu'un module additionnel complète un module standard au lieu d'avoir sa propre page (onglet
   S7CommPlus du module Siemens S7 apporté par Siemens S7 Enhanced, onglet PubSub du module
   OPC UA…).

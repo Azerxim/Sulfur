@@ -85,7 +85,8 @@ export const manifest = defineManifest({
   version: '0.1.0', // version of the module (semver), to increase on every release
   author: 'Your name', // shown before installation
   edition: 'additional',
-  minAppVersion: '0.4.0' // minimum version of Sulfur
+  minAppVersion: '0.4.0', // minimum version of Sulfur
+  extends: ['modbus'] // optional: modules this module adds tabs to (see 4.)
 })
 ```
 
@@ -173,6 +174,35 @@ function MyModuleView() {
 - **Styles**: `style.css` imports `@azerxim/sulfur-sdk/module.css`; only the Tailwind utilities used
   by the module are generated, on the theme colors (`ink`, `slate`, `sulfur`…), light theme
   included. Prefix your own CSS classes with the module identifier.
+
+### Extending another module (extensions)
+
+A module can add tabs to the page of another module instead of (or as well as) having its own page:
+an additional module thus extends a standard module (S7CommPlus tab in Siemens S7, PubSub in
+OPC UA…).
+
+```jsx
+// The manifest declares the extended modules: extends: ['modbus'] (shown before installation).
+function CounterTab({ target, module }) {
+  // `target`: module hosting the tab; `module`: this module. Only call its own channels
+  // (`${module}:<action>`), never those of the target module.
+}
+
+export default {
+  manifest,
+  icon,
+  Component, // optional: without a page, the module only extends the target modules
+  extensions: [{ target: 'modbus', tab: { id: 'counter', label: () => t('my-module.tab'), icon, Component: CounterTab } }]
+}
+```
+
+- A tab is shown only if its target is listed in `extends` and its `id` is free in the target page;
+  `label` can be a function (called when rendering, it follows the language).
+- Provided tabs follow the activation of the module providing them. A module whose target is
+  missing or disabled still loads: its tabs are simply not shown.
+- Pages built with `InstancesPage` show the tabs aimed at them by themselves, after their own; any
+  other page reads them with `useExtensions(<its id>)`.
+- An error in a provided tab is shown in its place, without breaking the hosting page.
 
 ## 5. Translations
 

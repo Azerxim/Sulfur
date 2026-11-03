@@ -17,7 +17,7 @@ the [Sulfur roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#stan
   definition (`<Icon icon={faCube} className="size-4" />`); `RendererModule.icon` and `Tabs` icons
   accept a FontAwesome definition, components (lucide-react…) remaining accepted for earlier
   modules.
-- [ ] **Module extensions**: a module adds a tab to the page of another module, so that an
+- [x] **Module extensions**: a module adds a tab to the page of another module, so that an
   additional module can extend a standard one instead of having its own page (S7CommPlus tab of the
   Siemens S7 module from Siemens S7 Enhanced, PubSub tab of the OPC UA module…).
   - `RendererModule.extensions` (optional): `[{ target, tab: { id, label, icon, Component } }]`,

@@ -40,6 +40,9 @@ export default {
     renameRecreates: 'Renommer recrée le nœud (son identifiant change)',
     typeRecreates: 'Changer le type recrée le nœud',
     certificates: 'Certificats',
+    extensions: {
+      error: 'L’onglet apporté par {module} a rencontré une erreur.'
+    },
     instances: {
       add: 'Ajouter',
       addRole: 'Nouveau : {role}',

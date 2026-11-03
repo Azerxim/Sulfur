@@ -148,6 +148,16 @@ function DemoView() {
 ceux de chaque instance ; `migrateToInstances` convertit la configuration d'une version qui n'avait
 qu'un serveur et un client.
 
+## Compléter un autre module
+
+Un module peut ajouter des onglets à la page d'un autre module (API 1.2) : il déclare ses cibles dans
+son manifeste (`extends: ['s7']`, affiché avant l'installation) et ses onglets dans sa partie
+renderer (`extensions: [{ target: 's7', tab: { id, label, icon, Component } }]`, `icon` et
+`Component` du module devenant facultatifs). L'onglet reçoit `target` et `module` et n'appelle que
+les canaux de son propre module. `InstancesPage` affiche les onglets qui visent sa page ; une autre
+page les lit avec `useExtensions(<son id>)`. Voir le
+[guide des modules](https://github.com/Azerxim/Sulfur/blob/main/docs/fr/module-guide.md).
+
 ## Module externe
 
 Pas à pas, à partir d'un modèle prêt à l'emploi : voir le

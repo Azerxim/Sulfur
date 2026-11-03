@@ -12,6 +12,9 @@ Modules are managed in *Settings → Modules*. Sulfur has two kinds of modules:
 ## Enabling and disabling modules
 
 *Settings → Modules → Enabled modules* lists every module with its version and a checkbox.
+Each group has its own **Enable** and **Disable** buttons (running modules stay enabled), besides
+**Enable all** and **Disable all**. A module extending other modules says so ("Extends Siemens
+S7"); disabling it removes its tabs from the pages it extends.
 
 A disabled module:
 

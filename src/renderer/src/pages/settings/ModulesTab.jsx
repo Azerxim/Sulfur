@@ -18,6 +18,18 @@ import { useI18n, useManifestText, usePreferences } from '../../preferences'
 import { Badge, Panel, Segmented, Switch, versionOrder } from './shared'
 
 /** Texte comparable sans casse ni accents (filtre des modules). */
+/** Noms affichés des modules `ids` (identifiant d'un module absent), séparés par des virgules. */
+function useModuleNames() {
+  const text = useManifestText()
+  return (ids) =>
+    ids
+      .map((id) => {
+        const mod = availableModules().modules.find((m) => m.manifest.id === id)
+        return mod ? text(mod.manifest).name : id
+      })
+      .join(', ')
+}
+
 const normalize = (text) => text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 /**
@@ -26,6 +38,7 @@ const normalize = (text) => text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]
  * le process principal le refuserait de toute façon).
  */
 function ModulesPanel() {
+  const moduleNames = useModuleNames()
   const { t } = useI18n()
   const text = useManifestText()
   const activity = useModuleActivity()
@@ -51,6 +64,15 @@ function ModulesPanel() {
     }
   }
   const toggle = (id, enabled) => apply(enabled ? disabled.filter((x) => x !== id) : [...disabled, id])
+  /** Active ou désactive tous les modules d'un groupe (ceux en marche restent activés). */
+  const toggleGroup = (group, enabled) => {
+    const ids = group.modules.map((m) => m.manifest.id)
+    apply(
+      enabled
+        ? disabled.filter((id) => !ids.includes(id))
+        : [...new Set([...disabled, ...ids.filter((id) => !activity(id).active)])]
+    )
+  }
 
   const q = normalize(query.trim())
   const shown = (manifest) => {
@@ -114,10 +136,35 @@ function ModulesPanel() {
       <div className="pt-1 pb-1">
         {visible.map((group) => (
           <div key={group.id}>
-            <div className="flex items-center justify-between px-3.5 pt-3 pb-1.5 text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
+            <div className="flex items-center gap-2 px-3.5 pt-3 pb-1.5 text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
               <span>{t(`app.groups.${group.id}`)}</span>
-              <span className="font-mono font-normal tracking-normal">
-                {group.modules.filter((m) => !disabled.includes(m.manifest.id)).length}/{group.modules.length}
+              <span className="ml-auto flex items-center gap-1 font-normal tracking-normal normal-case">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6! px-2!"
+                  title={t('settings.moduleSwitch.enableGroup', { group: t(`app.groups.${group.id}`) })}
+                  disabled={busy || group.modules.every((m) => !disabled.includes(m.manifest.id))}
+                  onClick={() => toggleGroup(group, true)}
+                >
+                  {t('settings.moduleSwitch.enable')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6! px-2!"
+                  title={t('settings.moduleSwitch.disableGroup', { group: t(`app.groups.${group.id}`) })}
+                  disabled={
+                    busy ||
+                    group.modules.every((m) => disabled.includes(m.manifest.id) || activity(m.manifest.id).active)
+                  }
+                  onClick={() => toggleGroup(group, false)}
+                >
+                  {t('settings.moduleSwitch.disable')}
+                </Button>
+                <span className="font-mono">
+                  {group.modules.filter((m) => !disabled.includes(m.manifest.id)).length}/{group.modules.length}
+                </span>
               </span>
             </div>
             {group.shown.map(({ manifest }) => {
@@ -127,7 +174,7 @@ function ModulesPanel() {
               return (
                 <div
                   key={manifest.id}
-                  className={`grid min-h-12 grid-cols-[44px_minmax(0,1fr)_auto_56px] items-center gap-2.5 border-t border-ink-800/70 px-3.5 py-1 ${
+                  className={`grid min-h-12 grid-cols-[44px_minmax(0,1fr)_auto_minmax(56px,auto)] items-center gap-2.5 border-t border-ink-800/70 px-3.5 py-1 ${
                     enabled ? '' : 'opacity-60'
                   }`}
                 >
@@ -146,6 +193,8 @@ function ModulesPanel() {
                       )}
                     </span>
                     <span className="truncate text-xs text-slate-500" title={description}>
+                      {manifest.extends?.length > 0 &&
+                        `${t('settings.moduleSwitch.extends', { modules: moduleNames(manifest.extends) })} · `}
                       {description}
                     </span>
                   </div>
@@ -215,6 +264,7 @@ const formatSize = (bytes, locale) => {
  * pas signé.
  */
 function InstallPackageModal({ info, busy, onConfirm, onClose }) {
+  const moduleNames = useModuleNames()
   const { t, locale } = useI18n()
   const order = info.installed ? versionOrder(info.version, info.installed) : null
   const label = !info.installed
@@ -226,6 +276,7 @@ function InstallPackageModal({ info, busy, onConfirm, onClose }) {
     ['id', <code className="font-mono">{info.id}</code>],
     ['version', <span className="font-mono">{info.version}</span>],
     ['author', info.author ?? <span className="text-amber-300">{t('settings.externalModules.unknownAuthor')}</span>],
+    ...(info.extends?.length ? [['extends', moduleNames(info.extends)]] : []),
     [
       'content',
       t('settings.externalModules.confirm.files', { count: info.files, size: formatSize(info.size, locale) })
@@ -274,6 +325,7 @@ function InstallPackageModal({ info, busy, onConfirm, onClose }) {
  * quand les modules externes sont chargés).
  */
 function ExternalModulesPanel() {
+  const moduleNames = useModuleNames()
   const { t } = useI18n()
   const { enabled: loaded, next, dir, ids } = externalModules()
   const [enabled, setEnabled] = useState(next)
@@ -408,6 +460,8 @@ function ExternalModulesPanel() {
                 {pkg.author
                   ? t('settings.externalModules.by', { author: pkg.author })
                   : t('settings.externalModules.unknownAuthor')}
+                {pkg.extends?.length > 0 &&
+                  ` · ${t('settings.externalModules.extends', { modules: moduleNames(pkg.extends) })}`}
               </span>
             </div>
             {removing === pkg.id ? (

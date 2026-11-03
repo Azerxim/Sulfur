@@ -108,7 +108,7 @@ Structure to set up before the first additional module:
   packaging), so that users can create and share their own modules.
   [Guide](docs/en/module-guide.md) (EN / FR) and template in `examples/module-template` (counter published
   as a data point), built and run by the tests.
-- [ ] **Module extensions**: an additional module adds a tab to the page of a standard module
+- [X] **Module extensions**: an additional module adds a tab to the page of a standard module
   (module API 1.2, see the [SDK roadmap](packages/sdk/ROADMAP.md)). The module host collects the
   tabs declared by the loaded modules and provides them to their target; the extensible modules
   show them after their own tabs (Siemens S7 first, then OPC UA). The tabs follow the enabling,
