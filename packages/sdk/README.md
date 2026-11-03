@@ -107,6 +107,46 @@ Translations: `registerMessages({ en, fr }, 'demo')` then `moduleT('demo')`; the
 description come from the `demo.name` and `demo.description` keys. Common strings (`ui.start`,
 `errors.alreadyStarted`…) are provided by the SDK.
 
+## Multiple servers and clients
+
+A module can offer as many servers, clients… ("roles") as the user wants, none existing at first
+(API 1.2):
+
+```js
+// main/index.js — one instance per server or client created in the interface
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
+
+const instances = defineInstances(ctx, {
+  server: {
+    label: () => t('ui.server'),
+    create: (instance, { emit }) => new DemoServer({ onStatus: (s) => emit('status', s) }),
+    busy: (server) => server.running,
+    dispose: (server) => server.stop()
+  }
+})
+instances.handle('server', 'start', (server, config) => server.start(config)) // demo:server:start (id, config)
+```
+
+```jsx
+// renderer: one tab per instance, add buttons, rename and remove
+import { InstancesPage, useInstanceStatuses } from '@azerxim/sulfur-sdk/ui'
+import { instanceSection } from '@azerxim/sulfur-sdk'
+
+function DemoView() {
+  const statuses = useInstanceStatuses('demo', 'server')
+  return (
+    <InstancesPage moduleId="demo" roles={[{ role: 'server', label: 'Server', icon: faServer }]} statuses={statuses}>
+      {(instance) => <ServerPanel instance={instance} status={statuses[instance.id] ?? {}} />}
+    </InstancesPage>
+  )
+}
+// In the panel: usePersistentState('demo', instanceSection('server', instance.id), defaults)
+```
+
+`instancesPointsApi` (`@azerxim/sulfur-sdk`) builds the module's data points from those of each
+instance; `migrateToInstances` converts the configuration of a version that had a single server and
+client.
+
 ## External module
 
 Step by step, from a ready-to-use template: see the

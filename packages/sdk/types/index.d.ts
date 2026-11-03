@@ -193,7 +193,27 @@ export function instancesOf(config: unknown): Instance[]
  * Configuration antérieure aux instances convertie : une instance d'identifiant égal au rôle par
  * rôle dont une section existe (`server` → section `server:server`). Sans effet si la liste existe.
  */
-export function migrateToInstances<T>(config: T, roles: Record<string, { sections: string[]; name: string; id?: string }>): T
+export function migrateToInstances<T>(
+  config: T,
+  roles: Record<string, { sections: string[]; name: string; id?: string }>
+): T
+/** Points d'une instance, aux identifiants locaux (sans préfixe). */
+export interface InstancePoints {
+  points(): Omit<Point, 'group' | 'groupName'>[]
+  read(ids: string[]): Record<string, unknown>
+  write?(id: string, value: unknown): Promise<unknown>
+  setFaults?(faults: ActiveFault[]): void
+}
+/**
+ * Points d'un module à instances, assemblés à partir de ceux de chaque instance : `<id instance>:<id>`,
+ * groupe = rôle, `groupName` = nom de l'instance ; défauts transmis aux instances concernées.
+ */
+export function instancesPointsApi(options: {
+  name: string
+  instances: { all(role?: string): { instance: Instance; object: any }[] }
+  roles: Record<string, (object: any, instance: Instance) => InstancePoints>
+  faultTypes?: FaultType[] | (() => FaultType[])
+}): PointsApi
 /** Premier nom libre « <libellé> <n> ». */
 export function nextInstanceName(label: string, instances: { name: string }[]): string
 
