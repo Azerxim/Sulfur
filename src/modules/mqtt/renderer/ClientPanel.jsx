@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaperPlane, faPlug, faPlugCircleXmark, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { instanceSection } from '@azerxim/sulfur-sdk'
 import {
   Button,
   Card,
@@ -39,7 +40,7 @@ function QosSelect({ value, disabled, onChange }) {
   )
 }
 
-function ConnectionCard({ config, update, status, server, busy, run }) {
+function ConnectionCard({ api, config, update, status, server, busy, run }) {
   const connected = status.connected
   const locked = !!status.connecting || connected || busy
   const will = { ...DEFAULT_CLIENT_CONFIG.will, ...config.will }
@@ -64,7 +65,7 @@ function ConnectionCard({ config, update, status, server, busy, run }) {
             }
           />
           {status.connecting || connected ? (
-            <Button variant="danger" size="sm" onClick={() => run(mqttApi.client.disconnect)}>
+            <Button variant="danger" size="sm" onClick={() => run(api.disconnect)}>
               <FontAwesomeIcon icon={faPlugCircleXmark} className="size-3.5" /> {t('ui.disconnect')}
             </Button>
           ) : (
@@ -72,7 +73,7 @@ function ConnectionCard({ config, update, status, server, busy, run }) {
               variant="primary"
               size="sm"
               disabled={busy || !config.host}
-              onClick={() => run(() => mqttApi.client.connect(config))}
+              onClick={() => run(() => api.connect(config))}
             >
               <FontAwesomeIcon icon={faPlug} className="size-3.5" /> {busy ? t('ui.connecting') : t('ui.connect')}
             </Button>
@@ -230,7 +231,7 @@ function ConnectionCard({ config, update, status, server, busy, run }) {
   )
 }
 
-function SubscriptionsCard({ config, update, status, last, onError }) {
+function SubscriptionsCard({ api, config, update, status, last, onError }) {
   const timer = useRef(null)
   const subscriptions = config.subscriptions ?? []
   const granted = Object.fromEntries((status.subscriptions ?? []).map((s) => [s.id, s.granted]))
@@ -239,10 +240,7 @@ function SubscriptionsCard({ config, update, status, last, onError }) {
     update({ subscriptions: list })
     if (!status.connected || !list.every((s) => isValidFilter(s.topic))) return
     clearTimeout(timer.current)
-    timer.current = setTimeout(
-      () => mqttApi.client.setSubscriptions(list).catch((err) => onError(err.message)),
-      LIVE_DEBOUNCE
-    )
+    timer.current = setTimeout(() => api.setSubscriptions(list).catch((err) => onError(err.message)), LIVE_DEBOUNCE)
   }
   const change = (id, patch) => set(subscriptions.map((s) => (s.id === id ? { ...s, ...patch } : s)))
 
@@ -331,7 +329,7 @@ function SubscriptionsCard({ config, update, status, last, onError }) {
   )
 }
 
-function PublishCard({ config, update, connected, run }) {
+function PublishCard({ api, config, update, connected, run }) {
   const message = { ...DEFAULT_CLIENT_CONFIG.publish, ...config.publish }
   const set = (patch) => update({ publish: { ...message, ...patch } })
   return (
@@ -363,7 +361,7 @@ function PublishCard({ config, update, connected, run }) {
           <Button
             variant="primary"
             disabled={!connected || !message.topic}
-            onClick={() => run(() => mqttApi.client.publish(message))}
+            onClick={() => run(() => api.publish(message))}
           >
             <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('mqtt.publish.send')}
           </Button>
@@ -373,8 +371,9 @@ function PublishCard({ config, update, connected, run }) {
   )
 }
 
-export default function ClientPanel({ status, server }) {
-  const [config, setConfig] = usePersistentState('mqtt', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance, status, server }) {
+  const api = useMemo(() => mqttApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('mqtt', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG)
   const [messages, setMessages] = useState([])
   const [last, setLast] = useState({})
   const [busy, setBusy] = useState(false)
@@ -382,15 +381,15 @@ export default function ClientPanel({ status, server }) {
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
   useEffect(() => {
-    mqttApi.client.messages().then((data) => {
+    api.messages().then((data) => {
       setMessages(data.messages)
       setLast(data.last)
     })
-    return mqttApi.client.onMessages((batch) => {
+    return api.onMessages((batch) => {
       setMessages((m) => [...m, ...batch.messages].slice(-MAX_LOG))
       setLast(batch.last)
     })
-  }, [])
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -406,17 +405,17 @@ export default function ClientPanel({ status, server }) {
 
   return (
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
-      <ConnectionCard config={config} update={update} status={status} server={server} busy={busy} run={run} />
+      <ConnectionCard api={api} config={config} update={update} status={status} server={server} busy={busy} run={run} />
       <ErrorBanner error={error} onClose={() => setError(null)} />
-      <SubscriptionsCard config={config} update={update} status={status} last={last} onError={setError} />
-      <PublishCard config={config} update={update} connected={status.connected} run={run} />
+      <SubscriptionsCard api={api} config={config} update={update} status={status} last={last} onError={setError} />
+      <PublishCard api={api} config={config} update={update} connected={status.connected} run={run} />
       <MessageLog
         id="mqtt.client.messages"
         title={t('mqtt.received.title', { count: status.received ?? 0 })}
         entries={messages}
         emptyLabel={t('mqtt.received.empty')}
         clearLabel={t('mqtt.received.clear')}
-        onClear={() => mqttApi.client.clearMessages().then(setMessages)}
+        onClear={() => api.clearMessages().then(setMessages)}
       />
     </div>
   )

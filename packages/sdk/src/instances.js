@@ -10,6 +10,7 @@
  *   (`instancePointId`), soit `<moduleId>/<id instance>:<id du point>` hors du module.
  */
 import { isPlainObject } from './config.js'
+import { t } from './i18n.js'
 
 /** Section de la configuration qui liste les instances. */
 export const INSTANCES_SECTION = 'instances'
@@ -73,4 +74,75 @@ export function nextInstanceName(label, instances) {
   let n = 1
   while (names.has(`${label} ${n}`)) n++
   return `${label} ${n}`
+}
+
+/**
+ * Points de données d'un module à instances (contrat `PointsApi`, voir points.js), assemblés à
+ * partir de ceux de chaque instance. `roles[role](objet, instance)` décrit les points d'une
+ * instance : `{ points(), read(ids), write?(id, valeur), setFaults?(défauts) }`, aux identifiants
+ * locaux à l'instance (sans préfixe). Les points publiés sont `<id instance>:<id>`, de groupe le rôle
+ * et de `groupName` le nom de l'instance.
+ * Défauts : un défaut sans point vaut pour toutes les instances qui en acceptent ; un défaut visant
+ * des points ne concerne que les instances qui les portent (identifiants locaux).
+ */
+export function instancesPointsApi({ name, instances, roles, faultTypes }) {
+  const entries = () =>
+    instances
+      .all()
+      .filter(({ instance }) => Object.hasOwn(roles, instance.role))
+      .map(({ instance, object }) => ({ instance, api: roles[instance.role](object, instance) }))
+
+  const api = {
+    name,
+
+    points() {
+      return entries().flatMap(({ instance, api: own }) =>
+        own.points().map((p) => ({
+          ...p,
+          id: instancePointId(instance.id, p.id),
+          group: instance.role,
+          groupName: instance.name
+        }))
+      )
+    },
+
+    read(ids) {
+      const list = entries()
+      const values = {}
+      for (const [instanceId, keys] of Map.groupBy(ids, (key) => parseInstancePointId(key).instanceId)) {
+        const own = list.find((e) => e.instance.id === instanceId)?.api
+        const read = own ? own.read(keys.map((key) => parseInstancePointId(key).id)) : {}
+        for (const key of keys) values[key] = read[parseInstancePointId(key).id]
+      }
+      return values
+    },
+
+    async write(pointId, value) {
+      const { instanceId, id } = parseInstancePointId(pointId)
+      const own = entries().find((e) => e.instance.id === instanceId)?.api
+      if (!own) throw new Error(t('errors.unknownInstance', { id: instanceId }))
+      if (!own.write) throw new Error(t('errors.readOnlyPoint', { id: pointId }))
+      return own.write(id, value)
+    }
+  }
+  if (!faultTypes) return api
+  return {
+    ...api,
+    faultTypes: () => (typeof faultTypes === 'function' ? faultTypes() : faultTypes),
+    setFaults(faults) {
+      for (const { instance, api: own } of entries()) {
+        if (!own.setFaults) continue
+        own.setFaults(
+          faults.flatMap((f) => {
+            if (!f.points?.length) return [{ ...f, points: [] }]
+            const points = f.points
+              .map(parseInstancePointId)
+              .filter((p) => p.instanceId === instance.id)
+              .map((p) => p.id)
+            return points.length ? [{ ...f, points }] : []
+          })
+        )
+      }
+    }
+  }
 }

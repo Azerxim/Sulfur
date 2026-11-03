@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCopy, faLock, faPlay, faPlus, faStop, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -13,7 +13,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import {
   DATA_TYPES,
   DEFAULT_SERVER_AUTH,
@@ -80,12 +80,12 @@ function LiveValue({ def, value, onSet }) {
 }
 
 /** Mot de passe d'un utilisateur : saisi puis haché aussitôt (seule l'empreinte est conservée). */
-function PasswordField({ hasHash, disabled, onHash, onError }) {
+function PasswordField({ api, hasHash, disabled, onHash, onError }) {
   const [draft, setDraft] = useState('')
   const commit = async () => {
     if (!draft) return
     try {
-      onHash(await mqttApi.server.hashPassword(draft))
+      onHash(await api.hashPassword(draft))
       setDraft('')
     } catch (err) {
       onError(err.message)
@@ -105,7 +105,7 @@ function PasswordField({ hasHash, disabled, onHash, onError }) {
   )
 }
 
-function AuthCard({ value, locked, onChange, onError }) {
+function AuthCard({ api, value, locked, onChange, onError }) {
   const auth = { ...DEFAULT_SERVER_AUTH, ...value }
   const set = (patch) => onChange({ ...auth, ...patch })
   const setUser = (i, patch) => set({ users: auth.users.map((u, j) => (j === i ? { ...u, ...patch } : u)) })
@@ -148,6 +148,7 @@ function AuthCard({ value, locked, onChange, onError }) {
                 onChange={(e) => setUser(i, { username: e.target.value })}
               />
               <PasswordField
+                api={api}
                 hasHash={!!u.passwordHash}
                 disabled={locked}
                 onHash={(passwordHash) => setUser(i, { passwordHash })}
@@ -212,14 +213,14 @@ function ClientsCard({ status }) {
   )
 }
 
-function Activity({ status }) {
+function Activity({ api, status }) {
   const [logs, setLogs] = useState([])
   const [topics, setTopics] = useState([])
 
   useEffect(() => {
-    mqttApi.server.logs().then(setLogs)
-    mqttApi.server.topics().then(setTopics)
-    return mqttApi.server.onLog((batch) => {
+    api.logs().then(setLogs)
+    api.topics().then(setTopics)
+    return api.onLog((batch) => {
       setLogs((l) => [...l, ...batch].slice(-MAX_LOG))
       setTopics((list) => {
         const map = new Map(list.map((s) => [s.topic, s]))
@@ -232,7 +233,7 @@ function Activity({ status }) {
         return [...map.values()].slice(-MAX_TOPICS)
       })
     })
-  }, [])
+  }, [api])
 
   const sorted = [...topics].sort((a, b) => a.topic.localeCompare(b.topic))
   return (
@@ -276,7 +277,7 @@ function Activity({ status }) {
         showFrom
         emptyLabel={t('mqtt.log.empty')}
         onClear={() =>
-          mqttApi.server.clearLogs().then((list) => {
+          api.clearLogs().then((list) => {
             setLogs(list)
             setTopics([])
           })
@@ -295,8 +296,14 @@ const persist = (config) => ({
   }
 })
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('mqtt', 'server', status.config ?? DEFAULT_SERVER_CONFIG, { persist })
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => mqttApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'mqtt',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG,
+    { persist }
+  )
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -311,9 +318,9 @@ export default function ServerPanel({ status }) {
   }, [running])
 
   useEffect(() => {
-    mqttApi.server.values().then(setValues)
-    return mqttApi.server.onValues(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onValues(setValues)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -338,7 +345,7 @@ export default function ServerPanel({ status }) {
     setConfig((c) => ({ ...c, topics: c.topics.map((d) => (d.id === id ? next : d)) }))
     if (!running || !isValidTopic(next.topic)) return
     clearTimeout(timers.current[id])
-    const send = () => live(() => mqttApi.server.upsertTopic(next))
+    const send = () => live(() => api.upsertTopic(next))
     if (immediate) send()
     else timers.current[id] = setTimeout(send, LIVE_DEBOUNCE)
   }
@@ -346,13 +353,13 @@ export default function ServerPanel({ status }) {
   function addTopic() {
     const def = newTopic(config.topics)
     setConfig((c) => ({ ...c, topics: [...c.topics, def] }))
-    if (running) live(() => mqttApi.server.upsertTopic(def))
+    if (running) live(() => api.upsertTopic(def))
   }
 
   function removeTopic(id) {
     clearTimeout(timers.current[id])
     setConfig((c) => ({ ...c, topics: c.topics.filter((d) => d.id !== id) }))
-    if (running) live(() => mqttApi.server.removeTopic(id))
+    if (running) live(() => api.removeTopic(id))
   }
 
   return (
@@ -372,7 +379,7 @@ export default function ServerPanel({ status }) {
               }
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(mqttApi.server.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
@@ -380,7 +387,7 @@ export default function ServerPanel({ status }) {
                 variant="primary"
                 size="sm"
                 disabled={busy || invalid}
-                onClick={() => run(() => mqttApi.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
@@ -413,7 +420,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy}
                 onCommit={(raw) => {
                   update({ updateRate: Number(raw) })
-                  if (running) live(() => mqttApi.server.setUpdateRate(Number(raw)))
+                  if (running) live(() => api.setUpdateRate(Number(raw)))
                 }}
               />
             </Field>
@@ -463,7 +470,13 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <AuthCard value={config.auth} locked={running || busy} onChange={(auth) => update({ auth })} onError={setError} />
+      <AuthCard
+        api={api}
+        value={config.auth}
+        locked={running || busy}
+        onChange={(auth) => update({ auth })}
+        onError={setError}
+      />
 
       <Card
         id="mqtt.server.topics"
@@ -545,7 +558,7 @@ export default function ServerPanel({ status }) {
                           <LiveValue
                             def={d}
                             value={values[d.id]}
-                            onSet={(raw) => live(() => mqttApi.server.setValue(d.id, raw))}
+                            onSet={(raw) => live(() => api.setValue(d.id, raw))}
                           />
                         ) : (
                           <Input
@@ -649,7 +662,7 @@ export default function ServerPanel({ status }) {
       </Card>
 
       <ClientsCard status={status} />
-      <Activity status={status} />
+      <Activity api={api} status={status} />
     </div>
   )
 }

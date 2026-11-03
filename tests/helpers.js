@@ -33,3 +33,14 @@ export async function errorOf(fn) {
 }
 
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
+ * Registre d'instances factice pour les points de données : une instance par rôle, d'identifiant
+ * égal au rôle (comme après la migration d'une configuration antérieure), ex. `{ server, client }`.
+ */
+export function fakeInstances(objects) {
+  const entries = Object.entries(objects)
+    .filter(([, object]) => object)
+    .map(([role, object]) => ({ instance: { id: role, role, name: role }, object }))
+  return { all: (role) => entries.filter((e) => !role || e.instance.role === role) }
+}

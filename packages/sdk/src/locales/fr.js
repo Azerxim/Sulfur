@@ -70,6 +70,7 @@ export default {
     certNotFound: 'Certificat introuvable',
     emptyPassword: 'Le mot de passe est vide',
     emptyName: 'Le nom est vide',
+    readOnlyPoint: 'Point en lecture seule : {id}',
     unknownInstance: 'Instance inconnue : {id}',
     unknownRole: "Type d'instance inconnu : {role}",
     instanceBusy: '« {name} » est en marche : arrêtez-le avant de le supprimer'

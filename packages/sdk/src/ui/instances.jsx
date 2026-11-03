@@ -64,8 +64,9 @@ export function useInstanceStatuses(moduleId, role) {
   return statuses
 }
 
-/** Champs d'état d'une instance en marche. */
-const isRunning = (status) => !!(status?.running || status?.connected || status?.open || status?.polling)
+/** Champs d'état d'une instance en marche (serveur démarré, client connecté, envoi en cours…). */
+const ACTIVE_FIELDS = ['running', 'connected', 'open', 'polling', 'repeating', 'receiving', 'recording']
+const isRunning = (status) => ACTIVE_FIELDS.some((field) => status?.[field])
 
 const dot = (on) => <span className={`size-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-slate-600'}`} />
 

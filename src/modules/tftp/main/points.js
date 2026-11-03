@@ -1,50 +1,45 @@
+import { instancesPointsApi } from '@azerxim/sulfur-sdk'
 import { FORCED_ERRORS } from '../shared/constants'
 import { t } from '../shared/i18n'
 
 const SERVER_POINTS = [
-  { id: 'server:transfers', name: 'active transfers', dataType: 'Int32', numeric: true },
-  { id: 'server:reads', name: 'files sent', dataType: 'Int32', numeric: true },
-  { id: 'server:writes', name: 'files received', dataType: 'Int32', numeric: true },
-  { id: 'server:errors', name: 'failed transfers', dataType: 'Int32', numeric: true },
-  { id: 'server:bytesOut', name: 'bytes sent', dataType: 'Int32', numeric: true },
-  { id: 'server:bytesIn', name: 'bytes received', dataType: 'Int32', numeric: true }
+  { id: 'transfers', name: 'active transfers', dataType: 'Int32', numeric: true },
+  { id: 'reads', name: 'files sent', dataType: 'Int32', numeric: true },
+  { id: 'writes', name: 'files received', dataType: 'Int32', numeric: true },
+  { id: 'errors', name: 'failed transfers', dataType: 'Int32', numeric: true },
+  { id: 'bytesOut', name: 'bytes sent', dataType: 'Int32', numeric: true },
+  { id: 'bytesIn', name: 'bytes received', dataType: 'Int32', numeric: true }
 ]
 
-/** Points de données du module TFTP (contrat : `points.js` du SDK) : compteurs du serveur. */
-export function createPointsApi({ server }) {
+/** Points d'un serveur TFTP : ses compteurs. */
+export function serverPoints(server) {
   return {
-    name: 'TFTP',
-
-    points() {
-      return SERVER_POINTS.map((p) => ({ ...p, group: 'server', writable: false }))
-    },
-
+    points: () => SERVER_POINTS.map((p) => ({ ...p, writable: false })),
     read(ids) {
-      const running = server.running
-      const values = {
-        'server:transfers': server.transfers.size,
-        ...Object.fromEntries(Object.entries(server.counters).map(([k, v]) => [`server:${k}`, v]))
-      }
-      return Object.fromEntries(ids.map((id) => [id, running ? values[id] : undefined]))
+      if (!server.running) return {}
+      const values = { transfers: server.transfers.size, ...server.counters }
+      return Object.fromEntries(ids.map((id) => [id, values[id]]))
     },
-
     async write(id) {
       throw new Error(t('tftp.errors.readOnlyPoint', { id }))
     },
-
-    faultTypes() {
-      return [
-        { type: 'delay' },
-        { type: 'noResponse' },
-        {
-          type: 'exception',
-          codes: FORCED_ERRORS.map((code) => ({ value: code, label: t(`tftp.errorCodes.${code}`) }))
-        }
-      ]
-    },
-
-    setFaults(faults) {
-      server.setFaults(faults)
-    }
+    setFaults: (faults) => server.setFaults(faults)
   }
+}
+
+/** Points de données du module TFTP (contrat : `points.js` du SDK) : compteurs de chaque serveur. */
+export function createPointsApi({ instances }) {
+  return instancesPointsApi({
+    name: 'TFTP',
+    instances,
+    roles: { server: serverPoints },
+    faultTypes: () => [
+      { type: 'delay' },
+      { type: 'noResponse' },
+      {
+        type: 'exception',
+        codes: FORCED_ERRORS.map((code) => ({ value: code, label: t(`tftp.errorCodes.${code}`) }))
+      }
+    ]
+  })
 }

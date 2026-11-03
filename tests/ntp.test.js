@@ -4,7 +4,7 @@ import { NtpClient } from '@modules/ntp/main/client'
 import { SimClock } from '@modules/ntp/main/clock'
 import { createPointsApi } from '@modules/ntp/main/points'
 import { decodePacket, encodePacket, offsetAndDelay, readTimestamp, writeTimestamp } from '@modules/ntp/main/packet'
-import { errorOf, freePort, sleep } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep } from './helpers'
 
 let server, client, port
 
@@ -90,7 +90,7 @@ describe('Serveur et client NTP', () => {
 
   it('publie des points : écrire le décalage provoque un saut d’heure', async () => {
     await start()
-    const points = createPointsApi({ server, client })
+    const points = createPointsApi({ instances: fakeInstances({ server, client }) })
     await points.write('server:offset', 600)
     expect(points.read(['server:offset'])['server:offset']).toBeCloseTo(600, 0)
     await client.queryOnce({ host: '127.0.0.1', port, timeout: 1000 })
@@ -101,7 +101,7 @@ describe('Serveur et client NTP', () => {
 
   it('défauts : Kiss-o’-Death, absence de réponse, délai, horloge figée', async () => {
     await start()
-    const points = createPointsApi({ server, client })
+    const points = createPointsApi({ instances: fakeInstances({ server, client }) })
     points.setFaults([{ id: 'k', type: 'kissOfDeath', params: { code: 'RATE' }, points: [] }])
     expect(await query()).toMatchObject({ stratum: 0, kiss: 'RATE' })
 

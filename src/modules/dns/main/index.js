@@ -1,43 +1,65 @@
+import { migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
 import { DNS_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { DnsServer } from './server'
 import { DnsClient } from './client'
 import { createPointsApi } from './points'
 
-let server = null
-let client = null
+/** Serveur et client uniques d'une version antérieure, convertis en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('ui.server')} 1` },
+    client: { sections: ['client'], name: `${t('ui.client')} 1` }
+  })
 
-/** Partie "main" du module DNS. Canaux : `dns:server:*`, `dns:client:*`. */
+let instances = null
+
+/**
+ * Partie "main" du module DNS : serveurs et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `dns:instances:*`, `dns:server:*` et `dns:client:*`
+ * (identifiant de l'instance en premier argument).
+ */
 export const dnsMainModule = {
   manifest: DNS_MODULE,
 
+  migrateConfig,
+
   activate(ctx) {
-    server = new DnsServer({
-      onStatus: (status) => ctx.emit('server:status', status),
-      onQuery: (entry) => ctx.emit('server:query', entry)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ui.server'),
+        create: (_instance, { emit }) =>
+          new DnsServer({
+            onStatus: (status) => emit('status', status),
+            onQuery: (entry) => emit('query', entry)
+          }),
+        busy: (server) => server.running,
+        dispose: (server) => server.stop()
+      },
+      client: { label: () => t('ui.client'), create: () => new DnsClient() }
     })
-    client = new DnsClient()
 
-    ctx.expose(createPointsApi({ server }))
+    ctx.expose(createPointsApi({ instances }))
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'update', (server, config) => server.update(config))
+    instances.handle('server', 'queries', (server) => server.list())
+    instances.handle('server', 'clear', (server) => server.clear())
 
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:update', (config) => server.update(config))
-    ctx.handle('server:queries', () => server.list())
-    ctx.handle('server:clear', () => server.clear())
-
-    ctx.handle('client:query', (config) => client.query(config))
-    ctx.handle('client:history', () => client.history)
-    ctx.handle('client:clear', () => client.clear())
+    instances.handle('client', 'query', (client, config) => client.query(config))
+    instances.handle('client', 'history', (client) => client.history)
+    instances.handle('client', 'clear', (client) => client.clear())
   },
 
-  /** Serveur démarré. */
+  /** Au moins un serveur démarré. */
   busy() {
-    return !!server?.running
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

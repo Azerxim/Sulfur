@@ -5,7 +5,7 @@ import { MqttClient } from '@modules/mqtt/main/client'
 import { createPointsApi } from '@modules/mqtt/main/points'
 import { isValidFilter, isValidTopic, matchTopic, payloadValue } from '@modules/mqtt/shared/topics'
 import { ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
-import { errorOf, freePort, sleep, tempDir } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep, tempDir } from './helpers'
 
 let server, client, pki, port
 
@@ -110,7 +110,7 @@ describe('Broker et client', () => {
     await sleep(100)
     expect(server.values().ro).toBe(21.5)
 
-    const points = createPointsApi({ server, client })
+    const points = createPointsApi({ instances: fakeInstances({ server, client }) })
     await points.write('server:temp', 40)
     expect(await until(() => client.last.get('s1')?.value === 40)).toBe(true)
     expect(points.read(['server:temp', 'server:$clients', 'client:s1'])).toEqual({

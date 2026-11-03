@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, FACILITIES, MAX_MESSAGES, SEVERITIES, TRANSPORTS } from '../shared/constants'
 import { parseStructuredData } from '../shared/codec'
 import { syslogApi } from './api'
@@ -108,7 +108,7 @@ function MessageDetails({ m }) {
   )
 }
 
-function Messages({ status }) {
+function Messages({ api, status }) {
   const [messages, setMessages] = useState([])
   const [minSeverity, setMinSeverity] = useState(7)
   const [search, setSearch] = useState('')
@@ -117,9 +117,9 @@ function Messages({ status }) {
   const [open, setOpen] = useState(null)
 
   useEffect(() => {
-    syslogApi.server.messages().then(setMessages)
-    return syslogApi.server.onMessages((batch) => setMessages((list) => [...list, ...batch].slice(-MAX_MESSAGES)))
-  }, [])
+    api.messages().then(setMessages)
+    return api.onMessages((batch) => setMessages((list) => [...list, ...batch].slice(-MAX_MESSAGES)))
+  }, [api])
 
   const source = paused && frozen ? frozen : messages
   const filtered = useMemo(() => {
@@ -162,7 +162,7 @@ function Messages({ status }) {
             size="icon"
             title={t('syslog.messages.clear')}
             onClick={() =>
-              syslogApi.server.clear().then((list) => {
+              api.clear().then((list) => {
                 setMessages(list)
                 setFrozen(paused ? list : null)
               })
@@ -256,8 +256,13 @@ function Messages({ status }) {
   )
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('syslog', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => syslogApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'syslog',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const running = status.running
@@ -290,16 +295,11 @@ export default function ServerPanel({ status }) {
               label={running ? t('syslog.server.running', { count: status.total ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(syslogApi.server.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                disabled={busy}
-                onClick={() => run(() => syslogApi.server.start(config))}
-              >
+              <Button variant="primary" size="sm" disabled={busy} onClick={() => run(() => api.start(config))}>
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
@@ -373,7 +373,7 @@ export default function ServerPanel({ status }) {
       </Card>
 
       <Stats status={status} />
-      <Messages status={status} />
+      <Messages api={api} status={status} />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCopy, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, RECORD_TYPES } from '../shared/constants'
 import { absoluteName, recordProblem } from '../shared/records'
 import { dnsApi } from './api'
@@ -42,13 +42,13 @@ const RCODE_STYLES = {
   FORMERR: 'text-red-300'
 }
 
-function QueryLog() {
+function QueryLog({ api }) {
   const [queries, setQueries] = useState([])
   useEffect(() => {
-    dnsApi.server.queries().then(setQueries)
-    return dnsApi.server.onQuery((entry) => setQueries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
-  }, [])
-  const clear = () => dnsApi.server.clear().then(setQueries)
+    api.queries().then(setQueries)
+    return api.onQuery((entry) => setQueries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
+  }, [api])
+  const clear = () => api.clear().then(setQueries)
   const shown = [...queries].reverse()
   return (
     <Card
@@ -104,8 +104,13 @@ function QueryLog() {
   )
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('dns', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => dnsApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'dns',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const timer = useRef(null)
@@ -129,7 +134,7 @@ export default function ServerPanel({ status }) {
     if (!zoneValid) return
     timer.current = setTimeout(
       () =>
-        dnsApi.server
+        api
           .update(next)
           .then(() => setError(null))
           .catch((err) => setError(err.message)),
@@ -168,7 +173,7 @@ export default function ServerPanel({ status }) {
               label={running ? t('dns.server.running', { count: status.counters?.total ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(dnsApi.server.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
@@ -176,7 +181,7 @@ export default function ServerPanel({ status }) {
                 variant="primary"
                 size="sm"
                 disabled={busy || invalid}
-                onClick={() => run(() => dnsApi.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
@@ -331,7 +336,7 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <QueryLog />
+      <QueryLog api={api} />
     </div>
   )
 }

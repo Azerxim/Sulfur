@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFolderOpen, faPlay, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { BLOCK_SIZES, DEFAULT_SERVER_CONFIG } from '../shared/constants'
 import { tftpApi } from './api'
 import { formatSize } from './format'
@@ -22,24 +22,19 @@ const MAX_SHOWN = 300
 const LIVE_DEBOUNCE = 500
 const LEVEL_STYLES = { info: 'text-slate-300', warn: 'text-amber-300', error: 'text-red-300' }
 
-function ServerLog() {
+function ServerLog({ api }) {
   const [entries, setEntries] = useState([])
   useEffect(() => {
-    tftpApi.server.logs().then(setEntries)
-    return tftpApi.server.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
-  }, [])
+    api.logs().then(setEntries)
+    return api.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
+  }, [api])
   return (
     <Card
       id="tftp.server.log"
       title={t('tftp.server.log', { count: entries.length })}
       className="min-h-56 shrink-0"
       actions={
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={!entries.length}
-          onClick={() => tftpApi.server.clearLogs().then(setEntries)}
-        >
+        <Button size="sm" variant="ghost" disabled={!entries.length} onClick={() => api.clearLogs().then(setEntries)}>
           <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('tftp.server.clearLog')}
         </Button>
       }
@@ -64,8 +59,13 @@ function ServerLog() {
   )
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('tftp', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => tftpApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'tftp',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [defaultRoot, setDefaultRoot] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -74,8 +74,8 @@ export default function ServerPanel({ status }) {
   const locked = running || busy
 
   useEffect(() => {
-    tftpApi.server.defaultRoot().then(setDefaultRoot)
-  }, [])
+    api.defaultRoot().then(setDefaultRoot)
+  }, [api])
   useEffect(() => {
     if (running && status.config) setConfig((c) => ({ ...c, ...status.config }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,7 +89,7 @@ export default function ServerPanel({ status }) {
     clearTimeout(timer.current)
     timer.current = setTimeout(
       () =>
-        tftpApi.server
+        api
           .update(next)
           .then(() => setError(null))
           .catch((err) => setError(err.message)),
@@ -125,16 +125,11 @@ export default function ServerPanel({ status }) {
               label={running ? t('tftp.server.running', { count: transfers.length }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(tftpApi.server.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                disabled={busy}
-                onClick={() => run(() => tftpApi.server.start(config))}
-              >
+              <Button variant="primary" size="sm" disabled={busy} onClick={() => run(() => api.start(config))}>
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
@@ -163,16 +158,13 @@ export default function ServerPanel({ status }) {
                   disabled={locked}
                   onChange={(e) => update({ root: e.target.value })}
                 />
-                <Button
-                  disabled={locked}
-                  onClick={() => tftpApi.server.pickRoot().then((root) => root && update({ root }))}
-                >
+                <Button disabled={locked} onClick={() => api.pickRoot().then((root) => root && update({ root }))}>
                   {t('tftp.server.choose')}
                 </Button>
                 <Button
                   variant="ghost"
                   title={t('tftp.server.openRoot')}
-                  onClick={() => tftpApi.server.openRoot(config.root).catch((err) => setError(err.message))}
+                  onClick={() => api.openRoot(config.root).catch((err) => setError(err.message))}
                 >
                   <FontAwesomeIcon icon={faFolderOpen} className="size-4" />
                 </Button>
@@ -248,7 +240,7 @@ export default function ServerPanel({ status }) {
         </Card>
       )}
 
-      <ServerLog />
+      <ServerLog api={api} />
     </div>
   )
 }

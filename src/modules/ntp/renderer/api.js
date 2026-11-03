@@ -3,27 +3,27 @@ const invoke = (action, ...args) => window.sulfur.invoke(`ntp:${action}`, ...arg
 const on = (event, listener) => window.sulfur.on(`ntp:${event}`, listener)
 
 export const ntpApi = {
-  server: {
-    status: () => invoke('server:status'),
-    start: (config) => invoke('server:start', config),
-    stop: () => invoke('server:stop'),
-    logs: () => invoke('server:logs'),
-    clearLogs: () => invoke('server:clearLogs'),
-    setClock: (clock) => invoke('server:setClock', clock),
-    shift: (seconds) => invoke('server:shift', seconds),
-    setDrift: (ppm) => invoke('server:setDrift', ppm),
-    setSettings: (settings) => invoke('server:setSettings', settings),
-    onStatus: (fn) => on('server:status', fn),
-    onLog: (fn) => on('server:log', fn)
-  },
-  client: {
-    status: () => invoke('client:status'),
-    query: (options) => invoke('client:query', options),
-    startPolling: (options) => invoke('client:startPolling', options),
-    stopPolling: () => invoke('client:stopPolling'),
-    history: () => invoke('client:history'),
-    clearHistory: () => invoke('client:clearHistory'),
-    onStatus: (fn) => on('client:status', fn),
-    onResult: (fn) => on('client:result', fn)
-  }
+  server: (instanceId) => ({
+    status: () => invoke('server:status', instanceId),
+    start: (config) => invoke('server:start', instanceId, config),
+    stop: () => invoke('server:stop', instanceId),
+    logs: () => invoke('server:logs', instanceId),
+    clearLogs: () => invoke('server:clearLogs', instanceId),
+    setClock: (clock) => invoke('server:setClock', instanceId, clock),
+    shift: (seconds) => invoke('server:shift', instanceId, seconds),
+    setDrift: (ppm) => invoke('server:setDrift', instanceId, ppm),
+    setSettings: (settings) => invoke('server:setSettings', instanceId, settings),
+    onStatus: (fn) => on(`server:${instanceId}:status`, fn),
+    onLog: (fn) => on(`server:${instanceId}:log`, fn)
+  }),
+  client: (instanceId) => ({
+    status: () => invoke('client:status', instanceId),
+    query: (options) => invoke('client:query', instanceId, options),
+    startPolling: (options) => invoke('client:startPolling', instanceId, options),
+    stopPolling: () => invoke('client:stopPolling', instanceId),
+    history: () => invoke('client:history', instanceId),
+    clearHistory: () => invoke('client:clearHistory', instanceId),
+    onStatus: (fn) => on(`client:${instanceId}:status`, fn),
+    onResult: (fn) => on(`client:${instanceId}:result`, fn)
+  })
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaperPlane, faPlay, faPlugCircleXmark, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import {
   DEFAULT_CLIENT_CONFIG,
   FACILITIES,
@@ -30,8 +30,13 @@ import { t } from '../shared/i18n'
 /** Port d'écoute du serveur local pour un transport (null s'il n'y écoute pas). */
 const localPort = (server, transport) => (server?.[transport]?.enabled ? server[transport].port : null)
 
-export default function ClientPanel({ status, server }) {
-  const [config, setConfig] = usePersistentState('syslog', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance, status, server }) {
+  const api = useMemo(() => syslogApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'syslog',
+    instanceSection('client', instance.id),
+    DEFAULT_CLIENT_CONFIG
+  )
   const [history, setHistory] = useState([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -40,9 +45,9 @@ export default function ClientPanel({ status, server }) {
   const stream = config.transport !== 'udp'
 
   useEffect(() => {
-    syslogApi.client.history().then(setHistory)
-    return syslogApi.client.onSent((entry) => setHistory((h) => [...h, entry].slice(-MAX_HISTORY)))
-  }, [])
+    api.history().then(setHistory)
+    return api.onSent((entry) => setHistory((h) => [...h, entry].slice(-MAX_HISTORY)))
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -84,7 +89,7 @@ export default function ClientPanel({ status, server }) {
                 variant="ghost"
                 size="icon"
                 title={t('syslog.client.disconnect')}
-                onClick={() => run(syslogApi.client.disconnect)}
+                onClick={() => run(api.disconnect)}
               >
                 <FontAwesomeIcon icon={faPlugCircleXmark} className="size-3.5" />
               </Button>
@@ -286,16 +291,16 @@ export default function ClientPanel({ status, server }) {
             <Button
               variant="primary"
               disabled={busy || repeating || !config.host}
-              onClick={() => run(() => syslogApi.client.send(config))}
+              onClick={() => run(() => api.send(config))}
             >
               <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('syslog.compose.send')}
             </Button>
             {repeating ? (
-              <Button variant="danger" onClick={() => run(syslogApi.client.stopRepeat)}>
+              <Button variant="danger" onClick={() => run(api.stopRepeat)}>
                 <FontAwesomeIcon icon={faStop} className="size-4" /> {t('syslog.compose.stopRepeat')}
               </Button>
             ) : (
-              <Button disabled={busy || !config.host} onClick={() => run(() => syslogApi.client.startRepeat(config))}>
+              <Button disabled={busy || !config.host} onClick={() => run(() => api.startRepeat(config))}>
                 <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('syslog.compose.startRepeat')}
               </Button>
             )}
@@ -313,7 +318,7 @@ export default function ClientPanel({ status, server }) {
             variant="ghost"
             size="icon"
             title={t('syslog.history.clear')}
-            onClick={() => syslogApi.client.clearHistory().then(setHistory)}
+            onClick={() => api.clearHistory().then(setHistory)}
           >
             <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>

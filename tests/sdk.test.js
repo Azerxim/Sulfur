@@ -83,6 +83,7 @@ describe('Paquet SDK', () => {
       'instancePointId',
       'instanceSection',
       'instancesOf',
+      'instancesPointsApi',
       'intToIp',
       'ipToInt',
       'isIPv4',

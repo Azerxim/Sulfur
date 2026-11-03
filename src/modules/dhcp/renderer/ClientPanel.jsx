@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faKey,
@@ -9,7 +9,7 @@ import {
   faTrashCan
 } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG, MAX_HISTORY } from '../shared/constants'
 import { dhcpApi } from './api'
 import InterfaceSelect from './InterfaceSelect'
@@ -38,8 +38,9 @@ function ReplyDetails({ reply }) {
   )
 }
 
-export default function ClientPanel({ network, onReload }) {
-  const [config, setConfig] = usePersistentState('dhcp', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance, network, onReload }) {
+  const api = useMemo(() => dhcpApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('dhcp', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG)
   const [history, setHistory] = useState([])
   const [status, setStatus] = useState({ running: false, lease: null })
   const [busy, setBusy] = useState(false)
@@ -48,10 +49,10 @@ export default function ClientPanel({ network, onReload }) {
   const iface = network.interfaces.find((i) => i.name === config.interface)
 
   useEffect(() => {
-    dhcpApi.client.history().then(setHistory)
-    dhcpApi.client.status().then(setStatus)
-    return dhcpApi.client.onStatus(setStatus)
-  }, [])
+    api.history().then(setHistory)
+    api.status().then(setStatus)
+    return api.onStatus(setStatus)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -124,20 +125,20 @@ export default function ClientPanel({ network, onReload }) {
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button disabled={busy} onClick={() => run(() => dhcpApi.client.run(config, 'discover'))}>
+            <Button disabled={busy} onClick={() => run(() => api.run(config, 'discover'))}>
               <FontAwesomeIcon icon={faMagnifyingGlass} className="size-4" /> {t('dhcp.client.discover')}
             </Button>
-            <Button variant="primary" disabled={busy} onClick={() => run(() => dhcpApi.client.run(config, 'lease'))}>
+            <Button variant="primary" disabled={busy} onClick={() => run(() => api.run(config, 'lease'))}>
               <FontAwesomeIcon icon={faKey} className="size-4" /> {t('dhcp.client.lease')}
             </Button>
             {status.lease && (
-              <Button disabled={busy} onClick={() => run(() => dhcpApi.client.release(config))}>
+              <Button disabled={busy} onClick={() => run(() => api.release(config))}>
                 <FontAwesomeIcon icon={faRightFromBracket} className="size-4" />{' '}
                 {t('dhcp.client.release', { ip: status.lease.ip })}
               </Button>
             )}
             {busy && (
-              <Button variant="ghost" onClick={() => dhcpApi.client.abort()}>
+              <Button variant="ghost" onClick={() => api.abort()}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('dhcp.client.abort')}
               </Button>
             )}
@@ -152,12 +153,7 @@ export default function ClientPanel({ network, onReload }) {
         title={t('dhcp.client.history', { count: history.length })}
         className="min-h-48 shrink-0"
         actions={
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={!history.length}
-            onClick={() => dhcpApi.client.clear().then(setHistory)}
-          >
+          <Button size="sm" variant="ghost" disabled={!history.length} onClick={() => api.clear().then(setHistory)}>
             <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('dhcp.server.clearLog')}
           </Button>
         }

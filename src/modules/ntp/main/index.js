@@ -1,53 +1,79 @@
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
+import { migrateToInstances } from '@azerxim/sulfur-sdk'
 import { NTP_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { NtpServer } from './server'
 import { NtpClient } from './client'
 import { createPointsApi } from './points'
+import { t } from '../shared/i18n'
 
-let server = null
-let client = null
+/** Serveur et client uniques d'une version antérieure : « Serveur 1 » et « Client 1 ». */
+export const migrateNtpConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('ui.server')} 1` },
+    client: { sections: ['client'], name: `${t('ui.client')} 1` }
+  })
 
-/** Partie "main" du module NTP. Canaux : `ntp:server:*`, `ntp:client:*`. */
+let instances = null
+
+/**
+ * Partie "main" du module NTP : serveurs et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `ntp:instances:*`, `ntp:server:*` et `ntp:client:*`
+ * (identifiant de l'instance en premier argument).
+ */
 export const ntpMainModule = {
   manifest: NTP_MODULE,
 
+  migrateConfig: migrateNtpConfig,
+
   activate(ctx) {
-    server = new NtpServer({
-      onStatus: (status) => ctx.emit('server:status', status),
-      onLog: (entry) => ctx.emit('server:log', entry)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ui.server'),
+        create: (_instance, { emit }) =>
+          new NtpServer({
+            onStatus: (status) => emit('status', status),
+            onLog: (entry) => emit('log', entry)
+          }),
+        busy: (server) => server.status().running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('ui.client'),
+        create: (_instance, { emit }) =>
+          new NtpClient({
+            onStatus: (status) => emit('status', status),
+            onResult: (result) => emit('result', result)
+          }),
+        busy: (client) => client.status().polling,
+        dispose: (client) => client.stopPolling()
+      }
     })
-    client = new NtpClient({
-      onStatus: (status) => ctx.emit('client:status', status),
-      onResult: (result) => ctx.emit('client:result', result)
-    })
 
-    ctx.expose(createPointsApi({ server, client }))
+    ctx.expose(createPointsApi({ instances }))
 
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:logs', () => server.logs())
-    ctx.handle('server:clearLogs', () => server.clearLogs())
-    ctx.handle('server:setClock', (clock) => server.setClock(clock))
-    ctx.handle('server:shift', (seconds) => server.shift(seconds))
-    ctx.handle('server:setDrift', (ppm) => server.setDrift(ppm))
-    ctx.handle('server:setSettings', (settings) => server.setSettings(settings))
-
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:query', (options) => client.queryOnce(options))
-    ctx.handle('client:startPolling', (options) => client.startPolling(options))
-    ctx.handle('client:stopPolling', () => client.stopPolling())
-    ctx.handle('client:history', () => client.history)
-    ctx.handle('client:clearHistory', () => client.clearHistory())
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'logs', (server) => server.logs())
+    instances.handle('server', 'clearLogs', (server) => server.clearLogs())
+    instances.handle('server', 'setClock', (server, clock) => server.setClock(clock))
+    instances.handle('server', 'shift', (server, seconds) => server.shift(seconds))
+    instances.handle('server', 'setDrift', (server, ppm) => server.setDrift(ppm))
+    instances.handle('server', 'setSettings', (server, settings) => server.setSettings(settings))
+    instances.handle('client', 'query', (client, options) => client.queryOnce(options))
+    instances.handle('client', 'startPolling', (client, options) => client.startPolling(options))
+    instances.handle('client', 'stopPolling', (client) => client.stopPolling())
+    instances.handle('client', 'history', (client) => client.history)
+    instances.handle('client', 'clearHistory', (client) => client.clearHistory())
   },
 
-  /** Serveur démarré ou interrogation périodique en cours. */
+  /** Au moins un serveur démarré ou une interrogation périodique en cours. */
   busy() {
-    return !!(server?.status().running || client?.status().polling)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    client?.stopPolling()
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

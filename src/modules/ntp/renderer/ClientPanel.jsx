@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaperPlane, faPlay, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG } from '../shared/constants'
 import { ntpApi } from './api'
 import { formatDateTime, formatOffset } from './format'
@@ -25,8 +25,9 @@ function details(r) {
   ]
 }
 
-export default function ClientPanel({ status, serverPort }) {
-  const [config, setConfig] = usePersistentState('ntp', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance, status, serverPort }) {
+  const api = useMemo(() => ntpApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('ntp', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG)
   const [history, setHistory] = useState([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -34,9 +35,9 @@ export default function ClientPanel({ status, serverPort }) {
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
   useEffect(() => {
-    ntpApi.client.history().then(setHistory)
-    return ntpApi.client.onResult((r) => setHistory((h) => [...h, r].slice(-200)))
-  }, [])
+    api.history().then(setHistory)
+    return api.onResult((r) => setHistory((h) => [...h, r].slice(-200)))
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -129,16 +130,16 @@ export default function ClientPanel({ status, serverPort }) {
             <Button
               variant="primary"
               disabled={busy || polling || !config.host}
-              onClick={() => run(() => ntpApi.client.query(config))}
+              onClick={() => run(() => api.query(config))}
             >
               <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('ntp.client.query')}
             </Button>
             {polling ? (
-              <Button variant="danger" onClick={() => run(ntpApi.client.stopPolling)}>
+              <Button variant="danger" onClick={() => run(api.stopPolling)}>
                 <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ntp.client.stopPolling')}
               </Button>
             ) : (
-              <Button disabled={busy || !config.host} onClick={() => run(() => ntpApi.client.startPolling(config))}>
+              <Button disabled={busy || !config.host} onClick={() => run(() => api.startPolling(config))}>
                 <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('ntp.client.startPolling')}
               </Button>
             )}
@@ -179,7 +180,7 @@ export default function ClientPanel({ status, serverPort }) {
             variant="ghost"
             size="icon"
             title={t('ntp.client.clearHistory')}
-            onClick={() => ntpApi.client.clearHistory().then(setHistory)}
+            onClick={() => api.clearHistory().then(setHistory)}
           >
             <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>

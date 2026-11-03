@@ -6,7 +6,7 @@ import { FrameDecoder, frame } from '@modules/syslog/main/framing'
 import { createPointsApi } from '@modules/syslog/main/points'
 import { encodeMessage, parseMessage, parseStructuredData } from '@modules/syslog/shared/codec'
 import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
-import { errorOf, freePort, sleep, tempDir } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep, tempDir } from './helpers'
 
 let server, client, pki, port
 
@@ -186,7 +186,7 @@ describe('Serveur et émetteur', () => {
   it('envoi périodique et points', async () => {
     port = await freePort()
     await server.start(all())
-    const points = createPointsApi({ server, client })
+    const points = createPointsApi({ instances: fakeInstances({ server, client }) })
     client.startRepeat({ host: '127.0.0.1', port, interval: 0.1, severity: 2 })
     await received(3)
     client.stopRepeat()

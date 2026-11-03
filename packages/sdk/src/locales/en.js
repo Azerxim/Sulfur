@@ -70,6 +70,7 @@ export default {
     certNotFound: 'Certificate not found',
     emptyPassword: 'The password is empty',
     emptyName: 'The name is empty',
+    readOnlyPoint: 'Read-only point: {id}',
     unknownInstance: 'Unknown instance: {id}',
     unknownRole: 'Unknown instance type: {role}',
     instanceBusy: '“{name}” is running: stop it before removing it'
