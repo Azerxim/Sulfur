@@ -193,7 +193,7 @@ export function instancesOf(config: unknown): Instance[]
  * Configuration antérieure aux instances convertie : une instance d'identifiant égal au rôle par
  * rôle dont une section existe (`server` → section `server:server`). Sans effet si la liste existe.
  */
-export function migrateToInstances<T>(config: T, roles: Record<string, { sections: string[]; name: string }>): T
+export function migrateToInstances<T>(config: T, roles: Record<string, { sections: string[]; name: string; id?: string }>): T
 /** Premier nom libre « <libellé> <n> ». */
 export function nextInstanceName(label: string, instances: { name: string }[]): string
 

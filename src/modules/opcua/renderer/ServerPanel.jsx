@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCopy, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -12,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { getLocale } from '@azerxim/sulfur-sdk'
+import { getLocale, instanceSection } from '@azerxim/sulfur-sdk'
 import { DATA_TYPES, DEFAULT_SERVER_CONFIG, HISTORY_MAX_VALUES, SIMULATIONS } from '../shared/constants'
 import { opcuaApi } from './api'
 import ServerSecurity, { isSecurityValid } from './ServerSecurity'
@@ -113,9 +113,14 @@ function LiveValue({ variable, value, onSet }) {
   return <CommitInput className="font-mono text-sulfur-300" value={formatValue(value)} onCommit={onSet} />
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('opcua', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
-  const [nodesets, setNodesets] = usePersistentState('opcua', 'nodesets', [])
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => opcuaApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'opcua',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
+  const [nodesets, setNodesets] = usePersistentState('opcua', instanceSection('nodesets', instance.id), [])
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -130,9 +135,9 @@ export default function ServerPanel({ status }) {
   }, [running])
 
   useEffect(() => {
-    opcuaApi.server.values().then(setValues)
-    return opcuaApi.server.onValues(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onValues(setValues)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -152,14 +157,14 @@ export default function ServerPanel({ status }) {
   const liveSync = (action) =>
     action().catch(async (err) => {
       setError(err.message)
-      const current = await opcuaApi.server.status()
+      const current = await api.status()
       if (current.config) setConfig(current.config)
     })
 
   /** Envoie un élément au serveur (immédiatement ou après un court délai). */
   function push(list, item, immediate) {
     clearTimeout(timers.current[item.id])
-    const send = () => liveSync(() => opcuaApi.server[LIVE_LISTS[list][0]](item))
+    const send = () => liveSync(() => api[LIVE_LISTS[list][0]](item))
     if (immediate) send()
     else timers.current[item.id] = setTimeout(send, LIVE_DEBOUNCE)
   }
@@ -180,7 +185,7 @@ export default function ServerPanel({ status }) {
   function removeItem(list, id) {
     clearTimeout(timers.current[id])
     setConfig((c) => ({ ...c, [list]: c[list].filter((v) => v.id !== id) }))
-    if (running) liveSync(() => opcuaApi.server[LIVE_LISTS[list][1]](id))
+    if (running) liveSync(() => api[LIVE_LISTS[list][1]](id))
   }
 
   const updateVar = (id, patch, options) => updateItem('variables', id, patch, options)
@@ -197,7 +202,7 @@ export default function ServerPanel({ status }) {
       variables: config.variables.map((v) => (renamed[v.dataType] ? { ...v, dataType: renamed[v.dataType] } : v))
     })
   }
-  const setValue = (id, raw) => live(() => opcuaApi.server.setValue(id, raw))
+  const setValue = (id, raw) => live(() => api.setValue(id, raw))
 
   const structureNames = config.structures.map((s) => s.name)
   const named = [...config.variables, ...config.methods, ...config.alarms]
@@ -239,7 +244,7 @@ export default function ServerPanel({ status }) {
               label={running ? t('opcua.server.running', { count: status.sessions ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(opcuaApi.server.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
@@ -247,7 +252,7 @@ export default function ServerPanel({ status }) {
                 variant="primary"
                 size="sm"
                 disabled={busy || invalid}
-                onClick={() => run(() => opcuaApi.server.start({ ...config, nodesets }))}
+                onClick={() => run(() => api.start({ ...config, nodesets }))}
               >
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
@@ -287,7 +292,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy}
                 onCommit={(raw) => {
                   update({ updateRate: Number(raw) })
-                  if (running) live(() => opcuaApi.server.setUpdateRate(Number(raw)))
+                  if (running) live(() => api.setUpdateRate(Number(raw)))
                 }}
               />
             </Field>
@@ -495,7 +500,7 @@ export default function ServerPanel({ status }) {
         onAdd={() => addItem('alarms', newAlarm(config))}
         onUpdate={(id, patch, options) => updateItem('alarms', id, patch, options)}
         onRemove={(id) => removeItem('alarms', id)}
-        onRaise={(event) => live(() => opcuaApi.server.raiseEvent(event))}
+        onRaise={(event) => live(() => api.raiseEvent(event))}
       />
 
       <ServerStructures
@@ -506,6 +511,7 @@ export default function ServerPanel({ status }) {
       />
 
       <ServerNodesets
+        api={api}
         nodesets={nodesets}
         loaded={status.nodesets ?? []}
         locked={running || busy}

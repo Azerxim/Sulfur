@@ -2,16 +2,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFileArrowUp, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { getLocale } from '@azerxim/sulfur-sdk'
-import { opcuaApi } from './api'
 import { t } from '../shared/i18n'
 
 const formatSize = (bytes) => t('opcua.nodesets.size', { size: Math.ceil(bytes / 1024).toLocaleString(getLocale()) })
 
 /** Fichiers NodeSet2 importés dans l'espace d'adressage du serveur (chargés au démarrage). */
-export default function ServerNodesets({ nodesets, loaded, locked, onChange, onError }) {
+export default function ServerNodesets({ api, nodesets, loaded, locked, onChange, onError }) {
   async function pick() {
     try {
-      const files = await opcuaApi.server.pickNodesets()
+      const files = await api.pickNodesets()
       if (!files) return
       // Un fichier du même nom remplace le précédent.
       const names = new Set(files.map((f) => f.name))

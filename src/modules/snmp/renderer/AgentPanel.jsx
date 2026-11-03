@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBullhorn, faCopy, faPlay, faPlus, faStop, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -13,7 +13,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import {
   DEFAULT_AGENT_CONFIG,
   DEFAULT_USER,
@@ -134,7 +134,7 @@ function SystemCard({ system, locked, onChange }) {
   )
 }
 
-function TrapsCard({ traps, objects, users, status, running, onChange, onError }) {
+function TrapsCard({ api, traps, objects, users, status, running, onChange, onError }) {
   const [results, setResults] = useState(null)
   const [sending, setSending] = useState(false)
   const set = (patch) => onChange({ ...traps, ...patch })
@@ -145,7 +145,7 @@ function TrapsCard({ traps, objects, users, status, running, onChange, onError }
   async function send() {
     setSending(true)
     try {
-      setResults(await snmpApi.agent.sendTrap())
+      setResults(await api.sendTrap())
     } catch (err) {
       onError(err.message)
     } finally {
@@ -296,24 +296,19 @@ function TrapsCard({ traps, objects, users, status, running, onChange, onError }
   )
 }
 
-function RequestLog() {
+function RequestLog({ api }) {
   const [logs, setLogs] = useState([])
   useEffect(() => {
-    snmpApi.agent.logs().then(setLogs)
-    return snmpApi.agent.onLog((batch) => setLogs((l) => [...l, ...batch].slice(-MAX_LOG)))
-  }, [])
+    api.logs().then(setLogs)
+    return api.onLog((batch) => setLogs((l) => [...l, ...batch].slice(-MAX_LOG)))
+  }, [api])
   return (
     <Card
       id="snmp.agent.log"
       title={t('snmp.log.title', { count: logs.length })}
       className="min-h-48 shrink-0"
       actions={
-        <Button
-          variant="ghost"
-          size="icon"
-          title={t('snmp.log.clear')}
-          onClick={() => snmpApi.agent.clearLogs().then(setLogs)}
-        >
+        <Button variant="ghost" size="icon" title={t('snmp.log.clear')} onClick={() => api.clearLogs().then(setLogs)}>
           <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
         </Button>
       }
@@ -375,8 +370,13 @@ function LiveValue({ value, onSet }) {
   return <CommitInput className="font-mono text-sulfur-300" value={formatValue(value)} onCommit={onSet} />
 }
 
-export default function AgentPanel({ status }) {
-  const [config, setConfig] = usePersistentState('snmp', 'agent', status.config ?? DEFAULT_AGENT_CONFIG)
+export default function AgentPanel({ instance, status }) {
+  const api = useMemo(() => snmpApi.agent(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'snmp',
+    instanceSection('agent', instance.id),
+    status.config ?? DEFAULT_AGENT_CONFIG
+  )
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -392,9 +392,9 @@ export default function AgentPanel({ status }) {
   }, [running])
 
   useEffect(() => {
-    snmpApi.agent.values().then(setValues)
-    return snmpApi.agent.onValues(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onValues(setValues)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -422,25 +422,24 @@ export default function AgentPanel({ status }) {
     const next = { ...config.objects.find((d) => d.id === id), ...patch }
     const objects = config.objects.map((d) => (d.id === id ? next : d))
     setConfig((c) => ({ ...c, objects }))
-    if (running && !badOids(objects).has(id))
-      debounce(id, () => live(() => snmpApi.agent.upsertObject(next)), immediate)
+    if (running && !badOids(objects).has(id)) debounce(id, () => live(() => api.upsertObject(next)), immediate)
   }
 
   function addObject() {
     const def = newObject(config.objects)
     setConfig((c) => ({ ...c, objects: [...c.objects, def] }))
-    if (running) live(() => snmpApi.agent.upsertObject(def))
+    if (running) live(() => api.upsertObject(def))
   }
 
   function removeObject(id) {
     clearTimeout(timers.current[id])
     setConfig((c) => ({ ...c, objects: c.objects.filter((d) => d.id !== id) }))
-    if (running) live(() => snmpApi.agent.deleteObject(id))
+    if (running) live(() => api.deleteObject(id))
   }
 
   function setTraps(next) {
     update({ traps: next })
-    if (running) debounce('traps', () => live(() => snmpApi.agent.setTraps(next)))
+    if (running) debounce('traps', () => live(() => api.setTraps(next)))
   }
 
   return (
@@ -456,7 +455,7 @@ export default function AgentPanel({ status }) {
               label={running ? t('snmp.agent.running', { count: status.requests ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(snmpApi.agent.stop)}>
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
@@ -464,7 +463,7 @@ export default function AgentPanel({ status }) {
                 variant="primary"
                 size="sm"
                 disabled={busy || bad.size > 0}
-                onClick={() => run(() => snmpApi.agent.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
                 <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
@@ -493,7 +492,7 @@ export default function AgentPanel({ status }) {
                 disabled={busy}
                 onCommit={(raw) => {
                   update({ updateRate: Number(raw) })
-                  if (running) live(() => snmpApi.agent.setUpdateRate(Number(raw)))
+                  if (running) live(() => api.setUpdateRate(Number(raw)))
                 }}
               />
             </Field>
@@ -635,10 +634,7 @@ export default function AgentPanel({ status }) {
                       </td>
                       <td className="w-36 p-1.5">
                         {running ? (
-                          <LiveValue
-                            value={values[d.id]}
-                            onSet={(raw) => live(() => snmpApi.agent.setValue(d.id, raw))}
-                          />
+                          <LiveValue value={values[d.id]} onSet={(raw) => live(() => api.setValue(d.id, raw))} />
                         ) : (
                           <Input
                             className="font-mono"
@@ -703,6 +699,7 @@ export default function AgentPanel({ status }) {
       </Card>
 
       <TrapsCard
+        api={api}
         traps={traps}
         objects={config.objects}
         users={config.users ?? []}
@@ -711,7 +708,7 @@ export default function AgentPanel({ status }) {
         onChange={setTraps}
         onError={setError}
       />
-      <RequestLog />
+      <RequestLog api={api} />
     </div>
   )
 }

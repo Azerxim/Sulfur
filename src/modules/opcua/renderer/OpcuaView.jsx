@@ -1,41 +1,35 @@
-import { useEffect, useState } from 'react'
 import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
-import { TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
-import { opcuaApi } from './api'
+import { InstancesPage, useInstanceStatuses } from '@azerxim/sulfur-sdk/ui'
 import ServerPanel from './ServerPanel'
 import ClientPanel from './ClientPanel'
 import { t } from '../shared/i18n'
 
-const dot = (on) => <span className={`size-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+/** États au repos, avant la première lecture. */
+const IDLE = {
+  server: { running: false },
+  client: { connected: false, monitored: [] }
+}
 
+/** Page du module : un onglet par instance (aucune par défaut). */
 export default function OpcuaView() {
-  const [tab, setTab] = useStoredState('sulfur:tab:opcua', 'server', ['server', 'client'])
-  const [serverStatus, setServerStatus] = useState({ running: false })
-  const [clientStatus, setClientStatus] = useState({ connected: false, monitored: [] })
-
-  useEffect(() => {
-    opcuaApi.server.status().then(setServerStatus)
-    opcuaApi.client.status().then(setClientStatus)
-    const offs = [opcuaApi.server.onStatus(setServerStatus), opcuaApi.client.onStatus(setClientStatus)]
-    return () => offs.forEach((off) => off())
-  }, [])
-
+  const serverStatuses = useInstanceStatuses('opcua', 'server')
+  const clientStatuses = useInstanceStatuses('opcua', 'client')
+  const statuses = { ...serverStatuses, ...clientStatuses }
+  const roles = [
+    { role: 'server', label: t('ui.server'), icon: faServer },
+    { role: 'client', label: t('ui.client'), icon: faComputer }
+  ]
   return (
-    <TabbedPage
-      value={tab}
-      onChange={setTab}
-      tabs={[
-        { id: 'server', label: t('ui.server'), icon: faServer, badge: dot(serverStatus.running) },
-        { id: 'client', label: t('ui.client'), icon: faComputer, badge: dot(clientStatus.connected) }
-      ]}
-    >
-      {/* Les deux panneaux restent montés pour conserver leur état local. */}
-      <div className={tab === 'server' ? 'contents' : 'hidden'}>
-        <ServerPanel status={serverStatus} />
-      </div>
-      <div className={tab === 'client' ? 'contents' : 'hidden'}>
-        <ClientPanel status={clientStatus} serverEndpoint={serverStatus.endpointUrl} />
-      </div>
-    </TabbedPage>
+    <InstancesPage moduleId="opcua" roles={roles} statuses={statuses}>
+      {(instance) => {
+        const status = statuses[instance.id] ?? IDLE[instance.role]
+        switch (instance.role) {
+          case 'server':
+            return <ServerPanel instance={instance} status={status} />
+          default:
+            return <ClientPanel instance={instance} status={status} />
+        }
+      }}
+    </InstancesPage>
   )
 }

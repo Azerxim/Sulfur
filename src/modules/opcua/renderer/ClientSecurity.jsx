@@ -3,14 +3,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSatelliteDish, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { Button, CertificatesDialog, Checkbox, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_CLIENT_SECURITY, SECURITY_MODES, SECURITY_POLICIES } from '../shared/constants'
-import { certStore, opcuaApi } from './api'
+import { certStore } from './api'
 import { policyLabel } from './ServerSecurity'
 import { t } from '../shared/i18n'
 
 const clientCerts = certStore('client')
 
 /** Paramètres de sécurité de la connexion client + découverte des endpoints du serveur. */
-export default function ClientSecurity({ value, onChange, endpoint, locked, onError }) {
+export default function ClientSecurity({ api, value, onChange, endpoint, locked, onError }) {
   const security = { ...DEFAULT_CLIENT_SECURITY, ...value }
   const [endpoints, setEndpoints] = useState(null)
   const [discovering, setDiscovering] = useState(false)
@@ -21,7 +21,7 @@ export default function ClientSecurity({ value, onChange, endpoint, locked, onEr
   async function discover() {
     setDiscovering(true)
     try {
-      setEndpoints(await opcuaApi.client.discover(endpoint))
+      setEndpoints(await api.discover(endpoint))
     } catch (err) {
       onError(err.message)
     } finally {

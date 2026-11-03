@@ -4,7 +4,6 @@ import { faArrowDown, faArrowUp, faTrashCan } from '@fortawesome/free-solid-svg-
 import { Button, Card, Checkbox } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { MAX_LOG } from '../shared/constants'
-import { httpApi } from './api'
 import { t } from '../shared/i18n'
 
 const statusColor = (status) =>
@@ -19,15 +18,15 @@ const statusColor = (status) =>
           : 'text-emerald-300'
 
 /** Journal des requêtes reçues et des appels de webhooks (les plus récents en haut). */
-export default function ServerLog() {
+export default function ServerLog({ api }) {
   const [logs, setLogs] = useState([])
   const [onlyErrors, setOnlyErrors] = useState(false)
   const [open, setOpen] = useState(null)
 
   useEffect(() => {
-    httpApi.server.logs().then(setLogs)
-    return httpApi.server.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
-  }, [])
+    api.logs().then(setLogs)
+    return api.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
+  }, [api])
 
   const shown = (onlyErrors ? logs.filter((l) => !l.status || l.status >= 400) : logs).slice().reverse()
 
@@ -44,12 +43,7 @@ export default function ServerLog() {
             checked={onlyErrors}
             onChange={(e) => setOnlyErrors(e.target.checked)}
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            title={t('http.log.clear')}
-            onClick={() => httpApi.server.clearLogs().then(setLogs)}
-          >
+          <Button variant="ghost" size="icon" title={t('http.log.clear')} onClick={() => api.clearLogs().then(setLogs)}>
             <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </>

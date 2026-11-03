@@ -8,7 +8,6 @@ import {
   faSquareRootVariable,
   faTag
 } from '@fortawesome/free-solid-svg-icons'
-import { opcuaApi } from './api'
 
 const icons = {
   Object: faFolder,
@@ -19,7 +18,7 @@ const icons = {
   DataType: faFont
 }
 
-function TreeNode({ node, depth, selectedId, onSelect }) {
+function TreeNode({ api, node, depth, selectedId, onSelect }) {
   const [open, setOpen] = useState(false)
   const [children, setChildren] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -30,7 +29,7 @@ function TreeNode({ node, depth, selectedId, onSelect }) {
     if (!open && children === null) {
       setLoading(true)
       try {
-        setChildren(await opcuaApi.client.browse(node.nodeId))
+        setChildren(await api.browse(node.nodeId))
       } catch {
         setChildren([])
       } finally {
@@ -71,7 +70,7 @@ function TreeNode({ node, depth, selectedId, onSelect }) {
       {open && children?.length > 0 && (
         <ul>
           {children.map((c) => (
-            <TreeNode key={c.nodeId} node={c} depth={depth + 1} selectedId={selectedId} onSelect={onSelect} />
+            <TreeNode api={api} key={c.nodeId} node={c} depth={depth + 1} selectedId={selectedId} onSelect={onSelect} />
           ))}
         </ul>
       )}
@@ -79,11 +78,11 @@ function TreeNode({ node, depth, selectedId, onSelect }) {
   )
 }
 
-export default function NodeTree({ roots, selectedId, onSelect }) {
+export default function NodeTree({ api, roots, selectedId, onSelect }) {
   return (
     <ul className="font-mono text-[13px]">
       {roots.map((n) => (
-        <TreeNode key={n.nodeId} node={n} depth={0} selectedId={selectedId} onSelect={onSelect} />
+        <TreeNode api={api} key={n.nodeId} node={n} depth={0} selectedId={selectedId} onSelect={onSelect} />
       ))}
     </ul>
   )

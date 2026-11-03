@@ -6,7 +6,7 @@ import { DEFAULT_SERVER_CONFIG } from '@modules/s7/shared/constants'
 import { formatAddress, parseAddress, resolveAddress } from '@modules/s7/shared/address'
 import { decodeValue, encodeValue } from '@modules/s7/shared/codec'
 import { parseTsap, remoteTsap } from '@modules/s7/main/protocol'
-import { errorOf, freePort, sleep } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep } from './helpers'
 
 describe('Adresses S7', () => {
   it('lit les notations internationale et allemande', () => {
@@ -151,7 +151,7 @@ describe('Serveur et client S7', () => {
     await connect()
     client.addWatch({ address: 'DB2.DBD0', dataType: 'Real', label: 'Consigne' })
     await sleep(200)
-    const api = createPointsApi({ server, client })
+    const api = createPointsApi({ instances: fakeInstances({ server, client }) })
     const points = api.points()
     const watch = points.find((p) => p.group === 'client')
     expect(watch.name).toBe('Consigne (DB2.DBD0)')

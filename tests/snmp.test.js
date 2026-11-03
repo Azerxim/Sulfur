@@ -4,7 +4,7 @@ import { SnmpAgent, validateObject } from '@modules/snmp/main/agent'
 import { SnmpManager } from '@modules/snmp/main/manager'
 import { createPointsApi } from '@modules/snmp/main/points'
 import { convertValue } from '@modules/snmp/main/values'
-import { errorOf, sleep } from './helpers'
+import { errorOf, fakeInstances, sleep } from './helpers'
 
 let agent, manager, port
 
@@ -149,7 +149,9 @@ describe('Agent et manager', () => {
     // Valeur initiale hors de la plage de la rampe (0 à 100) : toute valeur simulée en diffère.
     await start({ updateRate: 20, objects: [object({ simulation: 'ramp', period: 500, initialValue: -1 })] })
     await sleep(120)
-    const points = createPointsApi({ agent, manager })
+    const points = createPointsApi({
+      instances: fakeInstances({ agent, manager }, { agent: 'server', manager: 'client' })
+    })
     expect(points.read(['server:temp'])['server:temp']).not.toBe(-1)
     points.setFaults([{ id: 'f', type: 'freeze', points: ['server:temp'] }])
     const frozen = agent.values().temp
@@ -175,7 +177,9 @@ describe('Agent et manager', () => {
       pollInterval: 10
     })
     await manager.startPolling(config)
-    const points = createPointsApi({ agent, manager })
+    const points = createPointsApi({
+      instances: fakeInstances({ agent, manager }, { agent: 'server', manager: 'client' })
+    })
     expect(points.read(['client:m1'])['client:m1']).toBe(21)
     await points.write('client:m1', 33)
     expect(agent.values().temp).toBe(33)

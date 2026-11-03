@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay } from '@fortawesome/free-solid-svg-icons'
 import { Button, Field, Input } from '@azerxim/sulfur-sdk/ui'
-import { opcuaApi } from './api'
 import { formatValue } from './format'
 import { t } from '../shared/i18n'
 
@@ -10,7 +9,7 @@ const argHint = (arg) =>
   arg.builtIn === 'ExtensionObject' ? t('opcua.client.structHint') : arg.array ? t('opcua.client.arrayHint') : undefined
 
 /** Appel d'une méthode sélectionnée dans l'arborescence : un champ par argument d'entrée. */
-export default function MethodCall({ nodeId, onError }) {
+export default function MethodCall({ api, nodeId, onError }) {
   const [info, setInfo] = useState(null)
   const [inputs, setInputs] = useState([])
   const [result, setResult] = useState(null)
@@ -18,7 +17,7 @@ export default function MethodCall({ nodeId, onError }) {
 
   useEffect(() => {
     let cancelled = false
-    opcuaApi.client.methodInfo(nodeId).then(
+    api.methodInfo(nodeId).then(
       (i) => {
         if (cancelled) return
         setInfo(i)
@@ -29,13 +28,13 @@ export default function MethodCall({ nodeId, onError }) {
     return () => {
       cancelled = true
     }
-  }, [nodeId, onError])
+  }, [api, nodeId, onError])
 
   async function call() {
     setBusy(true)
     setResult(null)
     try {
-      setResult(await opcuaApi.client.call(nodeId, inputs))
+      setResult(await api.call(nodeId, inputs))
     } catch (err) {
       onError(err.message)
     } finally {

@@ -44,8 +44,8 @@ export function instancesOf(config) {
 /**
  * Convertit une configuration antérieure aux instances (un serveur et un client uniques) :
  * pour chaque rôle de `roles` (`{ server: { sections: ['server'], name: 'Serveur 1' } }`), si une
- * de ses sections existe, une instance d'identifiant égal au rôle est créée et les sections sont
- * renommées (`server` → `server:server`). L'identifiant de l'instance étant celui du rôle, les
+ * de ses sections existe, une instance d'identifiant égal au rôle (ou à `id`, préfixe des anciens
+ * points s'il diffère du rôle) est créée et les sections sont renommées (`server` → `server:server`). L'identifiant de l'instance étant celui du rôle, les
  * identifiants des points (`server:<id>`) restent ceux d'avant : les flux du simulateur et les
  * courbes qui les visent fonctionnent toujours.
  * Sans effet si la configuration a déjà une liste d'instances.
@@ -54,12 +54,12 @@ export function migrateToInstances(config, roles) {
   if (!isPlainObject(config) || INSTANCES_SECTION in config) return config
   const next = { ...config }
   const instances = []
-  for (const [role, { sections, name }] of Object.entries(roles)) {
+  for (const [role, { sections, name, id = role }] of Object.entries(roles)) {
     const present = sections.filter((section) => section in config)
     if (!present.length) continue
-    instances.push({ id: role, role, name })
+    instances.push({ id, role, name })
     for (const section of present) {
-      next[instanceSection(section, role)] = config[section]
+      next[instanceSection(section, id)] = config[section]
       delete next[section]
     }
   }

@@ -1,21 +1,35 @@
+import { migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { join } from 'path'
 import { BrowserWindow, dialog, shell } from 'electron'
 import { t } from '../shared/i18n'
 import { OPCUA_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { PkiStore } from './pki'
-import { hashPassword } from '@azerxim/sulfur-sdk/main'
 import { SimulationServer } from './server'
 import { SimulationClient } from './client'
 import { readNodesetFiles } from './nodesets'
 import { createPointsApi } from './points'
 
-let server = null
-let client = null
+/** Instances uniques d'une version antérieure, converties en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server', 'nodesets'], name: `${t('ui.server')} 1` },
+    client: { sections: ['clientEndpoint', 'clientSecurity'], name: `${t('ui.client')} 1` }
+  })
 
-/** Partie "main" du module OPC UA. Canaux exposés : `opcua:server:*` et `opcua:client:*`. */
+let instances = null
+
+/**
+ * Partie "main" du module OPC UA : serveurs et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `opcua:instances:*`, `opcua:server:*` et `opcua:client:*` (identifiant de l'instance en
+ * premier argument) ; `opcua:certs:*`, `opcua:nodesets:pick` et
+ * `opcua:security:hashPassword` sont communs aux instances.
+ */
 export const opcuaMainModule = {
   manifest: OPCUA_MODULE,
+
+  migrateConfig,
 
   activate(ctx) {
     const pki = {
@@ -27,33 +41,45 @@ export const opcuaMainModule = {
       return pki[which]
     }
 
-    server = new SimulationServer(
-      pki.server,
-      (status) => ctx.emit('server:status', status),
-      (values) => ctx.emit('server:values', values)
-    )
-    client = new SimulationClient(
-      pki.client,
-      (status) => ctx.emit('client:status', status),
-      (change) => ctx.emit('client:data', change),
-      (event) => ctx.emit('client:event', event)
-    )
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ui.server'),
+        create: (_instance, { emit }) =>
+          new SimulationServer(
+            pki.server,
+            (status) => emit('status', status),
+            (values) => emit('values', values)
+          ),
+        busy: (server) => server.status().running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('ui.client'),
+        create: (_instance, { emit }) =>
+          new SimulationClient(
+            pki.client,
+            (status) => emit('status', status),
+            (change) => emit('data', change),
+            (event) => emit('event', event)
+          ),
+        busy: (client) => client.status().connected,
+        dispose: (client) => client.disconnect()
+      }
+    })
 
-    ctx.expose(createPointsApi({ server, client, savedConfig: ctx.config }))
-
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:values', () => server.values())
-    ctx.handle('server:upsertVariable', (def) => server.upsertVariable(def))
-    ctx.handle('server:removeVariable', (id) => server.removeVariable(id))
-    ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
-    ctx.handle('server:setUpdateRate', (rate) => server.setUpdateRate(rate))
-    ctx.handle('server:upsertMethod', (def) => server.upsertMethod(def))
-    ctx.handle('server:removeMethod', (id) => server.removeMethod(id))
-    ctx.handle('server:upsertAlarm', (def) => server.upsertAlarm(def))
-    ctx.handle('server:removeAlarm', (id) => server.removeAlarm(id))
-    ctx.handle('server:raiseEvent', (event) => server.raiseEvent(event))
+    ctx.expose(createPointsApi({ instances, savedConfig: ctx.config }))
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'values', (server) => server.values())
+    instances.handle('server', 'upsertVariable', (server, def) => server.upsertVariable(def))
+    instances.handle('server', 'removeVariable', (server, id) => server.removeVariable(id))
+    instances.handle('server', 'setValue', (server, id, value) => server.setValue(id, value))
+    instances.handle('server', 'setUpdateRate', (server, rate) => server.setUpdateRate(rate))
+    instances.handle('server', 'upsertMethod', (server, def) => server.upsertMethod(def))
+    instances.handle('server', 'removeMethod', (server, id) => server.removeMethod(id))
+    instances.handle('server', 'upsertAlarm', (server, def) => server.upsertAlarm(def))
+    instances.handle('server', 'removeAlarm', (server, id) => server.removeAlarm(id))
+    instances.handle('server', 'raiseEvent', (server, event) => server.raiseEvent(event))
 
     // Fichiers NodeSet2 à importer dans l'espace d'adressage du serveur (null si annulé).
     ctx.handle('nodesets:pick', async () => {
@@ -65,22 +91,20 @@ export const opcuaMainModule = {
       })
       return canceled || !filePaths?.length ? null : readNodesetFiles(filePaths)
     })
-
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:connect', (url, security) => client.connect(url, security))
-    ctx.handle('client:discover', (url) => client.discover(url))
-    ctx.handle('client:disconnect', () => client.disconnect())
-    ctx.handle('client:browse', (nodeId) => client.browse(nodeId))
-    ctx.handle('client:read', (nodeId) => client.read(nodeId))
-    ctx.handle('client:write', (nodeId, value) => client.write(nodeId, value))
-    ctx.handle('client:subscribe', (nodeId) => client.subscribe(nodeId))
-    ctx.handle('client:unsubscribe', (nodeId) => client.unsubscribe(nodeId))
-    ctx.handle('client:history', (nodeId, start, end) => client.history(nodeId, start, end))
-    ctx.handle('client:methodInfo', (nodeId) => client.methodInfo(nodeId))
-    ctx.handle('client:call', (nodeId, inputs) => client.call(nodeId, inputs))
-    ctx.handle('client:subscribeEvents', () => client.subscribeEvents())
-    ctx.handle('client:unsubscribeEvents', () => client.unsubscribeEvents())
-    ctx.handle('client:acknowledge', (conditionId, eventId, comment) =>
+    instances.handle('client', 'connect', (client, url, security) => client.connect(url, security))
+    instances.handle('client', 'discover', (client, url) => client.discover(url))
+    instances.handle('client', 'disconnect', (client) => client.disconnect())
+    instances.handle('client', 'browse', (client, nodeId) => client.browse(nodeId))
+    instances.handle('client', 'read', (client, nodeId) => client.read(nodeId))
+    instances.handle('client', 'write', (client, nodeId, value) => client.write(nodeId, value))
+    instances.handle('client', 'subscribe', (client, nodeId) => client.subscribe(nodeId))
+    instances.handle('client', 'unsubscribe', (client, nodeId) => client.unsubscribe(nodeId))
+    instances.handle('client', 'history', (client, nodeId, start, end) => client.history(nodeId, start, end))
+    instances.handle('client', 'methodInfo', (client, nodeId) => client.methodInfo(nodeId))
+    instances.handle('client', 'call', (client, nodeId, inputs) => client.call(nodeId, inputs))
+    instances.handle('client', 'subscribeEvents', (client) => client.subscribeEvents())
+    instances.handle('client', 'unsubscribeEvents', (client) => client.unsubscribeEvents())
+    instances.handle('client', 'acknowledge', (client, conditionId, eventId, comment) =>
       client.acknowledge(conditionId, eventId, comment)
     )
 
@@ -98,13 +122,13 @@ export const opcuaMainModule = {
     })
   },
 
-  /** Serveur démarré ou client connecté. */
+  /** Au moins un serveur démarré ou un client connecté. */
   busy() {
-    return !!(server?.status().running || client?.status().connected)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    await client?.disconnect().catch(() => {})
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

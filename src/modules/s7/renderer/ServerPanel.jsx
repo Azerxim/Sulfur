@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleStop, faPlay, faPlus, faPowerOff, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
+import { instanceSection } from '@azerxim/sulfur-sdk'
 import {
   Button,
   Card,
@@ -95,8 +96,13 @@ function LiveValue({ point, value, onSet }) {
   return <CommitInput className="font-mono text-sulfur-300" value={formatValue(value)} onCommit={onSet} />
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('s7', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => s7Api.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    's7',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -111,9 +117,9 @@ export default function ServerPanel({ status }) {
   }, [running])
 
   useEffect(() => {
-    s7Api.server.values().then(setValues)
-    return s7Api.server.onValues(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onValues(setValues)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -154,19 +160,19 @@ export default function ServerPanel({ status }) {
     if (!running) return
     clearTimeout(timers.current[id])
     timers.current[id] = setTimeout(() => {
-      if (next && !pointProblem(next, shape)) live(() => s7Api.server.upsertPoint(next))
+      if (next && !pointProblem(next, shape)) live(() => api.upsertPoint(next))
     }, LIVE_DEBOUNCE)
   }
 
   function addPoint() {
     const point = newPoint(config.points, config.dbs)
     update({ points: [...config.points, point] })
-    if (running && !pointProblem(point, shape)) live(() => s7Api.server.upsertPoint(point))
+    if (running && !pointProblem(point, shape)) live(() => api.upsertPoint(point))
   }
 
   function removePoint(id) {
     update({ points: config.points.filter((p) => p.id !== id) })
-    if (running) live(() => s7Api.server.removePoint(id))
+    if (running) live(() => api.removePoint(id))
   }
 
   /** Adresse saisie : le type suit la taille indiquée (DBX → Bool, DBW → Int…) s'il ne lui correspond plus. */
@@ -245,12 +251,12 @@ export default function ServerPanel({ status }) {
                 value={config.updateRate}
                 onCommit={(raw) => {
                   update({ updateRate: Number(raw) })
-                  if (running) live(() => s7Api.server.setUpdateRate(Number(raw)))
+                  if (running) live(() => api.setUpdateRate(Number(raw)))
                 }}
               />
             </Field>
             {running ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(s7Api.server.stop)}>
+              <Button variant="danger" disabled={busy} onClick={() => run(api.stop)}>
                 <FontAwesomeIcon icon={faStop} className="size-4" /> {t('ui.stop')}
               </Button>
             ) : (
@@ -258,7 +264,7 @@ export default function ServerPanel({ status }) {
                 variant="primary"
                 disabled={busy || !!firstProblem}
                 title={firstProblem ?? undefined}
-                onClick={() => run(() => s7Api.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
                 <FontAwesomeIcon icon={faPlay} className="size-4" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
@@ -270,7 +276,7 @@ export default function ServerPanel({ status }) {
               checked={!!config.readOnly}
               onChange={(e) => {
                 update({ readOnly: e.target.checked })
-                if (running) live(() => s7Api.server.setReadOnly(e.target.checked))
+                if (running) live(() => api.setReadOnly(e.target.checked))
               }}
             />
             <div className="flex items-center gap-2">
@@ -279,14 +285,14 @@ export default function ServerPanel({ status }) {
               <Button
                 size="sm"
                 disabled={!running || cpuState === 'run'}
-                onClick={() => live(() => s7Api.server.setCpuState('run'))}
+                onClick={() => live(() => api.setCpuState('run'))}
               >
                 <FontAwesomeIcon icon={faPowerOff} className="size-3.5" /> RUN
               </Button>
               <Button
                 size="sm"
                 disabled={!running || cpuState === 'stop'}
-                onClick={() => live(() => s7Api.server.setCpuState('stop'))}
+                onClick={() => live(() => api.setCpuState('stop'))}
               >
                 <FontAwesomeIcon icon={faCircleStop} className="size-3.5" /> STOP
               </Button>
@@ -475,11 +481,7 @@ export default function ServerPanel({ status }) {
                       </td>
                       <td className="w-36 py-1.5 pr-2">
                         {running ? (
-                          <LiveValue
-                            point={p}
-                            value={values[p.id]}
-                            onSet={(v) => live(() => s7Api.server.setValue(p.id, v))}
-                          />
+                          <LiveValue point={p} value={values[p.id]} onSet={(v) => live(() => api.setValue(p.id, v))} />
                         ) : (
                           <Input
                             className="font-mono"
@@ -543,8 +545,8 @@ export default function ServerPanel({ status }) {
         {running && <p className="mt-2 text-xs text-slate-500">{t('ui.liveApplied')}</p>}
       </Card>
 
-      <MemoryExplorer running={running} config={status.config ?? config} values={values} />
-      <ServerActivity status={status} />
+      <MemoryExplorer api={api} running={running} config={status.config ?? config} values={values} />
+      <ServerActivity api={api} status={status} />
     </div>
   )
 }

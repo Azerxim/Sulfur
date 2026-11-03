@@ -1,61 +1,86 @@
+import { migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
 import { SNMP_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { SnmpAgent } from './agent'
 import { SnmpManager } from './manager'
 import { createPointsApi } from './points'
 
-let agent = null
-let manager = null
+/** Instances uniques d'une version antérieure, converties en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    agent: { id: 'server', sections: ['agent'], name: `${t('snmp.tabs.agent')} 1` },
+    manager: { id: 'client', sections: ['manager'], name: `${t('snmp.tabs.manager')} 1` }
+  })
 
-/** Partie "main" du module SNMP. Canaux : `snmp:agent:*`, `snmp:manager:*`. */
+let instances = null
+
+/**
+ * Partie "main" du module SNMP : agents et managers en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `snmp:instances:*`, `snmp:agent:*` et `snmp:manager:*` (identifiant de l'instance en
+ * premier argument).
+ */
 export const snmpMainModule = {
   manifest: SNMP_MODULE,
 
+  migrateConfig,
+
   activate(ctx) {
-    agent = new SnmpAgent({
-      onStatus: (status) => ctx.emit('agent:status', status),
-      onLog: (batch) => ctx.emit('agent:log', batch),
-      onValues: (values) => ctx.emit('agent:values', values)
+    instances = defineInstances(ctx, {
+      agent: {
+        label: () => t('snmp.tabs.agent'),
+        create: (_instance, { emit }) =>
+          new SnmpAgent({
+            onStatus: (status) => emit('status', status),
+            onLog: (batch) => emit('log', batch),
+            onValues: (values) => emit('values', values)
+          }),
+        busy: (agent) => agent.running,
+        dispose: (agent) => agent.stop()
+      },
+      manager: {
+        label: () => t('snmp.tabs.manager'),
+        create: (_instance, { emit }) =>
+          new SnmpManager({
+            onStatus: (status) => emit('status', status),
+            onPoll: (values) => emit('poll', values),
+            onTraps: (batch) => emit('traps', batch)
+          }),
+        busy: (manager) => !!(manager.pollTimer || manager.receiver),
+        dispose: (manager) => manager.close()
+      }
     })
-    manager = new SnmpManager({
-      onStatus: (status) => ctx.emit('manager:status', status),
-      onPoll: (values) => ctx.emit('manager:poll', values),
-      onTraps: (batch) => ctx.emit('manager:traps', batch)
-    })
 
-    ctx.expose(createPointsApi({ agent, manager, savedConfig: ctx.config }))
-
-    ctx.handle('agent:status', () => agent.status())
-    ctx.handle('agent:start', (config) => agent.start(config))
-    ctx.handle('agent:stop', () => agent.stop())
-    ctx.handle('agent:values', () => agent.values())
-    ctx.handle('agent:setValue', (id, value) => agent.setValue(id, value))
-    ctx.handle('agent:upsertObject', (def) => agent.upsertObject(def))
-    ctx.handle('agent:deleteObject', (id) => agent.deleteObject(id))
-    ctx.handle('agent:setUpdateRate', (rate) => agent.setUpdateRate(rate))
-    ctx.handle('agent:setTraps', (traps) => agent.setTraps(traps))
-    ctx.handle('agent:sendTrap', () => agent.sendTrap())
-    ctx.handle('agent:logs', () => agent.logs())
-    ctx.handle('agent:clearLogs', () => agent.clearLogs())
-
-    ctx.handle('manager:status', () => manager.status())
-    ctx.handle('manager:request', (config, request) => manager.request(config, request))
-    ctx.handle('manager:startPolling', (config) => manager.startPolling(config))
-    ctx.handle('manager:stopPolling', () => manager.stopPolling())
-    ctx.handle('manager:values', () => Object.fromEntries(manager.last))
-    ctx.handle('manager:startReceiver', (config) => manager.startReceiver(config))
-    ctx.handle('manager:stopReceiver', () => manager.stopReceiver())
-    ctx.handle('manager:traps', () => manager.traps)
-    ctx.handle('manager:clearTraps', () => manager.clearTraps())
+    ctx.expose(createPointsApi({ instances, savedConfig: ctx.config }))
+    instances.handle('agent', 'start', (agent, config) => agent.start(config))
+    instances.handle('agent', 'stop', (agent) => agent.stop())
+    instances.handle('agent', 'values', (agent) => agent.values())
+    instances.handle('agent', 'setValue', (agent, id, value) => agent.setValue(id, value))
+    instances.handle('agent', 'upsertObject', (agent, def) => agent.upsertObject(def))
+    instances.handle('agent', 'deleteObject', (agent, id) => agent.deleteObject(id))
+    instances.handle('agent', 'setUpdateRate', (agent, rate) => agent.setUpdateRate(rate))
+    instances.handle('agent', 'setTraps', (agent, traps) => agent.setTraps(traps))
+    instances.handle('agent', 'sendTrap', (agent) => agent.sendTrap())
+    instances.handle('agent', 'logs', (agent) => agent.logs())
+    instances.handle('agent', 'clearLogs', (agent) => agent.clearLogs())
+    instances.handle('manager', 'request', (manager, config, request) => manager.request(config, request))
+    instances.handle('manager', 'startPolling', (manager, config) => manager.startPolling(config))
+    instances.handle('manager', 'stopPolling', (manager) => manager.stopPolling())
+    instances.handle('manager', 'values', (manager) => Object.fromEntries(manager.last))
+    instances.handle('manager', 'startReceiver', (manager, config) => manager.startReceiver(config))
+    instances.handle('manager', 'stopReceiver', (manager) => manager.stopReceiver())
+    instances.handle('manager', 'traps', (manager) => manager.traps)
+    instances.handle('manager', 'clearTraps', (manager) => manager.clearTraps())
   },
 
-  /** Agent démarré, surveillance ou récepteur de notifications en cours. */
+  /** Au moins un agent démarré, une surveillance ou un récepteur de notifications en cours. */
   busy() {
-    return !!(agent?.running || manager?.pollTimer || manager?.receiver)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    await manager?.close().catch(() => {})
-    await agent?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }
