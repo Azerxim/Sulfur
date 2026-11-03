@@ -7,9 +7,10 @@ import {
   faFolderOpen,
   faMagnifyingGlass,
   faTrashCan,
-  faTriangleExclamation
+  faTriangleExclamation,
+  faCode
 } from '@fortawesome/free-solid-svg-icons'
-import { MODULE_API_VERSION } from '@azerxim/sulfur-sdk'
+import { MODULE_API_VERSION, parseVersion } from '@azerxim/sulfur-sdk'
 import { Button, ErrorBanner, Modal } from '@azerxim/sulfur-sdk/ui'
 import { availableModules, rejectedModules, setDisabledModules } from '../../enabled-modules'
 import { externalModules, reloadExternalModules } from '../../external-modules'
@@ -18,6 +19,12 @@ import { useI18n, useManifestText, usePreferences } from '../../preferences'
 import { Badge, Panel, Segmented, Switch, versionOrder } from './shared'
 
 /** Texte comparable sans casse ni accents (filtre des modules). */
+/**
+ * Versions du SDK des modules acceptées : même version majeure que l'API de Sulfur, jusqu'à elle
+ * (un paquet construit avec un SDK plus récent ou d'une autre version majeure est refusé).
+ */
+const SDK_RANGE = { min: `${parseVersion(MODULE_API_VERSION).major}.0.0`, max: MODULE_API_VERSION }
+
 /** Noms affichés des modules `ids` (identifiant d'un module absent), séparés par des virgules. */
 function useModuleNames() {
   const text = useManifestText()
@@ -238,9 +245,7 @@ function ModulesPanel() {
           </div>
         </div>
       )}
-      <p className="px-3.5 pt-2 pb-3 text-[11px] text-slate-500">
-        {t('settings.moduleSwitch.api', { version: MODULE_API_VERSION })}
-      </p>
+      <p className="px-3.5 pt-2 pb-3 text-[11px] text-slate-500">{t('settings.moduleSwitch.api', SDK_RANGE)}</p>
     </Panel>
   )
 }
@@ -412,6 +417,17 @@ function ExternalModulesPanel() {
             {t('settings.externalModules.warning')}
           </span>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-ink-800/70 px-3.5 py-2.5">
+        <FontAwesomeIcon icon={faCode} className="size-3.5 text-slate-500" />
+        <span className="text-[13px] text-slate-200">{t('settings.externalModules.sdk.label')}</span>
+        <code className="rounded-md bg-ink-850 px-2 py-0.5 font-mono text-xs text-sulfur-300 select-text">
+          {SDK_RANGE.min} – {SDK_RANGE.max}
+        </code>
+        <span className="basis-full text-xs text-slate-500">
+          {t('settings.externalModules.sdk.hint', { major: parseVersion(MODULE_API_VERSION).major, ...SDK_RANGE })}
+        </span>
       </div>
 
       {(enabled !== loaded || notice || error) && (

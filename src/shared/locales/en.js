@@ -170,10 +170,14 @@ export default {
       disableGroup: 'Disable every module of the {group} group (except running ones)',
       additional: 'Additional',
       rejected: 'Modules not loaded ({count})',
-      api: 'Module API {version}'
+      api: 'Accepted modules: SDK {min} to {max}'
     },
     externalModules: {
       title: 'External modules',
+      sdk: {
+        label: 'Accepted module SDK',
+        hint: 'Packages built with @azerxim/sulfur-sdk {major}.x, up to version {max}, are accepted. A package built with a newer SDK is refused: update Sulfur.'
+      },
       hint: 'Built with the Sulfur SDK, installed from a .sulfur-module package or copied into the packages folder; taken into account with Refresh or at the next start.',
       enable: 'Load the external modules',
       warning:

@@ -173,10 +173,14 @@ export default {
       disableGroup: 'Désactiver tous les modules du groupe {group} (sauf ceux en marche)',
       additional: 'Additionnel',
       rejected: 'Modules non chargés ({count})',
-      api: 'API des modules {version}'
+      api: 'Modules acceptés : SDK {min} à {max}'
     },
     externalModules: {
       title: 'Modules externes',
+      sdk: {
+        label: 'SDK des modules accepté',
+        hint: 'Les paquets construits avec @azerxim/sulfur-sdk {major}.x, jusqu’à la version {max}, sont acceptés. Un paquet construit avec un SDK plus récent est refusé : mettez Sulfur à jour.'
+      },
       hint: 'Développés avec le SDK de Sulfur, installés depuis un paquet .sulfur-module ou copiés dans le dossier des paquets ; pris en compte avec Actualiser ou au prochain démarrage.',
       enable: 'Charger les modules externes',
       warning:
