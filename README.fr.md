@@ -7,14 +7,16 @@
 [English](README.md) · **Français**
 
 **Sulfur** est un simulateur de bureau modulaire pour protocoles industriels et informatiques. Chaque
-module fournit un **serveur** et un **client** simulés, pour tester équipements, logiciels de supervision
-et intégrations sans l'installation réelle, et reproduire des défauts à la demande. Des outils transverses
+module fournit des **serveurs** et des **clients** simulés, autant que nécessaire, pour tester équipements,
+logiciels de supervision et intégrations sans l'installation réelle, et reproduire des défauts à la
+demande. Des outils transverses
 injectent des défauts, enchaînent des comportements dans des flux à la manière de Node-RED et tracent
 n'importe quelle valeur.
 
 - Windows, Linux et macOS ; interface en anglais et en français, thème clair ou sombre.
+- Vue d'ensemble des serveurs et clients en marche, palette de commandes (Ctrl K / ⌘ K).
 - Extensible : chacun peut écrire son propre module avec le [SDK des modules](packages/sdk/README.fr.md),
-  sans approbation ni signature.
+  sans approbation ni signature, ou compléter un module existant par de nouveaux onglets.
 - Réalisé avec Electron, React et TailwindCSS v4. Licence : [Apache-2.0](LICENSE).
 
 ## Modules
@@ -72,5 +74,5 @@ contributeur signe une fois le [Contributor License Agreement](CLA.md), à sa pr
 
 Sulfur est distribué sous [licence Apache 2.0](LICENSE) — Copyright © 2026 Maxime MALLET. Les modules de
 ce dépôt sont les modules **standard** ; des modules **additionnels**, distribués en paquets séparés, sont
-prévus, et chacun peut créer son propre module avec le SDK (voir la
-[roadmap](ROADMAP.fr.md#modules-standard-et-additionnels)).
+prévus et pourront ajouter des onglets à un module standard. Chacun peut créer son propre module avec le
+SDK (voir la [roadmap](ROADMAP.fr.md#modules-standard-et-additionnels)).
