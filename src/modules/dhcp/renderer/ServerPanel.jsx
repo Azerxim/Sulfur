@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { FileText, Play, Square, Trash2, TriangleAlert } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFileLines, faPlay, faStop, faTrashCan, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -11,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime, intToIp, ipToInt, subnetOf } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection, intToIp, ipToInt, subnetOf } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, MAX_POOL } from '../shared/constants'
 import { dhcpApi } from './api'
 import InterfaceSelect from './InterfaceSelect'
@@ -41,13 +42,13 @@ function suggestPool(iface) {
   return first <= last ? { poolStart: intToIp(first), poolEnd: intToIp(last) } : null
 }
 
-function ServerLog({ logFile }) {
+function ServerLog({ api, logFile }) {
   const [entries, setEntries] = useState([])
   const [error, setError] = useState(null)
   useEffect(() => {
-    dhcpApi.server.logs().then(setEntries)
-    return dhcpApi.server.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
-  }, [])
+    api.logs().then(setEntries)
+    return api.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
+  }, [api])
   return (
     <Card
       id="dhcp.server.log"
@@ -59,17 +60,12 @@ function ServerLog({ logFile }) {
             size="sm"
             variant="ghost"
             title={logFile}
-            onClick={() => dhcpApi.server.openLogFile().catch((err) => setError(err.message))}
+            onClick={() => api.openLogFile().catch((err) => setError(err.message))}
           >
-            <FileText className="size-3.5" /> {t('dhcp.server.openLogFile')}
+            <FontAwesomeIcon icon={faFileLines} className="size-3.5" /> {t('dhcp.server.openLogFile')}
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={!entries.length}
-            onClick={() => dhcpApi.server.clearLogs().then(setEntries)}
-          >
-            <Trash2 className="size-3.5" /> {t('dhcp.server.clearLog')}
+          <Button size="sm" variant="ghost" disabled={!entries.length} onClick={() => api.clearLogs().then(setEntries)}>
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('dhcp.server.clearLog')}
           </Button>
         </>
       }
@@ -104,7 +100,7 @@ function StartWarning({ summary, config, busy, error, onCancel, onStart }) {
     <Modal title={t('dhcp.warning.title')} onClose={onCancel} className="max-w-xl">
       <div className="flex flex-col gap-3 text-sm text-slate-300">
         <div className="flex gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-200">
-          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+          <FontAwesomeIcon icon={faTriangleExclamation} className="mt-0.5 size-4 shrink-0" />
           <p>{t('dhcp.warning.text')}</p>
         </div>
         <p>{t('dhcp.warning.effects')}</p>
@@ -131,7 +127,7 @@ function StartWarning({ summary, config, busy, error, onCancel, onStart }) {
             {t('dhcp.warning.cancel')}
           </Button>
           <Button variant="primary" disabled={!accepted || busy} onClick={onStart}>
-            <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+            <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
           </Button>
         </div>
       </div>
@@ -139,8 +135,9 @@ function StartWarning({ summary, config, busy, error, onCancel, onStart }) {
   )
 }
 
-export default function ServerPanel({ status, network, onReload }) {
-  const [config, setConfig] = usePersistentState('dhcp', 'server', DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status, network, onReload }) {
+  const api = useMemo(() => dhcpApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('dhcp', instanceSection('server', instance.id), DEFAULT_SERVER_CONFIG)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [warning, setWarning] = useState(null)
@@ -162,10 +159,10 @@ export default function ServerPanel({ status, network, onReload }) {
   }
 
   // Configuration vérifiée par le process principal avant d'afficher l'avertissement.
-  const askStart = () => run(async () => setWarning(await dhcpApi.server.check(config)))
+  const askStart = () => run(async () => setWarning(await api.check(config)))
   const start = () =>
     run(async () => {
-      await dhcpApi.server.start(config, true)
+      await api.start(config, true)
       setWarning(null)
     })
 
@@ -191,12 +188,12 @@ export default function ServerPanel({ status, network, onReload }) {
               label={running ? t('dhcp.server.running', { count: leases.length }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(dhcpApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button variant="primary" size="sm" disabled={busy} onClick={askStart}>
-                <Play className="size-3.5" /> {t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {t('ui.start')}
               </Button>
             )}
           </>
@@ -336,7 +333,7 @@ export default function ServerPanel({ status, network, onReload }) {
         </Card>
       )}
 
-      <ServerLog logFile={status.logFile} />
+      <ServerLog api={api} logFile={status.logFile} />
 
       {warning && (
         <StartWarning

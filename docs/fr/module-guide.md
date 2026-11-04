@@ -86,7 +86,8 @@ export const manifest = defineManifest({
   version: '0.1.0', // version du module (semver), à augmenter à chaque publication
   author: 'Your name', // affiché avant l'installation
   edition: 'additional',
-  minAppVersion: '0.4.0' // version minimale de Sulfur
+  minAppVersion: '0.4.0', // version minimale de Sulfur
+  extends: ['modbus'] // facultatif : modules auxquels ce module ajoute des onglets (voir 4.)
 })
 ```
 
@@ -144,7 +145,9 @@ du code compilé) ne sont pas pris en charge.
 ## 4. L'interface
 
 `src/renderer/index.jsx` exporte par défaut `{ manifest, icon, Component }` : l'icône de la barre
-latérale (un composant [lucide-react](https://lucide.dev/icons)) et le composant React de la page.
+latérale (une définition d'icône [FontAwesome](https://fontawesome.com/search?ic=free&o=r), `faCube` de
+`@fortawesome/free-solid-svg-icons`…) et le composant React de la page. Dans la page, les icônes
+s'affichent avec `Icon` du SDK : `<Icon icon={faPlay} className="size-3.5" />`.
 
 ```jsx
 const invoke = (action, ...args) => window.sulfur.invoke(`${ID}:${action}`, ...args)
@@ -164,12 +167,44 @@ function MyModuleView() {
 - **Composants** (`@azerxim/sulfur-sdk/ui`) : `Button`, `Card`, `Input`, `CommitInput`, `Select`,
   `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`… Ils suivent le thème et la langue
   de Sulfur.
+- **Page à onglets** : `TabbedPage` (`tabs`, `value`, `onChange`) place la barre d'onglets pleine
+  largeur sous l'en-tête du module et le contenu avec les marges standard ; `Tabs` seul reste un
+  sélecteur compact pour les choix à l'intérieur d'une carte.
 - **Réglages enregistrés** : `usePersistentState(id, section, défauts)` remplace `useState` ; la
   valeur est enregistrée, restaurée au démarrage, exportée avec les configurations de Sulfur, et
   lisible côté process principal par `ctx.config()[section]`.
 - **Styles** : `style.css` importe `@azerxim/sulfur-sdk/module.css` ; seuls les utilitaires Tailwind
   utilisés par le module sont produits, sur les couleurs du thème (`ink`, `slate`, `sulfur`…), thème
   clair compris. Préfixez vos propres classes CSS par l'identifiant du module.
+
+### Compléter un autre module (extensions)
+
+Un module peut ajouter des onglets à la page d'un autre module au lieu (ou en plus) d'avoir sa propre
+page : un module additionnel complète ainsi un module standard (onglet S7CommPlus dans Siemens S7,
+PubSub dans OPC UA…).
+
+```jsx
+// Le manifeste déclare les modules complétés : extends: ['modbus'] (affiché avant l'installation).
+function CounterTab({ target, module }) {
+  // `target` : module qui accueille l'onglet ; `module` : ce module. N'appeler que ses propres
+  // canaux (`${module}:<action>`), jamais ceux du module visé.
+}
+
+export default {
+  manifest,
+  icon,
+  Component, // facultatifs : sans page, le module ne fait que compléter les modules visés
+  extensions: [{ target: 'modbus', tab: { id: 'counter', label: () => t('my-module.tab'), icon, Component: CounterTab } }]
+}
+```
+
+- Un onglet n'est affiché que si sa cible figure dans `extends` et que son `id` est libre dans la
+  page visée ; `label` peut être une fonction (appelée à l'affichage, elle suit la langue).
+- Les onglets apportés suivent l'activation du module qui les apporte. Un module dont la cible est
+  absente ou désactivée se charge quand même : ses onglets ne sont simplement pas affichés.
+- Les pages construites avec `InstancesPage` affichent d'elles-mêmes les onglets qui les visent,
+  après les leurs ; une autre page les lit avec `useExtensions(<son id>)`.
+- Une erreur dans un onglet apporté s'affiche à sa place, sans casser la page qui l'accueille.
 
 ## 5. Les traductions
 

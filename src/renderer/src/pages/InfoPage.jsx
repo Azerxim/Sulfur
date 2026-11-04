@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Check, Copy, Network, RefreshCw } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faCheck, faCopy, faNetworkWired } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner } from '@azerxim/sulfur-sdk/ui'
 import { useI18n } from '../preferences'
 
@@ -17,7 +18,11 @@ function CopyButton({ text }) {
         setTimeout(() => setCopied(false), 1200)
       }}
     >
-      {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+      {copied ? (
+        <FontAwesomeIcon icon={faCheck} className="size-3.5 text-emerald-400" />
+      ) : (
+        <FontAwesomeIcon icon={faCopy} className="size-3.5" />
+      )}
     </Button>
   )
 }
@@ -45,7 +50,7 @@ export default function InfoPage() {
   const mainIps = (info?.interfaces ?? []).flatMap((i) => i.addresses).filter((a) => !a.internal && a.family === 'IPv4')
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="flex flex-col gap-3 p-4">
       <ErrorBanner error={error} onClose={() => setError(null)} />
 
       {info && (
@@ -72,7 +77,7 @@ export default function InfoPage() {
         title={t('info.ips')}
         actions={
           <Button variant="ghost" size="sm" onClick={load}>
-            <RefreshCw className="size-3.5" /> {t('ui.refresh')}
+            <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('ui.refresh')}
           </Button>
         }
       >
@@ -109,7 +114,7 @@ export default function InfoPage() {
           {interfaces.map((itf) => (
             <div key={itf.name} className="rounded-md border border-ink-800">
               <div className="flex items-center gap-2 border-b border-ink-800 px-3 py-2 text-sm">
-                <Network className="size-4 text-slate-500" />
+                <FontAwesomeIcon icon={faNetworkWired} className="size-4 text-slate-500" />
                 <span className="font-medium text-slate-200">{itf.name}</span>
                 {itf.internal && (
                   <span className="rounded bg-ink-800 px-1.5 text-[11px] text-slate-400">{t('info.internal')}</span>

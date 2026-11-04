@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/syslog.md)
 
+- **Multiple instances**: as many servers and senders as needed, each in its own tab, with its name
+  and settings; none exists at first. A stopped instance can be renamed or removed. Those of an
+  earlier version become "Server 1" and "Client 1".
+
 - **Server**: receives Syslog messages over UDP and TCP (default port 1514; standard port 514 needs
   administrator rights on Linux) and TLS (port 6514, self-signed certificate `Syslog@Sulfur`). On
   TCP / TLS, each message is read with its own framing (RFC 6587): length prefix (octet counting) or

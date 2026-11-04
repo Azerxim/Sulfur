@@ -10,7 +10,15 @@ application (hôte des modules, Paramètres, modules intégrés) est dans la
 
 ## API des modules 1.2
 
-- [ ] **Extensions de modules** : un module ajoute un onglet à la page d'un autre module, pour
+- [x] **Instances** : serveurs, clients… en nombre libre, aucun par défaut. `defineInstances`
+  (`/main`), `InstancesPage`, `useInstances`, `useInstanceStatuses` (`/ui`), `instanceSection`,
+  `instancePointId`, `migrateToInstances`, `instancesPointsApi`… ; `Tabs` / `TabbedPage` acceptent `actions` ; champ
+  facultatif `groupName` des points.
+- [x] **Icônes FontAwesome** : `Icon` (`@azerxim/sulfur-sdk/ui`) affiche une définition d'icône
+  FontAwesome (`<Icon icon={faCube} className="size-4" />`) ; `RendererModule.icon` et les icônes
+  de `Tabs` acceptent une définition FontAwesome, les composants (lucide-react…) restant acceptés
+  pour les modules antérieurs.
+- [x] **Extensions de modules** : un module ajoute un onglet à la page d'un autre module, pour
   qu'un module additionnel complète un module standard au lieu d'avoir sa propre page (onglet
   S7CommPlus du module Siemens S7 apporté par Siemens S7 Enhanced, onglet PubSub du module
   OPC UA…).
@@ -25,3 +33,19 @@ application (hôte des modules, Paramètres, modules intégrés) est dans la
     dont la cible est absente ou désactivée se charge quand même, ses onglets ne sont simplement
     pas affichés.
   - Déclarations TypeScript et guide des modules mis à jour ; exemple dans le modèle de module.
+
+## API des modules 1.3
+
+- [ ] **Licences et mode d'essai** des modules payants (voir la
+  [roadmap de Sulfur](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.fr.md#modules-standard-et-additionnels)) ;
+  un module sans ce champ reste gratuit, rien ne change pour lui.
+  - Manifeste : champ facultatif `license: { trialDays, purchaseUrl, publicKey }` (durée de l'essai,
+    30 jours par défaut ; page d'achat ; clé publique Ed25519 de l'éditeur), affiché avant
+    l'installation.
+  - `ctx.license` (process principal) et `useLicense()` (`@azerxim/sulfur-sdk/ui`) : état
+    (`trial`, `licensed`, `expired`), jours d'essai restants, titulaire et fin de maintenance de la
+    licence, événement à chaque changement ; le module décide de ce qu'il limite selon l'état.
+  - Vérification de la signature du fichier de licence dans le SDK, hors ligne ; outil en ligne de
+    commande `sulfur-license` (`@azerxim/sulfur-sdk/license`) pour générer la paire de clés de
+    l'éditeur et signer les licences.
+  - Déclarations TypeScript, guide des modules (section modules payants) et tests.

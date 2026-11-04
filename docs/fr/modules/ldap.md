@@ -2,7 +2,13 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/ldap.md) · **Français**
 
-Quatre onglets : serveur et client LDAP, serveur et client RADIUS.
+- **Instances multiples** : autant de serveurs et clients LDAP et RADIUS que nécessaire, chacun dans
+  son onglet, avec son nom et ses réglages ; aucun n'existe au départ. Une instance arrêtée peut
+  être renommée ou supprimée. Ceux d'une version antérieure deviennent « Serveur LDAP 1 », « Client
+  LDAP 1 »… Un serveur RADIUS authentifie les comptes de l'annuaire du premier serveur LDAP en
+  marche (sinon du premier serveur LDAP).
+
+Serveurs et clients LDAP, serveurs et clients RADIUS.
 
 ## LDAP
 

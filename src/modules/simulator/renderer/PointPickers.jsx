@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { Select } from '@azerxim/sulfur-sdk/ui'
 import { t } from '../shared/i18n'
 
-/** Libellé d'un groupe de points : « OPC UA · Serveur ». */
-export const groupLabel = (p) => `${p.moduleName} · ${t(`simulator.groups.${p.group}`)}`
+/** Libellé d'un groupe de points : « OPC UA · Serveur », ou le nom de l'instance qui les porte. */
+export const groupLabel = (p) => `${p.moduleName} · ${p.groupName ?? t(`simulator.groups.${p.group}`)}`
 
 const grouped = (points) => Object.entries(Object.groupBy(points, groupLabel))
 
@@ -50,7 +51,7 @@ export function PointsPicker({ points, value = [], onChange, emptyLabel, disable
         className="flex h-9 w-full items-center gap-2 rounded-md border border-ink-700 bg-ink-950 px-3 text-left text-sm text-slate-100 disabled:opacity-50"
       >
         <span className="min-w-0 flex-1 truncate">{names.length ? names.join(', ') : emptyLabel}</span>
-        <ChevronDown className="size-3.5 shrink-0 text-slate-500" />
+        <FontAwesomeIcon icon={faChevronDown} className="size-3.5 shrink-0 text-slate-500" />
       </button>
       {open && (
         <div className="absolute z-20 mt-1 max-h-72 w-full min-w-64 overflow-auto rounded-md border border-ink-700 bg-ink-900 p-2 shadow-2xl">

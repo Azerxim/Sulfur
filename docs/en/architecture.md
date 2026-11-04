@@ -125,6 +125,39 @@ The contract (`PointsApi`, described in `packages/sdk/src/points.js`):
 Outside its module, a point is designated by `<moduleId>/<local id>` (`pointKey` / `parsePointKey`).
 Common fault types: `delay`, `noResponse`, `cut`, `exception`, `badStatus`, `kissOfDeath`, `freeze`.
 
+## Instances: multiple servers and clients
+
+A module can have as many servers, clients… ("roles") as wanted; **no instance exists by default**.
+The SDK provides the common mechanism, used by every protocol module:
+
+- **Main process**: `defineInstances(ctx, { server: { label, create, busy, dispose }, … })`
+  (`@azerxim/sulfur-sdk/main`) creates one object per instance and registers the
+  `instances:list|create|rename|remove` and `<role>:status` channels.
+  `instances.handle('server', 'start', fn)` registers `<id>:server:start`, called with the instance
+  id as first argument; an instance's events are `<id>:<role>:<instance>:<event>`. A running
+  instance cannot be removed.
+- **Configuration**: the list is the `instances` section (`[{ id, role, name }]`); an instance's
+  settings are in `<section>:<instance>` (`server:server-3fa2c1`), removed with it. The list is
+  read again on every access: import and reset are taken into account by themselves.
+- **Interface**: `InstancesPage` (`@azerxim/sulfur-sdk/ui`) shows one tab per instance, the add
+  buttons per role, the editable name and removal; `useInstanceStatuses` gives each instance's
+  status. A module's activity (sidebar, home) counts every instance.
+- **Points**: a point's local id is `<instance>:<point>` and its group carries the instance name
+  (`groupName`), shown by the simulator and trends. `instancesPointsApi` builds the module's points
+  from those of each instance (reads, writes, faults).
+- **Migration**: `migrateToInstances` turns a single server and client from an earlier version into
+  instances with ids `server` and `client` ("Server 1", "Client 1"): point keys
+  (`modbus/server:<point>`) stay the same, existing flows and trends keep working.
+
+## Module extensions
+
+A module can add tabs to the page of another one (`RendererModule.extensions`, targets declared in
+`manifest.extends`). The interface gives the enabled modules to the SDK (`setModuleExtensions`, on
+every enabling or disabling); the target module reads its tabs with `useExtensions(<id>)` (done by
+`InstancesPage`). A page-less module that only extends other modules has no sidebar entry nor page:
+a link to it leads to the page of the first module it extends. *Settings → Modules* shows the
+extended modules, including before a package is installed.
+
 ## Module SDK
 
 Modules use the application only through the **module SDK** `@azerxim/sulfur-sdk` (`packages/sdk`,
@@ -175,7 +208,7 @@ To write a module **outside** this repository, follow [Creating a module](module
 2. **Main part**: export `{ manifest, activate(ctx), deactivate(), busy(), migrateConfig() }`. The
    manifest comes from `builtinManifest(…)`; `busy()` (server running, client connected) and
    `migrateConfig(config)` (conversion of an older configuration) are optional.
-3. **Renderer part**: export `{ manifest, icon, Component }` (`lucide-react` icon). Wrap the channels
+3. **Renderer part**: export `{ manifest, icon, Component }` (FontAwesome icon). Wrap the channels
    in `renderer/api.js` with `window.sulfur.invoke` / `window.sulfur.on`.
 4. Register the module in `src/main/modules.js` and `src/renderer/src/modules.js`. Cross-cutting
    modules come last.

@@ -23,7 +23,7 @@ import {
   formatAttribute,
   parseAttributes
 } from '@modules/ldap/shared/radius'
-import { errorOf, freePort, sleep } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep } from './helpers'
 
 /** Port UDP libre (le port TCP libre l'est presque toujours aussi en UDP : vérifié par le bind). */
 async function freeUdpPort() {
@@ -271,7 +271,12 @@ describe('Serveur et client RADIUS', () => {
   })
 
   it('publie les compteurs comme points de données', async () => {
-    const api = createPointsApi({ server: { running: false, counters: {}, sessions: new Map() }, radiusServer: server })
+    const api = createPointsApi({
+      instances: fakeInstances(
+        { server: { running: false, counters: {}, sessions: new Map() }, radiusServer: server },
+        { radiusServer: 'radius' }
+      )
+    })
     expect(api.read(['radius:accepts'])).toEqual({ 'radius:accepts': undefined })
     await server.start(serverConfig())
     await client.authenticate(clientConfig({ password: 'operator' }))

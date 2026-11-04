@@ -1,21 +1,40 @@
 /** Composants d'interface partagés par tous les modules (SDK : @azerxim/sulfur-sdk/ui). */
 
 import { useCallback, useEffect, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { t } from '../i18n.js'
 
+/** Définition d'icône FontAwesome (`{ prefix, iconName, icon }`, `faServer`…). */
+const isIconDefinition = (icon) => typeof icon?.iconName === 'string' && Array.isArray(icon.icon)
+
+/**
+ * Icône FontAwesome : `icon` est une définition (`faServer` de @fortawesome/free-solid-svg-icons…),
+ * dimensionnée par `className` (`size-4`…). Un composant React recevant `className` (icônes des
+ * modules antérieurs, lucide-react…) est aussi accepté.
+ */
+export function Icon({ icon, ...props }) {
+  if (!icon) return null
+  if (isIconDefinition(icon)) return <FontAwesomeIcon icon={icon} {...props} />
+  const Component = icon
+  return <Component {...props} />
+}
+
+/** Un seul bouton plein (primary) par écran : les autres actions sont bordées ou discrètes. */
 const buttonVariants = {
-  primary: 'bg-sulfur-400 text-on-accent hover:bg-sulfur-300 disabled:bg-ink-700 disabled:text-slate-500',
-  secondary: 'bg-ink-800 text-slate-200 hover:bg-ink-700 disabled:text-slate-600',
-  danger: 'bg-red-500/15 text-red-300 hover:bg-red-500/25 disabled:text-slate-600',
-  ghost: 'text-slate-400 hover:bg-ink-800 hover:text-slate-200 disabled:text-slate-600'
+  primary:
+    'bg-sulfur-400 font-semibold text-on-accent hover:brightness-105 disabled:bg-ink-800 disabled:text-slate-500 disabled:brightness-100',
+  secondary:
+    'border border-ink-800 bg-ink-900 font-medium text-slate-200 hover:border-ink-700 hover:bg-ink-850 disabled:text-slate-600',
+  danger: 'bg-red-500/10 font-medium text-red-300 hover:bg-red-500/20 disabled:text-slate-600',
+  ghost: 'font-medium text-slate-400 hover:bg-ink-850 hover:text-slate-200 disabled:text-slate-600'
 }
 
 export function Button({ variant = 'secondary', size = 'md', className = '', ...props }) {
   const sizes = { sm: 'h-7 px-2.5 text-xs', md: 'h-9 px-3.5 text-sm', icon: 'size-7' }
   return (
     <button
-      className={`inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors disabled:cursor-not-allowed ${sizes[size]} ${buttonVariants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-[7px] transition disabled:cursor-not-allowed ${sizes[size]} ${buttonVariants[variant]} ${className}`}
       {...props}
     />
   )
@@ -95,30 +114,33 @@ export function Card({
 
   return (
     <section
-      className={`flex min-h-0 flex-col rounded-lg border border-ink-800 bg-ink-900 ${fill ? 'flex-1' : ''} ${className} ${
+      className={`flex min-h-0 flex-col rounded-[10px] border border-ink-800 bg-ink-900 ${fill ? 'flex-1' : ''} ${className} ${
         isCollapsed ? 'h-fit min-h-0! flex-none!' : ''
       }`}
     >
       {(title || actions) && (
         <div
-          className={`flex items-center justify-between gap-2 px-4 py-2.5 ${isCollapsed ? '' : 'border-b border-ink-800'} ${
+          className={`flex min-h-10 items-center justify-between gap-2 px-4 py-1.5 ${isCollapsed ? '' : 'border-b border-ink-800'} ${
             canCollapse ? 'cursor-pointer select-none' : ''
           }`}
           onClick={canCollapse ? toggle : undefined}
         >
-          <h2 className="flex items-center gap-1.5 text-sm font-medium text-slate-200">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-slate-100">
             {canCollapse && (
               <button
                 type="button"
                 aria-expanded={!isCollapsed}
                 title={isCollapsed ? t('ui.expand') : t('ui.collapse')}
-                className="-ml-1 grid size-5 place-items-center rounded text-slate-500 hover:bg-ink-800 hover:text-slate-200"
+                className="-ml-1 grid size-5 place-items-center rounded text-slate-500 hover:bg-ink-850 hover:text-slate-200"
                 onClick={(e) => {
                   e.stopPropagation()
                   toggle()
                 }}
               >
-                <ChevronDown className={`size-4 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`size-4 transition-transform ${isCollapsed ? '-rotate-90' : ''}`}
+                />
               </button>
             )}
             {title}
@@ -129,14 +151,14 @@ export function Card({
         </div>
       )}
       {!isCollapsed && (
-        <div className={`min-h-0 flex-1 p-4 ${fill ? 'flex flex-col overflow-auto' : ''}`}>{children}</div>
+        <div className={`min-h-0 flex-1 p-3.5 ${fill ? 'flex flex-col overflow-auto' : ''}`}>{children}</div>
       )}
     </section>
   )
 }
 
 const inputClass =
-  'h-9 w-full rounded-md border border-ink-700 bg-ink-950 px-3 text-sm text-slate-100 placeholder:text-slate-600 focus:border-sulfur-500 focus:outline-none disabled:opacity-50'
+  'h-9 w-full rounded-md border border-ink-800 bg-ink-950 px-3 text-sm text-slate-100 transition-colors placeholder:text-slate-600 hover:border-ink-700 focus:border-sulfur-400 focus:ring-2 focus:ring-sulfur-400/20 focus:outline-none disabled:opacity-50'
 
 export function Input({ className = '', ...props }) {
   return <input className={`${inputClass} ${className}`} {...props} />
@@ -187,11 +209,14 @@ export function Field({ label, children, className = '' }) {
   )
 }
 
+/** Point d'état : plein quand c'est en marche, creux à l'arrêt (lisible sans la couleur). */
 export function StatusDot({ on, label }) {
   return (
     <span className="inline-flex items-center gap-2 text-xs text-slate-400">
       <span
-        className={`size-2 rounded-full ${on ? 'bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60' : 'bg-slate-600'}`}
+        className={`size-2 shrink-0 rounded-full ${
+          on ? 'bg-emerald-400 ring-3 ring-emerald-400/15' : 'border-[1.5px] border-slate-600'
+        }`}
       />
       {label}
     </span>
@@ -212,22 +237,69 @@ export function ErrorBanner({ error, onClose }) {
   )
 }
 
-export function Tabs({ tabs, value, onChange }) {
+/**
+ * Onglets. `variant` : `segmented` (par défaut, sélecteur compact dans le contenu) ou `bar` (barre
+ * pleine largeur soulignée, collée sous l'en-tête de la page : voir TabbedPage).
+ */
+export function Tabs({ tabs, value, onChange, variant = 'segmented', actions }) {
+  if (variant === 'bar') {
+    return (
+      <div className="page-tabs sticky top-0 z-10 flex shrink-0 items-center border-b border-ink-800 bg-ink-900 px-1">
+        <div role="tablist" className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none]">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={value === tab.id}
+              onClick={() => onChange(tab.id)}
+              className={`flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors ${
+                value === tab.id
+                  ? 'border-sulfur-400 font-medium text-slate-100'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Icon icon={tab.icon} className={`size-4 ${value === tab.id ? 'text-sulfur-400' : ''}`} />
+              {tab.label}
+              {tab.badge}
+            </button>
+          ))}
+        </div>
+        {actions && <div className="flex shrink-0 items-center gap-1 pl-2">{actions}</div>}
+      </div>
+    )
+  }
   return (
-    <div className="flex gap-1 rounded-lg bg-ink-900 p-1">
+    <div className="flex w-fit max-w-full gap-0.5 overflow-x-auto rounded-lg border border-ink-800 bg-ink-950 p-0.5">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
-          className={`flex items-center gap-2 rounded-md px-4 py-1.5 text-sm transition-colors ${
-            value === tab.id ? 'bg-ink-700 text-slate-100' : 'text-slate-400 hover:text-slate-200'
+          aria-pressed={value === tab.id}
+          className={`flex shrink-0 items-center gap-2 rounded-md px-3.5 py-1.5 text-sm transition-colors ${
+            value === tab.id
+              ? 'bg-ink-850 font-medium text-slate-100 shadow-sm'
+              : 'text-slate-400 hover:bg-ink-900 hover:text-slate-200'
           }`}
         >
-          {tab.icon && <tab.icon className="size-4" />}
+          <Icon icon={tab.icon} className="size-4" />
           {tab.label}
           {tab.badge}
         </button>
       ))}
+    </div>
+  )
+}
+
+/**
+ * Page de module à onglets : barre d'onglets pleine largeur sous l'en-tête (toujours visible au
+ * défilement, `actions` à droite), puis le contenu avec les marges standard. `className` complète
+ * le conteneur du contenu.
+ */
+export function TabbedPage({ tabs, value, onChange, actions, className = '', children }) {
+  return (
+    <div className="flex h-full flex-col">
+      <Tabs variant="bar" tabs={tabs} value={value} onChange={onChange} actions={actions} />
+      <div className={`flex min-h-0 flex-1 flex-col gap-3 p-4 ${className}`}>{children}</div>
     </div>
   )
 }
@@ -245,15 +317,15 @@ export function Checkbox({ label, className = '', ...props }) {
 export function Modal({ title, onClose, actions, children, className = 'max-w-4xl' }) {
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-6"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/55 p-6 backdrop-blur-[2px]"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
       <div
-        className={`flex max-h-full w-full flex-col rounded-lg border border-ink-700 bg-ink-900 shadow-2xl ${className}`}
+        className={`flex max-h-full w-full flex-col rounded-xl border border-ink-800 bg-ink-900 shadow-2xl ${className}`}
       >
         <div className="flex items-center justify-between gap-2 border-b border-ink-800 px-4 py-3">
-          <h2 className="text-sm font-medium text-slate-100">{title}</h2>
+          <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
           <div className="flex items-center gap-2">
             {actions}
             <button onClick={onClose} title={t('ui.close')} className="text-slate-500 hover:text-slate-200" autoFocus>

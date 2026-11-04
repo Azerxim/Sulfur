@@ -78,7 +78,10 @@ export default {
       recording: 'Recording… {count} change(s)',
       stopRecording: 'Stop recording',
       recordPoints: 'Points to record',
-      recordHint: 'The changes of the chosen points are recorded as a new flow.'
+      recordHint: 'The changes of the chosen points are recorded as a new flow.',
+      flowTitle: 'Displayed flow',
+      fullscreen: 'Full screen',
+      exitFullscreen: 'Exit full screen (Esc)'
     },
     editor: {
       properties: 'Properties',
@@ -87,7 +90,12 @@ export default {
       trigger: 'Trigger',
       output: 'Output {n}',
       duplicateNode: 'Duplicate the node',
-      resize: 'Drag to resize (double-click: default width)'
+      resize: 'Drag to resize (double-click: default width)',
+      palette: 'Nodes',
+      collapsePalette: 'Collapse the palette',
+      expandPalette: 'Show the palette',
+      collapseSide: 'Collapse the panel',
+      expandSide: 'Show the panel'
     },
     debug: {
       currentFlow: 'Displayed flow only',

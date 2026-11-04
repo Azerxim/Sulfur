@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Bell, BellOff, Check, Eraser } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBell, faBellSlash, faCheck, faEraser } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
-import { opcuaApi } from './api'
 import { formatDateTime } from './format'
 import { t } from '../shared/i18n'
 
@@ -27,11 +27,11 @@ function State({ event }) {
 }
 
 /** Événements et alarmes reçus de l'objet Server, avec acquittement des alarmes. */
-export default function EventsCard({ connected, subscribed, onError }) {
+export default function EventsCard({ api, connected, subscribed, onError }) {
   const [events, setEvents] = useState([])
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => opcuaApi.client.onEvent((e) => setEvents((all) => [e, ...all].slice(0, MAX_EVENTS))), [])
+  useEffect(() => api.onEvent((e) => setEvents((all) => [e, ...all].slice(0, MAX_EVENTS))), [api])
   useEffect(() => {
     if (!connected) setEvents([])
   }, [connected])
@@ -65,14 +65,18 @@ export default function EventsCard({ connected, subscribed, onError }) {
       actions={
         <>
           <Button variant="ghost" size="sm" disabled={!events.length} onClick={() => setEvents([])}>
-            <Eraser className="size-3.5" /> {t('opcua.client.clearEvents')}
+            <FontAwesomeIcon icon={faEraser} className="size-3.5" /> {t('opcua.client.clearEvents')}
           </Button>
           <Button
             size="sm"
             disabled={!connected || busy}
-            onClick={() => run(subscribed ? opcuaApi.client.unsubscribeEvents : opcuaApi.client.subscribeEvents)}
+            onClick={() => run(subscribed ? api.unsubscribeEvents : api.subscribeEvents)}
           >
-            {subscribed ? <BellOff className="size-3.5" /> : <Bell className="size-3.5" />}
+            {subscribed ? (
+              <FontAwesomeIcon icon={faBellSlash} className="size-3.5" />
+            ) : (
+              <FontAwesomeIcon icon={faBell} className="size-3.5" />
+            )}
             {subscribed ? t('opcua.client.unsubscribeEvents') : t('opcua.client.subscribeEvents')}
           </Button>
         </>
@@ -115,10 +119,10 @@ export default function EventsCard({ connected, subscribed, onError }) {
                         size="sm"
                         disabled={busy}
                         onClick={() =>
-                          run(() => opcuaApi.client.acknowledge(e.conditionId, e.eventId, t('opcua.client.ackComment')))
+                          run(() => api.acknowledge(e.conditionId, e.eventId, t('opcua.client.ackComment')))
                         }
                       >
-                        <Check className="size-3.5" /> {t('opcua.client.acknowledge')}
+                        <FontAwesomeIcon icon={faCheck} className="size-3.5" /> {t('opcua.client.acknowledge')}
                       </Button>
                     )}
                   </td>

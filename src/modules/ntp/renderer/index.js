@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react'
+import { faClock } from '@fortawesome/free-solid-svg-icons'
 import { NTP_MODULE } from '../shared/constants'
 import NtpView from './NtpView'
 import '../shared/locales'
@@ -6,6 +6,6 @@ import '../shared/locales'
 /** Partie "renderer" du module NTP. */
 export default {
   manifest: NTP_MODULE,
-  icon: Clock,
+  icon: faClock,
   Component: NtpView
 }

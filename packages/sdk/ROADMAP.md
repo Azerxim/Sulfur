@@ -9,7 +9,15 @@ the [Sulfur roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#stan
 
 ## Module API 1.2
 
-- [ ] **Module extensions**: a module adds a tab to the page of another module, so that an
+- [x] **Instances**: servers, clients… in any number, none by default. `defineInstances`
+  (`/main`), `InstancesPage`, `useInstances`, `useInstanceStatuses` (`/ui`), `instanceSection`,
+  `instancePointId`, `migrateToInstances`, `instancesPointsApi`…; `Tabs` / `TabbedPage` accept `actions`; optional
+  `groupName` field on points.
+- [x] **FontAwesome icons**: `Icon` (`@azerxim/sulfur-sdk/ui`) renders a FontAwesome icon
+  definition (`<Icon icon={faCube} className="size-4" />`); `RendererModule.icon` and `Tabs` icons
+  accept a FontAwesome definition, components (lucide-react…) remaining accepted for earlier
+  modules.
+- [x] **Module extensions**: a module adds a tab to the page of another module, so that an
   additional module can extend a standard one instead of having its own page (S7CommPlus tab of the
   Siemens S7 module from Siemens S7 Enhanced, PubSub tab of the OPC UA module…).
   - `RendererModule.extensions` (optional): `[{ target, tab: { id, label, icon, Component } }]`,
@@ -21,3 +29,17 @@ the [Sulfur roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#stan
   - Manifest: optional `extends: [<target id>]` field, shown before installation; a module whose
     target is missing or disabled still loads, its tabs are simply not shown.
   - TypeScript declarations and module guide updated; module template example.
+
+## Module API 1.3
+
+- [ ] **Licences and trial mode** of paid modules (see the
+  [Sulfur roadmap](https://github.com/Azerxim/Sulfur/blob/main/ROADMAP.md#standard-and-additional-modules));
+  a module without this field stays free, nothing changes for it.
+  - Manifest: optional `license: { trialDays, purchaseUrl, publicKey }` field (trial period, 30 days
+    by default; purchase page; publisher's Ed25519 public key), shown before installation.
+  - `ctx.license` (main process) and `useLicense()` (`@azerxim/sulfur-sdk/ui`): status (`trial`,
+    `licensed`, `expired`), trial days left, licence holder and end of maintenance, event on each
+    change; the module decides what it restricts according to the status.
+  - Licence file signature checked in the SDK, offline; `sulfur-license` command-line tool
+    (`@azerxim/sulfur-sdk/license`) to generate the publisher's key pair and sign licences.
+  - TypeScript declarations, module guide (paid modules section) and tests.

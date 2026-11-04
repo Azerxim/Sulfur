@@ -1,9 +1,9 @@
 import { Fragment, useEffect, useState } from 'react'
-import { ArrowDownLeft, ArrowUpRight, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowDown, faArrowUp, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { MAX_LOG } from '../shared/constants'
-import { httpApi } from './api'
 import { t } from '../shared/i18n'
 
 const statusColor = (status) =>
@@ -18,15 +18,15 @@ const statusColor = (status) =>
           : 'text-emerald-300'
 
 /** Journal des requêtes reçues et des appels de webhooks (les plus récents en haut). */
-export default function ServerLog() {
+export default function ServerLog({ api }) {
   const [logs, setLogs] = useState([])
   const [onlyErrors, setOnlyErrors] = useState(false)
   const [open, setOpen] = useState(null)
 
   useEffect(() => {
-    httpApi.server.logs().then(setLogs)
-    return httpApi.server.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
-  }, [])
+    api.logs().then(setLogs)
+    return api.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
+  }, [api])
 
   const shown = (onlyErrors ? logs.filter((l) => !l.status || l.status >= 400) : logs).slice().reverse()
 
@@ -43,13 +43,8 @@ export default function ServerLog() {
             checked={onlyErrors}
             onChange={(e) => setOnlyErrors(e.target.checked)}
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            title={t('http.log.clear')}
-            onClick={() => httpApi.server.clearLogs().then(setLogs)}
-          >
-            <Trash2 className="size-3.5" />
+          <Button variant="ghost" size="icon" title={t('http.log.clear')} onClick={() => api.clearLogs().then(setLogs)}>
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </>
       }
@@ -78,9 +73,9 @@ export default function ServerLog() {
                     <td className="py-1 text-slate-500 tabular-nums">{formatTime(l.time)}</td>
                     <td className="py-1" title={t(`http.log.directions.${l.direction}`)}>
                       {l.direction === 'out' ? (
-                        <ArrowUpRight className="size-3.5 text-violet-300" />
+                        <FontAwesomeIcon icon={faArrowUp} className="size-3.5 text-violet-300" />
                       ) : (
-                        <ArrowDownLeft className="size-3.5 text-slate-400" />
+                        <FontAwesomeIcon icon={faArrowDown} className="size-3.5 text-slate-400" />
                       )}
                     </td>
                     <td className="truncate py-1 pr-2 text-slate-400">{l.remote}</td>

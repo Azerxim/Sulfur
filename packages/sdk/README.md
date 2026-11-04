@@ -35,7 +35,7 @@ GitHub Packages even for public packages):
 | ---------------------------- | ----------------- | ------------------------------------------------------------------------------------------- |
 | `@azerxim/sulfur-sdk`        | main and renderer | manifest (`defineManifest`, `checkManifest`), translations (`registerMessages`, `moduleT`, `formatTime`…), data points (`pointKey`, `toNumber`, `FAULT_TYPES`), `withDefaults`, private networks, `simulate` |
 | `@azerxim/sulfur-sdk/main`   | main process      | `ensureCertificate` (self-signed TLS certificate), `hashPassword` / `verifyPassword` (scrypt), served folders confined to their root (`resolveInside`, `prepareRoot`) |
-| `@azerxim/sulfur-sdk/ui`     | renderer (React)  | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
+| `@azerxim/sulfur-sdk/ui`     | renderer (React)  | `Button`, `Card`, `Input`, `CommitInput`, `Select`, `Field`, `Checkbox`, `Tabs`, `TabbedPage`, `StatusDot`, `ErrorBanner`, `Modal`, `CertificatesDialog`, `usePersistentState`, `useStoredState` |
 | `@azerxim/sulfur-sdk/build`  | Node (build)      | `buildModule` (package of an external module), `packModule` (`.sulfur-module` archive), `sulfurShared` (Vite plugin) |
 | `@azerxim/sulfur-sdk/archive` | Node             | reading and writing `.sulfur-module` archives (`packModule`, `readModuleArchive`)             |
 | `@azerxim/sulfur-sdk/module.css` | CSS (Tailwind v4) | Tailwind utilities of an external module, on the Sulfur theme (`theme.css`) |
@@ -87,7 +87,7 @@ export default {
 
 ```jsx
 // renderer/index.js — interface
-import { Box } from 'lucide-react'
+import { faCube } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { DEMO_MODULE } from '../shared/constants'
 
@@ -100,12 +100,62 @@ function DemoView() {
   )
 }
 
-export default { manifest: DEMO_MODULE, icon: Box, Component: DemoView }
+export default { manifest: DEMO_MODULE, icon: faCube, Component: DemoView }
 ```
 
 Translations: `registerMessages({ en, fr }, 'demo')` then `moduleT('demo')`; the displayed name and
 description come from the `demo.name` and `demo.description` keys. Common strings (`ui.start`,
 `errors.alreadyStarted`…) are provided by the SDK.
+
+## Multiple servers and clients
+
+A module can offer as many servers, clients… ("roles") as the user wants, none existing at first
+(API 1.2):
+
+```js
+// main/index.js — one instance per server or client created in the interface
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
+
+const instances = defineInstances(ctx, {
+  server: {
+    label: () => t('ui.server'),
+    create: (instance, { emit }) => new DemoServer({ onStatus: (s) => emit('status', s) }),
+    busy: (server) => server.running,
+    dispose: (server) => server.stop()
+  }
+})
+instances.handle('server', 'start', (server, config) => server.start(config)) // demo:server:start (id, config)
+```
+
+```jsx
+// renderer: one tab per instance, add buttons, rename and remove
+import { InstancesPage, useInstanceStatuses } from '@azerxim/sulfur-sdk/ui'
+import { instanceSection } from '@azerxim/sulfur-sdk'
+
+function DemoView() {
+  const statuses = useInstanceStatuses('demo', 'server')
+  return (
+    <InstancesPage moduleId="demo" roles={[{ role: 'server', label: 'Server', icon: faServer }]} statuses={statuses}>
+      {(instance) => <ServerPanel instance={instance} status={statuses[instance.id] ?? {}} />}
+    </InstancesPage>
+  )
+}
+// In the panel: usePersistentState('demo', instanceSection('server', instance.id), defaults)
+```
+
+`instancesPointsApi` (`@azerxim/sulfur-sdk`) builds the module's data points from those of each
+instance; `migrateToInstances` converts the configuration of a version that had a single server and
+client.
+
+## Extending another module
+
+A module can add tabs to the page of another module (API 1.2): it declares its targets in its
+manifest (`extends: ['s7']`, shown before installation) and its tabs in its renderer part
+(`extensions: [{ target: 's7', tab: { id, label, icon, Component } }]`, the module's own `icon` and
+`Component` becoming optional). The tab receives `target` and `module` and only calls the channels
+of its own module. `InstancesPage` shows the tabs aimed at its page; any other page reads them with
+`useExtensions(<its id>)`. See the
+[module guide](https://github.com/Azerxim/Sulfur/blob/main/docs/en/module-guide.md).
 
 ## External module
 
@@ -143,8 +193,10 @@ dist/demo/
 
 - **Shared modules**: React (`react`, `react/jsx-runtime`, `react-dom`) and the SDK are not
   bundled; Sulfur provides its own at run time (a single instance: same translations, same
-  language, same React state). The other dependencies (`lucide-react`, npm libraries) are bundled
-  in the package. Native dependencies are not supported.
+  language, same React state). The other dependencies (`@fortawesome/free-solid-svg-icons` icon
+  definitions, npm libraries) are bundled in the package. Icons are rendered with the SDK's `Icon`
+  (`<Icon icon={faCube} className="size-4" />`), never by importing `@fortawesome/react-fontawesome`:
+  it would be bundled and the styles it adds to the page would override the Tailwind sizes. Native dependencies are not supported.
 - **Styles**: the CSS imported by the interface becomes `style.css`. With Tailwind CSS v4, start
   from `@import '@azerxim/sulfur-sdk/module.css';` (then `@source` to the module sources): only the
   utilities of the module are generated, on the variables of the Sulfur theme (light theme

@@ -60,6 +60,30 @@ export function replaceModuleConfigs(modules) {
   for (const fn of listeners) fn(modules)
 }
 
+/** Abonnement aux remplacements de configuration (import, réinitialisation) : `fn(modules)`. */
+export function onModuleConfigsReplaced(fn) {
+  listeners.add(fn)
+  return () => listeners.delete(fn)
+}
+
+/**
+ * Réglages d'une instance supprimée (sections `<section>:<id>`) retirés du cache, enregistrements
+ * en attente compris : ils ne sont pas réécrits après la suppression.
+ */
+export function forgetInstanceSections(moduleId, instanceId) {
+  const suffix = `:${instanceId}`
+  for (const key of [...pending.keys()]) {
+    if (key.startsWith(`${moduleId}:`) && key.endsWith(suffix)) {
+      clearTimeout(pending.get(key).timer)
+      pending.delete(key)
+    }
+  }
+  if (!configs[moduleId]) return
+  configs[moduleId] = Object.fromEntries(
+    Object.entries(configs[moduleId]).filter(([section]) => !section.endsWith(suffix))
+  )
+}
+
 /**
  * État React enregistré dans la configuration du module (section `section`) et restauré au démarrage.
  *  - `defaults` : valeur par défaut, complétée par la valeur enregistrée (voir `withDefaults`) ;

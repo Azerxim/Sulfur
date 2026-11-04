@@ -1,4 +1,5 @@
-import { RefreshCw } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons'
 import { Button, Select } from '@azerxim/sulfur-sdk/ui'
 import { t } from '../shared/i18n'
 
@@ -22,7 +23,7 @@ export default function InterfaceSelect({ value, interfaces, disabled, onChange,
         ))}
       </Select>
       <Button variant="ghost" title={t('ui.refresh')} disabled={disabled} onClick={onReload}>
-        <RefreshCw className="size-4" />
+        <FontAwesomeIcon icon={faArrowsRotate} className="size-4" />
       </Button>
     </div>
   )

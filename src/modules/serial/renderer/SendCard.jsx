@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Repeat, Send, Square } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPaperPlane, faRepeat, faStop } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_SEND_CONFIG, LINE_ENDINGS, MAX_SEND_HISTORY, MIN_REPEAT } from '../shared/constants'
 import { encodePayload, toHex } from '../shared/codec'
@@ -85,7 +86,7 @@ export default function SendCard({ status }) {
             </Select>
           </Field>
           <Button variant="primary" disabled={!open || busy || !preview?.bytes} onClick={send}>
-            <Send className="size-4" /> {t('serial.send.send')}
+            <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('serial.send.send')}
           </Button>
         </div>
 
@@ -125,14 +126,14 @@ export default function SendCard({ status }) {
               disabled={busy}
               onClick={() => serialApi.stopRepeat().catch((err) => setError(err.message))}
             >
-              <Square className="size-3.5" /> {t('serial.send.stopRepeat')}
+              <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('serial.send.stopRepeat')}
             </Button>
           ) : (
             <Button
               disabled={!open || busy || !preview?.bytes}
               onClick={() => run(() => serialApi.startRepeat(payload, config.interval))}
             >
-              <Repeat className="size-3.5" /> {t('serial.send.startRepeat')}
+              <FontAwesomeIcon icon={faRepeat} className="size-3.5" /> {t('serial.send.startRepeat')}
             </Button>
           )}
           {repeating && (

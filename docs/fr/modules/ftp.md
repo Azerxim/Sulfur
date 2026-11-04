@@ -2,10 +2,14 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/ftp.md) · **Français**
 
-Un seul module pour les deux protocoles de transfert de fichiers, en quatre onglets (serveur et
-client FTP, serveur et client SFTP). Les deux serveurs servent par défaut le même dossier
-(`<userData>/modules/ftp/files`) et peuvent fonctionner en même temps ; les défauts du simulateur
-s'appliquent aux deux. Le module s'ouvre sur l'onglet du serveur SFTP.
+- **Instances multiples** : autant de serveurs et clients FTP et SFTP que nécessaire, chacun dans
+  son onglet, avec son nom et ses réglages ; aucun n'existe au départ. Une instance arrêtée peut
+  être renommée ou supprimée. Ceux d'une version antérieure deviennent « Serveur FTP 1 », « Client
+  FTP 1 »…
+
+Un seul module pour les deux protocoles de transfert de fichiers : serveurs et clients FTP et SFTP.
+Tous les serveurs servent par défaut le même dossier (`<userData>/modules/ftp/files`) et peuvent
+fonctionner en même temps ; les défauts du simulateur s'appliquent à tous.
 
 ## FTP / FTPS
 

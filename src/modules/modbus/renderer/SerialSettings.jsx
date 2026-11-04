@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons'
 import { Button, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { BAUD_RATES, DEFAULT_SERIAL } from '../shared/constants'
 import { modbusApi } from './api'
@@ -63,7 +64,7 @@ export function SerialPortField({ value, onChange, disabled }) {
           onChange={(e) => onChange(e.target.value)}
         />
         <Button variant="ghost" className="shrink-0 px-2" title={t('modbus.serial.refresh')} onClick={refresh}>
-          <RefreshCw className="size-3.5" />
+          <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" />
         </Button>
       </div>
       <datalist id="modbus-serial-ports">

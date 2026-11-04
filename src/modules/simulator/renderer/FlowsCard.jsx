@@ -1,6 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Circle, Copy, Play, Plus, Rocket, Square, Trash2 } from 'lucide-react'
-import { Button, Card, Checkbox, CommitInput, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faAnglesLeft,
+  faAnglesRight,
+  faBug,
+  faCircle,
+  faCopy,
+  faDownLeftAndUpRightToCenter,
+  faPlay,
+  faPlus,
+  faRocket,
+  faSliders,
+  faStop,
+  faTrashCan,
+  faUpRightAndDownLeftFromCenter
+} from '@fortawesome/free-solid-svg-icons'
+import { Button, Checkbox, CommitInput, Field, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { getLocale } from '@azerxim/sulfur-sdk'
 import { DEBUG_LIMIT, createNode, nodeOutputs, stepsToFlow } from '../shared/flows'
 import { simulatorApi } from './api'
@@ -55,9 +70,17 @@ function useFlowRuntime() {
   return { state, setState, statuses, debug, setDebug }
 }
 
+/** Onglets du panneau latéral et leur icône (panneau réduit). */
+const SIDE_TABS = [
+  ['properties', faSliders],
+  ['debug', faBug]
+]
+
 const SIDE_KEY = 'sulfur:simulator:sideWidth'
 const SIDE_DEFAULT = 320
 const SIDE_MIN = 256
+/** Largeur du panneau latéral réduit (colonne d'icônes). */
+const SIDE_COLLAPSED = 44
 /** Largeur minimale laissée à l'éditeur de flux. */
 const EDITOR_MIN = 320
 
@@ -114,6 +137,22 @@ function useSideWidth(containerRef) {
 }
 
 /**
+ * Plein écran de l'élément `ref` (éditeur de flux et sa barre d'outils) : état suivi par
+ * l'événement `fullscreenchange`, quitté par Échap ou par le même bouton.
+ */
+function useFullscreen(ref, onError) {
+  const [fullscreen, setFullscreen] = useState(false)
+  useEffect(() => {
+    const onChange = () => setFullscreen(!!ref.current && document.fullscreenElement === ref.current)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [ref])
+  const toggle = () =>
+    (fullscreen ? document.exitFullscreen() : ref.current?.requestFullscreen())?.catch((err) => onError(err.message))
+  return [fullscreen, toggle]
+}
+
+/**
  * Flux de nœuds, à la manière de Node-RED : chaque onglet est un flux ; « Déployer » envoie tous les
  * flux au process principal, où ils tournent en continu (et sont relancés au démarrage).
  */
@@ -122,10 +161,29 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
   const [currentId, setCurrentId] = useStoredState('sulfur:simulator:flow', flows[0]?.id ?? null)
   const [selectedId, setSelectedId] = useState(null)
   const [side, setSide] = useState('properties')
+  // Panneau latéral réduit ou non, mémorisé localement.
+  const [sideMode, setSideMode] = useStoredState('sulfur:simulator:side', 'open', ['open', 'collapsed'])
+  const sideCollapsed = sideMode === 'collapsed'
+  const openSide = (tab) => {
+    setSide(tab)
+    setSideMode('open')
+  }
+  /** Nœud sélectionné sur le canevas (clic, ajout) : ses propriétés s'ouvrent, panneau réduit compris. */
+  const selectNode = useCallback(
+    (id) => {
+      setSelectedId(id)
+      if (!id) return
+      setSide('properties')
+      setSideMode('open')
+    },
+    [setSideMode]
+  )
   const [onlyCurrent, setOnlyCurrent] = useState(false)
   const [recordKeys, setRecordKeys] = useState([])
+  const rootRef = useRef(null)
   const editorRef = useRef(null)
   const sideWidth = useSideWidth(editorRef)
+  const [fullscreen, toggleFullscreen] = useFullscreen(rootRef, onError)
   const recording = status.recording
   const call = useCallback((action) => action().catch((err) => onError(err.message)), [onError])
 
@@ -198,8 +256,9 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
       setCurrentId(flowId)
       setSelectedId(nodeId)
       setSide('properties')
+      setSideMode('open')
     },
-    [setCurrentId]
+    [setCurrentId, setSideMode]
   )
 
   const stateLabel = dirty
@@ -209,65 +268,24 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
       : t('simulator.flows.stopped')
 
   return (
-    <Card
-      id="simulator.flows"
-      title={t('simulator.flows.title', { count: flows.length })}
-      fill
-      actions={
-        <>
-          <span
-            className={`inline-flex items-center gap-1.5 text-xs ${dirty ? 'text-amber-300' : state.running ? 'text-emerald-300' : 'text-slate-500'}`}
-          >
-            <span
-              className={`size-2 rounded-full ${dirty ? 'bg-amber-400' : state.running ? 'bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60' : 'bg-slate-600'}`}
-            />
-            {stateLabel}
-          </span>
-          {state.running ? (
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => call(async () => setState(await simulatorApi.stopFlows()))}
-            >
-              <Square className="size-3.5" /> {t('simulator.flows.stop')}
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              disabled={!state.flows.length}
-              title={t('simulator.flows.restartHint')}
-              onClick={() => call(async () => setState(await simulatorApi.restartFlows()))}
-            >
-              <Play className="size-3.5" /> {t('simulator.flows.restart')}
-            </Button>
-          )}
-          <Button
-            variant={dirty ? 'primary' : 'secondary'}
-            size="sm"
-            title={t('simulator.flows.deployHint')}
-            onClick={() => call(async () => setState(await simulatorApi.deploy(flows)))}
-          >
-            <Rocket className="size-3.5" /> {t('simulator.flows.deploy')}
-          </Button>
-        </>
-      }
-    >
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <p className="text-xs text-slate-500">{t('simulator.flows.hint')}</p>
-
-        <div className="flex flex-wrap items-center gap-1 border-b border-ink-800">
+    <div ref={rootRef} className="flex min-h-[480px] flex-1 flex-col bg-ink-950">
+      {/* Barre d'outils : flux (onglets), enregistrement en cours, état, déploiement, plein écran. */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-ink-800 bg-ink-900 px-3 py-1.5">
+        <div role="tablist" className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
           {flows.map((f) => (
             <button
               key={f.id}
               type="button"
+              role="tab"
+              aria-selected={f.id === flow?.id}
               onClick={() => {
                 setCurrentId(f.id)
                 setSelectedId(null)
               }}
-              className={`-mb-px rounded-t-md border px-3 py-1.5 text-sm ${
+              className={`h-7 rounded-md px-2.5 text-sm transition-colors ${
                 f.id === flow?.id
-                  ? 'border-ink-800 border-b-ink-900 bg-ink-900 text-slate-100'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'bg-ink-850 font-medium text-slate-100 ring-1 ring-ink-800'
+                  : 'text-slate-400 hover:bg-ink-850 hover:text-slate-200'
               } ${f.disabled ? 'italic opacity-60' : ''}`}
             >
               {f.name || '—'}
@@ -287,162 +305,260 @@ export default function FlowsCard({ flows, onChange, faults, points, status, onE
               })
             }
           >
-            <Plus className="size-3.5" />
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" />
           </Button>
         </div>
 
-        {flow ? (
-          <>
-            <div className="flex flex-wrap items-center gap-3">
-              <CommitInput
-                className="h-8! w-56!"
-                value={flow.name}
-                title={t('ui.name')}
-                onCommit={(name) => updateFlow((f) => ({ ...f, name }))}
-              />
-              <Checkbox
-                label={t('simulator.flows.disabled')}
-                checked={!!flow.disabled}
-                onChange={(e) => updateFlow((f) => ({ ...f, disabled: e.target.checked }))}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                title={t('simulator.flows.duplicate')}
-                onClick={() => addFlow(cloneFlow(flow, `${flow.name} (2)`))}
-              >
-                <Copy className="size-3.5" />
-              </Button>
-              <Button variant="ghost" size="icon" title={t('simulator.flows.remove')} onClick={removeFlow}>
-                <Trash2 className="size-3.5" />
-              </Button>
+        {recording && (
+          <span className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 text-xs whitespace-nowrap text-red-300 tabular-nums">
+              <span className="size-2 animate-pulse rounded-full bg-red-400" />
+              {t('simulator.flows.recording', { count: recording.count })}
+            </span>
+            <Button variant="danger" size="sm" onClick={stopRecording}>
+              <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('simulator.flows.stopRecording')}
+            </Button>
+          </span>
+        )}
+        <span
+          className={`inline-flex items-center gap-1.5 text-xs ${dirty ? 'text-amber-300' : state.running ? 'text-emerald-300' : 'text-slate-500'}`}
+        >
+          <span
+            className={`size-2 rounded-full ${dirty ? 'bg-amber-400' : state.running ? 'bg-emerald-400' : 'border-[1.5px] border-slate-600'}`}
+          />
+          {stateLabel}
+        </span>
+        {state.running ? (
+          <Button variant="danger" size="sm" onClick={() => call(async () => setState(await simulatorApi.stopFlows()))}>
+            <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('simulator.flows.stop')}
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            disabled={!state.flows.length}
+            title={t('simulator.flows.restartHint')}
+            onClick={() => call(async () => setState(await simulatorApi.restartFlows()))}
+          >
+            <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {t('simulator.flows.restart')}
+          </Button>
+        )}
+        <Button
+          variant={dirty ? 'primary' : 'secondary'}
+          size="sm"
+          title={t('simulator.flows.deployHint')}
+          onClick={() => call(async () => setState(await simulatorApi.deploy(flows)))}
+        >
+          <FontAwesomeIcon icon={faRocket} className="size-3.5" /> {t('simulator.flows.deploy')}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          title={t(fullscreen ? 'simulator.flows.exitFullscreen' : 'simulator.flows.fullscreen')}
+          aria-pressed={fullscreen}
+          onClick={toggleFullscreen}
+        >
+          {fullscreen ? (
+            <FontAwesomeIcon icon={faDownLeftAndUpRightToCenter} className="size-3.5" />
+          ) : (
+            <FontAwesomeIcon icon={faUpRightAndDownLeftFromCenter} className="size-3.5" />
+          )}
+        </Button>
+      </div>
 
-              <div className="ml-auto flex min-w-96 items-center gap-2">
-                <span className="shrink-0 text-xs text-slate-400">{t('simulator.flows.recordPoints')}</span>
-                <div className="min-w-0 flex-1">
-                  <PointsPicker
-                    points={points}
-                    value={recording ? recording.keys : recordKeys}
-                    disabled={!!recording}
-                    emptyLabel="—"
-                    onChange={setRecordKeys}
-                  />
-                </div>
-                {recording ? (
-                  <>
-                    <span className="flex items-center gap-1.5 text-xs whitespace-nowrap text-red-300 tabular-nums">
-                      <span className="size-2 animate-pulse rounded-full bg-red-400" />
-                      {t('simulator.flows.recording', { count: recording.count })}
+      {flow ? (
+        <div
+          ref={editorRef}
+          className="grid min-h-0 flex-1 overflow-hidden"
+          style={{ gridTemplateColumns: `minmax(0,1fr) ${sideCollapsed ? SIDE_COLLAPSED : sideWidth.width}px` }}
+        >
+          <FlowEditor
+            flow={flow}
+            onChange={updateFlow}
+            statuses={statuses}
+            injectable={injectable}
+            onInject={onInject}
+            selectedId={selectedId}
+            onSelect={selectNode}
+            labelOf={labelOf}
+          />
+          {sideCollapsed ? (
+            <div className="flex min-h-0 flex-col items-center gap-1 border-l border-ink-800 bg-ink-900 py-1.5">
+              <button
+                type="button"
+                title={t('simulator.editor.expandSide')}
+                aria-label={t('simulator.editor.expandSide')}
+                onClick={() => setSideMode('open')}
+                className="mb-1 grid size-7 place-items-center rounded text-slate-400 hover:bg-ink-850 hover:text-slate-200"
+              >
+                <FontAwesomeIcon icon={faAnglesLeft} className="size-4" />
+              </button>
+              {SIDE_TABS.map(([tab, icon]) => (
+                <button
+                  key={tab}
+                  type="button"
+                  title={t(`simulator.editor.${tab}`)}
+                  aria-label={t(`simulator.editor.${tab}`)}
+                  onClick={() => openSide(tab)}
+                  className="relative grid size-7 place-items-center rounded text-slate-400 hover:bg-ink-850 hover:text-slate-200"
+                >
+                  <FontAwesomeIcon icon={icon} className="size-4" />
+                  {tab === 'debug' && debug.length > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-4 rounded-full bg-sulfur-400 px-1 font-mono text-[9px] leading-4 text-on-accent">
+                      {debug.length > 99 ? '99+' : debug.length}
                     </span>
-                    <Button variant="danger" size="sm" onClick={stopRecording}>
-                      <Square className="size-3.5" /> {t('simulator.flows.stopRecording')}
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    size="sm"
-                    disabled={!recordKeys.length}
-                    title={t('simulator.flows.recordHint')}
-                    onClick={() => call(() => simulatorApi.startRecording(recordKeys))}
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="relative flex min-h-0 flex-col border-l border-ink-800 bg-ink-900">
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                title={t('simulator.editor.resize')}
+                onPointerDown={sideWidth.startResize}
+                onDoubleClick={sideWidth.reset}
+                className="absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize transition-colors hover:bg-sulfur-400/40 active:bg-sulfur-400/60"
+              />
+              <div role="tablist" className="flex border-b border-ink-800 px-1 text-xs">
+                {['properties', 'debug'].map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={side === tab}
+                    onClick={() => setSide(tab)}
+                    className={`-mb-px flex-1 border-b-2 px-3 py-2 transition-colors ${
+                      side === tab
+                        ? 'border-sulfur-400 font-medium text-slate-100'
+                        : 'border-transparent text-slate-400 hover:text-slate-200'
+                    }`}
                   >
-                    <Circle className="size-3.5 text-red-400" /> {t('simulator.flows.record')}
-                  </Button>
+                    {t(`simulator.editor.${tab}`)}
+                    {tab === 'debug' && debug.length > 0 && (
+                      <span className="ml-1 text-slate-500">({debug.length})</span>
+                    )}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  title={t('simulator.editor.collapseSide')}
+                  aria-label={t('simulator.editor.collapseSide')}
+                  onClick={() => setSideMode('collapsed')}
+                  className="grid size-7 shrink-0 place-items-center self-center rounded text-slate-400 hover:bg-ink-850 hover:text-slate-200"
+                >
+                  <FontAwesomeIcon icon={faAnglesRight} className="size-4" />
+                </button>
+              </div>
+              <div className="min-h-0 flex-1">
+                {side === 'debug' ? (
+                  <DebugPanel
+                    messages={debug}
+                    flows={flows}
+                    onlyCurrent={onlyCurrent}
+                    onOnlyCurrent={setOnlyCurrent}
+                    currentFlowId={flow.id}
+                    labelOf={labelOf}
+                    onSelect={selectFromDebug}
+                    onClear={() => call(async () => setDebug(await simulatorApi.clearDebug()))}
+                  />
+                ) : selected ? (
+                  <div className="h-full overflow-auto p-3">
+                    <NodeProperties
+                      key={selected.id}
+                      node={selected}
+                      points={points}
+                      faults={faults}
+                      onChange={(patch) => updateNode(selected.id, patch)}
+                      onDuplicate={() => {
+                        const copy = {
+                          ...structuredClone(selected),
+                          id: crypto.randomUUID(),
+                          x: selected.x + 20,
+                          y: selected.y + 60
+                        }
+                        updateFlow((f) => ({ ...f, nodes: [...f.nodes, copy] }))
+                        setSelectedId(copy.id)
+                      }}
+                      onRemove={() => {
+                        updateFlow((f) => ({
+                          ...f,
+                          nodes: f.nodes.filter((n) => n.id !== selected.id),
+                          wires: f.wires.filter((w) => w.source !== selected.id && w.target !== selected.id)
+                        }))
+                        setSelectedId(null)
+                      }}
+                    />
+                  </div>
+                ) : (
+                  // Aucun nœud sélectionné : réglages du flux affiché, enregistrement de points, aide.
+                  <div className="flex h-full flex-col gap-4 overflow-auto p-3">
+                    <section className="flex flex-col gap-2.5">
+                      <h3 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
+                        {t('simulator.flows.flowTitle')}
+                      </h3>
+                      <Field label={t('ui.name')}>
+                        <CommitInput value={flow.name} onCommit={(name) => updateFlow((f) => ({ ...f, name }))} />
+                      </Field>
+                      <div className="flex items-center gap-1">
+                        <Checkbox
+                          className="mr-auto"
+                          label={t('simulator.flows.disabled')}
+                          checked={!!flow.disabled}
+                          onChange={(e) => updateFlow((f) => ({ ...f, disabled: e.target.checked }))}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title={t('simulator.flows.duplicate')}
+                          onClick={() => addFlow(cloneFlow(flow, `${flow.name} (2)`))}
+                        >
+                          <FontAwesomeIcon icon={faCopy} className="size-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" title={t('simulator.flows.remove')} onClick={removeFlow}>
+                          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
+                        </Button>
+                      </div>
+                    </section>
+
+                    <section className="flex flex-col gap-2.5 border-t border-ink-800 pt-4">
+                      <h3 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
+                        {t('simulator.flows.recordPoints')}
+                      </h3>
+                      <p className="text-xs text-slate-500">{t('simulator.flows.recordHint')}</p>
+                      <PointsPicker
+                        points={points}
+                        value={recording ? recording.keys : recordKeys}
+                        disabled={!!recording}
+                        emptyLabel="—"
+                        onChange={setRecordKeys}
+                      />
+                      {!recording && (
+                        <Button
+                          size="sm"
+                          className="self-start"
+                          disabled={!recordKeys.length}
+                          onClick={() => call(() => simulatorApi.startRecording(recordKeys))}
+                        >
+                          <FontAwesomeIcon icon={faCircle} className="size-3.5 text-red-400" />{' '}
+                          {t('simulator.flows.record')}
+                        </Button>
+                      )}
+                    </section>
+
+                    <section className="flex flex-col gap-1.5 border-t border-ink-800 pt-4 text-xs text-slate-500">
+                      <p>{t('simulator.editor.noSelection')}</p>
+                      <p>{t('simulator.flows.hint')}</p>
+                    </section>
+                  </div>
                 )}
               </div>
             </div>
-
-            <div
-              ref={editorRef}
-              className="grid min-h-[480px] flex-1 overflow-hidden rounded-md border border-ink-800"
-              style={{ gridTemplateColumns: `minmax(0,1fr) ${sideWidth.width}px` }}
-            >
-              <FlowEditor
-                flow={flow}
-                onChange={updateFlow}
-                statuses={statuses}
-                injectable={injectable}
-                onInject={onInject}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-                labelOf={labelOf}
-              />
-              <div className="relative flex min-h-0 flex-col border-l border-ink-800">
-                <div
-                  role="separator"
-                  aria-orientation="vertical"
-                  title={t('simulator.editor.resize')}
-                  onPointerDown={sideWidth.startResize}
-                  onDoubleClick={sideWidth.reset}
-                  className="absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize transition-colors hover:bg-sulfur-400/40 active:bg-sulfur-400/60"
-                />
-                <div className="flex border-b border-ink-800 text-xs">
-                  {['properties', 'debug'].map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setSide(tab)}
-                      className={`flex-1 px-3 py-2 ${side === tab ? 'bg-ink-850 text-slate-100' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                      {t(`simulator.editor.${tab}`)}
-                      {tab === 'debug' && debug.length > 0 && (
-                        <span className="ml-1 text-slate-500">({debug.length})</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <div className="min-h-0 flex-1">
-                  {side === 'properties' ? (
-                    <div className="h-full overflow-auto p-3">
-                      {selected ? (
-                        <NodeProperties
-                          key={selected.id}
-                          node={selected}
-                          points={points}
-                          faults={faults}
-                          onChange={(patch) => updateNode(selected.id, patch)}
-                          onDuplicate={() => {
-                            const copy = {
-                              ...structuredClone(selected),
-                              id: crypto.randomUUID(),
-                              x: selected.x + 20,
-                              y: selected.y + 60
-                            }
-                            updateFlow((f) => ({ ...f, nodes: [...f.nodes, copy] }))
-                            setSelectedId(copy.id)
-                          }}
-                          onRemove={() => {
-                            updateFlow((f) => ({
-                              ...f,
-                              nodes: f.nodes.filter((n) => n.id !== selected.id),
-                              wires: f.wires.filter((w) => w.source !== selected.id && w.target !== selected.id)
-                            }))
-                            setSelectedId(null)
-                          }}
-                        />
-                      ) : (
-                        <p className="text-xs text-slate-500">{t('simulator.editor.noSelection')}</p>
-                      )}
-                    </div>
-                  ) : (
-                    <DebugPanel
-                      messages={debug}
-                      flows={flows}
-                      onlyCurrent={onlyCurrent}
-                      onOnlyCurrent={setOnlyCurrent}
-                      currentFlowId={flow.id}
-                      labelOf={labelOf}
-                      onSelect={selectFromDebug}
-                      onClear={() => call(async () => setDebug(await simulatorApi.clearDebug()))}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-slate-500">{t('simulator.flows.empty')}</p>
-        )}
-      </div>
-    </Card>
+          )}
+        </div>
+      ) : (
+        <p className="p-4 text-sm text-slate-500">{t('simulator.flows.empty')}</p>
+      )}
+    </div>
   )
 }

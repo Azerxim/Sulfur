@@ -12,7 +12,26 @@ export default {
     resetModuleConfig: 'Rétablir la configuration par défaut du module',
     retry: 'Réessayer',
     updateAvailable: 'Mise à jour disponible : v{version}',
-    updateReady: 'Mise à jour prête : v{version}'
+    updateReady: 'Mise à jour prête : v{version}',
+    search: 'Rechercher…',
+    searchPlaceholder: 'Aller à un module ou une page…',
+    noResult: 'Aucun résultat pour « {query} »',
+    paletteKeys: {
+      navigate: 'naviguer',
+      open: 'ouvrir',
+      close: 'fermer'
+    },
+    activity: {
+      sessions: 'En marche · {count} session(s)',
+      running: 'En marche',
+      client: 'Client connecté',
+      active: 'Actif',
+      stopped: 'Arrêté'
+    },
+    statusBar: {
+      active: '{count} module(s) actif(s)',
+      sessions: '{count} session(s)'
+    }
   },
   errors: {
     externalBusy: 'Arrêtez les serveurs et clients de ces modules avant d’actualiser les modules externes : {modules}',
@@ -48,16 +67,15 @@ export default {
     }
   },
   home: {
-    name: 'Accueil',
-    description: 'Présentation de Sulfur et de ses modules',
+    name: 'Vue d’ensemble',
+    description: 'Ce qui tourne en ce moment : serveurs, clients, sessions et points d’accès',
     headline: 'Simulateur modulaire de protocoles industriels et informatiques',
     intro:
       "Sulfur simule les serveurs et les clients des protocoles de l'automatisme et de la supervision : OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Testez des équipements, des logiciels de supervision et des intégrations sans l'installation réelle, et reproduisez les pannes à la demande.",
-    stepsTitle: 'Prise en main',
     steps: {
       start: {
-        title: 'Démarrer un module',
-        text: 'Choisissez un protocole, démarrez son serveur simulé ou connectez son client à un équipement réel.'
+        title: 'Créer et démarrer',
+        text: 'Ouvrez un protocole, ajoutez autant de serveurs simulés et de clients que nécessaire, puis démarrez-les.'
       },
       simulate: {
         title: 'Simuler',
@@ -70,6 +88,10 @@ export default {
       save: {
         title: 'Enregistrer et partager',
         text: 'Les réglages sont enregistrés automatiquement ; exportez-les en JSON pour partager un banc de test.'
+      },
+      modules: {
+        title: 'Choisir les modules',
+        text: 'Activez ou désactivez des modules, par groupe ou un par un, et installez des modules externes.'
       }
     },
     groups: {
@@ -77,6 +99,33 @@ export default {
       automation: 'Protocoles industriels et automates.',
       it: 'Services réseau, messagerie et supervision.'
     },
+    stats: {
+      active: 'Modules actifs',
+      activeOf: 'sur {count} · {instances} instance(s) créée(s)',
+      servers: 'Serveurs en marche',
+      serversHint: '{count} session(s) cliente(s)',
+      clients: 'Clients connectés',
+      clientsHint: 'Vers des serveurs ou des équipements',
+      tools: 'Outils actifs',
+      toolsHint: 'Simulateur, courbes, terminal série…'
+    },
+    activeTitle: 'En marche',
+    activeEmpty:
+      'Aucun serveur ni client pour l’instant. Ouvrez un module, ajoutez-y un serveur ou un client et démarrez-le : il apparaîtra ici avec son point d’accès.',
+    activeStopped:
+      '{count} instance(s) créée(s), aucune en marche. Démarrez un serveur ou connectez un client : il apparaîtra ici avec son point d’accès.',
+    columns: {
+      module: 'Module · instance',
+      endpoint: 'Point d’accès',
+      activity: 'Activité'
+    },
+    open: 'Ouvrir {name}',
+    target: 'Cible du client',
+    running: '{count} en marche',
+    instances: '{count} instance(s)',
+    extends: 'Complète {names}',
+    statusTitle: 'État des modules',
+    version: 'Sulfur {version} · SDK des modules {sdk}',
     license: 'Licence Apache 2.0 — © 2026 Maxime MALLET',
     repository: 'Code source et documentation'
   },
@@ -102,6 +151,7 @@ export default {
       modules: 'Modules',
       updates: 'Mises à jour'
     },
+    preferences: 'Préférences',
     language: 'Langue',
     languageHint: "S'applique à toute l'interface ainsi qu'aux messages des serveurs et clients.",
     theme: 'Thème',
@@ -113,23 +163,42 @@ export default {
     modules: 'Modules',
     moduleSwitch: {
       title: 'Modules activés',
-      hint: "Un module désactivé est masqué de la barre latérale et de l'accueil, arrêté, et n'est plus chargé au démarrage. Ses réglages sont conservés. Arrêtez ses serveurs et clients avant de le désactiver.",
+      hint: "Un module désactivé disparaît de la barre latérale, n'est plus chargé au démarrage et garde ses réglages. Un module en marche ne peut pas être désactivé : arrêtez d'abord ses serveurs et clients.",
       summary: '{enabled} module(s) activé(s) sur {total}',
+      running: '{count} en marche',
+      filter: 'Filtrer les modules',
+      show: 'Afficher',
+      filters: {
+        all: 'Tous',
+        on: 'Activés',
+        off: 'Désactivés'
+      },
+      noMatch: 'Aucun module ne correspond à ce filtre.',
+      disabled: 'Désactivé',
+      locked: 'En marche : arrêtez ses serveurs et clients pour le désactiver',
+      extends: 'Complète {modules}',
       enableAll: 'Tout activer',
       disableAll: 'Tout désactiver',
+      enable: 'Activer',
+      disable: 'Désactiver',
+      enableGroup: 'Activer tous les modules du groupe {group}',
+      disableGroup: 'Désactiver tous les modules du groupe {group} (sauf ceux en marche)',
       additional: 'Additionnel',
       rejected: 'Modules non chargés ({count})',
-      api: 'API des modules {version}'
+      api: 'Modules acceptés : SDK {min} à {max}'
     },
     externalModules: {
       title: 'Modules externes',
-      hint: 'Modules développés hors de Sulfur avec son SDK, y compris les vôtres. Installez un paquet (fichier .sulfur-module) avec Installer un paquet, ou copiez son dossier dans le dossier des paquets. Pris en compte au prochain démarrage de Sulfur, ou aussitôt avec Actualiser.',
+      sdk: {
+        label: 'SDK des modules accepté',
+        hint: 'Les paquets construits avec @azerxim/sulfur-sdk {major}.x, jusqu’à la version {max}, sont acceptés. Un paquet construit avec un SDK plus récent est refusé : mettez Sulfur à jour.'
+      },
+      hint: 'Développés avec le SDK de Sulfur, installés depuis un paquet .sulfur-module ou copiés dans le dossier des paquets ; pris en compte avec Actualiser ou au prochain démarrage.',
       enable: 'Charger les modules externes',
       warning:
         'Les paquets ne sont pas signés : un module externe s’exécute avec les droits de Sulfur. N’installez que vos propres modules ou ceux d’une source de confiance.',
       folder: 'Dossier des paquets :',
       open: 'Ouvrir',
-      loaded: '{count} module(s) externe(s) chargé(s)',
       reload: 'Actualiser',
       reloadHint:
         'Relire les paquets (ajoutés, mis à jour ou retirés) sans redémarrer Sulfur ; l’interface est rechargée',
@@ -139,9 +208,11 @@ export default {
       packageFiles: 'Paquet de module Sulfur',
       installed: 'Paquets installés',
       none: 'Aucun paquet installé.',
-      notLoaded: 'non chargé',
+      notLoaded: 'Non chargé',
+      loadedBadge: 'Chargé',
       unknownAuthor: 'auteur non indiqué',
       by: 'par {author}',
+      extends: 'complète {modules}',
       remove: 'Supprimer',
       confirmRemove: 'Supprimer {name}',
       cancel: 'Annuler',
@@ -152,6 +223,7 @@ export default {
         id: 'Identifiant',
         version: 'Version',
         author: 'Auteur',
+        extends: 'Complète',
         content: 'Contenu',
         files: '{count} fichier(s), {size}',
         current: 'Version installée',
@@ -195,18 +267,24 @@ export default {
       unsupported: "Les mises à jour ne sont disponibles que dans l'application installée.",
       check: 'Rechercher maintenant',
       checking: 'Recherche des mises à jour…',
-      upToDate: 'Sulfur est à jour (dernière vérification : {time}).',
+      upToDate: 'Sulfur est à jour',
+      checkedAt: 'Version {version} · dernière vérification : {time}',
+      errorTitle: 'La recherche des mises à jour a échoué',
+      source: 'Source',
+      openReleases: 'Releases GitHub',
       available: 'La version {version} est disponible.',
       download: 'Télécharger et installer',
       openDownload: 'Ouvrir la page de téléchargement',
       macHint: "Sous macOS, téléchargez la nouvelle version depuis la page de la release et remplacez l'application.",
       releaseNotes: 'Notes de version',
-      downloading: 'Téléchargement… {progress} %',
+      downloadingTitle: 'Téléchargement de la version {version}…',
+      downloadingHint: 'Vous pouvez continuer à utiliser Sulfur pendant le téléchargement.',
       downloaded: 'La version {version} est prête à être installée.',
       downloadedHint: 'Sinon, elle sera installée à la fermeture de Sulfur.',
       install: 'Redémarrer et installer',
       notes: {
         title: 'Notes de version',
+        versions: 'Versions',
         refresh: 'Actualiser',
         loading: 'Lecture des releases GitHub…',
         empty: 'Aucune release publiée.',

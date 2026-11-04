@@ -9,7 +9,8 @@ import { loadPreferences, savePreferences } from './preferences'
  * Activation / désactivation des modules depuis les Paramètres. Canaux : `modules:disabled` et
  * `modules:setDisabled` (liste des modules désactivés, enregistrée dans les préférences et relue au
  * démarrage), `modules:rejected` (modules refusés au chargement, voir ModuleHost). Seuls les modules
- * de `moduleIds()` peuvent être désactivés (pas les modules cœur).
+ * de `moduleIds()` peuvent être désactivés (pas les modules cœur). `modules:statusChannels` liste
+ * les canaux d'état des modules actifs (activité affichée dans la barre latérale et l'accueil).
  *
  * Modules externes (`external` : ExternalModules) : `modules:packages` (chargement en cours et
  * choix enregistré, paquets chargés et URL de leur interface), `modules:setExternal` (chargement
@@ -23,6 +24,7 @@ export function registerModuleSwitch(host, moduleIds, external) {
   const ctx = host.createContext('modules')
   ctx.handle('disabled', () => [...host.disabled])
   ctx.handle('rejected', () => host.rejected)
+  ctx.handle('statusChannels', () => host.statusChannels())
   ctx.handle('setDisabled', async (ids) => {
     const disabled = await host.setDisabled(ids, moduleIds())
     savePreferences({ disabledModules: disabled })

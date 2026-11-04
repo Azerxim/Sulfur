@@ -126,6 +126,41 @@ Hors de son module, un point est désigné par `<moduleId>/<id local>` (`pointKe
 Types de défauts communs : `delay`, `noResponse`, `cut`, `exception`, `badStatus`, `kissOfDeath`,
 `freeze`.
 
+## Instances : serveurs et clients multiples
+
+Un module peut avoir autant de serveurs, de clients… (« rôles ») que l'on veut ; **aucune instance
+n'existe par défaut**. Le SDK fournit le mécanisme commun, utilisé par tous les modules de protocole :
+
+- **Process principal** : `defineInstances(ctx, { server: { label, create, busy, dispose }, … })`
+  (`@azerxim/sulfur-sdk/main`) crée un objet par instance et enregistre les canaux
+  `instances:list|create|rename|remove` et `<role>:status`. `instances.handle('server', 'start', fn)`
+  enregistre `<id>:server:start`, appelé avec l'identifiant de l'instance en premier argument ;
+  les événements d'une instance sont `<id>:<role>:<instance>:<événement>`. Une instance en marche
+  ne peut pas être supprimée.
+- **Configuration** : la liste est la section `instances` (`[{ id, role, name }]`) ; les réglages
+  d'une instance sont dans `<section>:<instance>` (`server:server-3fa2c1`), supprimés avec elle.
+  La liste est relue à chaque accès : import et réinitialisation sont pris en compte d'eux-mêmes.
+- **Interface** : `InstancesPage` (`@azerxim/sulfur-sdk/ui`) affiche un onglet par instance, les
+  boutons d'ajout par rôle, le nom modifiable et la suppression ; `useInstanceStatuses` donne l'état
+  de chaque instance. L'activité d'un module (barre latérale, accueil) compte chaque instance.
+- **Points** : l'identifiant local d'un point est `<instance>:<point>` et son groupe porte le nom de
+  l'instance (`groupName`), affiché par le simulateur et les courbes. `instancesPointsApi` assemble
+  les points du module à partir de ceux de chaque instance (lectures, écritures, défauts).
+- **Migration** : `migrateToInstances` convertit un serveur et un client uniques d'une version
+  antérieure en instances d'identifiants `server` et `client` (« Serveur 1 », « Client 1 ») : les
+  clés de points (`modbus/server:<point>`) restent les mêmes, les flux et courbes existants
+  continuent de fonctionner.
+
+## Extensions de modules
+
+Un module peut ajouter des onglets à la page d'un autre (`RendererModule.extensions`, cibles
+déclarées dans `manifest.extends`). L'interface fournit les modules activés au SDK
+(`setModuleExtensions`, à chaque activation ou désactivation) ; le module visé lit ses onglets avec
+`useExtensions(<id>)` (fait par `InstancesPage`). Un module sans page qui ne fait que compléter
+d'autres modules n'a ni entrée dans la barre latérale ni page : un lien vers lui mène à la page du
+premier module qu'il complète. *Paramètres → Modules* indique les modules complétés, y compris avant
+l'installation d'un paquet.
+
 ## SDK des modules
 
 Les modules n'utilisent l'application qu'à travers le **SDK des modules** `@azerxim/sulfur-sdk`
@@ -176,7 +211,7 @@ Pour écrire un module **hors** de ce dépôt, suivez plutôt [Créer un module]
 2. **Partie main** : exporter `{ manifest, activate(ctx), deactivate(), busy(), migrateConfig() }`. Le
    manifeste vient de `builtinManifest(…)` ; `busy()` (serveur démarré, client connecté) et
    `migrateConfig(config)` (conversion d'une configuration plus ancienne) sont facultatifs.
-3. **Partie renderer** : exporter `{ manifest, icon, Component }` (icône `lucide-react`). Regrouper les
+3. **Partie renderer** : exporter `{ manifest, icon, Component }` (icône FontAwesome). Regrouper les
    canaux dans `renderer/api.js` avec `window.sulfur.invoke` / `window.sulfur.on`.
 4. Enregistrer le module dans `src/main/modules.js` et `src/renderer/src/modules.js`. Les modules
    transverses viennent en dernier.

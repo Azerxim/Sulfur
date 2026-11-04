@@ -10,7 +10,7 @@ the trends.
 | ------------ | ---------------------------------------------------------------------------------------- |
 | main process | channels `test-signal:start` / `stop` / `status` / `setpoint` / `ping`, `tick` event, `busy()` |
 | data points  | `test-signal/sine`, `ramp`, `square`, `running` (read) and `setpoint` (write)              |
-| interface    | SDK components, saved configuration (`usePersistentState`), `lucide-react` icon           |
+| interface    | SDK components, saved configuration (`usePersistentState`), FontAwesome icon              |
 | translations | English and French (`registerMessages`, `moduleT`), common SDK texts (`ui.start`)         |
 | styles       | Tailwind utilities on the Sulfur theme (light theme included) and own CSS                |
 

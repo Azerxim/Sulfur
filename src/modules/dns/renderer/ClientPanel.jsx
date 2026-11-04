@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Search, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMagnifyingGlass, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG, QUERY_TYPES } from '../shared/constants'
 import { dnsApi } from './api'
 import { t } from '../shared/i18n'
@@ -68,8 +69,9 @@ function Result({ entry }) {
   )
 }
 
-export default function ClientPanel({ serverPort }) {
-  const [config, setConfig] = usePersistentState('dns', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance }) {
+  const api = useMemo(() => dnsApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('dns', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG)
   const [history, setHistory] = useState([])
   const [selected, setSelected] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -77,22 +79,17 @@ export default function ClientPanel({ serverPort }) {
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
   useEffect(() => {
-    dnsApi.client.history().then((list) => {
+    api.history().then((list) => {
       setHistory(list)
       setSelected(list[0] ?? null)
     })
-  }, [])
-
-  // Aligne le port sur le serveur local lorsqu'il démarre.
-  useEffect(() => {
-    if (serverPort) setConfig((c) => ({ ...c, port: serverPort }))
-  }, [serverPort, setConfig])
+  }, [api])
 
   async function query() {
     setBusy(true)
     setError(null)
     try {
-      const entry = await dnsApi.client.query(config)
+      const entry = await api.query(config)
       setHistory((list) => [entry, ...list].slice(0, 100))
       setSelected(entry)
     } catch (err) {
@@ -139,7 +136,7 @@ export default function ClientPanel({ serverPort }) {
               />
             </Field>
             <Button variant="primary" disabled={busy} onClick={query}>
-              <Search className="size-4" /> {t('dns.client.query')}
+              <FontAwesomeIcon icon={faMagnifyingGlass} className="size-4" /> {t('dns.client.query')}
             </Button>
           </div>
           <div className="flex gap-6">
@@ -175,13 +172,13 @@ export default function ClientPanel({ serverPort }) {
             variant="ghost"
             disabled={!history.length}
             onClick={() =>
-              dnsApi.client.clear().then(() => {
+              api.clear().then(() => {
                 setHistory([])
                 setSelected(null)
               })
             }
           >
-            <Trash2 className="size-3.5" /> {t('dns.queries.clear')}
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('dns.queries.clear')}
           </Button>
         }
       >

@@ -1,41 +1,37 @@
-import { useEffect, useState } from 'react'
-import { MonitorSmartphone, Server } from 'lucide-react'
-import { Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
-import { ntpApi } from './api'
+import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
+import { InstancesPage, useInstanceStatuses } from '@azerxim/sulfur-sdk/ui'
 import ServerPanel from './ServerPanel'
 import ClientPanel from './ClientPanel'
 import { t } from '../shared/i18n'
 
-const dot = (on) => <span className={`size-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+/** États au repos, avant la première lecture. */
+const IDLE = {
+  server: { running: false, clients: [] },
+  client: { polling: false }
+}
 
+/** Page du module : un onglet par instance (aucune par défaut). */
 export default function NtpView() {
-  const [tab, setTab] = useStoredState('sulfur:tab:ntp', 'server', ['server', 'client'])
-  const [serverStatus, setServerStatus] = useState({ running: false, clients: [] })
-  const [clientStatus, setClientStatus] = useState({ polling: false })
-
-  useEffect(() => {
-    ntpApi.server.status().then(setServerStatus)
-    ntpApi.client.status().then(setClientStatus)
-    const offs = [ntpApi.server.onStatus(setServerStatus), ntpApi.client.onStatus(setClientStatus)]
-    return () => offs.forEach((off) => off())
-  }, [])
-
+  const serverStatuses = useInstanceStatuses('ntp', 'server')
+  const clientStatuses = useInstanceStatuses('ntp', 'client')
+  const statuses = { ...serverStatuses, ...clientStatuses }
+  // Premier serveur en marche : les clients proposent de s’y connecter.
+  const localServer = Object.values(serverStatuses).find((s) => s.running) ?? null
+  const roles = [
+    { role: 'server', label: t('ui.server'), icon: faServer },
+    { role: 'client', label: t('ui.client'), icon: faComputer }
+  ]
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'server', label: t('ui.server'), icon: Server, badge: dot(serverStatus.running) },
-          { id: 'client', label: t('ui.client'), icon: MonitorSmartphone, badge: dot(clientStatus.polling) }
-        ]}
-      />
-      <div className={tab === 'server' ? 'contents' : 'hidden'}>
-        <ServerPanel status={serverStatus} />
-      </div>
-      <div className={tab === 'client' ? 'contents' : 'hidden'}>
-        <ClientPanel status={clientStatus} serverPort={serverStatus.running ? serverStatus.config?.port : null} />
-      </div>
-    </div>
+    <InstancesPage moduleId="ntp" roles={roles} statuses={statuses}>
+      {(instance) => {
+        const status = statuses[instance.id] ?? IDLE[instance.role]
+        switch (instance.role) {
+          case 'server':
+            return <ServerPanel instance={instance} status={status} />
+          default:
+            return <ClientPanel instance={instance} status={status} serverPort={localServer?.config?.port ?? null} />
+        }
+      }}
+    </InstancesPage>
   )
 }

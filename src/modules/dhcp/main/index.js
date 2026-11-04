@@ -1,62 +1,83 @@
+import { migrateToInstances, PRIVATE_NETWORKS } from '@azerxim/sulfur-sdk'
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
 import { shell } from 'electron'
 import fs from 'fs/promises'
 import { join } from 'path'
-import { PRIVATE_NETWORKS } from '@azerxim/sulfur-sdk'
 import { DHCP_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { listInterfaces } from './config'
 import { DhcpServer } from './server'
 import { DhcpClient } from './client'
 
-let server = null
-let client = null
+/** Serveur et client uniques d'une version antérieure, convertis en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('ui.server')} 1` },
+    client: { sections: ['client'], name: `${t('ui.client')} 1` }
+  })
+
+let instances = null
 
 /**
- * Partie "main" du module DHCP. Canaux : `dhcp:interfaces`, `dhcp:server:*`, `dhcp:client:*`.
- * Le serveur n'est jamais démarré automatiquement : seul `dhcp:server:start`, appelé après
- * confirmation de l'avertissement (`confirmed` à true), le démarre.
+ * Partie "main" du module DHCP : serveurs et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `dhcp:interfaces`, `dhcp:instances:*`, `dhcp:server:*` et
+ * `dhcp:client:*` (identifiant de l'instance en premier argument). Un serveur n'est jamais démarré
+ * automatiquement : seul `dhcp:server:start`, appelé après confirmation de l'avertissement
+ * (`confirmed` à true), le démarre.
  */
 export const dhcpMainModule = {
   manifest: DHCP_MODULE,
 
+  migrateConfig,
+
   activate(ctx) {
-    const logFile = join(ctx.dataDir, 'logs', 'server.log')
-    server = new DhcpServer(logFile, {
-      onStatus: (status) => ctx.emit('server:status', status),
-      onLog: (entry) => ctx.emit('server:log', entry)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ui.server'),
+        // Un journal par serveur (`logs/server.log` pour celui d'une version antérieure).
+        create: (instance, { emit }) =>
+          new DhcpServer(join(ctx.dataDir, 'logs', `${instance.id}.log`), {
+            onStatus: (status) => emit('status', status),
+            onLog: (entry) => emit('log', entry)
+          }),
+        busy: (server) => server.running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('ui.client'),
+        create: (_instance, { emit }) => new DhcpClient({ onStatus: (status) => emit('status', status) }),
+        busy: (client) => !!client.current,
+        dispose: (client) => client.abort()
+      }
     })
-    client = new DhcpClient({ onStatus: (status) => ctx.emit('client:status', status) })
 
     ctx.handle('interfaces', () => ({ interfaces: listInterfaces(), networks: PRIVATE_NETWORKS.map((n) => n.cidr) }))
-
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:check', (config) => server.check(config))
-    ctx.handle('server:start', (config, confirmed) => server.start(config, confirmed))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:logs', () => server.logs())
-    ctx.handle('server:clearLogs', () => server.clearLogs())
-    ctx.handle('server:openLogFile', async () => {
+    instances.handle('server', 'check', (server, config) => server.check(config))
+    instances.handle('server', 'start', (server, config, confirmed) => server.start(config, confirmed))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'logs', (server) => server.logs())
+    instances.handle('server', 'clearLogs', (server) => server.clearLogs())
+    instances.handle('server', 'openLogFile', async (server) => {
       await fs.mkdir(join(ctx.dataDir, 'logs'), { recursive: true })
-      await fs.appendFile(logFile, '')
-      const error = await shell.openPath(logFile)
+      await fs.appendFile(server.logFile, '')
+      const error = await shell.openPath(server.logFile)
       if (error) throw new Error(error)
     })
-
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:history', () => client.history)
-    ctx.handle('client:clear', () => client.clear())
-    ctx.handle('client:run', (config, mode) => client.run(config, mode))
-    ctx.handle('client:release', (config) => client.release(config))
-    ctx.handle('client:abort', () => client.abort())
+    instances.handle('client', 'history', (client) => client.history)
+    instances.handle('client', 'clear', (client) => client.clear())
+    instances.handle('client', 'run', (client, config, mode) => client.run(config, mode))
+    instances.handle('client', 'release', (client, config) => client.release(config))
+    instances.handle('client', 'abort', (client) => client.abort())
   },
 
-  /** Serveur démarré ou échange du client en cours. */
+  /** Au moins un serveur démarré ou un échange de client en cours. */
   busy() {
-    return !!(server?.running || client?.current)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    client?.abort()
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

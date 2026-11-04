@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Lock, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faLock, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
-import { modbusApi } from './api'
 import { t } from '../shared/i18n'
 
 const MAX_LOG = 300
@@ -15,14 +15,14 @@ const LEVELS = {
 const time = (iso) => formatTime(iso)
 
 /** Clients connectés et journal des événements de sécurité du serveur. */
-export default function ServerActivity({ status }) {
+export default function ServerActivity({ api, status }) {
   const [logs, setLogs] = useState([])
   const [onlyAlerts, setOnlyAlerts] = useState(false)
 
   useEffect(() => {
-    modbusApi.server.logs().then(setLogs)
-    return modbusApi.server.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
-  }, [])
+    api.logs().then(setLogs)
+    return api.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
+  }, [api])
 
   const connections = status.connections ?? []
   const shown = (onlyAlerts ? logs.filter((l) => l.level !== 'info') : logs).slice().reverse()
@@ -54,7 +54,7 @@ export default function ServerActivity({ status }) {
                     {c.tls ? (
                       <>
                         <div className="flex items-center gap-1 text-emerald-300">
-                          <Lock className="size-3" />{' '}
+                          <FontAwesomeIcon icon={faLock} className="size-3" />{' '}
                           {t('modbus.activity.tlsRole', { protocol: c.tls.protocol, role: c.tls.role })}
                         </div>
                         <div className="text-slate-500">
@@ -101,9 +101,9 @@ export default function ServerActivity({ status }) {
               variant="ghost"
               size="icon"
               title={t('modbus.activity.clearLog')}
-              onClick={() => modbusApi.server.clearLogs().then(setLogs)}
+              onClick={() => api.clearLogs().then(setLogs)}
             >
-              <Trash2 className="size-3.5" />
+              <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
             </Button>
           </>
         }

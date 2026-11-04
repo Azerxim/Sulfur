@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { Copy, Lock, Play, Plus, Square, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faLock, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
+import { instanceSection } from '@azerxim/sulfur-sdk'
 import {
   Button,
   Card,
@@ -75,8 +77,14 @@ const persist = (config) => ({
   }
 })
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('http', 'server', status.config ?? DEFAULT_SERVER_CONFIG, { persist })
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => httpApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'http',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG,
+    { persist }
+  )
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -91,9 +99,9 @@ export default function ServerPanel({ status }) {
   }, [running])
 
   useEffect(() => {
-    httpApi.server.values().then(setValues)
-    return httpApi.server.onValues(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onValues(setValues)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -118,30 +126,29 @@ export default function ServerPanel({ status }) {
   function updateVariable(id, patch, { immediate = false } = {}) {
     const next = { ...config.variables.find((v) => v.id === id), ...patch }
     setConfig((c) => ({ ...c, variables: c.variables.map((v) => (v.id === id ? next : v)) }))
-    if (running && VARIABLE_NAME.test(next.name))
-      debounce(id, () => live(() => httpApi.server.upsertVariable(next)), immediate)
+    if (running && VARIABLE_NAME.test(next.name)) debounce(id, () => live(() => api.upsertVariable(next)), immediate)
   }
 
   function addVariable() {
     const v = newVariable(config.variables)
     setConfig((c) => ({ ...c, variables: [...c.variables, v] }))
-    if (running) live(() => httpApi.server.upsertVariable(v))
+    if (running) live(() => api.upsertVariable(v))
   }
 
   function removeVariable(id) {
     clearTimeout(timers.current[id])
     setConfig((c) => ({ ...c, variables: c.variables.filter((v) => v.id !== id) }))
-    if (running) live(() => httpApi.server.removeVariable(id))
+    if (running) live(() => api.removeVariable(id))
   }
 
   function setRoutes(routes) {
     update({ routes })
-    if (running) debounce('routes', () => live(() => httpApi.server.setRoutes(routes)))
+    if (running) debounce('routes', () => live(() => api.setRoutes(routes)))
   }
 
   function setWebhooks(webhooks) {
     update({ webhooks })
-    if (running) debounce('webhooks', () => live(() => httpApi.server.setWebhooks(webhooks)))
+    if (running) debounce('webhooks', () => live(() => api.setWebhooks(webhooks)))
   }
 
   const names = config.variables.map((v) => v.name)
@@ -161,17 +168,17 @@ export default function ServerPanel({ status }) {
               label={running ? t('http.server.running', { count: status.requests ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(httpApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
                 variant="primary"
                 size="sm"
                 disabled={busy || invalid}
-                onClick={() => run(() => httpApi.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -210,7 +217,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy}
                 onCommit={(raw) => {
                   update({ updateRate: Number(raw) })
-                  if (running) live(() => httpApi.server.setUpdateRate(Number(raw)))
+                  if (running) live(() => api.setUpdateRate(Number(raw)))
                 }}
               />
             </Field>
@@ -245,7 +252,7 @@ export default function ServerPanel({ status }) {
 
           {status.url && (
             <div className="flex items-center gap-2 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
-              {config.https && <Lock className="size-3.5 text-emerald-400" />}
+              {config.https && <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />}
               {status.url}
               {status.certificate && (
                 <span className="font-sans text-xs text-slate-500">
@@ -260,7 +267,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.url)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -269,6 +276,7 @@ export default function ServerPanel({ status }) {
       </Card>
 
       <ServerAuth
+        api={api}
         value={config.auth}
         locked={running || busy}
         onChange={(auth) => update({ auth })}
@@ -283,7 +291,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" disabled={busy} onClick={addVariable}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -350,7 +358,7 @@ export default function ServerPanel({ status }) {
                         <LiveValue
                           variable={v}
                           value={values[v.id]}
-                          onSet={(raw) => live(() => httpApi.server.setValue(v.id, raw))}
+                          onSet={(raw) => live(() => api.setValue(v.id, raw))}
                         />
                       ) : (
                         <Input
@@ -402,7 +410,7 @@ export default function ServerPanel({ status }) {
                         title={t('ui.remove')}
                         onClick={() => removeVariable(v.id)}
                       >
-                        <Trash2 className="size-3.5" />
+                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>
@@ -427,7 +435,7 @@ export default function ServerPanel({ status }) {
         busy={busy}
         onChange={setWebhooks}
       />
-      <ServerLog />
+      <ServerLog api={api} />
     </div>
   )
 }

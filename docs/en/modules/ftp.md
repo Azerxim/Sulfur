@@ -2,9 +2,13 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/ftp.md)
 
-One module for the two file transfer protocols, in four tabs (FTP server and client, SFTP server
-and client). Both servers serve the same folder by default (`<userData>/modules/ftp/files`) and can
-run at the same time; the simulator faults apply to both. The module opens on the SFTP server tab.
+- **Multiple instances**: as many FTP and SFTP servers and clients as needed, each in its own tab,
+  with its name and settings; none exists at first. A stopped instance can be renamed or removed.
+  Those of an earlier version become "FTP server 1", "FTP client 1"…
+
+One module for the two file transfer protocols: FTP and SFTP servers and clients. All servers serve
+the same folder by default (`<userData>/modules/ftp/files`) and can run at the same time; the
+simulator faults apply to all of them.
 
 ## FTP / FTPS
 

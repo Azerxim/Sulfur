@@ -1,5 +1,6 @@
 import { Component } from 'react'
-import { RotateCcw, TriangleAlert } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faRotateLeft, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import { t } from '@azerxim/sulfur-sdk'
 import { resetModuleConfig } from '../module-config'
 import { Button } from '@azerxim/sulfur-sdk/ui'
@@ -30,13 +31,14 @@ export default class ModuleErrorBoundary extends Component {
     return (
       <div className="m-6 flex flex-col items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
         <div className="flex items-center gap-2 font-medium">
-          <TriangleAlert className="size-4" /> {t('app.moduleError')}
+          <FontAwesomeIcon icon={faTriangleExclamation} className="size-4" /> {t('app.moduleError')}
         </div>
         <pre className="max-w-full overflow-auto font-mono text-xs whitespace-pre-wrap text-red-300">
           {String(this.state.error?.message ?? this.state.error)}
         </pre>
         <Button size="sm" onClick={this.reset}>
-          <RotateCcw className="size-3.5" /> {this.props.moduleId ? t('app.resetModuleConfig') : t('app.retry')}
+          <FontAwesomeIcon icon={faRotateLeft} className="size-3.5" />{' '}
+          {this.props.moduleId ? t('app.resetModuleConfig') : t('app.retry')}
         </Button>
       </div>
     )

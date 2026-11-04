@@ -3,32 +3,32 @@ const invoke = (action, ...args) => window.sulfur.invoke(`http:${action}`, ...ar
 const on = (event, listener) => window.sulfur.on(`http:${event}`, listener)
 
 export const httpApi = {
-  server: {
-    status: () => invoke('server:status'),
-    start: (config) => invoke('server:start', config),
-    stop: () => invoke('server:stop'),
-    values: () => invoke('server:values'),
-    logs: () => invoke('server:logs'),
-    clearLogs: () => invoke('server:clearLogs'),
-    upsertVariable: (def) => invoke('server:upsertVariable', def),
-    removeVariable: (id) => invoke('server:removeVariable', id),
-    setValue: (id, value) => invoke('server:setValue', id, value),
-    setRoutes: (routes) => invoke('server:setRoutes', routes),
-    setWebhooks: (webhooks) => invoke('server:setWebhooks', webhooks),
-    setUpdateRate: (rate) => invoke('server:setUpdateRate', rate),
-    hashPassword: (password) => invoke('server:hashPassword', password),
-    onStatus: (fn) => on('server:status', fn),
-    onValues: (fn) => on('server:values', fn),
-    onLog: (fn) => on('server:log', fn)
-  },
-  client: {
-    status: () => invoke('client:status'),
-    configure: (config) => invoke('client:configure', config),
-    send: (request) => invoke('client:send', request),
-    addWatch: (item) => invoke('client:addWatch', item),
-    removeWatch: (id) => invoke('client:removeWatch', id),
-    setPollInterval: (ms) => invoke('client:setPollInterval', ms),
-    onStatus: (fn) => on('client:status', fn),
-    onData: (fn) => on('client:data', fn)
-  }
+  server: (instanceId) => ({
+    status: () => invoke('server:status', instanceId),
+    start: (config) => invoke('server:start', instanceId, config),
+    stop: () => invoke('server:stop', instanceId),
+    values: () => invoke('server:values', instanceId),
+    logs: () => invoke('server:logs', instanceId),
+    clearLogs: () => invoke('server:clearLogs', instanceId),
+    upsertVariable: (def) => invoke('server:upsertVariable', instanceId, def),
+    removeVariable: (id) => invoke('server:removeVariable', instanceId, id),
+    setValue: (id, value) => invoke('server:setValue', instanceId, id, value),
+    setRoutes: (routes) => invoke('server:setRoutes', instanceId, routes),
+    setWebhooks: (webhooks) => invoke('server:setWebhooks', instanceId, webhooks),
+    setUpdateRate: (rate) => invoke('server:setUpdateRate', instanceId, rate),
+    hashPassword: (password) => invoke('server:hashPassword', instanceId, password),
+    onStatus: (fn) => on(`server:${instanceId}:status`, fn),
+    onValues: (fn) => on(`server:${instanceId}:values`, fn),
+    onLog: (fn) => on(`server:${instanceId}:log`, fn)
+  }),
+  client: (instanceId) => ({
+    status: () => invoke('client:status', instanceId),
+    configure: (config) => invoke('client:configure', instanceId, config),
+    send: (request) => invoke('client:send', instanceId, request),
+    addWatch: (item) => invoke('client:addWatch', instanceId, item),
+    removeWatch: (id) => invoke('client:removeWatch', instanceId, id),
+    setPollInterval: (ms) => invoke('client:setPollInterval', instanceId, ms),
+    onStatus: (fn) => on(`client:${instanceId}:status`, fn),
+    onData: (fn) => on(`client:${instanceId}:data`, fn)
+  })
 }

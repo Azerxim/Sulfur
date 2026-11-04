@@ -1,6 +1,16 @@
-import { useEffect, useState } from 'react'
-import { Eye, EyeOff, Plug, PlugZap, RefreshCw, Send, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowsRotate,
+  faEye,
+  faEyeSlash,
+  faPaperPlane,
+  faPlug,
+  faPlugCircleBolt,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
+import { instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_SECURITY, ROOT_NODES } from '../shared/constants'
 import { opcuaApi } from './api'
 import NodeTree from './NodeTree'
@@ -11,12 +21,22 @@ import EventsCard from './EventsCard'
 import { t } from '../shared/i18n'
 import { formatTime, formatValue } from './format'
 
-export default function ClientPanel({ status, serverEndpoint }) {
-  const [endpoint, setEndpoint] = usePersistentState('opcua', 'clientEndpoint', 'opc.tcp://localhost:4840/UA/Sulfur')
+export default function ClientPanel({ instance, status }) {
+  const api = useMemo(() => opcuaApi.client(instance.id), [instance.id])
+  const [endpoint, setEndpoint] = usePersistentState(
+    'opcua',
+    instanceSection('clientEndpoint', instance.id),
+    'opc.tcp://localhost:4840/UA/Sulfur'
+  )
   // Le mot de passe n'est jamais enregistré.
-  const [security, setSecurity] = usePersistentState('opcua', 'clientSecurity', DEFAULT_CLIENT_SECURITY, {
-    persist: (s) => ({ ...s, password: '' })
-  })
+  const [security, setSecurity] = usePersistentState(
+    'opcua',
+    instanceSection('clientSecurity', instance.id),
+    DEFAULT_CLIENT_SECURITY,
+    {
+      persist: (s) => ({ ...s, password: '' })
+    }
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [selected, setSelected] = useState(null)
@@ -26,17 +46,9 @@ export default function ClientPanel({ status, serverEndpoint }) {
   const [treeKey, setTreeKey] = useState(0)
   const connected = status.connected
 
-  // Pré-remplit l'endpoint avec celui du serveur local lorsqu'il démarre.
-  useEffect(() => {
-    if (serverEndpoint && !connected) setEndpoint(serverEndpoint)
-  }, [serverEndpoint, connected, setEndpoint])
-
   useEffect(
-    () =>
-      opcuaApi.client.onData((change) =>
-        setLive((l) => ({ ...l, [change.nodeId]: { ...l[change.nodeId], ...change } }))
-      ),
-    []
+    () => api.onData((change) => setLive((l) => ({ ...l, [change.nodeId]: { ...l[change.nodeId], ...change } }))),
+    [api]
   )
 
   useEffect(() => {
@@ -63,7 +75,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
     setSelected(node)
     setDetails(null)
     if (node.nodeClass !== 'Variable') return
-    const d = await run(() => opcuaApi.client.read(node.nodeId))
+    const d = await run(() => api.read(node.nodeId))
     if (d) {
       setDetails(d)
       setWriteValue(formatValue(d.value))
@@ -73,16 +85,16 @@ export default function ClientPanel({ status, serverEndpoint }) {
   const refresh = () => select(selected)
   const write = () =>
     run(async () => {
-      await opcuaApi.client.write(selected.nodeId, writeValue)
-      setDetails(await opcuaApi.client.read(selected.nodeId))
+      await api.write(selected.nodeId, writeValue)
+      setDetails(await api.read(selected.nodeId))
     })
 
   const isMonitored = selected && status.monitored?.includes(selected.nodeId)
   const toggleMonitor = () =>
     run(() =>
       isMonitored
-        ? opcuaApi.client.unsubscribe(selected.nodeId).then(() => dropLive(selected.nodeId))
-        : opcuaApi.client.subscribe(selected.nodeId)
+        ? api.unsubscribe(selected.nodeId).then(() => dropLive(selected.nodeId))
+        : api.subscribe(selected.nodeId)
     )
   const dropLive = (nodeId) =>
     setLive((l) => {
@@ -119,26 +131,26 @@ export default function ClientPanel({ status, serverEndpoint }) {
                 value={endpoint}
                 disabled={connected || busy}
                 onChange={(e) => setEndpoint(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === 'Enter' && !connected && run(() => opcuaApi.client.connect(endpoint, security))
-                }
+                onKeyDown={(e) => e.key === 'Enter' && !connected && run(() => api.connect(endpoint, security))}
               />
             </Field>
             {connected ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(opcuaApi.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
+              <Button variant="danger" disabled={busy} onClick={() => run(api.disconnect)}>
+                <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button
                 variant="primary"
                 disabled={busy || !endpoint}
-                onClick={() => run(() => opcuaApi.client.connect(endpoint, security))}
+                onClick={() => run(() => api.connect(endpoint, security))}
               >
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+                <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+                {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
           <ClientSecurity
+            api={api}
             value={security}
             onChange={setSecurity}
             endpoint={endpoint}
@@ -161,13 +173,13 @@ export default function ClientPanel({ status, serverEndpoint }) {
               title={t('opcua.client.reload')}
               onClick={() => setTreeKey((k) => k + 1)}
             >
-              <RefreshCw className="size-3.5" />
+              <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" />
             </Button>
           }
         >
           <div className="h-full overflow-auto">
             {connected ? (
-              <NodeTree key={treeKey} roots={ROOT_NODES} selectedId={selected?.nodeId} onSelect={select} />
+              <NodeTree api={api} key={treeKey} roots={ROOT_NODES} selectedId={selected?.nodeId} onSelect={select} />
             ) : (
               <p className="text-sm text-slate-500">{t('opcua.client.connectToBrowse')}</p>
             )}
@@ -182,10 +194,14 @@ export default function ClientPanel({ status, serverEndpoint }) {
               details && (
                 <>
                   <Button variant="ghost" size="sm" onClick={refresh}>
-                    <RefreshCw className="size-3.5" /> {t('opcua.client.read')}
+                    <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('opcua.client.read')}
                   </Button>
                   <Button size="sm" onClick={toggleMonitor}>
-                    {isMonitored ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                    {isMonitored ? (
+                      <FontAwesomeIcon icon={faEyeSlash} className="size-3.5" />
+                    ) : (
+                      <FontAwesomeIcon icon={faEye} className="size-3.5" />
+                    )}
                     {isMonitored ? t('opcua.client.unmonitor') : t('opcua.client.monitor')}
                   </Button>
                 </>
@@ -227,15 +243,15 @@ export default function ClientPanel({ status, serverEndpoint }) {
                       />
                     </Field>
                     <Button variant="primary" disabled={busy} onClick={write}>
-                      <Send className="size-4" /> {t('opcua.client.write')}
+                      <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('opcua.client.write')}
                     </Button>
                   </div>
                 )}
                 {details?.historizing && (
-                  <HistoryView key={selected.nodeId} nodeId={selected.nodeId} onError={setError} />
+                  <HistoryView api={api} key={selected.nodeId} nodeId={selected.nodeId} onError={setError} />
                 )}
                 {selected.nodeClass === 'Method' && (
-                  <MethodCall key={selected.nodeId} nodeId={selected.nodeId} onError={setError} />
+                  <MethodCall api={api} key={selected.nodeId} nodeId={selected.nodeId} onError={setError} />
                 )}
               </div>
             )}
@@ -274,11 +290,9 @@ export default function ClientPanel({ status, serverEndpoint }) {
                               variant="ghost"
                               size="icon"
                               title={t('ui.remove2')}
-                              onClick={() =>
-                                run(() => opcuaApi.client.unsubscribe(nodeId).then(() => dropLive(nodeId)))
-                              }
+                              onClick={() => run(() => api.unsubscribe(nodeId).then(() => dropLive(nodeId)))}
                             >
-                              <X className="size-3.5" />
+                              <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                             </Button>
                           </td>
                         </tr>
@@ -292,7 +306,7 @@ export default function ClientPanel({ status, serverEndpoint }) {
         </div>
       </div>
 
-      <EventsCard connected={connected} subscribed={!!status.events} onError={setError} />
+      <EventsCard api={api} connected={connected} subscribed={!!status.events} onError={setError} />
     </div>
   )
 }

@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/dhcp.md)
 
+- **Multiple instances**: as many servers and clients as needed, each in its own tab, with its name
+  and settings; none exists at first. A stopped instance can be renamed or removed. Those of an
+  earlier version become "Server 1" and "Client 1". Each server has its own log file.
+
 Test DHCP server for an **isolated network, restricted to the private networks** (10.0.0.0/8,
 172.16.0.0/12, 192.168.0.0/16), to commission devices on a bench.
 

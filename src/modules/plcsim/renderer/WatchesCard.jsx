@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, CommitInput, ErrorBanner } from '@azerxim/sulfur-sdk/ui'
 import { getLocale } from '@azerxim/sulfur-sdk'
 import { DEFAULT_POLL_INTERVAL } from '../shared/constants'
@@ -108,7 +109,7 @@ export default function WatchesCard({ status }) {
                         title={t('ui.remove2')}
                         onClick={() => run(() => plcsimApi.removeWatch(w.id))}
                       >
-                        <X className="size-3.5" />
+                        <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>

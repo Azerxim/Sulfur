@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, KeyRound, Play, RefreshCw, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faKey, faPlay, faStop, faTrashCan, faWaveSquare } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_RADIUS_CLIENT_CONFIG, METHODS, parseAttributes } from '../../shared/radius'
 import { radiusApi } from '../api'
 import { t } from '../../shared/i18n'
@@ -52,11 +53,17 @@ function Result({ entry }) {
   )
 }
 
-export default function ClientPanel({ server }) {
+export default function ClientPanel({ instance }) {
+  const api = useMemo(() => radiusApi.client(instance.id), [instance.id])
   // Le mot de passe n'est pas enregistré dans la configuration.
-  const [config, setConfig] = usePersistentState('ldap', 'radiusClient', DEFAULT_RADIUS_CLIENT_CONFIG, {
-    persist: (c) => ({ ...c, password: '' })
-  })
+  const [config, setConfig] = usePersistentState(
+    'ldap',
+    instanceSection('radiusClient', instance.id),
+    DEFAULT_RADIUS_CLIENT_CONFIG,
+    {
+      persist: (c) => ({ ...c, password: '' })
+    }
+  )
   const [history, setHistory] = useState([])
   const [selected, setSelected] = useState(null)
   const [session, setSession] = useState(null)
@@ -66,26 +73,12 @@ export default function ClientPanel({ server }) {
   const { errors } = useMemo(() => parseAttributes(config.attributes), [config.attributes])
 
   useEffect(() => {
-    radiusApi.client.history().then((list) => {
+    api.history().then((list) => {
       setHistory(list)
       setSelected(list[0] ?? null)
     })
-    radiusApi.client.status().then((s) => setSession(s.session))
-  }, [])
-
-  // Ports alignés sur le serveur RADIUS local lorsqu'il démarre (pas à chaque mise à jour de son statut).
-  const serverHost = server?.host
-  const serverAuthPort = server?.authPort
-  const serverAcctPort = server?.accounting ? server.acctPort : null
-  useEffect(() => {
-    if (!serverAuthPort) return
-    setConfig((c) => ({
-      ...c,
-      ...(serverHost === '0.0.0.0' ? { host: '127.0.0.1' } : {}),
-      authPort: serverAuthPort,
-      ...(serverAcctPort ? { acctPort: serverAcctPort } : {})
-    }))
-  }, [serverHost, serverAuthPort, serverAcctPort, setConfig])
+    api.status().then((s) => setSession(s.session))
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -98,11 +91,11 @@ export default function ClientPanel({ server }) {
       setError(err.message)
     } finally {
       setBusy(false)
-      radiusApi.client.status().then((s) => setSession(s.session))
+      api.status().then((s) => setSession(s.session))
     }
   }
 
-  const accounting = (action) => run(() => radiusApi.client.accounting(config, action))
+  const accounting = (action) => run(() => api.accounting(config, action))
 
   return (
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
@@ -179,7 +172,7 @@ export default function ClientPanel({ server }) {
                 type="password"
                 value={config.password}
                 onChange={(e) => update({ password: e.target.value })}
-                onKeyDown={(e) => e.key === 'Enter' && run(() => radiusApi.client.authenticate(config))}
+                onKeyDown={(e) => e.key === 'Enter' && run(() => api.authenticate(config))}
               />
             </Field>
             <Field label={t('radius.client.method')}>
@@ -194,16 +187,16 @@ export default function ClientPanel({ server }) {
             <Button
               variant="primary"
               disabled={busy || errors.length > 0}
-              onClick={() => run(() => radiusApi.client.authenticate(config))}
+              onClick={() => run(() => api.authenticate(config))}
             >
-              <KeyRound className="size-4" /> {t('ldap.client.authenticate')}
+              <FontAwesomeIcon icon={faKey} className="size-4" /> {t('ldap.client.authenticate')}
             </Button>
             <Button
               disabled={busy}
               title={t('radius.client.statusServerHint')}
-              onClick={() => run(() => radiusApi.client.statusServer(config))}
+              onClick={() => run(() => api.statusServer(config))}
             >
-              <Activity className="size-4" /> Status-Server
+              <FontAwesomeIcon icon={faWaveSquare} className="size-4" /> Status-Server
             </Button>
           </div>
           <Field label={t('radius.client.attributes')}>
@@ -237,13 +230,13 @@ export default function ClientPanel({ server }) {
               />
             </Field>
             <Button disabled={busy || errors.length > 0} onClick={() => accounting('start')}>
-              <Play className="size-3.5" /> {t('radius.client.acct.start')}
+              <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {t('radius.client.acct.start')}
             </Button>
             <Button disabled={busy || errors.length > 0 || !session} onClick={() => accounting('interim')}>
-              <RefreshCw className="size-3.5" /> {t('radius.client.acct.interim')}
+              <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('radius.client.acct.interim')}
             </Button>
             <Button disabled={busy || errors.length > 0 || !session} onClick={() => accounting('stop')}>
-              <Square className="size-3.5" /> {t('radius.client.acct.stop')}
+              <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('radius.client.acct.stop')}
             </Button>
             <span className="mb-2 text-xs text-slate-500">
               {session
@@ -270,13 +263,13 @@ export default function ClientPanel({ server }) {
             variant="ghost"
             disabled={!history.length}
             onClick={() =>
-              radiusApi.client.clear().then(() => {
+              api.clear().then(() => {
                 setHistory([])
                 setSelected(null)
               })
             }
           >
-            <Trash2 className="size-3.5" /> {t('ldap.server.clearLog')}
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ldap.server.clearLog')}
           </Button>
         }
       >

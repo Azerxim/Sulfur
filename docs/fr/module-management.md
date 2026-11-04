@@ -12,6 +12,9 @@ Les modules se gèrent dans *Paramètres → Modules*. Sulfur a deux sortes de m
 ## Activer et désactiver des modules
 
 *Paramètres → Modules → Modules activés* liste chaque module avec sa version et une case à cocher.
+Chaque groupe a ses boutons **Activer** et **Désactiver** (les modules en marche restent activés), en
+plus de **Tout activer** et **Tout désactiver**. Un module qui en complète d'autres l'indique
+(« Complète Siemens S7 ») ; le désactiver retire ses onglets des pages qu'il complète.
 
 Un module désactivé :
 

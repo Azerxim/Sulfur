@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { resolveAddress } from '../shared/address'
-import { s7Api } from './api'
 import { formatValue, hex } from './format'
 import { t } from '../shared/i18n'
 
@@ -14,7 +14,7 @@ const REFRESH = 500
 const zoneOf = (key) => (key.startsWith('DB') ? { area: 'DB', db: Number(key.slice(2)) } : { area: key, db: 0 })
 
 /** Mémoire brute de l'automate simulé, rafraîchie en continu ; un clic sur un octet le modifie. */
-export default function MemoryExplorer({ running, config, values }) {
+export default function MemoryExplorer({ api, running, config, values }) {
   const [zone, setZone] = useState('DB1')
   const [start, setStart] = useState(0)
   const [memory, setMemory] = useState(null)
@@ -32,7 +32,7 @@ export default function MemoryExplorer({ running, config, values }) {
     }
     let cancelled = false
     const load = () =>
-      s7Api.server
+      api
         .memory(area, db, start, PAGE)
         .then((m) => !cancelled && (setMemory(m), setError(null)))
         .catch((err) => !cancelled && setError(err.message))
@@ -42,7 +42,7 @@ export default function MemoryExplorer({ running, config, values }) {
       cancelled = true
       clearInterval(timer)
     }
-  }, [running, area, db, start])
+  }, [api, running, area, db, start])
 
   /** Octets occupés par les points de la zone affichée : offset -> point. */
   const owners = useMemo(() => {
@@ -64,7 +64,7 @@ export default function MemoryExplorer({ running, config, values }) {
     const text = draft.trim()
     if (!text) return
     const value = /^(0x|\$)/i.test(text) ? parseInt(text.replace(/^(0x|\$)/i, ''), 16) : Number(text)
-    s7Api.server.writeMemory(area, db, offset, value).catch((err) => setError(err.message))
+    api.writeMemory(area, db, offset, value).catch((err) => setError(err.message))
   }
 
   const size = memory?.size ?? 0
@@ -105,7 +105,7 @@ export default function MemoryExplorer({ running, config, values }) {
               title={t('s7.explorer.previous')}
               onClick={() => setStart((s) => Math.max(0, s - PAGE))}
             >
-              <ChevronLeft className="size-4" />
+              <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
             </Button>
             <Button
               size="icon"
@@ -113,7 +113,7 @@ export default function MemoryExplorer({ running, config, values }) {
               disabled={!!size && start + PAGE >= size}
               onClick={() => setStart((s) => s + PAGE)}
             >
-              <ChevronRight className="size-4" />
+              <FontAwesomeIcon icon={faChevronRight} className="size-4" />
             </Button>
           </div>
           {memory && <span className="mb-2 text-xs text-slate-500">{t('s7.explorer.size', { size })}</span>}

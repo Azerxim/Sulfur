@@ -1,75 +1,110 @@
+import { instanceSection, migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
 import { S7_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { S7Server } from './server'
 import { S7Client } from './client'
 import { createPointsApi } from './points'
 
-let server = null
-let client = null
+/** Instances uniques d'une version antérieure, converties en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('s7.tabs.server')} 1` },
+    client: { sections: ['client', 'clientRequest', 'watches'], name: `${t('ui.client')} 1` }
+  })
 
-/** Partie "main" du module Siemens S7. Canaux : `s7:server:*`, `s7:client:*`. */
+let instances = null
+
+/**
+ * Partie "main" du module Siemens S7 : automates simulés et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `s7:instances:*`, `s7:server:*` et `s7:client:*` (identifiant de l'instance en
+ * premier argument).
+ */
 export const s7MainModule = {
   manifest: S7_MODULE,
 
+  migrateConfig,
+
   activate(ctx) {
-    server = new S7Server({
-      onStatus: (status) => ctx.emit('server:status', status),
-      onValues: (values) => ctx.emit('server:values', values),
-      onLog: (entry) => ctx.emit('server:log', entry)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('s7.tabs.server'),
+        create: (_instance, { emit }) =>
+          new S7Server({
+            onStatus: (status) => emit('status', status),
+            onValues: (values) => emit('values', values),
+            onLog: (entry) => emit('log', entry)
+          }),
+        busy: (server) => server.status().running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('ui.client'),
+        // Surveillances enregistrées par client (section `watches:<id>`), restaurées au démarrage.
+        create(instance, { emit }) {
+          const section = instanceSection('watches', instance.id)
+          const client = new S7Client({
+            onStatus: (status) => emit('status', status),
+            onData: (data) => emit('data', data),
+            onWatches: (watches) => ctx.setConfig(section, watches)
+          })
+          client.restoreWatches(ctx.config()[section])
+          return client
+        },
+        busy: (client) => client.status().connected,
+        dispose: (client) => client.disconnect()
+      }
     })
-    client = new S7Client({
-      onStatus: (status) => ctx.emit('client:status', status),
-      onData: (data) => ctx.emit('client:data', data),
-      onWatches: (watches) => ctx.setConfig('watches', watches)
-    })
-    client.restoreWatches(ctx.config().watches)
 
-    ctx.expose(createPointsApi({ server, client, savedConfig: ctx.config }))
-
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:values', () => server.values())
-    ctx.handle('server:logs', () => server.logs())
-    ctx.handle('server:clearLogs', () => server.clearLogs())
-    ctx.handle('server:upsertPoint', (def) => server.upsertPoint(def))
-    ctx.handle('server:removePoint', (id) => server.removePoint(id))
-    ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
-    ctx.handle('server:setCpuState', (state) => server.setCpuState(state))
-    ctx.handle('server:setUpdateRate', (rate) => server.setUpdateRate(rate))
-    ctx.handle('server:setReadOnly', (readOnly) => server.setReadOnly(readOnly))
-    ctx.handle('server:memory', (area, db, start, count) => server.readMemory(area, db, start, count))
-    ctx.handle('server:writeMemory', (area, db, offset, value) => server.writeMemory(area, db, offset, value))
-
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:connect', (config) => client.connect(config))
-    ctx.handle('client:disconnect', () => client.disconnect())
-    ctx.handle('client:readValue', (address, dataType, length) => client.readValue(address, dataType, length))
-    ctx.handle('client:writeValue', (address, dataType, value, length) =>
+    ctx.expose(createPointsApi({ instances, savedConfig: ctx.config }))
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'values', (server) => server.values())
+    instances.handle('server', 'logs', (server) => server.logs())
+    instances.handle('server', 'clearLogs', (server) => server.clearLogs())
+    instances.handle('server', 'upsertPoint', (server, def) => server.upsertPoint(def))
+    instances.handle('server', 'removePoint', (server, id) => server.removePoint(id))
+    instances.handle('server', 'setValue', (server, id, value) => server.setValue(id, value))
+    instances.handle('server', 'setCpuState', (server, state) => server.setCpuState(state))
+    instances.handle('server', 'setUpdateRate', (server, rate) => server.setUpdateRate(rate))
+    instances.handle('server', 'setReadOnly', (server, readOnly) => server.setReadOnly(readOnly))
+    instances.handle('server', 'memory', (server, area, db, start, count) => server.readMemory(area, db, start, count))
+    instances.handle('server', 'writeMemory', (server, area, db, offset, value) =>
+      server.writeMemory(area, db, offset, value)
+    )
+    instances.handle('client', 'connect', (client, config) => client.connect(config))
+    instances.handle('client', 'disconnect', (client) => client.disconnect())
+    instances.handle('client', 'readValue', (client, address, dataType, length) =>
+      client.readValue(address, dataType, length)
+    )
+    instances.handle('client', 'writeValue', (client, address, dataType, value, length) =>
       client.writeValue(address, dataType, value, length)
     )
-    ctx.handle('client:readArea', (area, db, start, count) => client.readArea(area, db, start, count))
-    ctx.handle('client:writeArea', (area, db, start, bytes) => client.writeArea(area, db, start, bytes))
-    ctx.handle('client:identify', async () => {
+    instances.handle('client', 'readArea', (client, area, db, start, count) => client.readArea(area, db, start, count))
+    instances.handle('client', 'writeArea', (client, area, db, start, bytes) =>
+      client.writeArea(area, db, start, bytes)
+    )
+    instances.handle('client', 'identify', async (client) => {
       const identity = await client.readIdentity()
       await client.readCpuState().catch(() => null)
       return identity
     })
-    ctx.handle('client:cpuState', () => client.readCpuState())
-    ctx.handle('client:stopCpu', () => client.stopCpu())
-    ctx.handle('client:startCpu', (mode) => client.startCpu(mode))
-    ctx.handle('client:addWatch', (item) => client.addWatch(item))
-    ctx.handle('client:removeWatch', (id) => client.removeWatch(id))
-    ctx.handle('client:setPollInterval', (ms) => client.setPollInterval(ms))
+    instances.handle('client', 'cpuState', (client) => client.readCpuState())
+    instances.handle('client', 'stopCpu', (client) => client.stopCpu())
+    instances.handle('client', 'startCpu', (client, mode) => client.startCpu(mode))
+    instances.handle('client', 'addWatch', (client, item) => client.addWatch(item))
+    instances.handle('client', 'removeWatch', (client, id) => client.removeWatch(id))
+    instances.handle('client', 'setPollInterval', (client, ms) => client.setPollInterval(ms))
   },
 
-  /** Automate simulé démarré ou client connecté. */
+  /** Au moins un automate simulé démarré ou un client connecté. */
   busy() {
-    return !!(server?.status().running || client?.status().connected)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    await client?.disconnect().catch(() => {})
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

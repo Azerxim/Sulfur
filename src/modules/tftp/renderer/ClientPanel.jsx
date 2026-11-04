@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Download, Square, Trash2, Upload } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDownload, faStop, faTrashCan, faUpload } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { BLOCK_SIZES, DEFAULT_CLIENT_CONFIG, MODES } from '../shared/constants'
 import { tftpApi } from './api'
 import { formatSize } from './format'
@@ -20,8 +21,9 @@ function summary(entry) {
   })
 }
 
-export default function ClientPanel({ serverPort }) {
-  const [config, setConfig] = usePersistentState('tftp', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance }) {
+  const api = useMemo(() => tftpApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('tftp', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG)
   const [history, setHistory] = useState([])
   const [progress, setProgress] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -29,13 +31,9 @@ export default function ClientPanel({ serverPort }) {
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
   useEffect(() => {
-    tftpApi.client.history().then(setHistory)
-    return tftpApi.client.onProgress(setProgress)
-  }, [])
-  // Aligne le port sur le serveur local lorsqu'il démarre.
-  useEffect(() => {
-    if (serverPort) setConfig((c) => ({ ...c, port: serverPort }))
-  }, [serverPort, setConfig])
+    api.history().then(setHistory)
+    return api.onProgress(setProgress)
+  }, [api])
 
   async function transfer(action) {
     setBusy(true)
@@ -135,15 +133,15 @@ export default function ClientPanel({ serverPort }) {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="primary" disabled={busy} onClick={() => transfer(tftpApi.client.get)}>
-              <Download className="size-4" /> {t('tftp.client.get')}
+            <Button variant="primary" disabled={busy} onClick={() => transfer(api.get)}>
+              <FontAwesomeIcon icon={faDownload} className="size-4" /> {t('tftp.client.get')}
             </Button>
-            <Button disabled={busy} onClick={() => transfer(tftpApi.client.put)}>
-              <Upload className="size-4" /> {t('tftp.client.put')}
+            <Button disabled={busy} onClick={() => transfer(api.put)}>
+              <FontAwesomeIcon icon={faUpload} className="size-4" /> {t('tftp.client.put')}
             </Button>
             {busy && (
-              <Button variant="ghost" onClick={() => tftpApi.client.abort()}>
-                <Square className="size-3.5" /> {t('tftp.client.abort')}
+              <Button variant="ghost" onClick={() => api.abort()}>
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('tftp.client.abort')}
               </Button>
             )}
             {busy && progress && (
@@ -169,13 +167,8 @@ export default function ClientPanel({ serverPort }) {
         title={t('tftp.client.history', { count: history.length })}
         className="min-h-48 shrink-0"
         actions={
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={!history.length}
-            onClick={() => tftpApi.client.clear().then(setHistory)}
-          >
-            <Trash2 className="size-3.5" /> {t('tftp.server.clearLog')}
+          <Button size="sm" variant="ghost" disabled={!history.length} onClick={() => api.clear().then(setHistory)}>
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('tftp.server.clearLog')}
           </Button>
         }
       >

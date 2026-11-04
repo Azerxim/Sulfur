@@ -1,62 +1,87 @@
+import { migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances, ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { join } from 'path'
-import { ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { MQTT_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { MqttServer } from './server'
 import { MqttClient } from './client'
 import { createPointsApi } from './points'
 
 const SERVER_COMMON_NAME = 'MQTT@Sulfur'
 
-let server = null
-let client = null
+/** Serveur et client uniques d'une version antérieure, convertis en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('ui.server')} 1` },
+    client: { sections: ['client'], name: `${t('ui.client')} 1` }
+  })
 
-/** Partie "main" du module MQTT. Canaux : `mqtt:server:*`, `mqtt:client:*`. */
+let instances = null
+
+/**
+ * Partie "main" du module MQTT : serveurs et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `mqtt:instances:*`, `mqtt:server:*` et `mqtt:client:*`
+ * (identifiant de l'instance en premier argument).
+ */
 export const mqttMainModule = {
   manifest: MQTT_MODULE,
 
+  migrateConfig,
+
   activate(ctx) {
-    server = new MqttServer(() => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME), {
-      onStatus: (status) => ctx.emit('server:status', status),
-      onLog: (batch) => ctx.emit('server:log', batch),
-      onValues: (values) => ctx.emit('server:values', values)
+    const certificate = () => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ui.server'),
+        create: (_instance, { emit }) =>
+          new MqttServer(certificate, {
+            onStatus: (status) => emit('status', status),
+            onLog: (batch) => emit('log', batch),
+            onValues: (values) => emit('values', values)
+          }),
+        busy: (server) => server.running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('ui.client'),
+        create: (_instance, { emit }) =>
+          new MqttClient({
+            onStatus: (status) => emit('status', status),
+            onMessages: (batch) => emit('messages', batch)
+          }),
+        busy: (client) => !!client.client,
+        dispose: (client) => client.disconnect()
+      }
     })
-    client = new MqttClient({
-      onStatus: (status) => ctx.emit('client:status', status),
-      onMessages: (batch) => ctx.emit('client:messages', batch)
-    })
 
-    ctx.expose(createPointsApi({ server, client, savedConfig: ctx.config }))
-
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:values', () => server.values())
-    ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
-    ctx.handle('server:upsertTopic', (def) => server.upsertTopic(def))
-    ctx.handle('server:removeTopic', (id) => server.removeTopic(id))
-    ctx.handle('server:setUpdateRate', (rate) => server.setUpdateRate(rate))
-    ctx.handle('server:logs', () => server.logs())
-    ctx.handle('server:clearLogs', () => server.clearLogs())
-    ctx.handle('server:topics', () => server.topics())
-    ctx.handle('server:hashPassword', (password) => hashPassword(password))
-
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:connect', (config) => client.connect(config))
-    ctx.handle('client:disconnect', () => client.disconnect())
-    ctx.handle('client:setSubscriptions', (list) => client.setSubscriptions(list))
-    ctx.handle('client:publish', (message) => client.publish(message))
-    ctx.handle('client:messages', () => ({ messages: client.messages(), last: client.values() }))
-    ctx.handle('client:clearMessages', () => client.clearMessages())
+    ctx.expose(createPointsApi({ instances, savedConfig: ctx.config }))
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'values', (server) => server.values())
+    instances.handle('server', 'setValue', (server, id, value) => server.setValue(id, value))
+    instances.handle('server', 'upsertTopic', (server, def) => server.upsertTopic(def))
+    instances.handle('server', 'removeTopic', (server, id) => server.removeTopic(id))
+    instances.handle('server', 'setUpdateRate', (server, rate) => server.setUpdateRate(rate))
+    instances.handle('server', 'logs', (server) => server.logs())
+    instances.handle('server', 'clearLogs', (server) => server.clearLogs())
+    instances.handle('server', 'topics', (server) => server.topics())
+    instances.handle('server', 'hashPassword', (server, password) => hashPassword(password))
+    instances.handle('client', 'connect', (client, config) => client.connect(config))
+    instances.handle('client', 'disconnect', (client) => client.disconnect())
+    instances.handle('client', 'setSubscriptions', (client, list) => client.setSubscriptions(list))
+    instances.handle('client', 'publish', (client, message) => client.publish(message))
+    instances.handle('client', 'messages', (client) => ({ messages: client.messages(), last: client.values() }))
+    instances.handle('client', 'clearMessages', (client) => client.clearMessages())
   },
 
-  /** Broker démarré ou client connecté. */
+  /** Au moins un broker démarré ou un client connecté. */
   busy() {
-    return !!(server?.running || client?.client)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    await client?.disconnect().catch(() => {})
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

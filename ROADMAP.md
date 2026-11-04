@@ -33,6 +33,12 @@ Make what exists reliable before adding features.
   and macOS (DMG) installers produced by the CI.
 - [X] **Updates**: new versions detected from the GitHub releases, downloaded and installed from the
   settings (Windows, AppImage, .deb; on macOS, link to the release). Automatic check can be turned off.
+- [X] **Multiple servers and clients**: as many instances as needed per module, none by default
+  (SDK foundation: `defineInstances`, `InstancesPage`).
+  - [X] Foundation (SDK, activity, simulator, trends, configuration migration) and the Modbus module.
+  - [X] Other protocol modules: OPC UA, HTTP, NTP, Siemens S7, MQTT, SNMP, Syslog, DNS, DHCP,
+    LDAP / RADIUS, TFTP, FTP / SFTP, CoAP / LwM2M.
+  - [X] Additional module Siemens S7 Enhanced (requires SDK 1.2).
 
 ## Simulation features
 
@@ -55,9 +61,10 @@ Make the simulators more useful for testing real equipment and software.
 
 Sulfur is distributed under the [Apache License 2.0](LICENSE). The application and the **standard**
 modules are built into this repository; **additional** modules, marked *(additional)* in this
-roadmap, are distributed as separate packages and installed on demand. Anyone can build their own
-module with the module SDK and install it in Sulfur, without any approval or signature. Unmarked
-modules are standard.
+roadmap, are distributed as separate packages and installed on demand. An additional module is free
+or paid, as its developer chooses; a paid module can be evaluated free of charge in trial mode
+before buying a licence. Anyone can build their own module with the module SDK and install it in
+Sulfur, without any approval or signature. Unmarked modules are standard.
 
 | Type                                    | Modules                                                                                                         |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -101,12 +108,26 @@ Structure to set up before the first additional module:
   packaging), so that users can create and share their own modules.
   [Guide](docs/en/module-guide.md) (EN / FR) and template in `examples/module-template` (counter published
   as a data point), built and run by the tests.
-- [ ] **Module extensions**: an additional module adds a tab to the page of a standard module
+- [X] **Module extensions**: an additional module adds a tab to the page of a standard module
   (module API 1.2, see the [SDK roadmap](packages/sdk/ROADMAP.md)). The module host collects the
   tabs declared by the loaded modules and provides them to their target; the extensible modules
   show them after their own tabs (Siemens S7 first, then OPC UA). The tabs follow the enabling,
   disabling and refreshing of the module that brings them; Settings → Modules shows which module
   a package extends.
+- [ ] **Licences and trial mode** of the paid additional modules (module API 1.3, see the
+  [SDK roadmap](packages/sdk/ROADMAP.md)); free modules are not concerned.
+  - **Trial mode**: from its first activation, a paid module works fully for a period set by its
+    publisher in the manifest (30 days by default). At the end of the trial, the module stays
+    installed and its configurations are kept; it chooses what remains available (for example
+    view only, without starting any server or client) until a licence is imported. A single trial
+    period per module and major version.
+  - **Offline licence**: file signed (Ed25519) by the module publisher (customer, module, number of
+    workstations, end of maintenance date), checked offline with the public key of the manifest; a
+    licence covers the versions published before the end of its maintenance.
+  - **Settings → Modules**: status of each module (free, trial with the days left, licensed,
+    licence expired), import and removal of the licence file, publisher's purchase link.
+  - No connection or account required; the trial and the licence rely on the user's good faith,
+    with no copy protection.
 
 ## New modules: tools
 
@@ -138,7 +159,7 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
 - [X] **HTTP / REST**: simulated server and client (JSON, webhooks, HTTPS, authentication)
 - [X] **NTP**: simulated time server, including a deliberately shifted clock to test timestamping and
   certificate validity on equipment
-- [ ] **TCP / UDP proxy**: relay placed between a real client and a real device (several forwards,
+- [X] **TCP / UDP proxy**: relay placed between a real client and a real device (several forwards,
   local port → remote host:port), hexadecimal log of the exchanges with export, and fault injection
   on the traffic (latency, packet loss, disconnections, frame corruption) to test devices without
   modifying them
@@ -166,7 +187,10 @@ Simpler protocols, quick to deliver, useful to supervise and integrate equipment
     local and LDAP directory accounts, reply attributes including Cisco-AVPair, Message-Authenticator,
     accounting, Status-Server) and client (Access-Request, Status-Server, accounting)
     - [ ] EAP (PEAP / EAP-TLS, 802.1X), MS-CHAPv2, reply attributes by LDAP group, RadSec (RADIUS over TLS)
-- [ ] **CoAP / LwM2M**: server and client for constrained IoT sensors, alongside MQTT
+- [X] **CoAP / LwM2M**: server and client for constrained IoT sensors, alongside MQTT: simulated
+  CoAP server (observe, discovery) and client, LwM2M server (registration, read, write, execute,
+  observe; TLV, SenML JSON) and simulated LwM2M device
+  - [ ] CoAP over DTLS (`coaps`), block-wise transfers (RFC 7959), LwM2M bootstrap
 
 ## New modules: industrial automation
 
@@ -218,6 +242,17 @@ The order within each version will be set according to needs.
     pinning;
   - OPC UA X.509 user tokens.
 - **Interface**: several windows, keyboard shortcuts, accessibility review, more languages.
+- **Module marketplace**: community modules, free or paid, published on the
+  [Sulfur website](https://sulfur.topazdev.fr) (catalogue, publishing with review, sales and
+  payouts to the publishers). In the application:
+  - catalogue in Settings → Modules: search, module page, one-click installation and updates,
+    instead of downloading the package by hand;
+  - verification of the signature of the marketplace packages and of the publisher, shown before
+    installation; packages installed by hand remain possible, unsigned, as today;
+  - purchase of a paid module from its page, licence then added automatically (see *Licences and
+    trial mode*);
+  - works offline: the catalogue is optional and can be disabled, no data is sent apart from
+    browsing the catalogue.
 
 ## Known limitations
 

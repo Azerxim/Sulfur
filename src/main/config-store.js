@@ -25,10 +25,12 @@ export class ConfigStore {
     return this.data
   }
 
-  /** Remplace une section. */
+  /** Remplace une section (`undefined` : la supprime). */
   set(section, value) {
     if (typeof section !== 'string' || !section) throw new Error(`Section invalide : ${section}`)
     this.data = { ...this.data, [section]: value }
+    // Section supprimée (réglages d'une instance supprimée).
+    if (value === undefined) delete this.data[section]
     this.write()
   }
 

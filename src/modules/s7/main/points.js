@@ -1,9 +1,7 @@
+import { instanceSection, instancesPointsApi } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, RETURN_CODES } from '../shared/constants'
 import { isNumericType } from '../shared/codec'
 import { t } from '../shared/i18n'
-
-const SERVER = 'server:'
-const CLIENT = 'client:'
 
 /** Codes de retour proposés pour le défaut « exception forcée ». */
 export const FAULT_CODES = [
@@ -14,75 +12,65 @@ export const FAULT_CODES = [
   { value: RETURN_CODES.NOT_AVAILABLE, label: '0A Object does not exist' }
 ]
 
-/**
- * Points de données du module S7 pour les autres modules (contrat : `points.js` du SDK) :
- * points de l'automate simulé (`server:<id>`) et surveillances du client (`client:<id>`).
- */
-export function createPointsApi({ server, client, savedConfig = () => ({}) }) {
-  const serverPoints = () =>
-    server.status().config?.points ?? savedConfig().server?.points ?? DEFAULT_SERVER_CONFIG.points
-
+/** Points d'un automate simulé. */
+export function serverPoints(server, instance, savedConfig = () => ({})) {
+  const points = () =>
+    server.status().config?.points ??
+    savedConfig()[instanceSection('server', instance.id)]?.points ??
+    DEFAULT_SERVER_CONFIG.points
   return {
-    name: 'Siemens S7',
-
-    points() {
-      return [
-        ...serverPoints().map((p) => ({
-          id: SERVER + p.id,
-          group: 'server',
-          name: `${p.name} (${p.address})`,
-          dataType: p.dataType,
-          numeric: isNumericType(p.dataType),
-          writable: true
-        })),
-        ...client.status().watches.map((w) => ({
-          id: CLIENT + w.id,
-          group: 'client',
-          name: w.label ? `${w.label} (${w.address})` : w.address,
-          dataType: w.dataType,
-          numeric: isNumericType(w.dataType),
-          writable: true
-        }))
-      ]
-    },
-
+    points: () =>
+      points().map((p) => ({
+        id: p.id,
+        name: `${p.name} (${p.address})`,
+        dataType: p.dataType,
+        numeric: isNumericType(p.dataType),
+        writable: true
+      })),
     read(ids) {
       const values = server.server ? server.values() : {}
-      return Object.fromEntries(
-        ids.map((id) => [
-          id,
-          id.startsWith(SERVER)
-            ? values[id.slice(SERVER.length)]
-            : (client.last.get(id.slice(CLIENT.length))?.value ?? undefined)
-        ])
-      )
+      return Object.fromEntries(ids.map((id) => [id, values[id]]))
     },
+    write: (id, value) => server.setValue(id, value),
+    setFaults: (faults) => server.setFaults(faults)
+  }
+}
 
+/** Points d'un client : ses surveillances. */
+export function clientPoints(client) {
+  return {
+    points: () =>
+      client.status().watches.map((w) => ({
+        id: w.id,
+        name: w.label ? `${w.label} (${w.address})` : w.address,
+        dataType: w.dataType,
+        numeric: isNumericType(w.dataType),
+        writable: true
+      })),
+    read: (ids) => Object.fromEntries(ids.map((id) => [id, client.last.get(id)?.value ?? undefined])),
     async write(id, value) {
-      if (id.startsWith(SERVER)) return server.setValue(id.slice(SERVER.length), value)
-      const watch = client.watches.get(id.slice(CLIENT.length))
+      const watch = client.watches.get(id)
       if (!watch) throw new Error(t('s7.errors.unknownWatch'))
       return client.writeValue(watch.address, watch.dataType, value, watch.length)
-    },
-
-    faultTypes() {
-      return [
-        { type: 'delay' },
-        { type: 'noResponse' },
-        { type: 'cut' },
-        { type: 'exception', codes: FAULT_CODES, scope: true },
-        { type: 'freeze', points: true }
-      ]
-    },
-
-    /** Les défauts portent sur l'automate simulé (points `server:<id>`). */
-    setFaults(faults) {
-      server.setFaults(
-        faults.map((f) => ({
-          ...f,
-          points: (f.points ?? []).filter((p) => p.startsWith(SERVER)).map((p) => p.slice(SERVER.length))
-        }))
-      )
     }
   }
+}
+
+/**
+ * Points de données du module S7 pour les autres modules (contrat : `points.js` du SDK) : points
+ * de chaque automate simulé et surveillances de chaque client, `<id instance>:<id>`.
+ */
+export function createPointsApi({ instances, savedConfig = () => ({}) }) {
+  return instancesPointsApi({
+    name: 'Siemens S7',
+    instances,
+    roles: { server: (server, instance) => serverPoints(server, instance, savedConfig), client: clientPoints },
+    faultTypes: [
+      { type: 'delay' },
+      { type: 'noResponse' },
+      { type: 'cut' },
+      { type: 'exception', codes: FAULT_CODES, scope: true },
+      { type: 'freeze', points: true }
+    ]
+  })
 }

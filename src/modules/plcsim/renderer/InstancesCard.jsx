@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Eraser, Play, Plus, Power, PowerOff, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faCircleStop,
+  faEraser,
+  faPlay,
+  faPlus,
+  faPowerOff,
+  faStop,
+  faTrashCan
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULT_NEW_INSTANCE } from '../shared/constants'
 import { plcsimApi } from './api'
@@ -31,7 +40,14 @@ function operations(state) {
   return ['powerOff']
 }
 
-const ICONS = { powerOn: Power, powerOff: PowerOff, run: Play, stop: Square, memoryReset: Eraser, unregister: Trash2 }
+const ICONS = {
+  powerOn: faPowerOff,
+  powerOff: faCircleStop,
+  run: faPlay,
+  stop: faStop,
+  memoryReset: faEraser,
+  unregister: faTrashCan
+}
 /** Opérations à confirmer par un second clic. */
 const CONFIRM = ['memoryReset', 'unregister', 'powerOff']
 
@@ -141,7 +157,7 @@ export default function InstancesCard({ status, selected, onSelect }) {
                       <td className="py-1.5 pr-2 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex gap-1">
                           {operations(inst.state).map((op) => {
-                            const Icon = ICONS[op]
+                            const icon = ICONS[op]
                             const confirming = armed === `${inst.name}:${op}`
                             return (
                               <Button
@@ -151,7 +167,7 @@ export default function InstancesCard({ status, selected, onSelect }) {
                                 disabled={!!busy}
                                 onClick={() => operate(inst.name, op)}
                               >
-                                <Icon className="size-3.5" />
+                                <FontAwesomeIcon icon={icon} className="size-3.5" />
                                 {confirming ? t('plcsim.instances.confirm') : t(`plcsim.operations.${op}`)}
                               </Button>
                             )
@@ -191,7 +207,7 @@ export default function InstancesCard({ status, selected, onSelect }) {
             </Select>
           </Field>
           <Button variant="primary" disabled={!connected || !draft.name.trim()} onClick={create}>
-            <Plus className="size-4" /> {t('plcsim.instances.create')}
+            <FontAwesomeIcon icon={faPlus} className="size-4" /> {t('plcsim.instances.create')}
           </Button>
         </div>
         <p className="text-xs text-slate-500">{t('plcsim.instances.hint')}</p>

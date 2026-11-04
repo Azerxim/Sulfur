@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Copy, Play, Square } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_GATEWAY_CONFIG } from '../shared/constants'
@@ -40,7 +41,7 @@ export default function GatewayCard({ status, portOpen }) {
           />
           {running ? (
             <Button variant="danger" size="sm" disabled={busy} onClick={() => run(serialApi.gateway.stop)}>
-              <Square className="size-3.5" /> {t('ui.stop')}
+              <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
             </Button>
           ) : (
             <Button
@@ -50,7 +51,7 @@ export default function GatewayCard({ status, portOpen }) {
               title={portOpen ? undefined : t('serial.gateway.needsPort')}
               onClick={() => run(() => serialApi.gateway.start(config))}
             >
-              <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+              <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
             </Button>
           )}
         </>
@@ -91,7 +92,7 @@ export default function GatewayCard({ status, portOpen }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
             {status.clients.length ? (

@@ -12,6 +12,8 @@ import dhcp from '@modules/dhcp/renderer'
 import ldap from '@modules/ldap/renderer'
 import tftp from '@modules/tftp/renderer'
 import ftp from '@modules/ftp/renderer'
+import proxy from '@modules/proxy/renderer'
+import coap from '@modules/coap/renderer'
 import simulator from '@modules/simulator/renderer'
 import trends from '@modules/trends/renderer'
 import ca from '@modules/ca/renderer'
@@ -20,13 +22,13 @@ import serial from '@modules/serial/renderer'
 
 /**
  * Modules affichés dans l'interface, par groupe (libellés : app.groups.*), dans l'ordre de la barre
- * latérale. Ajouter les nouveaux modules intégrés ici ; les modules externes sont ajoutés au
- * démarrage, avant le premier rendu (addModule).
+ * latérale : les protocoles d'abord, les outils transverses en dernier. Ajouter les nouveaux modules
+ * intégrés ici ; les modules externes sont ajoutés au démarrage, avant le premier rendu (addModule).
  */
 export const moduleGroups = [
-  { id: 'tools', modules: [simulator, trends, ca, explorer, serial] },
   { id: 'automation', modules: [opcua, modbus, s7, plcsim] },
-  { id: 'it', modules: [http, ntp, mqtt, snmp, syslog, dns, dhcp, ldap, ftp, tftp] }
+  { id: 'it', modules: [http, ntp, mqtt, snmp, syslog, dns, dhcp, ldap, ftp, tftp, coap, proxy] },
+  { id: 'tools', modules: [simulator, trends, ca, explorer, serial] }
 ]
 
 export const rendererModules = moduleGroups.flatMap((group) => group.modules)

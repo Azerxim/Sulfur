@@ -1,61 +1,87 @@
+import { instanceSection, migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances, ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { join } from 'path'
-import { ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { HTTP_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { HttpServer, SERVER_COMMON_NAME } from './server'
 import { HttpClient } from './client'
 import { createPointsApi } from './points'
 
-let server = null
-let client = null
+/** Instances uniques d'une version antérieure, converties en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('ui.server')} 1` },
+    client: { sections: ['client', 'clientRequest'], name: `${t('ui.client')} 1` }
+  })
 
-/** Partie "main" du module HTTP / REST. Canaux : `http:server:*`, `http:client:*`. */
+let instances = null
+
+/**
+ * Partie "main" du module HTTP / REST : serveurs et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `http:instances:*`, `http:server:*` et `http:client:*` (identifiant de l'instance en
+ * premier argument).
+ */
 export const httpMainModule = {
   manifest: HTTP_MODULE,
 
+  migrateConfig,
+
   activate(ctx) {
-    server = new HttpServer(() => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME), {
-      onStatus: (status) => ctx.emit('server:status', status),
-      onValues: (values) => ctx.emit('server:values', values),
-      onLog: (entry) => ctx.emit('server:log', entry)
+    const certificate = () => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ui.server'),
+        create: (_instance, { emit }) =>
+          new HttpServer(certificate, {
+            onStatus: (status) => emit('status', status),
+            onValues: (values) => emit('values', values),
+            onLog: (entry) => emit('log', entry)
+          }),
+        busy: (server) => server.status().running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('ui.client'),
+        create(instance, { emit }) {
+          const client = new HttpClient({
+            onStatus: (status) => emit('status', status),
+            onData: (data) => emit('data', data)
+          })
+          client.configure(ctx.config()[instanceSection('client', instance.id)])
+          return client
+        },
+        dispose: (client) => client.dispose()
+      }
     })
-    client = new HttpClient({
-      onStatus: (status) => ctx.emit('client:status', status),
-      onData: (data) => ctx.emit('client:data', data)
-    })
-    client.configure(ctx.config().client)
 
-    ctx.expose(createPointsApi({ server, client, savedConfig: ctx.config }))
-
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:values', () => server.values())
-    ctx.handle('server:logs', () => server.logs())
-    ctx.handle('server:clearLogs', () => server.clearLogs())
-    ctx.handle('server:upsertVariable', (def) => server.upsertVariable(def))
-    ctx.handle('server:removeVariable', (id) => server.removeVariable(id))
-    ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
-    ctx.handle('server:setRoutes', (routes) => server.setRoutes(routes))
-    ctx.handle('server:setWebhooks', (webhooks) => server.setWebhooks(webhooks))
-    ctx.handle('server:setUpdateRate', (rate) => server.setUpdateRate(rate))
-    ctx.handle('server:hashPassword', (password) => hashPassword(password))
-
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:configure', (config) => client.configure(config))
-    ctx.handle('client:send', (request) => client.send(request))
-    ctx.handle('client:addWatch', (item) => client.addWatch(item))
-    ctx.handle('client:removeWatch', (id) => client.removeWatch(id))
-    ctx.handle('client:setPollInterval', (ms) => client.setPollInterval(ms))
+    ctx.expose(createPointsApi({ instances, savedConfig: ctx.config }))
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'values', (server) => server.values())
+    instances.handle('server', 'logs', (server) => server.logs())
+    instances.handle('server', 'clearLogs', (server) => server.clearLogs())
+    instances.handle('server', 'upsertVariable', (server, def) => server.upsertVariable(def))
+    instances.handle('server', 'removeVariable', (server, id) => server.removeVariable(id))
+    instances.handle('server', 'setValue', (server, id, value) => server.setValue(id, value))
+    instances.handle('server', 'setRoutes', (server, routes) => server.setRoutes(routes))
+    instances.handle('server', 'setWebhooks', (server, webhooks) => server.setWebhooks(webhooks))
+    instances.handle('server', 'setUpdateRate', (server, rate) => server.setUpdateRate(rate))
+    instances.handle('server', 'hashPassword', (server, password) => hashPassword(password))
+    instances.handle('client', 'configure', (client, config) => client.configure(config))
+    instances.handle('client', 'send', (client, request) => client.send(request))
+    instances.handle('client', 'addWatch', (client, item) => client.addWatch(item))
+    instances.handle('client', 'removeWatch', (client, id) => client.removeWatch(id))
+    instances.handle('client', 'setPollInterval', (client, ms) => client.setPollInterval(ms))
   },
 
-  /** Serveur démarré. */
+  /** Au moins un serveur démarré. */
   busy() {
-    return !!server?.status().running
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    client?.dispose()
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

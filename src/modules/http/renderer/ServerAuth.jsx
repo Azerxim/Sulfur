@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { KeyRound, Plus, RefreshCw, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowsRotate, faKey, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Field, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { AUTH_TYPES, DEFAULT_SERVER_AUTH } from '../shared/constants'
-import { httpApi } from './api'
 import { t } from '../shared/i18n'
 
 /** Secret aléatoire (jeton Bearer, clé d'API) : 32 octets en hexadécimal. */
@@ -10,12 +10,12 @@ const randomSecret = () =>
   Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('')
 
 /** Mot de passe d'un utilisateur : saisi puis haché aussitôt (seule l'empreinte est conservée). */
-function PasswordField({ hasHash, disabled, onHash, onError }) {
+function PasswordField({ api, hasHash, disabled, onHash, onError }) {
   const [draft, setDraft] = useState('')
   const commit = async () => {
     if (!draft) return
     try {
-      onHash(await httpApi.server.hashPassword(draft))
+      onHash(await api.hashPassword(draft))
       setDraft('')
     } catch (err) {
       onError(err.message)
@@ -36,7 +36,7 @@ function PasswordField({ hasHash, disabled, onHash, onError }) {
 }
 
 /** Authentification du serveur : aucune, Basic (utilisateurs), Bearer ou clé d'API. */
-export default function ServerAuth({ value, locked, onChange, onError }) {
+export default function ServerAuth({ api, value, locked, onChange, onError }) {
   const auth = { ...DEFAULT_SERVER_AUTH, ...value }
   const set = (patch) => onChange({ ...auth, ...patch })
   const setUser = (i, patch) => set({ users: auth.users.map((u, j) => (j === i ? { ...u, ...patch } : u)) })
@@ -68,6 +68,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
                   onChange={(e) => setUser(i, { username: e.target.value })}
                 />
                 <PasswordField
+                  api={api}
                   hasHash={!!u.passwordHash}
                   disabled={locked}
                   onHash={(passwordHash) => setUser(i, { passwordHash })}
@@ -81,7 +82,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
                   disabled={locked}
                   onClick={() => set({ users: auth.users.filter((_, j) => j !== i) })}
                 >
-                  <X className="size-3.5" />
+                  <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                 </Button>
               </div>
             ))}
@@ -91,7 +92,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
               disabled={locked}
               onClick={() => set({ users: [...auth.users, { username: '', passwordHash: '' }] })}
             >
-              <Plus className="size-3.5" /> {t('http.auth.addUser')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('http.auth.addUser')}
             </Button>
           </div>
         )}
@@ -106,7 +107,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
                 onChange={(e) => set({ token: e.target.value })}
               />
               <Button disabled={locked} title={t('http.auth.generate')} onClick={() => set({ token: randomSecret() })}>
-                <RefreshCw className="size-3.5" /> {t('http.auth.generate')}
+                <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('http.auth.generate')}
               </Button>
             </div>
           </Field>
@@ -131,7 +132,7 @@ export default function ServerAuth({ value, locked, onChange, onError }) {
                   onChange={(e) => set({ apiKey: e.target.value })}
                 />
                 <Button disabled={locked} onClick={() => set({ apiKey: randomSecret() })}>
-                  <KeyRound className="size-3.5" /> {t('http.auth.generate')}
+                  <FontAwesomeIcon icon={faKey} className="size-3.5" /> {t('http.auth.generate')}
                 </Button>
               </div>
             </Field>

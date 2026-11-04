@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Plus, Power, PowerOff, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBroom, faPlus, faPowerOff, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, CommitInput, Input, Select } from '@azerxim/sulfur-sdk/ui'
 import { FAULT_TYPES } from '@azerxim/sulfur-sdk'
 import { FAULT_SCOPES } from '../shared/constants'
@@ -158,11 +159,11 @@ export default function FaultsCard({ faults, onChange, targets, status, onError 
         <>
           {status.faults.length > 0 && (
             <Button variant="danger" size="sm" onClick={() => call(simulatorApi.clearFaults)}>
-              <PowerOff className="size-3.5" /> {t('simulator.faults.clearAll')}
+              <FontAwesomeIcon icon={faBroom} className="size-3.5" /> {t('simulator.faults.clearAll')}
             </Button>
           )}
           <Button size="sm" onClick={add}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }
@@ -283,7 +284,7 @@ export default function FaultsCard({ faults, onChange, targets, status, onError 
                           size="sm"
                           onClick={() => call(() => simulatorApi.deactivateFault(f.id))}
                         >
-                          <PowerOff className="size-3.5" /> {t('simulator.faults.deactivate')}
+                          <FontAwesomeIcon icon={faBroom} className="size-3.5" /> {t('simulator.faults.deactivate')}
                         </Button>
                       ) : (
                         <Button
@@ -292,11 +293,11 @@ export default function FaultsCard({ faults, onChange, targets, status, onError 
                           disabled={!spec}
                           onClick={() => call(() => simulatorApi.activateFault(f))}
                         >
-                          <Power className="size-3.5" /> {t('simulator.faults.activate')}
+                          <FontAwesomeIcon icon={faPowerOff} className="size-3.5" /> {t('simulator.faults.activate')}
                         </Button>
                       )}
                       <Button variant="ghost" size="icon" title={t('ui.remove')} onClick={() => remove(f.id)}>
-                        <Trash2 className="size-3.5" />
+                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>

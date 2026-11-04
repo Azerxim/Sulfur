@@ -25,7 +25,7 @@ export default function SerialView() {
   }, [])
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto p-6">
+    <div className="flex h-full flex-col gap-3 overflow-auto p-4">
       <PortCard status={status} />
       <SendCard status={status} />
       <GatewayCard status={gatewayStatus} portOpen={status.open} />

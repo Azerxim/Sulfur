@@ -40,6 +40,21 @@ export default {
     renameRecreates: 'Renaming recreates the node (its identifier changes)',
     typeRecreates: 'Changing the type recreates the node',
     certificates: 'Certificates',
+    extensions: {
+      error: 'The tab provided by {module} ran into an error.'
+    },
+    instances: {
+      add: 'Add',
+      addRole: 'New: {role}',
+      rename: 'Rename',
+      remove: 'Remove',
+      removeTitle: 'Remove “{name}”?',
+      removeText:
+        'Its settings are removed with it. Simulator flows and trends that use its points will no longer find them.',
+      removeRunning: 'Stop it before removing it',
+      empty: 'No instance',
+      emptyHint: 'Add a server or a client to get started. You can create as many as you need.'
+    },
     autoAcceptServerCert: 'Automatically accept the server certificate',
     autoAcceptUnknownCerts: 'Automatically accept unknown certificates',
     security: 'Security',
@@ -56,7 +71,12 @@ export default {
     minPeriod: 'Minimum period: {min} ms',
     unknownStore: 'Unknown certificate store: {name}',
     certNotFound: 'Certificate not found',
-    emptyPassword: 'The password is empty'
+    emptyPassword: 'The password is empty',
+    emptyName: 'The name is empty',
+    readOnlyPoint: 'Read-only point: {id}',
+    unknownInstance: 'Unknown instance: {id}',
+    unknownRole: 'Unknown instance type: {role}',
+    instanceBusy: '“{name}” is running: stop it before removing it'
   },
   simulations: {
     none: 'Static',

@@ -1,16 +1,16 @@
-import { FileUp, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFileArrowUp, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { getLocale } from '@azerxim/sulfur-sdk'
-import { opcuaApi } from './api'
 import { t } from '../shared/i18n'
 
 const formatSize = (bytes) => t('opcua.nodesets.size', { size: Math.ceil(bytes / 1024).toLocaleString(getLocale()) })
 
 /** Fichiers NodeSet2 importés dans l'espace d'adressage du serveur (chargés au démarrage). */
-export default function ServerNodesets({ nodesets, loaded, locked, onChange, onError }) {
+export default function ServerNodesets({ api, nodesets, loaded, locked, onChange, onError }) {
   async function pick() {
     try {
-      const files = await opcuaApi.server.pickNodesets()
+      const files = await api.pickNodesets()
       if (!files) return
       // Un fichier du même nom remplace le précédent.
       const names = new Set(files.map((f) => f.name))
@@ -33,7 +33,7 @@ export default function ServerNodesets({ nodesets, loaded, locked, onChange, onE
         <>
           {locked && <span className="text-xs text-slate-500">{t('ui.lockedWhileRunning')}</span>}
           <Button size="sm" disabled={locked} onClick={pick}>
-            <FileUp className="size-3.5" /> {t('opcua.nodesets.import')}
+            <FontAwesomeIcon icon={faFileArrowUp} className="size-3.5" /> {t('opcua.nodesets.import')}
           </Button>
         </>
       }
@@ -71,7 +71,7 @@ export default function ServerNodesets({ nodesets, loaded, locked, onChange, onE
                   title={t('ui.remove')}
                   onClick={() => onChange(nodesets.filter((x) => x.id !== n.id))}
                 >
-                  <Trash2 className="size-3.5" />
+                  <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                 </Button>
               </li>
             ))}

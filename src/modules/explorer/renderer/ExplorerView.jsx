@@ -54,7 +54,7 @@ export default function ExplorerView() {
   const local = networks?.local ?? []
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto p-6">
+    <div className="flex h-full flex-col gap-3 overflow-auto p-4">
       <Card id="explorer.targets" title={t('explorer.targets.title')} className="shrink-0">
         <div className="flex flex-col gap-3">
           <Field label={t('explorer.targets.label')}>

@@ -110,6 +110,14 @@ describe('Modules activés et désactivés', () => {
     expect(b.activations).toBe(1)
   })
 
+  it('liste les canaux d’état des seuls modules actifs', async () => {
+    a.ctx.handle('server:status', () => ({ running: false }))
+    a.ctx.handle('client:status', () => ({ connected: false }))
+    expect(host.statusChannels()).toEqual({ a: ['a:server:status', 'a:client:status'], c: [] })
+    await host.setDisabled(['a'], ['a', 'b', 'c'])
+    expect(Object.keys(host.statusChannels())).toEqual(['b', 'c'])
+  })
+
   it('n’arrête à la fermeture que les modules actifs', async () => {
     await host.dispose()
     expect([a.deactivations, b.deactivations, c.deactivations]).toEqual([1, 0, 1])
@@ -299,11 +307,30 @@ describe('Modules externes', () => {
         version: '1.0.0',
         author: null,
         description: null,
+        extends: [],
         folder: 'broken',
         loaded: false
       },
-      { id: 'empty', name: 'empty', version: '?', author: null, description: null, folder: 'empty', loaded: false },
-      { id: 'ext', name: 'Package ext', version: '1.0.0', author: null, description: null, folder: 'ext', loaded: true }
+      {
+        id: 'empty',
+        name: 'empty',
+        version: '?',
+        author: null,
+        description: null,
+        extends: [],
+        folder: 'empty',
+        loaded: false
+      },
+      {
+        id: 'ext',
+        name: 'Package ext',
+        version: '1.0.0',
+        author: null,
+        description: null,
+        extends: [],
+        folder: 'ext',
+        loaded: true
+      }
     ])
   })
 
@@ -315,6 +342,7 @@ describe('Modules externes', () => {
       version: '1.0.0',
       author: 'Jane Doe',
       description: 'New module',
+      extends: [],
       files: 3,
       installed: null
     })

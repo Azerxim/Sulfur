@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/mqtt.md)
 
+- **Multiple instances**: as many brokers and clients as needed, each in its own tab, with its name
+  and settings; none exists at first. A stopped instance can be renamed or removed. Those of an
+  earlier version become "Server 1" and "Client 1".
+
 - **Broker** (MQTT 3.1, 3.1.1 and 5.0, default port 1883; TLS on 8883 with a self-signed certificate
   `MQTT@Sulfur` generated on first start): persistent sessions and session expiry, QoS 0 / 1 / 2,
   retained messages, last will (with delay in 5.0), topic aliases, 5.0 subscription options (no local,

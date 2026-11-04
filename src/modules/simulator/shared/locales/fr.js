@@ -78,7 +78,10 @@ export default {
       recording: 'Enregistrement… {count} changement(s)',
       stopRecording: "Arrêter l'enregistrement",
       recordPoints: 'Points à enregistrer',
-      recordHint: 'Les évolutions des points choisis sont enregistrées dans un nouveau flux.'
+      recordHint: 'Les évolutions des points choisis sont enregistrées dans un nouveau flux.',
+      flowTitle: 'Flux affiché',
+      fullscreen: 'Plein écran',
+      exitFullscreen: 'Quitter le plein écran (Échap)'
     },
     editor: {
       properties: 'Propriétés',
@@ -87,7 +90,12 @@ export default {
       trigger: 'Déclencher',
       output: 'Sortie {n}',
       duplicateNode: 'Dupliquer le nœud',
-      resize: 'Tirer pour redimensionner (double-clic : largeur par défaut)'
+      resize: 'Tirer pour redimensionner (double-clic : largeur par défaut)',
+      palette: 'Nœuds',
+      collapsePalette: 'Réduire la palette',
+      expandPalette: 'Afficher la palette',
+      collapseSide: 'Réduire le panneau',
+      expandSide: 'Afficher le panneau'
     },
     debug: {
       currentFlow: 'Flux affiché seulement',

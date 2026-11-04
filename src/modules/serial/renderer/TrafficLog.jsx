@@ -1,5 +1,6 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Download, Pause, Play, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDownload, faPause, faPlay, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, Checkbox, Select, usePersistentState } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
 import { DEFAULT_DISPLAY_CONFIG, LOG_VIEWS, MAX_LOG } from '../shared/constants'
@@ -122,7 +123,11 @@ export default function TrafficLog() {
             title={paused ? t('serial.log.resume') : t('serial.log.pause')}
             onClick={togglePause}
           >
-            {paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
+            {paused ? (
+              <FontAwesomeIcon icon={faPlay} className="size-3.5" />
+            ) : (
+              <FontAwesomeIcon icon={faPause} className="size-3.5" />
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -131,7 +136,7 @@ export default function TrafficLog() {
             disabled={!entries.length}
             onClick={exportLog}
           >
-            <Download className="size-3.5" />
+            <FontAwesomeIcon icon={faDownload} className="size-3.5" />
           </Button>
           <Button
             variant="ghost"
@@ -145,7 +150,7 @@ export default function TrafficLog() {
               })
             }
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </>
       }

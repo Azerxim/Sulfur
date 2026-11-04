@@ -1,5 +1,18 @@
-import { useEffect, useState } from 'react'
-import { BookOpen, Eye, Fingerprint, Plug, PlugZap, Power, PowerOff, RefreshCw, Send, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { instanceSection } from '@azerxim/sulfur-sdk'
+import {
+  faArrowsRotate,
+  faBookOpen,
+  faCircleStop,
+  faEye,
+  faFingerprint,
+  faPaperPlane,
+  faPlug,
+  faPlugCircleBolt,
+  faPowerOff,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -62,9 +75,10 @@ function ConfirmButton({ onConfirm, children, confirmLabel, ...props }) {
   )
 }
 
-export default function ClientPanel({ status, serverPort }) {
-  const [config, setConfig] = usePersistentState('s7', 'client', DEFAULT_CLIENT_CONFIG)
-  const [op, setOp] = usePersistentState('s7', 'clientRequest', DEFAULT_CLIENT_REQUEST)
+export default function ClientPanel({ instance, status }) {
+  const api = useMemo(() => s7Api.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState('s7', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG)
+  const [op, setOp] = usePersistentState('s7', instanceSection('clientRequest', instance.id), DEFAULT_CLIENT_REQUEST)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)
@@ -75,12 +89,7 @@ export default function ClientPanel({ status, serverPort }) {
   const [live, setLive] = useState({})
   const connected = status.connected
 
-  // Aligne le port sur l'automate simulé local lorsqu'il démarre.
-  useEffect(() => {
-    if (serverPort && !connected) setConfig((c) => ({ ...c, port: serverPort }))
-  }, [serverPort, connected, setConfig])
-
-  useEffect(() => s7Api.client.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [])
+  useEffect(() => api.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [api])
   useEffect(() => {
     if (!connected) setLive({})
   }, [connected])
@@ -99,7 +108,7 @@ export default function ClientPanel({ status, serverPort }) {
 
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
   const updateOp = (patch) => setOp((o) => ({ ...o, ...patch }))
-  const connect = () => run(() => s7Api.client.connect(config))
+  const connect = () => run(() => api.connect(config))
   const length = op.dataType === 'String' ? (op.length ?? DEFAULT_STRING_LENGTH) : undefined
 
   /** Adresse saisie : le type suit la taille indiquée (X → Bool, W → Int…) s'il ne lui correspond plus. */
@@ -116,32 +125,32 @@ export default function ClientPanel({ status, serverPort }) {
 
   const read = () =>
     run(async () => {
-      const value = await s7Api.client.readValue(op.address, op.dataType, length)
+      const value = await api.readValue(op.address, op.dataType, length)
       setResult({ address: op.address, dataType: op.dataType, value, time: new Date().toISOString() })
     })
 
   const write = () =>
     run(async () => {
-      await s7Api.client.writeValue(op.address, op.dataType, writeValue, length)
-      const value = await s7Api.client.readValue(op.address, op.dataType, length)
+      await api.writeValue(op.address, op.dataType, writeValue, length)
+      const value = await api.readValue(op.address, op.dataType, length)
       setResult({ address: op.address, dataType: op.dataType, value, time: new Date().toISOString() })
     })
 
   const watch = () =>
     run(async () => {
-      await s7Api.client.addWatch({ address: op.address, dataType: op.dataType, length, label: label.trim() })
+      await api.addWatch({ address: op.address, dataType: op.dataType, length, label: label.trim() })
       setLabel('')
     })
 
   const readRaw = () =>
     run(async () => {
-      const bytes = await s7Api.client.readArea(op.rawArea, op.rawDb, op.rawStart, op.rawCount)
+      const bytes = await api.readArea(op.rawArea, op.rawDb, op.rawStart, op.rawCount)
       setRaw({ area: op.rawArea, db: op.rawDb, start: Number(op.rawStart), bytes, time: new Date().toISOString() })
     })
 
   const writeRaw = () =>
     run(async () => {
-      await s7Api.client.writeArea(op.rawArea, op.rawDb, op.rawStart, parseBytes(writeBytes))
+      await api.writeArea(op.rawArea, op.rawDb, op.rawStart, parseBytes(writeBytes))
       await readRaw()
     })
 
@@ -210,12 +219,13 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             {connected ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(s7Api.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
+              <Button variant="danger" disabled={busy} onClick={() => run(api.disconnect)}>
+                <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button variant="primary" disabled={busy || !config.host} onClick={connect}>
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+                <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+                {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
@@ -301,8 +311,8 @@ export default function ClientPanel({ status, serverPort }) {
         actions={
           <>
             <CpuBadge state={connected ? status.cpuState : null} />
-            <Button size="sm" disabled={!connected || busy} onClick={() => run(s7Api.client.identify)}>
-              <Fingerprint className="size-3.5" /> {t('s7.client.identify')}
+            <Button size="sm" disabled={!connected || busy} onClick={() => run(api.identify)}>
+              <FontAwesomeIcon icon={faFingerprint} className="size-3.5" /> {t('s7.client.identify')}
             </Button>
           </>
         }
@@ -323,32 +333,32 @@ export default function ClientPanel({ status, serverPort }) {
             <p className="text-sm text-slate-500">{t('s7.client.identifyHint')}</p>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" disabled={!connected || busy} onClick={() => run(s7Api.client.cpuState)}>
-              <RefreshCw className="size-3.5" /> {t('s7.client.readState')}
+            <Button size="sm" disabled={!connected || busy} onClick={() => run(api.cpuState)}>
+              <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('s7.client.readState')}
             </Button>
             <ConfirmButton
               size="sm"
               disabled={!connected || busy}
               confirmLabel={t('s7.client.confirm')}
-              onConfirm={() => run(() => s7Api.client.startCpu('hot'))}
+              onConfirm={() => run(() => api.startCpu('hot'))}
             >
-              <Power className="size-3.5" /> {t('s7.client.hotStart')}
+              <FontAwesomeIcon icon={faPowerOff} className="size-3.5" /> {t('s7.client.hotStart')}
             </ConfirmButton>
             <ConfirmButton
               size="sm"
               disabled={!connected || busy}
               confirmLabel={t('s7.client.confirm')}
-              onConfirm={() => run(() => s7Api.client.startCpu('cold'))}
+              onConfirm={() => run(() => api.startCpu('cold'))}
             >
-              <Power className="size-3.5" /> {t('s7.client.coldStart')}
+              <FontAwesomeIcon icon={faPowerOff} className="size-3.5" /> {t('s7.client.coldStart')}
             </ConfirmButton>
             <ConfirmButton
               size="sm"
               disabled={!connected || busy}
               confirmLabel={t('s7.client.confirm')}
-              onConfirm={() => run(s7Api.client.stopCpu)}
+              onConfirm={() => run(api.stopCpu)}
             >
-              <PowerOff className="size-3.5" /> STOP
+              <FontAwesomeIcon icon={faCircleStop} className="size-3.5" /> STOP
             </ConfirmButton>
             <span className="text-xs text-slate-500">{t('s7.client.controlHint')}</span>
           </div>
@@ -395,10 +405,10 @@ export default function ClientPanel({ status, serverPort }) {
             </Field>
             <div className="flex gap-2">
               <Button variant="primary" disabled={!connected || busy} onClick={read}>
-                <BookOpen className="size-4" /> {t('ui.read')}
+                <FontAwesomeIcon icon={faBookOpen} className="size-4" /> {t('ui.read')}
               </Button>
               <Button disabled={busy} onClick={watch} title={t('s7.client.watchHint')}>
-                <Eye className="size-4" /> {t('s7.client.watch')}
+                <FontAwesomeIcon icon={faEye} className="size-4" /> {t('s7.client.watch')}
               </Button>
             </div>
           </div>
@@ -412,7 +422,7 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             <Button variant="primary" disabled={!connected || busy || writeValue === ''} onClick={write}>
-              <Send className="size-4" /> {t('ui.write')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('ui.write')}
             </Button>
           </div>
           {result && (
@@ -472,7 +482,7 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             <Button variant="primary" disabled={!connected || busy} onClick={readRaw}>
-              <BookOpen className="size-4" /> {t('ui.read')}
+              <FontAwesomeIcon icon={faBookOpen} className="size-4" /> {t('ui.read')}
             </Button>
           </div>
           <div className="flex items-end gap-3">
@@ -485,7 +495,7 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             <Button variant="primary" disabled={!connected || busy || !writeBytes.trim()} onClick={writeRaw}>
-              <Send className="size-4" /> {t('ui.write')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('ui.write')}
             </Button>
           </div>
           {raw && (
@@ -532,7 +542,7 @@ export default function ClientPanel({ status, serverPort }) {
               min={50}
               className="h-7! w-20!"
               value={status.pollInterval ?? DEFAULT_CLIENT_CONFIG.pollInterval}
-              onCommit={(value) => run(() => s7Api.client.setPollInterval(Number(value)))}
+              onCommit={(value) => run(() => api.setPollInterval(Number(value)))}
             />
             ms
           </label>
@@ -574,7 +584,7 @@ export default function ClientPanel({ status, serverPort }) {
                         value=""
                         placeholder={w.dataType === 'Bool' ? 'true / false' : ''}
                         onCommit={(value) =>
-                          value !== '' && run(() => s7Api.client.writeValue(w.address, w.dataType, value, w.length))
+                          value !== '' && run(() => api.writeValue(w.address, w.dataType, value, w.length))
                         }
                       />
                     </td>
@@ -584,9 +594,9 @@ export default function ClientPanel({ status, serverPort }) {
                         variant="ghost"
                         size="icon"
                         title={t('ui.remove2')}
-                        onClick={() => run(() => s7Api.client.removeWatch(w.id))}
+                        onClick={() => run(() => api.removeWatch(w.id))}
                       >
-                        <X className="size-3.5" />
+                        <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>

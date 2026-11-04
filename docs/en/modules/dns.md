@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/dns.md)
 
+- **Multiple instances**: as many servers and clients as needed, each in its own tab, with its name
+  and settings; none exists at first. A stopped instance can be renamed or removed. Those of an
+  earlier version become "Server 1" and "Client 1".
+
 - **Server** authoritative for a test domain, over UDP and TCP (default port 1053, standard port 53
   with administrator rights on Linux):
   - zone records A, AAAA, CNAME, MX, TXT, SRV, PTR, NS, edited while the server is running; relative

@@ -1,4 +1,4 @@
-import { Globe } from 'lucide-react'
+import { faGlobe } from '@fortawesome/free-solid-svg-icons'
 import { HTTP_MODULE } from '../shared/constants'
 import HttpView from './HttpView'
 import '../shared/locales'
@@ -6,6 +6,6 @@ import '../shared/locales'
 /** Partie "renderer" du module HTTP / REST. */
 export default {
   manifest: HTTP_MODULE,
-  icon: Globe,
+  icon: faGlobe,
   Component: HttpView
 }

@@ -12,7 +12,26 @@ export default {
     resetModuleConfig: 'Restore the module default configuration',
     retry: 'Retry',
     updateAvailable: 'Update available: v{version}',
-    updateReady: 'Update ready: v{version}'
+    updateReady: 'Update ready: v{version}',
+    search: 'Search…',
+    searchPlaceholder: 'Go to a module or a page…',
+    noResult: 'No result for “{query}”',
+    paletteKeys: {
+      navigate: 'navigate',
+      open: 'open',
+      close: 'close'
+    },
+    activity: {
+      sessions: 'Running · {count} session(s)',
+      running: 'Running',
+      client: 'Client connected',
+      active: 'Active',
+      stopped: 'Stopped'
+    },
+    statusBar: {
+      active: '{count} active module(s)',
+      sessions: '{count} session(s)'
+    }
   },
   errors: {
     externalBusy: 'Stop the servers and clients of these modules before refreshing the external modules: {modules}',
@@ -46,16 +65,15 @@ export default {
     }
   },
   home: {
-    name: 'Home',
-    description: 'Overview of Sulfur and its modules',
+    name: 'Overview',
+    description: 'What is running right now: servers, clients, sessions and endpoints',
     headline: 'Modular simulator of industrial and IT protocols',
     intro:
       'Sulfur simulates the servers and clients of the protocols found in automation and supervision: OPC UA, Modbus, Siemens S7, MQTT, SNMP, HTTP, NTP, Syslog… Test devices, supervision software and integrations without the real installation, and reproduce faults on demand.',
-    stepsTitle: 'Getting started',
     steps: {
       start: {
-        title: 'Start a module',
-        text: 'Choose a protocol, start its simulated server or connect its client to a real device.'
+        title: 'Create and start',
+        text: 'Open a protocol, add as many simulated servers and clients as needed, then start them.'
       },
       simulate: {
         title: 'Simulate',
@@ -68,6 +86,10 @@ export default {
       save: {
         title: 'Save and share',
         text: 'Settings are saved automatically; export them to JSON to share a test setup.'
+      },
+      modules: {
+        title: 'Choose modules',
+        text: 'Enable or disable modules, by group or one by one, and install external modules.'
       }
     },
     groups: {
@@ -75,6 +97,33 @@ export default {
       automation: 'Industrial protocols and PLCs.',
       it: 'Network services, messaging and supervision.'
     },
+    stats: {
+      active: 'Active modules',
+      activeOf: 'of {count} · {instances} instance(s) created',
+      servers: 'Running servers',
+      serversHint: '{count} client session(s)',
+      clients: 'Connected clients',
+      clientsHint: 'To servers or devices',
+      tools: 'Active tools',
+      toolsHint: 'Simulator, trends, serial terminal…'
+    },
+    activeTitle: 'Running now',
+    activeEmpty:
+      'No server or client yet. Open a module, add a server or a client to it and start it: it will show up here with its endpoint.',
+    activeStopped:
+      '{count} instance(s) created, none running. Start a server or connect a client: it will show up here with its endpoint.',
+    columns: {
+      module: 'Module · instance',
+      endpoint: 'Endpoint',
+      activity: 'Activity'
+    },
+    open: 'Open {name}',
+    target: 'Client target',
+    running: '{count} running',
+    instances: '{count} instance(s)',
+    extends: 'Extends {names}',
+    statusTitle: 'Module status',
+    version: 'Sulfur {version} · module SDK {sdk}',
     license: 'Apache License 2.0 — © 2026 Maxime MALLET',
     repository: 'Source code and documentation'
   },
@@ -100,6 +149,7 @@ export default {
       modules: 'Modules',
       updates: 'Updates'
     },
+    preferences: 'Preferences',
     language: 'Language',
     languageHint: 'Applies to the whole interface and to server and client messages.',
     theme: 'Theme',
@@ -110,23 +160,42 @@ export default {
     modules: 'Modules',
     moduleSwitch: {
       title: 'Enabled modules',
-      hint: 'A disabled module is hidden from the sidebar and the home page, stopped, and no longer loaded at startup. Its settings are kept. Stop its servers and clients before disabling it.',
+      hint: 'A disabled module disappears from the sidebar, is no longer loaded at startup and keeps its settings. A running module cannot be disabled: stop its servers and clients first.',
       summary: '{enabled} of {total} modules enabled',
+      running: '{count} running',
+      filter: 'Filter modules',
+      show: 'Show',
+      filters: {
+        all: 'All',
+        on: 'Enabled',
+        off: 'Disabled'
+      },
+      noMatch: 'No module matches this filter.',
+      disabled: 'Disabled',
+      locked: 'Running: stop its servers and clients to disable it',
+      extends: 'Extends {modules}',
       enableAll: 'Enable all',
       disableAll: 'Disable all',
+      enable: 'Enable',
+      disable: 'Disable',
+      enableGroup: 'Enable every module of the {group} group',
+      disableGroup: 'Disable every module of the {group} group (except running ones)',
       additional: 'Additional',
       rejected: 'Modules not loaded ({count})',
-      api: 'Module API {version}'
+      api: 'Accepted modules: SDK {min} to {max}'
     },
     externalModules: {
       title: 'External modules',
-      hint: 'Modules developed outside Sulfur with its SDK, yours included. Install a package (.sulfur-module file) with Install a package, or copy its folder into the packages folder. Taken into account at the next start of Sulfur, or right away with Refresh.',
+      sdk: {
+        label: 'Accepted module SDK',
+        hint: 'Packages built with @azerxim/sulfur-sdk {major}.x, up to version {max}, are accepted. A package built with a newer SDK is refused: update Sulfur.'
+      },
+      hint: 'Built with the Sulfur SDK, installed from a .sulfur-module package or copied into the packages folder; taken into account with Refresh or at the next start.',
       enable: 'Load the external modules',
       warning:
         'Packages are not signed: an external module runs with the rights of Sulfur. Only install modules you wrote yourself or from a source you trust.',
       folder: 'Packages folder:',
       open: 'Open',
-      loaded: '{count} external module(s) loaded',
       reload: 'Refresh',
       reloadHint:
         'Read the packages again (added, updated or removed) without restarting Sulfur; the interface is reloaded',
@@ -136,9 +205,11 @@ export default {
       packageFiles: 'Sulfur module package',
       installed: 'Installed packages',
       none: 'No package installed.',
-      notLoaded: 'not loaded',
+      notLoaded: 'Not loaded',
+      loadedBadge: 'Loaded',
       unknownAuthor: 'author not specified',
       by: 'by {author}',
+      extends: 'extends {modules}',
       remove: 'Remove',
       confirmRemove: 'Remove {name}',
       cancel: 'Cancel',
@@ -149,6 +220,7 @@ export default {
         id: 'Identifier',
         version: 'Version',
         author: 'Author',
+        extends: 'Extends',
         content: 'Content',
         files: '{count} file(s), {size}',
         current: 'Installed version',
@@ -192,18 +264,24 @@ export default {
       unsupported: 'Updates are only available in the installed application.',
       check: 'Check now',
       checking: 'Checking for updates…',
-      upToDate: 'Sulfur is up to date (last checked {time}).',
+      upToDate: 'Sulfur is up to date',
+      checkedAt: 'Version {version} · last checked {time}',
+      errorTitle: 'Checking for updates failed',
+      source: 'Source',
+      openReleases: 'GitHub releases',
       available: 'Version {version} is available.',
       download: 'Download and install',
       openDownload: 'Open the download page',
       macHint: 'On macOS, download the new version from its release page and replace the application.',
       releaseNotes: 'Release notes',
-      downloading: 'Downloading… {progress} %',
+      downloadingTitle: 'Downloading version {version}…',
+      downloadingHint: 'You can keep using Sulfur during the download.',
       downloaded: 'Version {version} is ready to install.',
       downloadedHint: 'Otherwise, it will be installed when Sulfur closes.',
       install: 'Restart and install',
       notes: {
         title: 'Release notes',
+        versions: 'Versions',
         refresh: 'Refresh',
         loading: 'Loading the GitHub releases…',
         empty: 'No published release.',

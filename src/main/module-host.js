@@ -141,6 +141,19 @@ export class ModuleHost {
     this.active.delete(id)
   }
 
+  /**
+   * Canaux d'état des modules actifs (`<moduleId>:status`, `<moduleId>:server:status`…), par
+   * identifiant : l'interface en déduit l'activité de chaque module (barre latérale, accueil).
+   */
+  statusChannels() {
+    return Object.fromEntries(
+      this.activeModules().map((m) => [
+        m.manifest.id,
+        [...this.contexts.get(m.manifest.id).channels].filter((channel) => /:status$/.test(channel))
+      ])
+    )
+  }
+
   /** Canaux et points d'un module retirés. */
   release(id) {
     const ctx = this.contexts.get(id)

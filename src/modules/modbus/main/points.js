@@ -1,3 +1,4 @@
+import { instancePointId, instanceSection, parseInstancePointId } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, TABLES } from '../shared/constants'
 import { allPoints, normalizeServerConfig, unitLabel } from '../shared/units'
 import { t } from '../shared/i18n'
@@ -13,62 +14,74 @@ export const FAULT_EXCEPTIONS = [
   { value: 11, label: '0B Gateway target failed to respond' }
 ]
 
-const SERVER = 'server:'
-const CLIENT = 'client:'
-
 /**
- * Points de données du module Modbus pour les autres modules (contrat : `points.js` du SDK) :
- * points du serveur (`server:<id>`) et surveillances du client (`client:<id>`).
+ * Points de données du module Modbus pour les autres modules (contrat : `points.js` du SDK) : points
+ * de chaque serveur et surveillances de chaque client, d'identifiant `<id instance>:<id>`.
  */
-export function createPointsApi({ server, client, savedConfig = () => ({}) }) {
-  // Points de tous les équipements du serveur (configuration en marche, sinon enregistrée).
-  const points = () =>
-    allPoints(server.status().config ?? normalizeServerConfig(savedConfig().server) ?? DEFAULT_SERVER_CONFIG)
+export function createPointsApi({ instances, savedConfig = () => ({}) }) {
+  /** Configuration d'un serveur : celle en marche, sinon celle enregistrée. */
+  const serverConfig = (instance, server) =>
+    server.status().config ??
+    normalizeServerConfig(savedConfig()[instanceSection('server', instance.id)]) ??
+    DEFAULT_SERVER_CONFIG
+
+  /** Instance désignée par un identifiant de point : { instance, object, id } ou null. */
+  const resolve = (pointId) => {
+    const { instanceId, id } = parseInstancePointId(pointId)
+    const entry = instances.all().find(({ instance }) => instance.id === instanceId)
+    return entry ? { ...entry, id } : null
+  }
 
   return {
     name: 'Modbus',
 
     points() {
-      const list = points()
-      // Plusieurs équipements : le nom du point est précédé de celui de son équipement.
-      const several = new Set(list.map(({ unit }) => unit.id)).size > 1
-      return [
-        ...list.map(({ unit, point: p }) => ({
-          id: SERVER + p.id,
-          group: 'server',
+      return instances.all().flatMap(({ instance, object }) => {
+        const base = { group: instance.role, groupName: instance.name, numeric: true }
+        if (instance.role === 'client') {
+          return object.status().watches.map((w) => ({
+            ...base,
+            id: instancePointId(instance.id, w.id),
+            name: w.label || `${TABLES[w.table]?.prefix ?? ''}${w.address}`,
+            dataType: w.dataType,
+            writable: !!TABLES[w.table]?.writable
+          }))
+        }
+        const list = allPoints(serverConfig(instance, object))
+        // Plusieurs équipements : le nom du point est précédé de celui de son équipement.
+        const several = new Set(list.map(({ unit }) => unit.id)).size > 1
+        return list.map(({ unit, point: p }) => ({
+          ...base,
+          id: instancePointId(instance.id, p.id),
           name: several ? `${unitLabel(unit)} · ${p.name}` : p.name,
           dataType: p.dataType,
-          numeric: true,
           writable: true
-        })),
-        ...client.status().watches.map((w) => ({
-          id: CLIENT + w.id,
-          group: 'client',
-          name: w.label || `${TABLES[w.table]?.prefix ?? ''}${w.address}`,
-          dataType: w.dataType,
-          numeric: true,
-          writable: !!TABLES[w.table]?.writable
         }))
-      ]
+      })
     },
 
     read(ids) {
-      const values = server.values()
+      const values = new Map()
       return Object.fromEntries(
-        ids.map((id) => [
-          id,
-          id.startsWith(SERVER)
-            ? values[id.slice(SERVER.length)]
-            : (client.last.get(id.slice(CLIENT.length))?.value ?? undefined)
-        ])
+        ids.map((pointId) => {
+          const target = resolve(pointId)
+          if (!target) return [pointId, undefined]
+          const { instance, object, id } = target
+          if (instance.role === 'client') return [pointId, object.last.get(id)?.value ?? undefined]
+          if (!values.has(instance.id)) values.set(instance.id, object.values())
+          return [pointId, values.get(instance.id)[id]]
+        })
       )
     },
 
-    async write(id, value) {
-      if (id.startsWith(SERVER)) return server.setValue(id.slice(SERVER.length), value)
-      const watch = client.watches.get(id.slice(CLIENT.length))
+    async write(pointId, value) {
+      const target = resolve(pointId)
+      if (!target) throw new Error(t('errors.unknownInstance', { id: parseInstancePointId(pointId).instanceId }))
+      const { instance, object, id } = target
+      if (instance.role === 'server') return object.setValue(id, value)
+      const watch = object.watches.get(id)
       if (!watch) throw new Error(t('modbus.errors.unknownWatch'))
-      return client.writeValue(watch.table, watch.address, value, watch.dataType, watch.wordOrder)
+      return object.writeValue(watch.table, watch.address, value, watch.dataType, watch.wordOrder)
     },
 
     faultTypes() {
@@ -81,14 +94,23 @@ export function createPointsApi({ server, client, savedConfig = () => ({}) }) {
       ]
     },
 
-    /** Les défauts portent sur les points du serveur (ids `server:<id>`). */
+    /**
+     * Les défauts portent sur les serveurs : un défaut sans point vaut pour tous, un défaut visant des
+     * points ne concerne que le serveur qui les porte (une liste vide vaudrait pour tous ses points).
+     */
     setFaults(faults) {
-      server.setFaults(
-        faults.map((f) => ({
-          ...f,
-          points: (f.points ?? []).filter((p) => p.startsWith(SERVER)).map((p) => p.slice(SERVER.length))
-        }))
-      )
+      for (const { instance, object } of instances.all('server')) {
+        object.setFaults(
+          faults.flatMap((f) => {
+            if (!f.points?.length) return [{ ...f, points: [] }]
+            const points = f.points
+              .map(parseInstancePointId)
+              .filter((p) => p.instanceId === instance.id)
+              .map((p) => p.id)
+            return points.length ? [{ ...f, points }] : []
+          })
+        )
+      }
     }
   }
 }

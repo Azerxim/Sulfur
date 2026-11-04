@@ -2,6 +2,11 @@
 
 [Documentation](../README.md) · [Tous les modules](../README.md#modules) · [English](../../en/modules/modbus.md) · **Français**
 
+- **Serveurs et clients multiples** : autant de serveurs et de clients que nécessaire, chacun dans
+  son onglet (boutons « + Serveur » et « + Client »), avec son nom et ses réglages ; aucun n'existe
+  au départ. Une instance arrêtée peut être renommée ou supprimée. Le serveur et le client d'une
+  version antérieure deviennent « Serveur 1 » et « Client 1 ».
+
 - **Transports** : Modbus TCP (en-tête MBAP), Modbus/TCP Security (TLS), **RTU over TCP** (trames RTU
   avec CRC dans une connexion TCP, comme celles des passerelles série / Ethernet en mode
   transparent), et **Modbus RTU** / **Modbus ASCII** sur liaison série (port RS-232 / RS-485,

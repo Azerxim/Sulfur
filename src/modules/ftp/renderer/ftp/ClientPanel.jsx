@@ -1,19 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  ArrowUp,
-  Download,
-  File,
-  FileUp,
-  Folder,
-  FolderPlus,
-  Link,
-  Lock,
-  Pencil,
-  Plug,
-  PlugZap,
-  RefreshCw,
-  Trash2
-} from 'lucide-react'
+  faArrowUp,
+  faArrowsRotate,
+  faDownload,
+  faFile,
+  faFileArrowUp,
+  faFolder,
+  faFolderPlus,
+  faLink,
+  faLock,
+  faPen,
+  faPlug,
+  faPlugCircleBolt,
+  faTrashCan
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -25,36 +26,31 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatDate, formatTime } from '@azerxim/sulfur-sdk'
+import { formatDate, formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_CLIENT_CONFIG, TLS_MODES } from '../../shared/constants'
 import { formatSize } from '../format'
 import { ftpApi } from '../api'
 import { t } from '../../shared/i18n'
 
-const ICONS = { dir: Folder, file: File, link: Link }
+const ICONS = { dir: faFolder, file: faFile, link: faLink }
 
 const DIRECTION_STYLES = { '>': 'text-sulfur-300', '<': 'text-slate-300' }
 
 /** Dialogue de commandes du client (réponses du serveur, commandes envoyées, mots de passe masqués). */
-function Dialog() {
+function Dialog({ api }) {
   const [entries, setEntries] = useState([])
   useEffect(() => {
-    ftpApi.client.dialog().then(setEntries)
-    return ftpApi.client.onDialog((entry) => setEntries((list) => [...list.slice(-299), entry]))
-  }, [])
+    api.dialog().then(setEntries)
+    return api.onDialog((entry) => setEntries((list) => [...list.slice(-299), entry]))
+  }, [api])
   return (
     <Card
       id="ftp.client.dialog"
       title={t('ftp.client.dialog', { count: entries.length })}
       className="min-h-48 shrink-0"
       actions={
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={!entries.length}
-          onClick={() => ftpApi.client.clearDialog().then(setEntries)}
-        >
-          <Trash2 className="size-3.5" /> {t('ftp.server.clearLog')}
+        <Button size="sm" variant="ghost" disabled={!entries.length} onClick={() => api.clearDialog().then(setEntries)}>
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ftp.server.clearLog')}
         </Button>
       }
     >
@@ -79,9 +75,10 @@ function Dialog() {
   )
 }
 
-export default function ClientPanel({ status, serverPort }) {
+export default function ClientPanel({ instance, status }) {
+  const api = useMemo(() => ftpApi.client(instance.id), [instance.id])
   // Le mot de passe n'est pas enregistré.
-  const [config, setConfig] = usePersistentState('ftp', 'client', DEFAULT_CLIENT_CONFIG, {
+  const [config, setConfig] = usePersistentState('ftp', instanceSection('client', instance.id), DEFAULT_CLIENT_CONFIG, {
     persist: (c) => ({ ...c, password: '' })
   })
   const [listing, setListing] = useState(null)
@@ -91,9 +88,6 @@ export default function ClientPanel({ status, serverPort }) {
   const connected = status.connected
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
-  useEffect(() => {
-    if (serverPort && !connected) setConfig((c) => ({ ...c, port: serverPort }))
-  }, [serverPort, connected, setConfig])
   useEffect(() => {
     if (!connected) setListing(null)
   }, [connected])
@@ -113,10 +107,10 @@ export default function ClientPanel({ status, serverPort }) {
     }
   }
 
-  const refresh = (dir) => run(() => ftpApi.client.list(dir), setListing)
+  const refresh = (dir) => run(() => api.list(dir), setListing)
   const connect = () =>
     run(
-      () => ftpApi.client.connect(config),
+      () => api.connect(config),
       () => refresh()
     )
   const join = (name) => `${listing.path.replace(/\/$/, '')}/${name}`
@@ -126,12 +120,12 @@ export default function ClientPanel({ status, serverPort }) {
   }
   const download = (entry) =>
     run(
-      () => ftpApi.client.download(join(entry.name)),
+      () => api.download(join(entry.name)),
       (result) => result && setMessage(t('ftp.client.downloaded', { path: result.local }))
     )
   const upload = () =>
     run(
-      () => ftpApi.client.upload(),
+      () => api.upload(),
       (result) => {
         if (!result) return
         setMessage(t('ftp.client.uploaded', { count: result.length }))
@@ -142,7 +136,7 @@ export default function ClientPanel({ status, serverPort }) {
     const name = prompt(t('ftp.client.newFolder'))
     if (name)
       run(
-        () => ftpApi.client.mkdir(join(name)),
+        () => api.mkdir(join(name)),
         () => refresh(listing.path)
       )
   }
@@ -150,14 +144,14 @@ export default function ClientPanel({ status, serverPort }) {
     const name = prompt(t('ftp.client.renameTo'), entry.name)
     if (name && name !== entry.name)
       run(
-        () => ftpApi.client.rename(join(entry.name), join(name)),
+        () => api.rename(join(entry.name), join(name)),
         () => refresh(listing.path)
       )
   }
   const remove = (entry) => {
     if (!confirm(t('ftp.client.confirmRemove', { name: entry.name }))) return
     run(
-      () => ftpApi.client.remove(join(entry.name), entry.type),
+      () => api.remove(join(entry.name), entry.type),
       () => refresh(listing.path)
     )
   }
@@ -210,12 +204,13 @@ export default function ClientPanel({ status, serverPort }) {
               />
             </Field>
             {connected ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(ftpApi.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
+              <Button variant="danger" disabled={busy} onClick={() => run(api.disconnect)}>
+                <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button variant="primary" disabled={busy} onClick={connect}>
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+                <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+                {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
@@ -239,7 +234,7 @@ export default function ClientPanel({ status, serverPort }) {
           </div>
           {connected && status.certificate && (
             <p className="flex items-center gap-2 text-xs text-slate-500">
-              <Lock className="size-3.5 text-emerald-400" />
+              <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />
               {t('ftp.client.certificate', {
                 subject: status.certificate.subject,
                 issuer: status.certificate.issuer,
@@ -260,13 +255,13 @@ export default function ClientPanel({ status, serverPort }) {
           actions={
             <>
               <Button size="sm" disabled={busy} onClick={mkdir}>
-                <FolderPlus className="size-3.5" /> {t('ftp.client.mkdir')}
+                <FontAwesomeIcon icon={faFolderPlus} className="size-3.5" /> {t('ftp.client.mkdir')}
               </Button>
               <Button size="sm" disabled={busy} onClick={upload}>
-                <FileUp className="size-3.5" /> {t('ftp.client.upload')}
+                <FontAwesomeIcon icon={faFileArrowUp} className="size-3.5" /> {t('ftp.client.upload')}
               </Button>
               <Button size="sm" variant="ghost" disabled={busy} onClick={() => refresh(listing.path)}>
-                <RefreshCw className="size-3.5" /> {t('ui.refresh')}
+                <FontAwesomeIcon icon={faArrowsRotate} className="size-3.5" /> {t('ui.refresh')}
               </Button>
             </>
           }
@@ -279,7 +274,7 @@ export default function ClientPanel({ status, serverPort }) {
               disabled={busy || listing.path === '/'}
               onClick={() => refresh(`${listing.path}/..`)}
             >
-              <ArrowUp className="size-4" />
+              <FontAwesomeIcon icon={faArrowUp} className="size-4" />
             </Button>
             <span className="font-mono text-sm text-slate-200 select-text">{listing.path}</span>
             {message && <span className="ml-auto text-xs text-emerald-300">{message}</span>}
@@ -296,7 +291,7 @@ export default function ClientPanel({ status, serverPort }) {
               </thead>
               <tbody>
                 {listing.entries.map((entry) => {
-                  const Icon = ICONS[entry.type]
+                  const icon = ICONS[entry.type]
                   return (
                     <tr key={entry.name} className="border-t border-ink-800 hover:bg-ink-800/40">
                       <td className="px-2 py-1">
@@ -306,7 +301,7 @@ export default function ClientPanel({ status, serverPort }) {
                           onDoubleClick={() => open(entry)}
                           onClick={() => entry.type === 'dir' && open(entry)}
                         >
-                          <Icon className="size-4 shrink-0" /> {entry.name}
+                          <FontAwesomeIcon icon={icon} className="size-4 shrink-0" /> {entry.name}
                         </button>
                       </td>
                       <td className="px-2 py-1 text-right font-mono text-xs text-slate-400">
@@ -324,7 +319,7 @@ export default function ClientPanel({ status, serverPort }) {
                               title={t('ftp.client.download')}
                               onClick={() => download(entry)}
                             >
-                              <Download className="size-3.5" />
+                              <FontAwesomeIcon icon={faDownload} className="size-3.5" />
                             </Button>
                           )}
                           <Button
@@ -333,10 +328,10 @@ export default function ClientPanel({ status, serverPort }) {
                             title={t('ftp.client.rename')}
                             onClick={() => rename(entry)}
                           >
-                            <Pencil className="size-3.5" />
+                            <FontAwesomeIcon icon={faPen} className="size-3.5" />
                           </Button>
                           <Button size="icon" variant="ghost" title={t('ui.remove')} onClick={() => remove(entry)}>
-                            <Trash2 className="size-3.5" />
+                            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                           </Button>
                         </div>
                       </td>
@@ -351,7 +346,7 @@ export default function ClientPanel({ status, serverPort }) {
         </Card>
       )}
 
-      <Dialog />
+      <Dialog api={api} />
     </div>
   )
 }

@@ -1,7 +1,17 @@
-import { useEffect, useState } from 'react'
-import { Ear, Eye, Play, Plus, Send, Square, Trash2, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faEarListen,
+  faEye,
+  faPaperPlane,
+  faPlay,
+  faPlus,
+  faStop,
+  faTrashCan,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import { Button, Card, ErrorBanner, Field, Input, Select, StatusDot, usePersistentState } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_MANAGER_CONFIG, MAX_TRAPS, MAX_WALK, OBJECT_TYPES, OPERATIONS, VERSIONS } from '../shared/constants'
 import { snmpApi } from './api'
 import UserFields from './UserFields'
@@ -92,7 +102,7 @@ function TargetCard({ config, update, agent, locked }) {
   )
 }
 
-function RequestCard({ config, update, onMonitor }) {
+function RequestCard({ api, config, update, onMonitor }) {
   const request = { ...DEFAULT_MANAGER_CONFIG.request, ...config.request }
   const set = (patch) => update({ request: { ...request, ...patch } })
   const [result, setResult] = useState(null)
@@ -103,7 +113,7 @@ function RequestCard({ config, update, onMonitor }) {
     setBusy(true)
     setError(null)
     try {
-      setResult(await snmpApi.manager.request(config, request))
+      setResult(await api.request(config, request))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -164,7 +174,7 @@ function RequestCard({ config, update, onMonitor }) {
             </Field>
           )}
           <Button variant="primary" disabled={busy || !config.host || !request.oid} onClick={send}>
-            <Send className="size-4" /> {t('snmp.request.send')}
+            <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('snmp.request.send')}
           </Button>
         </div>
         <ErrorBanner error={error} onClose={() => setError(null)} />
@@ -201,7 +211,7 @@ function RequestCard({ config, update, onMonitor }) {
                               title={t('snmp.request.monitor')}
                               onClick={() => onMonitor(vb.oid)}
                             >
-                              <Eye className="size-3.5" />
+                              <FontAwesomeIcon icon={faEye} className="size-3.5" />
                             </Button>
                           )}
                         </td>
@@ -220,16 +230,16 @@ function RequestCard({ config, update, onMonitor }) {
   )
 }
 
-function MonitorsCard({ config, update, status, run }) {
+function MonitorsCard({ api, config, update, status, run }) {
   const [values, setValues] = useState({})
   const monitors = config.monitors ?? []
   const polling = status.polling
   const set = (list) => update({ monitors: list })
 
   useEffect(() => {
-    snmpApi.manager.values().then(setValues)
-    return snmpApi.manager.onPoll(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onPoll(setValues)
+  }, [api])
 
   return (
     <Card
@@ -247,7 +257,7 @@ function MonitorsCard({ config, update, status, run }) {
             disabled={polling}
             onClick={() => set([...monitors, { id: crypto.randomUUID(), oid: '', label: '' }])}
           >
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </>
       }
@@ -300,7 +310,7 @@ function MonitorsCard({ config, update, status, run }) {
                       title={t('ui.remove')}
                       onClick={() => set(monitors.filter((x) => x.id !== m.id))}
                     >
-                      <X className="size-3.5" />
+                      <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                     </Button>
                   </td>
                 </tr>
@@ -320,15 +330,12 @@ function MonitorsCard({ config, update, status, run }) {
             />
           </Field>
           {polling ? (
-            <Button variant="danger" onClick={() => run(snmpApi.manager.stopPolling)}>
-              <Square className="size-4" /> {t('snmp.monitors.stop')}
+            <Button variant="danger" onClick={() => run(api.stopPolling)}>
+              <FontAwesomeIcon icon={faStop} className="size-4" /> {t('snmp.monitors.stop')}
             </Button>
           ) : (
-            <Button
-              disabled={!monitors.length || !config.host}
-              onClick={() => run(() => snmpApi.manager.startPolling(config))}
-            >
-              <Play className="size-4" /> {t('snmp.monitors.start')}
+            <Button disabled={!monitors.length || !config.host} onClick={() => run(() => api.startPolling(config))}>
+              <FontAwesomeIcon icon={faPlay} className="size-4" /> {t('snmp.monitors.start')}
             </Button>
           )}
         </div>
@@ -338,16 +345,16 @@ function MonitorsCard({ config, update, status, run }) {
   )
 }
 
-function ReceiverCard({ config, update, status, run }) {
+function ReceiverCard({ api, config, update, status, run }) {
   const [traps, setTraps] = useState([])
   const receiver = { ...DEFAULT_MANAGER_CONFIG.receiver, ...config.receiver }
   const set = (patch) => update({ receiver: { ...receiver, ...patch } })
   const receiving = status.receiving
 
   useEffect(() => {
-    snmpApi.manager.traps().then(setTraps)
-    return snmpApi.manager.onTraps((batch) => setTraps((list) => [...list, ...batch].slice(-MAX_TRAPS)))
-  }, [])
+    api.traps().then(setTraps)
+    return api.onTraps((batch) => setTraps((list) => [...list, ...batch].slice(-MAX_TRAPS)))
+  }, [api])
 
   return (
     <Card
@@ -366,9 +373,9 @@ function ReceiverCard({ config, update, status, run }) {
             variant="ghost"
             size="icon"
             title={t('snmp.receiver.clear')}
-            onClick={() => snmpApi.manager.clearTraps().then(setTraps)}
+            onClick={() => api.clearTraps().then(setTraps)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </>
       }
@@ -387,12 +394,12 @@ function ReceiverCard({ config, update, status, run }) {
             />
           </Field>
           {receiving ? (
-            <Button variant="danger" onClick={() => run(snmpApi.manager.stopReceiver)}>
-              <Square className="size-4" /> {t('snmp.receiver.stop')}
+            <Button variant="danger" onClick={() => run(api.stopReceiver)}>
+              <FontAwesomeIcon icon={faStop} className="size-4" /> {t('snmp.receiver.stop')}
             </Button>
           ) : (
-            <Button onClick={() => run(() => snmpApi.manager.startReceiver(config))}>
-              <Ear className="size-4" /> {t('snmp.receiver.start')}
+            <Button onClick={() => run(() => api.startReceiver(config))}>
+              <FontAwesomeIcon icon={faEarListen} className="size-4" /> {t('snmp.receiver.start')}
             </Button>
           )}
         </div>
@@ -439,8 +446,13 @@ function ReceiverCard({ config, update, status, run }) {
   )
 }
 
-export default function ManagerPanel({ status, agent }) {
-  const [config, setConfig] = usePersistentState('snmp', 'manager', DEFAULT_MANAGER_CONFIG)
+export default function ManagerPanel({ instance, status, agent }) {
+  const api = useMemo(() => snmpApi.manager(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'snmp',
+    instanceSection('manager', instance.id),
+    DEFAULT_MANAGER_CONFIG
+  )
   const [error, setError] = useState(null)
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
 
@@ -460,9 +472,9 @@ export default function ManagerPanel({ status, agent }) {
     <div className="-mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-auto pr-2">
       <TargetCard config={config} update={update} agent={agent} locked={status.polling} />
       <ErrorBanner error={error} onClose={() => setError(null)} />
-      <RequestCard config={config} update={update} onMonitor={monitor} />
-      <MonitorsCard config={config} update={update} status={status} run={run} />
-      <ReceiverCard config={config} update={update} status={status} run={run} />
+      <RequestCard api={api} config={config} update={update} onMonitor={monitor} />
+      <MonitorsCard api={api} config={config} update={update} status={status} run={run} />
+      <ReceiverCard api={api} config={config} update={update} status={status} run={run} />
     </div>
   )
 }

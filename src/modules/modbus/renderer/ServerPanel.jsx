@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { Copy, Lock, Play, Plus, Square, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faLock, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -12,6 +13,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
+import { instanceSection } from '@azerxim/sulfur-sdk'
 import {
   DATA_TYPES,
   DEFAULT_IDENTITY,
@@ -103,8 +105,13 @@ function LiveValue({ point, value, onSet }) {
   return <CommitInput className="font-mono text-sulfur-300" value={formatValue(value)} onCommit={onSet} />
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('modbus', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => modbusApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'modbus',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [values, setValues] = useState({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -125,9 +132,9 @@ export default function ServerPanel({ status }) {
   }, [running])
 
   useEffect(() => {
-    modbusApi.server.values().then(setValues)
-    return modbusApi.server.onValues(setValues)
-  }, [])
+    api.values().then(setValues)
+    return api.onValues(setValues)
+  }, [api])
 
   async function run(action) {
     setBusy(true)
@@ -145,7 +152,7 @@ export default function ServerPanel({ status }) {
   const liveSync = (action) =>
     action().catch(async (err) => {
       setError(err.message)
-      const current = await modbusApi.server.status()
+      const current = await api.status()
       if (current.config) setConfig(current.config)
     })
 
@@ -164,7 +171,7 @@ export default function ServerPanel({ status }) {
     setUnits((list) => list.map((u) => (u.id === id ? next : u)))
     if (running) {
       const { points: _points, ...def } = next
-      debounce(`unit:${id}`, () => liveSync(() => modbusApi.server.updateUnit(def)), immediate)
+      debounce(`unit:${id}`, () => liveSync(() => api.updateUnit(def)), immediate)
     }
   }
 
@@ -172,14 +179,14 @@ export default function ServerPanel({ status }) {
     const u = newUnit(units)
     setUnits((list) => [...list, u])
     setSelectedUnit(u.id)
-    if (running) liveSync(() => modbusApi.server.addUnit(u))
+    if (running) liveSync(() => api.addUnit(u))
   }
 
   function removeUnit(id) {
     const rest = units.filter((u) => u.id !== id)
     setUnits(() => rest)
     setSelectedUnit(rest[0]?.id)
-    if (running) liveSync(() => modbusApi.server.removeUnit(id))
+    if (running) liveSync(() => api.removeUnit(id))
   }
 
   const setPoints = (fn) => setUnits((list) => list.map((u) => (u.id === unit.id ? { ...u, points: fn(u.points) } : u)))
@@ -188,7 +195,7 @@ export default function ServerPanel({ status }) {
     const next = { ...unit.points.find((p) => p.id === id), ...patch }
     setPoints((points) => points.map((p) => (p.id === id ? next : p)))
     const unitId = unit.id
-    if (running) debounce(id, () => liveSync(() => modbusApi.server.upsertPoint(next, unitId)), immediate)
+    if (running) debounce(id, () => liveSync(() => api.upsertPoint(next, unitId)), immediate)
   }
 
   function changeTable(point, table) {
@@ -212,13 +219,13 @@ export default function ServerPanel({ status }) {
   function addPoint() {
     const p = newPoint(unit.points)
     setPoints((points) => [...points, p])
-    if (running) liveSync(() => modbusApi.server.upsertPoint(p, unit.id))
+    if (running) liveSync(() => api.upsertPoint(p, unit.id))
   }
 
   function removePoint(id) {
     clearTimeout(timers.current[id])
     setPoints((points) => points.filter((p) => p.id !== id))
-    if (running) liveSync(() => modbusApi.server.removePoint(id))
+    if (running) liveSync(() => api.removePoint(id))
   }
 
   function setSecurity(security) {
@@ -275,17 +282,17 @@ export default function ServerPanel({ status }) {
               label={running ? t('modbus.server.running', { count: status.connections?.length ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(modbusApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
                 variant="primary"
                 size="sm"
                 disabled={busy || invalid}
-                onClick={() => run(() => modbusApi.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -359,7 +366,7 @@ export default function ServerPanel({ status }) {
                 disabled={busy}
                 onCommit={(raw) => {
                   update({ updateRate: Number(raw) })
-                  if (running) live(() => modbusApi.server.setUpdateRate(Number(raw)))
+                  if (running) live(() => api.setUpdateRate(Number(raw)))
                 }}
               />
             </Field>
@@ -391,7 +398,7 @@ export default function ServerPanel({ status }) {
           {status.endpoint && (
             <div className="flex items-center gap-2 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
               {config.transport === 'tcp' && config.security?.mode === 'tls' && (
-                <Lock className="size-3.5 text-emerald-400" />
+                <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />
               )}
               {status.endpoint}
               {status.certificate && (
@@ -407,7 +414,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -432,7 +439,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" disabled={busy || units.length > MAX_UNIT_ID} onClick={addUnit}>
-              <Plus className="size-3.5" /> {t('modbus.server.addUnit')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('modbus.server.addUnit')}
             </Button>
           </>
         }
@@ -488,7 +495,7 @@ export default function ServerPanel({ status }) {
             disabled={busy || units.length <= 1}
             onClick={() => removeUnit(unit.id)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </div>
 
@@ -512,7 +519,7 @@ export default function ServerPanel({ status }) {
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm text-slate-300">{t('modbus.server.points', { count: unit.points.length })}</h3>
           <Button size="sm" disabled={busy} onClick={addPoint}>
-            <Plus className="size-3.5" /> {t('ui.add')}
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
           </Button>
         </div>
         <div className="overflow-auto">
@@ -582,7 +589,7 @@ export default function ServerPanel({ status }) {
                         <LiveValue
                           point={p}
                           value={values[p.id]}
-                          onSet={(raw) => live(() => modbusApi.server.setValue(p.id, raw))}
+                          onSet={(raw) => live(() => api.setValue(p.id, raw))}
                         />
                       ) : (
                         <Input
@@ -635,7 +642,7 @@ export default function ServerPanel({ status }) {
                         onClick={() => removePoint(p.id)}
                         title={t('ui.remove')}
                       >
-                        <Trash2 className="size-3.5" />
+                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>
@@ -646,9 +653,9 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <RegisterExplorer units={units} running={running} wordOrder={config.wordOrder} />
+      <RegisterExplorer api={api} units={units} running={running} wordOrder={config.wordOrder} />
 
-      <ServerActivity status={status} />
+      <ServerActivity api={api} status={status} />
     </div>
   )
 }

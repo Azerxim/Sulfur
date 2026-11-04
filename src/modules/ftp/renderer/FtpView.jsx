@@ -1,64 +1,47 @@
-import { useEffect, useState } from 'react'
-import { MonitorSmartphone, Server } from 'lucide-react'
-import { Tabs, useStoredState } from '@azerxim/sulfur-sdk/ui'
-import { ftpApi, sftpApi } from './api'
+import { faComputer, faServer } from '@fortawesome/free-solid-svg-icons'
+import { InstancesPage, useInstanceStatuses } from '@azerxim/sulfur-sdk/ui'
 import FtpServerPanel from './ftp/ServerPanel'
 import FtpClientPanel from './ftp/ClientPanel'
 import SftpServerPanel from './sftp/ServerPanel'
 import SftpClientPanel from './sftp/ClientPanel'
 import { t } from '../shared/i18n'
 
-const TABS = ['ftpServer', 'ftpClient', 'sftpServer', 'sftpClient']
-
-const dot = (on) => <span className={`size-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-slate-600'}`} />
-
-/** Statut d'une partie (serveur ou client), suivi en direct. */
-function useStatus(api, initial) {
-  const [status, setStatus] = useState(initial)
-  useEffect(() => {
-    api.status().then(setStatus)
-    return api.onStatus(setStatus)
-  }, [api])
-  return status
+/** États au repos, avant la première lecture. */
+const IDLE = {
+  server: { running: false },
+  client: { connected: false },
+  sftpServer: { running: false },
+  sftpClient: { connected: false }
 }
 
+/** Page du module : un onglet par instance (aucune par défaut). */
 export default function FtpView() {
-  const [tab, setTab] = useStoredState('sulfur:tab:ftp', 'sftpServer', TABS)
-  const ftpServer = useStatus(ftpApi.server, { running: false })
-  const ftpClient = useStatus(ftpApi.client, { connected: false })
-  const sftpServer = useStatus(sftpApi.server, { running: false })
-  const sftpClient = useStatus(sftpApi.client, { connected: false })
-
+  const serverStatuses = useInstanceStatuses('ftp', 'server')
+  const clientStatuses = useInstanceStatuses('ftp', 'client')
+  const sftpServerStatuses = useInstanceStatuses('ftp', 'sftpServer')
+  const sftpClientStatuses = useInstanceStatuses('ftp', 'sftpClient')
+  const statuses = { ...serverStatuses, ...clientStatuses, ...sftpServerStatuses, ...sftpClientStatuses }
+  const roles = [
+    { role: 'server', label: t('ftp.tabs.ftpServer'), icon: faServer },
+    { role: 'client', label: t('ftp.tabs.ftpClient'), icon: faComputer },
+    { role: 'sftpServer', label: t('ftp.tabs.sftpServer'), icon: faServer },
+    { role: 'sftpClient', label: t('ftp.tabs.sftpClient'), icon: faComputer }
+  ]
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'ftpServer', label: t('ftp.tabs.ftpServer'), icon: Server, badge: dot(ftpServer.running) },
-          { id: 'ftpClient', label: t('ftp.tabs.ftpClient'), icon: MonitorSmartphone, badge: dot(ftpClient.connected) },
-          { id: 'sftpServer', label: t('ftp.tabs.sftpServer'), icon: Server, badge: dot(sftpServer.running) },
-          {
-            id: 'sftpClient',
-            label: t('ftp.tabs.sftpClient'),
-            icon: MonitorSmartphone,
-            badge: dot(sftpClient.connected)
-          }
-        ]}
-      />
-      {/* Les panneaux restent montés pour conserver leur état local. */}
-      <div className={tab === 'ftpServer' ? 'contents' : 'hidden'}>
-        <FtpServerPanel status={ftpServer} />
-      </div>
-      <div className={tab === 'ftpClient' ? 'contents' : 'hidden'}>
-        <FtpClientPanel status={ftpClient} serverPort={ftpServer.running ? ftpServer.config?.port : null} />
-      </div>
-      <div className={tab === 'sftpServer' ? 'contents' : 'hidden'}>
-        <SftpServerPanel status={sftpServer} />
-      </div>
-      <div className={tab === 'sftpClient' ? 'contents' : 'hidden'}>
-        <SftpClientPanel status={sftpClient} serverPort={sftpServer.running ? sftpServer.config?.port : null} />
-      </div>
-    </div>
+    <InstancesPage moduleId="ftp" roles={roles} statuses={statuses}>
+      {(instance) => {
+        const status = statuses[instance.id] ?? IDLE[instance.role]
+        switch (instance.role) {
+          case 'server':
+            return <FtpServerPanel instance={instance} status={status} />
+          case 'client':
+            return <FtpClientPanel instance={instance} status={status} />
+          case 'sftpServer':
+            return <SftpServerPanel instance={instance} status={status} />
+          default:
+            return <SftpClientPanel instance={instance} status={status} />
+        }
+      }}
+    </InstancesPage>
   )
 }

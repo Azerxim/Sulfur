@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Eraser } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEraser } from '@fortawesome/free-solid-svg-icons'
 import { Button, Checkbox } from '@azerxim/sulfur-sdk/ui'
 import { getLocale } from '@azerxim/sulfur-sdk'
 import { t } from '../shared/i18n'
@@ -52,7 +53,7 @@ export default function DebugPanel({
           onChange={(e) => onOnlyCurrent(e.target.checked)}
         />
         <Button variant="ghost" size="sm" className="ml-auto" title={t('simulator.debug.clear')} onClick={onClear}>
-          <Eraser className="size-3.5" /> {t('simulator.debug.clear')}
+          <FontAwesomeIcon icon={faEraser} className="size-3.5" /> {t('simulator.debug.clear')}
         </Button>
       </div>
       <div className="min-h-0 flex-1 overflow-auto p-2">

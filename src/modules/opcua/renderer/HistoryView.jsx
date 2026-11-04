@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { History } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faClockRotateLeft } from '@fortawesome/free-solid-svg-icons'
 import { Button, Select } from '@azerxim/sulfur-sdk/ui'
 import { HISTORY_RANGES } from '../shared/constants'
-import { opcuaApi } from './api'
 import { formatDateTime, formatValue } from './format'
 import { t } from '../shared/i18n'
 
@@ -10,7 +10,7 @@ import { t } from '../shared/i18n'
 const MAX_ROWS = 500
 
 /** Lecture d'historique (HistoryRead) d'une variable historisée. */
-export default function HistoryView({ nodeId, onError }) {
+export default function HistoryView({ api, nodeId, onError }) {
   const [range, setRange] = useState(HISTORY_RANGES[1])
   const [rows, setRows] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -19,7 +19,7 @@ export default function HistoryView({ nodeId, onError }) {
     setBusy(true)
     try {
       const end = Date.now()
-      setRows((await opcuaApi.client.history(nodeId, end - range, end)).reverse())
+      setRows((await api.history(nodeId, end - range, end)).reverse())
     } catch (err) {
       onError(err.message)
     } finally {
@@ -39,7 +39,7 @@ export default function HistoryView({ nodeId, onError }) {
           ))}
         </Select>
         <Button size="sm" className="shrink-0 whitespace-nowrap" disabled={busy} onClick={read}>
-          <History className="size-3.5" /> {t('opcua.client.readHistory')}
+          <FontAwesomeIcon icon={faClockRotateLeft} className="size-3.5" /> {t('opcua.client.readHistory')}
         </Button>
       </div>
       {rows &&

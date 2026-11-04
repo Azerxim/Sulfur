@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { Button, Card } from '@azerxim/sulfur-sdk/ui'
 import { formatTime } from '@azerxim/sulfur-sdk'
-import { s7Api } from './api'
 import { t } from '../shared/i18n'
 
 const MAX_LOG = 300
@@ -13,13 +13,13 @@ const LEVELS = {
 }
 
 /** Clients connectés à l'automate simulé et journal des événements. */
-export default function ServerActivity({ status }) {
+export default function ServerActivity({ api, status }) {
   const [logs, setLogs] = useState([])
 
   useEffect(() => {
-    s7Api.server.logs().then(setLogs)
-    return s7Api.server.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
-  }, [])
+    api.logs().then(setLogs)
+    return api.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
+  }, [api])
 
   const connections = status.connections ?? []
   const shown = logs.slice().reverse()
@@ -70,9 +70,9 @@ export default function ServerActivity({ status }) {
             variant="ghost"
             size="icon"
             title={t('s7.activity.clearLog')}
-            onClick={() => s7Api.server.clearLogs().then(setLogs)}
+            onClick={() => api.clearLogs().then(setLogs)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         }
       >

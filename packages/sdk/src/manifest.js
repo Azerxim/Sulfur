@@ -25,7 +25,7 @@
  * Version de l'API des modules décrite par ce SDK (celle du paquet) : un module écrit avec le SDK
  * 1.x fonctionne avec toute version de Sulfur qui fournit une API 1.x au moins égale.
  */
-export const MODULE_API_VERSION = '1.1.0'
+export const MODULE_API_VERSION = '1.2.0'
 
 export const EDITIONS = ['standard', 'additional']
 
@@ -78,6 +78,15 @@ export function compareVersions(a, b) {
 export const defineManifest = (manifest) => ({ edition: 'standard', apiVersion: MODULE_API_VERSION, ...manifest })
 
 /**
+ * Modules complétés par un module (champ facultatif `extends` du manifeste, voir les extensions de
+ * modules) : identifiants valides, distincts, autres que le module lui-même.
+ */
+const validExtends = (list, id) =>
+  Array.isArray(list) &&
+  list.every((target) => typeof target === 'string' && MODULE_ID_PATTERN.test(target) && target !== id) &&
+  new Set(list).size === list.length
+
+/**
  * Manifeste vérifié avant le chargement d'un module. Retourne le premier problème
  * { reason, params } (libellés : modules.problems.<reason>), ou null si le module peut être chargé.
  *  - `appVersion` : version de Sulfur qui charge le module (obligatoire) ;
@@ -94,6 +103,7 @@ export function checkManifest(manifest, { appVersion, apiVersion = MODULE_API_VE
   if (!EDITIONS.includes(m.edition)) return invalid('edition')
   if (!parseVersion(m.apiVersion)) return invalid('apiVersion')
   if (!parseVersion(m.minAppVersion)) return invalid('minAppVersion')
+  if (m.extends !== undefined && !validExtends(m.extends, m.id)) return invalid('extends')
   if (RESERVED_MODULE_IDS.includes(m.id)) return { reason: 'reservedId', params: { id: m.id } }
   if (loadedIds.includes(m.id)) return { reason: 'duplicateId', params: { id: m.id } }
 

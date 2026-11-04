@@ -1,4 +1,5 @@
 import { join } from 'path'
+import { defineInstances } from '@azerxim/sulfur-sdk/main'
 import { shell } from 'electron'
 import { MODBUS_MODULE } from '../shared/constants'
 import '../shared/locales'
@@ -10,12 +11,12 @@ import { listSerialPorts } from './serial'
 import { migrateModbusConfig } from '../shared/units'
 import { t } from '../shared/i18n'
 
-let server = null
-let client = null
+let instances = null
 
 /**
- * Partie "main" du module Modbus. Canaux : `modbus:server:*`, `modbus:client:*`, `modbus:certs:*`,
- * `modbus:serial:list`.
+ * Partie "main" du module Modbus : serveurs et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `modbus:instances:*`, `modbus:server:*` et `modbus:client:*`
+ * (identifiant de l'instance en premier argument), `modbus:certs:*`, `modbus:serial:list`.
  */
 export const modbusMainModule = {
   manifest: MODBUS_MODULE,
@@ -32,51 +33,63 @@ export const modbusMainModule = {
       return pki[which]
     }
 
-    server = new ModbusServer(pki.server, {
-      onStatus: (status) => ctx.emit('server:status', status),
-      onValues: (values) => ctx.emit('server:values', values),
-      onLog: (entry) => ctx.emit('server:log', entry)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ui.server'),
+        create: (_instance, { emit }) =>
+          new ModbusServer(pki.server, {
+            onStatus: (status) => emit('status', status),
+            onValues: (values) => emit('values', values),
+            onLog: (entry) => emit('log', entry)
+          }),
+        busy: (server) => server.status().running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('ui.client'),
+        create: (_instance, { emit }) =>
+          new ModbusClient(pki.client, {
+            onStatus: (status) => emit('status', status),
+            onData: (data) => emit('data', data)
+          }),
+        busy: (client) => client.status().connected,
+        dispose: (client) => client.disconnect()
+      }
     })
-    client = new ModbusClient(pki.client, {
-      onStatus: (status) => ctx.emit('client:status', status),
-      onData: (data) => ctx.emit('client:data', data)
-    })
 
-    ctx.expose(createPointsApi({ server, client, savedConfig: ctx.config }))
+    ctx.expose(createPointsApi({ instances, savedConfig: ctx.config }))
 
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:values', () => server.values())
-    ctx.handle('server:logs', () => server.logs())
-    ctx.handle('server:clearLogs', () => server.clearLogs())
-    ctx.handle('server:upsertPoint', (def, unitId) => server.upsertPoint(def, unitId))
-    ctx.handle('server:removePoint', (id) => server.removePoint(id))
-    ctx.handle('server:setValue', (id, value) => server.setValue(id, value))
-    ctx.handle('server:setUpdateRate', (rate) => server.setUpdateRate(rate))
-    ctx.handle('server:addUnit', (def) => server.addUnit(def))
-    ctx.handle('server:updateUnit', (def) => server.updateUnit(def))
-    ctx.handle('server:removeUnit', (id) => server.removeUnit(id))
-    ctx.handle('server:registers', (unitId, table, address, count) => server.registers(unitId, table, address, count))
-    ctx.handle('server:writeRegister', (unitId, table, address, value) =>
-      server.writeRegister(unitId, table, address, value)
-    )
+    const server = (action, fn) => instances.handle('server', action, fn)
+    server('start', (s, config) => s.start(config))
+    server('stop', (s) => s.stop())
+    server('values', (s) => s.values())
+    server('logs', (s) => s.logs())
+    server('clearLogs', (s) => s.clearLogs())
+    server('upsertPoint', (s, def, unitId) => s.upsertPoint(def, unitId))
+    server('removePoint', (s, id) => s.removePoint(id))
+    server('setValue', (s, id, value) => s.setValue(id, value))
+    server('setUpdateRate', (s, rate) => s.setUpdateRate(rate))
+    server('addUnit', (s, def) => s.addUnit(def))
+    server('updateUnit', (s, def) => s.updateUnit(def))
+    server('removeUnit', (s, id) => s.removeUnit(id))
+    server('registers', (s, unitId, table, address, count) => s.registers(unitId, table, address, count))
+    server('writeRegister', (s, unitId, table, address, value) => s.writeRegister(unitId, table, address, value))
 
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:connect', (config) => client.connect(config))
-    ctx.handle('client:disconnect', () => client.disconnect())
-    ctx.handle('client:read', (table, address, quantity) => client.read(table, address, quantity))
-    ctx.handle('client:write', (table, address, values) => client.write(table, address, values))
-    ctx.handle('client:readWrite', (readAddress, readQuantity, writeAddress, values) =>
-      client.readWrite(readAddress, readQuantity, writeAddress, values)
+    const client = (action, fn) => instances.handle('client', action, fn)
+    client('connect', (c, config) => c.connect(config))
+    client('disconnect', (c) => c.disconnect())
+    client('read', (c, table, address, quantity) => c.read(table, address, quantity))
+    client('write', (c, table, address, values) => c.write(table, address, values))
+    client('readWrite', (c, readAddress, readQuantity, writeAddress, values) =>
+      c.readWrite(readAddress, readQuantity, writeAddress, values)
     )
-    ctx.handle('client:identify', (code) => client.readDeviceIdentification(code))
-    ctx.handle('client:writeValue', (table, address, value, dataType, wordOrder) =>
-      client.writeValue(table, address, value, dataType, wordOrder)
+    client('identify', (c, code) => c.readDeviceIdentification(code))
+    client('writeValue', (c, table, address, value, dataType, wordOrder) =>
+      c.writeValue(table, address, value, dataType, wordOrder)
     )
-    ctx.handle('client:addWatch', (item) => client.addWatch(item))
-    ctx.handle('client:removeWatch', (id) => client.removeWatch(id))
-    ctx.handle('client:setPollInterval', (ms) => client.setPollInterval(ms))
+    client('addWatch', (c, item) => c.addWatch(item))
+    client('removeWatch', (c, id) => c.removeWatch(id))
+    client('setPollInterval', (c, ms) => c.setPollInterval(ms))
 
     ctx.handle('serial:list', () => listSerialPorts())
 
@@ -90,13 +103,13 @@ export const modbusMainModule = {
     })
   },
 
-  /** Serveur démarré ou client connecté. */
+  /** Au moins un serveur démarré ou un client connecté. */
   busy() {
-    return !!(server?.status().running || client?.status().connected)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    await client?.disconnect().catch(() => {})
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

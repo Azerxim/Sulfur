@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Eye, History, Send, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faClockRotateLeft, faEye, faPaperPlane, faXmark } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -12,7 +13,7 @@ import {
   Tabs,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { AUTH_TYPES, DEFAULT_CLIENT_CONFIG, DEFAULT_CLIENT_REQUEST, METHODS } from '../shared/constants'
 import { httpApi } from './api'
 import HeadersEditor from './HeadersEditor'
@@ -102,9 +103,19 @@ function AuthFields({ auth, onChange }) {
   )
 }
 
-export default function ClientPanel({ status, serverUrl }) {
-  const [config, setConfig] = usePersistentState('http', 'client', DEFAULT_CLIENT_CONFIG, { persist })
-  const [request, setRequest] = usePersistentState('http', 'clientRequest', DEFAULT_CLIENT_REQUEST)
+export default function ClientPanel({ instance, status, serverUrl }) {
+  const api = useMemo(() => httpApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'http',
+    instanceSection('client', instance.id),
+    DEFAULT_CLIENT_CONFIG,
+    { persist }
+  )
+  const [request, setRequest] = usePersistentState(
+    'http',
+    instanceSection('clientRequest', instance.id),
+    DEFAULT_CLIENT_REQUEST
+  )
   const [response, setResponse] = useState(null)
   const [history, setHistory] = useState([])
   const [tab, setTab] = useState('body')
@@ -115,14 +126,11 @@ export default function ClientPanel({ status, serverUrl }) {
 
   // La configuration (adresse de base, authentification…) est transmise au process principal.
   useEffect(() => {
-    const timer = setTimeout(
-      () => httpApi.client.configure(config).catch((err) => setError(err.message)),
-      CONFIGURE_DELAY
-    )
+    const timer = setTimeout(() => api.configure(config).catch((err) => setError(err.message)), CONFIGURE_DELAY)
     return () => clearTimeout(timer)
-  }, [config])
+  }, [api, config])
 
-  useEffect(() => httpApi.client.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [])
+  useEffect(() => api.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [api])
 
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
   const updateRequest = (patch) => setRequest((r) => ({ ...r, ...patch }))
@@ -141,8 +149,8 @@ export default function ClientPanel({ status, serverUrl }) {
 
   const send = () =>
     run(async () => {
-      await httpApi.client.configure(config)
-      const res = await httpApi.client.send(request)
+      await api.configure(config)
+      const res = await api.send(request)
       setResponse(res)
       setHistory((h) =>
         [{ request, status: res.status, time: res.time, duration: res.duration }, ...h].slice(0, HISTORY)
@@ -151,8 +159,8 @@ export default function ClientPanel({ status, serverUrl }) {
 
   const addWatch = () =>
     run(async () => {
-      await httpApi.client.configure(config)
-      await httpApi.client.addWatch({ ...watch, path: watch.path || request.path })
+      await api.configure(config)
+      await api.addWatch({ ...watch, path: watch.path || request.path })
     })
 
   return (
@@ -222,7 +230,7 @@ export default function ClientPanel({ status, serverUrl }) {
               onKeyDown={(e) => e.key === 'Enter' && send()}
             />
             <Button variant="primary" disabled={busy || !request.path} onClick={send}>
-              <Send className="size-4" /> {t('http.client.send')}
+              <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('http.client.send')}
             </Button>
           </div>
           <div className="self-start">
@@ -232,7 +240,7 @@ export default function ClientPanel({ status, serverUrl }) {
               tabs={[
                 { id: 'body', label: t('http.client.body') },
                 { id: 'headers', label: t('http.client.headers', { count: request.headers.length }) },
-                { id: 'history', label: t('http.client.history', { count: history.length }), icon: History }
+                { id: 'history', label: t('http.client.history', { count: history.length }), icon: faClockRotateLeft }
               ]}
             />
           </div>
@@ -331,7 +339,7 @@ export default function ClientPanel({ status, serverUrl }) {
               value={status.pollInterval ?? DEFAULT_CLIENT_CONFIG.pollInterval}
               onCommit={(raw) => {
                 update({ pollInterval: Number(raw) })
-                run(() => httpApi.client.setPollInterval(Number(raw)))
+                run(() => api.setPollInterval(Number(raw)))
               }}
             />
             ms
@@ -375,7 +383,7 @@ export default function ClientPanel({ status, serverUrl }) {
               title={t('http.client.watchHint')}
               onClick={addWatch}
             >
-              <Eye className="size-4" /> {t('http.client.watch')}
+              <FontAwesomeIcon icon={faEye} className="size-4" /> {t('http.client.watch')}
             </Button>
           </div>
           {status.watches?.length ? (
@@ -413,9 +421,9 @@ export default function ClientPanel({ status, serverUrl }) {
                           variant="ghost"
                           size="icon"
                           title={t('ui.remove2')}
-                          onClick={() => run(() => httpApi.client.removeWatch(w.id))}
+                          onClick={() => run(() => api.removeWatch(w.id))}
                         >
-                          <X className="size-3.5" />
+                          <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                         </Button>
                       </td>
                     </tr>

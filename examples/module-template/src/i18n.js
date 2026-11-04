@@ -17,6 +17,9 @@ registerMessages(
         running: 'Running',
         stopped: 'Stopped',
         points: 'Points published for the simulator and the trends: {points}',
+        extensionTab: 'My module',
+        extensionHint:
+          'Tab added to the {target} page by {module}: it only calls the channels of its own module ({module}:*).',
         errors: {
           interval: 'The interval must be between 100 and 60000 ms',
           notNumber: 'The value must be a number',
@@ -35,6 +38,9 @@ registerMessages(
         running: 'En marche',
         stopped: 'Arrêté',
         points: 'Points publiés pour le simulateur et les courbes : {points}',
+        extensionTab: 'Mon module',
+        extensionHint:
+          'Onglet ajouté à la page {target} par {module} : il n’appelle que les canaux de son propre module ({module}:*).',
         errors: {
           interval: 'L’intervalle doit être compris entre 100 et 60000 ms',
           notNumber: 'La valeur doit être un nombre',

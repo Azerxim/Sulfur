@@ -35,6 +35,12 @@ Fiabiliser l'existant avant d'ajouter des fonctionnalités.
 - [X] **Mises à jour** : nouvelles versions détectées depuis les releases GitHub, téléchargées et
   installées depuis les paramètres (Windows, AppImage, .deb ; sous macOS, lien vers la release).
   Recherche automatique désactivable.
+- [X] **Serveurs et clients multiples** : autant d'instances que nécessaire par module, aucune par
+  défaut (socle du SDK : `defineInstances`, `InstancesPage`).
+  - [X] Socle (SDK, activité, simulateur, courbes, migration des configurations) et module Modbus.
+  - [X] Autres modules de protocole : OPC UA, HTTP, NTP, Siemens S7, MQTT, SNMP, Syslog, DNS,
+    DHCP, LDAP / RADIUS, TFTP, FTP / SFTP, CoAP / LwM2M.
+  - [X] Module additionnel Siemens S7 Enhanced (nécessite le SDK 1.2).
 
 ## Fonctions de simulation
 
@@ -58,9 +64,10 @@ Rendre les simulateurs plus utiles pour tester des équipements et logiciels ré
 
 Sulfur est distribué sous [licence Apache 2.0](LICENSE). L'application et les modules **standard**
 sont intégrés à ce dépôt ; les modules **additionnels**, marqués *(additionnel)* dans cette
-roadmap, sont distribués en paquets séparés et installés à la demande. Chacun peut créer son propre
-module avec le SDK de module et l'installer dans Sulfur, sans validation ni signature. Les modules
-sans marque sont standard.
+roadmap, sont distribués en paquets séparés et installés à la demande. Un module additionnel est
+gratuit ou payant, au choix de son développeur ; un module payant s'évalue gratuitement en mode
+d'essai avant l'achat d'une licence. Chacun peut créer son propre module avec le SDK de module et
+l'installer dans Sulfur, sans validation ni signature. Les modules sans marque sont standard.
 
 | Type                                      | Modules                                                                                                         |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -105,12 +112,26 @@ Structure à mettre en place avant le premier module additionnel :
   empaquetage), pour que les utilisateurs puissent créer et partager leurs propres modules.
   [Guide](docs/fr/module-guide.md) (EN / FR) et modèle dans `examples/module-template` (compteur publié
   comme point de données), construit et exécuté par les tests.
-- [ ] **Extensions de modules** : un module additionnel ajoute un onglet à la page d'un module
+- [X] **Extensions de modules** : un module additionnel ajoute un onglet à la page d'un module
   standard (API des modules 1.2, voir la [roadmap du SDK](packages/sdk/ROADMAP.fr.md)). L'hôte des
   modules rassemble les onglets déclarés par les modules chargés et les fournit à leur cible ; les
   modules extensibles les affichent après leurs propres onglets (Siemens S7 d'abord, puis OPC UA).
   Les onglets suivent l'activation, la désactivation et l'actualisation du module qui les apporte ;
   Paramètres → Modules indique quel module un paquet complète.
+- [ ] **Licences et mode d'essai** des modules additionnels payants (API des modules 1.3, voir la
+  [roadmap du SDK](packages/sdk/ROADMAP.fr.md)) ; les modules gratuits ne sont pas concernés.
+  - **Mode d'essai** : à sa première activation, un module payant fonctionne complètement pendant
+    une durée fixée par son éditeur dans le manifeste (30 jours par défaut). À la fin de l'essai, le
+    module reste installé et ses configurations sont conservées ; il choisit ce qui reste disponible
+    (par exemple consultation seule, sans démarrer de serveur ni de client) jusqu'à l'import d'une
+    licence. Une seule période d'essai par module et par version majeure.
+  - **Licence hors ligne** : fichier signé (Ed25519) par l'éditeur du module (client, module, nombre
+    de postes, date de fin de maintenance), vérifié sans connexion avec la clé publique du
+    manifeste ; une licence couvre les versions publiées avant la fin de sa maintenance.
+  - **Paramètres → Modules** : état de chaque module (gratuit, essai avec les jours restants, sous
+    licence, licence expirée), import et retrait du fichier de licence, lien d'achat de l'éditeur.
+  - Aucune connexion ni compte requis ; l'essai et la licence reposent sur la bonne foi de
+    l'utilisateur, sans protection contre la copie.
 
 ## Nouveaux modules : outils
 
@@ -143,7 +164,7 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
 - [X] **HTTP / REST** : serveur simulé et client (JSON, webhooks, HTTPS, authentification)
 - [X] **NTP** : serveur de temps simulé, y compris une heure volontairement décalée pour tester
   l'horodatage et la validité des certificats sur les équipements
-- [ ] **Proxy TCP / UDP** : relais placé entre un client et un équipement réels (plusieurs
+- [X] **Proxy TCP / UDP** : relais placé entre un client et un équipement réels (plusieurs
   redirections port local → hôte:port distant), journal des échanges en hexadécimal et export, et
   injection de défauts sur le trafic (latence, perte de paquets, coupures, altération de trames)
   pour tester des équipements sans les modifier
@@ -173,7 +194,10 @@ Protocoles plus simples, rapides à livrer, utiles pour superviser et intégrer 
     Message-Authenticator, accounting, Status-Server) et client (Access-Request, Status-Server,
     accounting)
     - [ ] EAP (PEAP / EAP-TLS, 802.1X), MS-CHAPv2, attributs de réponse par groupe LDAP, RadSec (RADIUS sur TLS)
-- [ ] **CoAP / LwM2M** : serveur et client pour capteurs IoT contraints, en complément de MQTT
+- [X] **CoAP / LwM2M** : serveur et client pour capteurs IoT contraints, en complément de MQTT :
+  serveur CoAP simulé (observation, découverte) et client, serveur LwM2M (enregistrement, lecture,
+  écriture, exécution, observation ; TLV, SenML JSON) et appareil LwM2M simulé
+  - [ ] CoAP sur DTLS (`coaps`), transfert par blocs (RFC 7959), bootstrap LwM2M
 
 ## Nouveaux modules : automatismes industriels
 
@@ -228,6 +252,18 @@ L'ordre au sein de chaque version sera fixé selon les besoins.
     plus de l'épinglage ;
   - jetons utilisateur X.509 pour OPC UA.
 - **Interface** : plusieurs fenêtres, raccourcis clavier, revue d'accessibilité, nouvelles langues.
+- **Place de marché des modules** : modules de la communauté, gratuits ou payants, publiés sur le
+  [site de Sulfur](https://sulfur.topazdev.fr) (catalogue, publication avec revue, vente et
+  reversement aux éditeurs). Dans l'application :
+  - catalogue dans Paramètres → Modules : recherche, fiche du module, installation et mises à jour
+    en un clic, à la place du téléchargement manuel du paquet ;
+  - vérification de la signature des paquets de la place de marché et de l'éditeur, affichées avant
+    l'installation ; les paquets installés à la main restent possibles, sans signature, comme
+    aujourd'hui ;
+  - achat d'un module payant depuis sa fiche, licence ajoutée ensuite automatiquement (voir
+    *Licences et mode d'essai*) ;
+  - fonctionne sans connexion : le catalogue est facultatif et désactivable, aucune donnée envoyée
+    hors de la consultation du catalogue.
 
 ## Limites connues
 

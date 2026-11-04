@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Copy, Play, Plus, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -10,7 +11,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_RADIUS_SERVER_CONFIG, parseAttributes } from '../../shared/radius'
 import { radiusApi } from '../api'
 import { t } from '../../shared/i18n'
@@ -44,25 +45,20 @@ function AttributesField({ value, onChange, rows = 2 }) {
   )
 }
 
-function ServerLog() {
+function ServerLog({ api }) {
   const [entries, setEntries] = useState([])
   useEffect(() => {
-    radiusApi.server.logs().then(setEntries)
-    return radiusApi.server.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
-  }, [])
+    api.logs().then(setEntries)
+    return api.onLog((entry) => setEntries((list) => [...list.slice(-(MAX_SHOWN - 1)), entry]))
+  }, [api])
   return (
     <Card
       id="radius.server.log"
       title={t('ldap.server.log', { count: entries.length })}
       className="min-h-56 shrink-0"
       actions={
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={!entries.length}
-          onClick={() => radiusApi.server.clearLogs().then(setEntries)}
-        >
-          <Trash2 className="size-3.5" /> {t('ldap.server.clearLog')}
+        <Button size="sm" variant="ghost" disabled={!entries.length} onClick={() => api.clearLogs().then(setEntries)}>
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('ldap.server.clearLog')}
         </Button>
       }
     >
@@ -86,8 +82,13 @@ function ServerLog() {
   )
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('ldap', 'radiusServer', status.config ?? DEFAULT_RADIUS_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => radiusApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'ldap',
+    instanceSection('radiusServer', instance.id),
+    status.config ?? DEFAULT_RADIUS_SERVER_CONFIG
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const timer = useRef(null)
@@ -113,7 +114,7 @@ export default function ServerPanel({ status }) {
     if (parseAttributes(next.directory?.attributes).errors.length) return
     timer.current = setTimeout(
       () =>
-        radiusApi.server
+        api
           .update(next)
           .then(() => setError(null))
           .catch((err) => setError(err.message)),
@@ -170,17 +171,17 @@ export default function ServerPanel({ status }) {
               label={running ? t('radius.server.running', { count: status.counters?.requests ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(radiusApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
               <Button
                 variant="primary"
                 size="sm"
                 disabled={busy || invalid}
-                onClick={() => run(() => radiusApi.server.start(config))}
+                onClick={() => run(() => api.start(config))}
               >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -237,7 +238,7 @@ export default function ServerPanel({ status }) {
                     title={t('ui.copy')}
                     onClick={() => navigator.clipboard.writeText(endpoint)}
                   >
-                    <Copy className="size-3.5" />
+                    <FontAwesomeIcon icon={faCopy} className="size-3.5" />
                   </Button>
                 </div>
               ))}
@@ -256,7 +257,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" onClick={addClient}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -289,7 +290,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.remove')}
                 onClick={() => removeItem('clients', c.id)}
               >
-                <Trash2 className="size-3.5" />
+                <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
               </Button>
             </div>
           ))}
@@ -305,7 +306,7 @@ export default function ServerPanel({ status }) {
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
             <Button size="sm" onClick={addUser}>
-              <Plus className="size-3.5" /> {t('ui.add')}
+              <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
@@ -336,7 +337,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.remove')}
                 onClick={() => removeItem('users', u.id)}
               >
-                <Trash2 className="size-3.5" />
+                <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
               </Button>
             </div>
           ))}
@@ -403,7 +404,7 @@ export default function ServerPanel({ status }) {
         </Card>
       )}
 
-      <ServerLog />
+      <ServerLog api={api} />
     </div>
   )
 }

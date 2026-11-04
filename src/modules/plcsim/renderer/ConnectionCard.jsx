@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Monitor, Network, Plug, PlugZap } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDesktop, faNetworkWired, faPlug, faPlugCircleBolt } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -73,8 +74,8 @@ export default function ConnectionCard({ status }) {
               value={settings.mode}
               onChange={(mode) => setSettings((s) => ({ ...s, mode }))}
               tabs={[
-                { id: 'local', label: t('plcsim.connection.modes.local'), icon: Monitor },
-                { id: 'remote', label: t('plcsim.connection.modes.remote'), icon: Network }
+                { id: 'local', label: t('plcsim.connection.modes.local'), icon: faDesktop },
+                { id: 'remote', label: t('plcsim.connection.modes.remote'), icon: faNetworkWired }
               ]}
             />
           </div>
@@ -118,11 +119,12 @@ export default function ConnectionCard({ status }) {
           </Field>
           {connected ? (
             <Button variant="danger" disabled={working} onClick={() => run(plcsimApi.disconnect)}>
-              <Plug className="size-4" /> {t('ui.disconnect')}
+              <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
             </Button>
           ) : (
             <Button variant="primary" disabled={working || needsDll} onClick={connect}>
-              <PlugZap className="size-4" /> {working ? t('ui.connecting') : t('ui.connect')}
+              <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+              {working ? t('ui.connecting') : t('ui.connect')}
             </Button>
           )}
         </div>

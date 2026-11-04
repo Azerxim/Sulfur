@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { Copy, Lock, Pause, Play, Square, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faLock, faPause, faPlay, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -11,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { DEFAULT_SERVER_CONFIG, FACILITIES, MAX_MESSAGES, SEVERITIES, TRANSPORTS } from '../shared/constants'
 import { parseStructuredData } from '../shared/codec'
 import { syslogApi } from './api'
@@ -107,7 +108,7 @@ function MessageDetails({ m }) {
   )
 }
 
-function Messages({ status }) {
+function Messages({ api, status }) {
   const [messages, setMessages] = useState([])
   const [minSeverity, setMinSeverity] = useState(7)
   const [search, setSearch] = useState('')
@@ -116,9 +117,9 @@ function Messages({ status }) {
   const [open, setOpen] = useState(null)
 
   useEffect(() => {
-    syslogApi.server.messages().then(setMessages)
-    return syslogApi.server.onMessages((batch) => setMessages((list) => [...list, ...batch].slice(-MAX_MESSAGES)))
-  }, [])
+    api.messages().then(setMessages)
+    return api.onMessages((batch) => setMessages((list) => [...list, ...batch].slice(-MAX_MESSAGES)))
+  }, [api])
 
   const source = paused && frozen ? frozen : messages
   const filtered = useMemo(() => {
@@ -150,20 +151,24 @@ function Messages({ status }) {
             title={paused ? t('syslog.messages.resume') : t('syslog.messages.pause')}
             onClick={togglePause}
           >
-            {paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
+            {paused ? (
+              <FontAwesomeIcon icon={faPlay} className="size-3.5" />
+            ) : (
+              <FontAwesomeIcon icon={faPause} className="size-3.5" />
+            )}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             title={t('syslog.messages.clear')}
             onClick={() =>
-              syslogApi.server.clear().then((list) => {
+              api.clear().then((list) => {
                 setMessages(list)
                 setFrozen(paused ? list : null)
               })
             }
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         </>
       }
@@ -251,8 +256,13 @@ function Messages({ status }) {
   )
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('syslog', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => syslogApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'syslog',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const running = status.running
@@ -285,17 +295,12 @@ export default function ServerPanel({ status }) {
               label={running ? t('syslog.server.running', { count: status.total ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(syslogApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                disabled={busy}
-                onClick={() => run(() => syslogApi.server.start(config))}
-              >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+              <Button variant="primary" size="sm" disabled={busy} onClick={() => run(() => api.start(config))}>
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -336,7 +341,9 @@ export default function ServerPanel({ status }) {
             <div className="flex flex-col gap-1 rounded-md bg-ink-950 px-3 py-2 font-mono text-sm text-sulfur-300">
               {status.endpoints.map((endpoint) => (
                 <div key={endpoint} className="flex items-center gap-2">
-                  {endpoint.startsWith('tls') && <Lock className="size-3.5 text-emerald-400" />}
+                  {endpoint.startsWith('tls') && (
+                    <FontAwesomeIcon icon={faLock} className="size-3.5 text-emerald-400" />
+                  )}
                   {endpoint}
                   {endpoint.startsWith('tls') && status.certificate && (
                     <span className="font-sans text-xs text-slate-500">
@@ -351,7 +358,7 @@ export default function ServerPanel({ status }) {
                     title={t('ui.copy')}
                     onClick={() => navigator.clipboard.writeText(endpoint)}
                   >
-                    <Copy className="size-3.5" />
+                    <FontAwesomeIcon icon={faCopy} className="size-3.5" />
                   </Button>
                 </div>
               ))}
@@ -366,7 +373,7 @@ export default function ServerPanel({ status }) {
       </Card>
 
       <Stats status={status} />
-      <Messages status={status} />
+      <Messages api={api} status={status} />
     </div>
   )
 }

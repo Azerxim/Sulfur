@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { Copy, Play, RotateCcw, Snowflake, Square, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy, faPlay, faRotateLeft, faSnowflake, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -11,7 +12,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
-import { formatTime } from '@azerxim/sulfur-sdk'
+import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
 import { CLOCK_MODES, DEFAULT_SERVER_CONFIG, LEAP_INDICATORS, MAX_STRATUM, OFFSET_PRESETS } from '../shared/constants'
 import { ntpApi } from './api'
 import { formatDateTime, formatOffset, fromLocalInput, toLocalInput } from './format'
@@ -41,7 +42,7 @@ function useSimulatedTime(status, config) {
   return now + (Number(config.clock.offset) || 0) * 1000
 }
 
-function ClockCard({ status, config, setConfig, run, live }) {
+function ClockCard({ api, status, config, setConfig, run, live }) {
   const running = status.running
   const clock = config.clock
   const time = useSimulatedTime(status, config)
@@ -51,10 +52,10 @@ function ClockCard({ status, config, setConfig, run, live }) {
   // Réglages appliqués au serveur en marche, et enregistrés dans la configuration.
   const apply = (patch) => {
     setClock(patch)
-    if (running) live(() => ntpApi.server.setClock({ ...clock, ...patch }))
+    if (running) live(() => api.setClock({ ...clock, ...patch }))
   }
   const shift = (seconds) => {
-    if (running) run(async () => setClock((await ntpApi.server.shift(seconds)).config.clock))
+    if (running) run(async () => setClock((await api.shift(seconds)).config.clock))
     else apply({ mode: 'offset', offset: (clock.mode === 'offset' ? Number(clock.offset) || 0 : 0) + seconds })
   }
   const realOffset = time === null ? null : time - Date.now()
@@ -68,7 +69,7 @@ function ClockCard({ status, config, setConfig, run, live }) {
               {running ? t('ntp.clock.simulated') : t('ntp.clock.preview')}
               {status.frozen && (
                 <span className="inline-flex items-center gap-1 text-sky-300">
-                  <Snowflake className="size-3" /> {t('ntp.clock.frozen')}
+                  <FontAwesomeIcon icon={faSnowflake} className="size-3" /> {t('ntp.clock.frozen')}
                 </span>
               )}
             </div>
@@ -116,7 +117,7 @@ function ClockCard({ status, config, setConfig, run, live }) {
                   title={t('ntp.clock.resetHint')}
                   onClick={() => apply({ mode: 'offset', offset: 0 })}
                 >
-                  <RotateCcw className="size-3.5" /> {t('ntp.clock.reset')}
+                  <FontAwesomeIcon icon={faRotateLeft} className="size-3.5" /> {t('ntp.clock.reset')}
                 </Button>
               </div>
             </Field>
@@ -149,7 +150,7 @@ function ClockCard({ status, config, setConfig, run, live }) {
               title={t('ntp.clock.driftHint')}
               onCommit={(raw) => {
                 setClock({ drift: Number(raw) || 0 })
-                if (running) live(() => ntpApi.server.setDrift(Number(raw) || 0))
+                if (running) live(() => api.setDrift(Number(raw) || 0))
               }}
             />
           </Field>
@@ -168,10 +169,10 @@ function ClockCard({ status, config, setConfig, run, live }) {
   )
 }
 
-function SettingsCard({ config, setConfig, running, live }) {
+function SettingsCard({ api, config, setConfig, running, live }) {
   const apply = (patch) => {
     setConfig((c) => ({ ...c, ...patch }))
-    if (running) live(() => ntpApi.server.setSettings(patch))
+    if (running) live(() => api.setSettings(patch))
   }
   return (
     <Card id="ntp.server.settings" title={t('ntp.settings.title')} className="shrink-0">
@@ -222,12 +223,12 @@ function SettingsCard({ config, setConfig, running, live }) {
   )
 }
 
-function Activity({ status }) {
+function Activity({ api, status }) {
   const [logs, setLogs] = useState([])
   useEffect(() => {
-    ntpApi.server.logs().then(setLogs)
-    return ntpApi.server.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
-  }, [])
+    api.logs().then(setLogs)
+    return api.onLog((entry) => setLogs((l) => [...l.slice(-(MAX_LOG - 1)), entry]))
+  }, [api])
   const clients = status.clients ?? []
   return (
     <div className="grid shrink-0 grid-cols-[1fr_1.4fr] gap-4">
@@ -267,9 +268,9 @@ function Activity({ status }) {
             variant="ghost"
             size="icon"
             title={t('ntp.activity.clear')}
-            onClick={() => ntpApi.server.clearLogs().then(setLogs)}
+            onClick={() => api.clearLogs().then(setLogs)}
           >
-            <Trash2 className="size-3.5" />
+            <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
           </Button>
         }
       >
@@ -293,8 +294,13 @@ function Activity({ status }) {
   )
 }
 
-export default function ServerPanel({ status }) {
-  const [config, setConfig] = usePersistentState('ntp', 'server', status.config ?? DEFAULT_SERVER_CONFIG)
+export default function ServerPanel({ instance, status }) {
+  const api = useMemo(() => ntpApi.server(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'ntp',
+    instanceSection('server', instance.id),
+    status.config ?? DEFAULT_SERVER_CONFIG
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const running = status.running
@@ -326,17 +332,12 @@ export default function ServerPanel({ status }) {
               label={running ? t('ntp.server.running', { count: status.requests ?? 0 }) : t('ui.stopped')}
             />
             {running ? (
-              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(ntpApi.server.stop)}>
-                <Square className="size-3.5" /> {t('ui.stop')}
+              <Button variant="danger" size="sm" disabled={busy} onClick={() => run(api.stop)}>
+                <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('ui.stop')}
               </Button>
             ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                disabled={busy}
-                onClick={() => run(() => ntpApi.server.start(config))}
-              >
-                <Play className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
+              <Button variant="primary" size="sm" disabled={busy} onClick={() => run(() => api.start(config))}>
+                <FontAwesomeIcon icon={faPlay} className="size-3.5" /> {busy ? t('ui.starting') : t('ui.start')}
               </Button>
             )}
           </>
@@ -371,7 +372,7 @@ export default function ServerPanel({ status }) {
                 title={t('ui.copy')}
                 onClick={() => navigator.clipboard.writeText(status.endpoint)}
               >
-                <Copy className="size-3.5" />
+                <FontAwesomeIcon icon={faCopy} className="size-3.5" />
               </Button>
             </div>
           )}
@@ -379,9 +380,9 @@ export default function ServerPanel({ status }) {
         </div>
       </Card>
 
-      <ClockCard status={status} config={config} setConfig={setConfig} run={run} live={live} />
-      <SettingsCard config={config} setConfig={setConfig} running={running} live={live} />
-      <Activity status={status} />
+      <ClockCard api={api} status={status} config={config} setConfig={setConfig} run={run} live={live} />
+      <SettingsCard api={api} config={config} setConfig={setConfig} running={running} live={live} />
+      <Activity api={api} status={status} />
     </div>
   )
 }

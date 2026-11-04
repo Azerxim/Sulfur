@@ -6,7 +6,7 @@ import { httpRequest } from '@modules/http/main/request'
 import { createPointsApi } from '@modules/http/main/points'
 import { DEFAULT_SERVER_CONFIG } from '@modules/http/shared/constants'
 import { coerce, matchPath, renderTemplate } from '@modules/http/shared/template'
-import { errorOf, freePort, sleep, tempDir } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep, tempDir } from './helpers'
 
 let tmp, server, client, port, logs
 const base = () => `http://127.0.0.1:${port}`
@@ -143,7 +143,7 @@ describe('Serveur HTTP', () => {
 
   it('applique les défauts : délai, code forcé sur une variable, absence de réponse, coupure, valeurs figées', async () => {
     await start()
-    const points = createPointsApi({ server, client })
+    const points = createPointsApi({ instances: fakeInstances({ server, client }) })
     points.setFaults([{ id: 'd', type: 'delay', params: { ms: 300 }, points: [] }])
     let started = Date.now()
     await json('/health')
@@ -208,7 +208,7 @@ describe('Client HTTP', () => {
     expect(res).toMatchObject({ status: 200, method: 'PUT', url: `${base()}/api/variables/setpoint` })
 
     client.addWatch({ label: 'Consigne', path: '/api/variables/setpoint', jsonPath: 'value', writeMethod: 'PUT' })
-    const points = createPointsApi({ server, client })
+    const points = createPointsApi({ instances: fakeInstances({ server, client }) })
     const watch = points.points().find((p) => p.group === 'client')
     expect(watch).toMatchObject({ name: 'Consigne', writable: true })
     await waitFor(() => points.read([watch.id])[watch.id] === 12)

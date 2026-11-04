@@ -1,28 +1,35 @@
 import { useState } from 'react'
-import { Box, ChevronRight, Folder, FunctionSquare, Tag, Type } from 'lucide-react'
-import { opcuaApi } from './api'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faChevronRight,
+  faCube,
+  faFolder,
+  faFont,
+  faSquareRootVariable,
+  faTag
+} from '@fortawesome/free-solid-svg-icons'
 
 const icons = {
-  Object: Folder,
-  Variable: Tag,
-  Method: FunctionSquare,
-  ObjectType: Type,
-  VariableType: Type,
-  DataType: Type
+  Object: faFolder,
+  Variable: faTag,
+  Method: faSquareRootVariable,
+  ObjectType: faFont,
+  VariableType: faFont,
+  DataType: faFont
 }
 
-function TreeNode({ node, depth, selectedId, onSelect }) {
+function TreeNode({ api, node, depth, selectedId, onSelect }) {
   const [open, setOpen] = useState(false)
   const [children, setChildren] = useState(null)
   const [loading, setLoading] = useState(false)
-  const Icon = icons[node.nodeClass] ?? Box
+  const icon = icons[node.nodeClass] ?? faCube
   const leaf = children !== null && children.length === 0
 
   async function toggle() {
     if (!open && children === null) {
       setLoading(true)
       try {
-        setChildren(await opcuaApi.client.browse(node.nodeId))
+        setChildren(await api.browse(node.nodeId))
       } catch {
         setChildren([])
       } finally {
@@ -49,17 +56,21 @@ function TreeNode({ node, depth, selectedId, onSelect }) {
             toggle()
           }}
         >
-          <ChevronRight
+          <FontAwesomeIcon
+            icon={faChevronRight}
             className={`size-3.5 transition-transform ${open ? 'rotate-90' : ''} ${loading ? 'animate-pulse' : ''}`}
           />
         </button>
-        <Icon className={`size-3.5 shrink-0 ${node.nodeClass === 'Variable' ? 'text-sulfur-400' : 'text-slate-500'}`} />
+        <FontAwesomeIcon
+          icon={icon}
+          className={`size-3.5 shrink-0 ${node.nodeClass === 'Variable' ? 'text-sulfur-400' : 'text-slate-500'}`}
+        />
         <span className="truncate">{node.displayName}</span>
       </div>
       {open && children?.length > 0 && (
         <ul>
           {children.map((c) => (
-            <TreeNode key={c.nodeId} node={c} depth={depth + 1} selectedId={selectedId} onSelect={onSelect} />
+            <TreeNode api={api} key={c.nodeId} node={c} depth={depth + 1} selectedId={selectedId} onSelect={onSelect} />
           ))}
         </ul>
       )}
@@ -67,11 +78,11 @@ function TreeNode({ node, depth, selectedId, onSelect }) {
   )
 }
 
-export default function NodeTree({ roots, selectedId, onSelect }) {
+export default function NodeTree({ api, roots, selectedId, onSelect }) {
   return (
     <ul className="font-mono text-[13px]">
       {roots.map((n) => (
-        <TreeNode key={n.nodeId} node={n} depth={0} selectedId={selectedId} onSelect={onSelect} />
+        <TreeNode api={api} key={n.nodeId} node={n} depth={0} selectedId={selectedId} onSelect={onSelect} />
       ))}
     </ul>
   )

@@ -1,4 +1,4 @@
-import { HardDriveDownload } from 'lucide-react'
+import { faHardDrive } from '@fortawesome/free-solid-svg-icons'
 import { TFTP_MODULE } from '../shared/constants'
 import TftpView from './TftpView'
 import '../shared/locales'
@@ -6,6 +6,6 @@ import '../shared/locales'
 /** Partie "renderer" du module TFTP. */
 export default {
   manifest: TFTP_MODULE,
-  icon: HardDriveDownload,
+  icon: faHardDrive,
   Component: TftpView
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ShieldAlert, Workflow } from 'lucide-react'
-import { ErrorBanner, Tabs, usePersistentState, useStoredState } from '@azerxim/sulfur-sdk/ui'
+import { faBolt, faDiagramProject } from '@fortawesome/free-solid-svg-icons'
+import { ErrorBanner, TabbedPage, usePersistentState, useStoredState } from '@azerxim/sulfur-sdk/ui'
 import { pointKey } from '@azerxim/sulfur-sdk'
 import { DEFAULT_FAULTS, DEFAULT_FLOWS } from '../shared/constants'
 import { simulatorApi } from './api'
@@ -41,21 +41,26 @@ export default function SimulatorView() {
   )
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: 'flows', label: t('simulator.flows.title', { count: flows.length }), icon: Workflow },
-          {
-            id: 'faults',
-            label: t('simulator.faults.title', { count: faults.length }),
-            icon: ShieldAlert,
-            badge: status.faults?.length > 0 && <span className="size-1.5 rounded-full bg-amber-400" />
-          }
-        ]}
-      />
-      <ErrorBanner error={error} onClose={() => setError(null)} />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        { id: 'flows', label: t('simulator.flows.title', { count: flows.length }), icon: faDiagramProject },
+        {
+          id: 'faults',
+          label: t('simulator.faults.title', { count: faults.length }),
+          icon: faBolt,
+          badge: status.faults?.length > 0 && <span className="size-1.5 rounded-full bg-amber-400" />
+        }
+      ]}
+      // Flux : l'éditeur occupe toute la surface sous les onglets, sans marge.
+      className={tab === 'flows' ? 'gap-0! overflow-auto p-0!' : 'overflow-auto'}
+    >
+      {error && (
+        <div className={tab === 'flows' ? 'p-3 pb-0' : ''}>
+          <ErrorBanner error={error} onClose={() => setError(null)} />
+        </div>
+      )}
       {tab === 'faults' ? (
         <FaultsCard faults={faults} onChange={setFaults} targets={targets} status={status} onError={setError} />
       ) : (
@@ -68,6 +73,6 @@ export default function SimulatorView() {
           onError={setError}
         />
       )}
-    </div>
+    </TabbedPage>
   )
 }

@@ -2,7 +2,13 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/ldap.md)
 
-Four tabs: LDAP server and client, RADIUS server and client.
+- **Multiple instances**: as many LDAP and RADIUS servers and clients as needed, each in its own
+  tab, with its name and settings; none exists at first. A stopped instance can be renamed or
+  removed. Those of an earlier version become "LDAP server 1", "LDAP client 1"… A RADIUS server
+  authenticates the accounts of the directory of the first running LDAP server (otherwise the first
+  LDAP server).
+
+LDAP servers and clients, RADIUS servers and clients.
 
 ## LDAP
 

@@ -10,12 +10,13 @@
   --color-sulfur-400: #ecc937;
   --color-sulfur-500: #d4ad1a;
   --color-sulfur-600: #a98712;
-  --color-ink-950: #0b0d12;
-  --color-ink-900: #11141b;
-  --color-ink-850: #161a23;
-  --color-ink-800: #1c212c;
-  --color-ink-700: #2a303d;
-  --color-ink-600: #3b4252;
+  /* Graphite : fond (950), panneaux (900), survol et éléments surélevés (850), lignes (800). */
+  --color-ink-950: #0a0c10;
+  --color-ink-900: #0f1218;
+  --color-ink-850: #171b24;
+  --color-ink-800: #232937;
+  --color-ink-700: #2e3545;
+  --color-ink-600: #424a5c;
   /* Texte posé sur la couleur d'accent (boutons principaux, logo) : identique dans les deux thèmes. */
   --color-on-accent: #0b0d12;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;

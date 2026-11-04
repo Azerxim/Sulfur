@@ -1,5 +1,17 @@
-import { useEffect, useState } from 'react'
-import { ArrowLeftRight, BookOpen, Eye, Fingerprint, Lock, Plug, PlugZap, ShieldCheck, Send, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowsLeftRight,
+  faBookOpen,
+  faEye,
+  faFingerprint,
+  faLock,
+  faPaperPlane,
+  faPlug,
+  faPlugCircleBolt,
+  faShieldHalved,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -13,6 +25,7 @@ import {
   StatusDot,
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
+import { instanceSection } from '@azerxim/sulfur-sdk'
 import { getLocale } from '@azerxim/sulfur-sdk'
 import {
   DATA_TYPES,
@@ -88,12 +101,21 @@ function parseWrite(raw, format, wordOrder) {
     })
 }
 
-export default function ClientPanel({ status, serverPort, serverMode, serverTransport }) {
-  const [config, setConfig] = usePersistentState('modbus', 'client', DEFAULT_CLIENT_CONFIG)
+export default function ClientPanel({ instance, status }) {
+  const api = useMemo(() => modbusApi.client(instance.id), [instance.id])
+  const [config, setConfig] = usePersistentState(
+    'modbus',
+    instanceSection('client', instance.id),
+    DEFAULT_CLIENT_CONFIG
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [certsOpen, setCertsOpen] = useState(false)
-  const [op, setOp] = usePersistentState('modbus', 'clientRequest', DEFAULT_CLIENT_REQUEST)
+  const [op, setOp] = usePersistentState(
+    'modbus',
+    instanceSection('clientRequest', instance.id),
+    DEFAULT_CLIENT_REQUEST
+  )
   const [result, setResult] = useState(null)
   const [writeValue, setWriteValue] = useState('')
   const [live, setLive] = useState({})
@@ -105,19 +127,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
   const tlsMode = config.transport === 'tcp' && security.mode === 'tls'
   const bit = TABLES[op.table].bit
 
-  // Aligne le port et le transport sur le serveur local (TCP) lorsqu'il démarre.
-  useEffect(() => {
-    if (serverPort && !connected) {
-      setConfig((c) => ({
-        ...c,
-        port: serverPort,
-        transport: serverTransport ?? c.transport,
-        security: { ...c.security, mode: serverMode ?? c.security.mode }
-      }))
-    }
-  }, [serverPort, serverMode, serverTransport, connected, setConfig])
-
-  useEffect(() => modbusApi.client.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [])
+  useEffect(() => api.onData((d) => setLive((l) => ({ ...l, [d.id]: d }))), [api])
   useEffect(() => {
     if (!connected) {
       setLive({})
@@ -140,10 +150,10 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
   const update = (patch) => setConfig((c) => ({ ...c, ...patch }))
   const updateSecurity = (patch) => setConfig((c) => ({ ...c, security: { ...c.security, ...patch } }))
   const updateOp = (patch) => setOp((o) => ({ ...o, ...patch }))
-  const connect = () => run(() => modbusApi.client.connect(config))
+  const connect = () => run(() => api.connect(config))
 
   async function read() {
-    const data = await run(() => modbusApi.client.read(op.table, Number(op.address), Number(op.quantity)))
+    const data = await run(() => api.read(op.table, Number(op.address), Number(op.quantity)))
     if (data) setResult({ ...op, address: Number(op.address), data, time: new Date().toISOString() })
   }
 
@@ -154,9 +164,9 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
           .split(/[,;\s]+/)
           .filter(Boolean)
         if (!values.length) throw new Error(t('modbus.client.errors.enterBits'))
-        await modbusApi.client.write(op.table, Number(op.address), values)
+        await api.write(op.table, Number(op.address), values)
       } else {
-        await modbusApi.client.write(op.table, Number(op.address), parseWrite(writeValue, op.format, op.wordOrder))
+        await api.write(op.table, Number(op.address), parseWrite(writeValue, op.format, op.wordOrder))
       }
       await read()
     })
@@ -165,7 +175,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
   /** Fonction 23 : écrit la saisie à l'adresse d'écriture puis lit la plage demandée, en une requête. */
   function readWrite() {
     run(async () => {
-      const data = await modbusApi.client.readWrite(
+      const data = await api.readWrite(
         Number(op.address),
         Number(op.quantity),
         Number(op.writeAddress ?? op.address),
@@ -177,13 +187,13 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
 
   const identify = () =>
     run(async () => {
-      const data = await modbusApi.client.identify(identificationCode)
+      const data = await api.identify(identificationCode)
       setIdentification({ ...data, time: new Date().toISOString() })
     })
 
   const watch = () =>
     run(() =>
-      modbusApi.client.addWatch({
+      api.addWatch({
         table: op.table,
         address: Number(op.address),
         dataType: bit ? 'Boolean' : FORMATS[op.format].type,
@@ -293,8 +303,8 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
               />
             </Field>
             {connected ? (
-              <Button variant="danger" disabled={busy} onClick={() => run(modbusApi.client.disconnect)}>
-                <Plug className="size-4" /> {t('ui.disconnect')}
+              <Button variant="danger" disabled={busy} onClick={() => run(api.disconnect)}>
+                <FontAwesomeIcon icon={faPlug} className="size-4" /> {t('ui.disconnect')}
               </Button>
             ) : (
               <Button
@@ -302,7 +312,8 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                 disabled={busy || (serial ? !config.serial.path?.trim() : !config.host)}
                 onClick={connect}
               >
-                <PlugZap className="size-4" /> {busy ? t('ui.connecting') : t('ui.connect')}
+                <FontAwesomeIcon icon={faPlugCircleBolt} className="size-4" />{' '}
+                {busy ? t('ui.connecting') : t('ui.connect')}
               </Button>
             )}
           </div>
@@ -340,7 +351,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
               onChange={(e) => updateSecurity({ autoAcceptCertificates: e.target.checked })}
             />
             <Button size="sm" className="mb-1" onClick={() => setCertsOpen(true)}>
-              <ShieldCheck className="size-3.5" /> {t('ui.certificates')}
+              <FontAwesomeIcon icon={faShieldHalved} className="size-3.5" /> {t('ui.certificates')}
             </Button>
           </div>
           {tlsMode && !connected && <p className="text-xs text-slate-500">{t('modbus.client.roleHint')}</p>}
@@ -415,10 +426,10 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
             </Field>
             <div className="flex gap-2">
               <Button variant="primary" disabled={!connected || busy} onClick={read}>
-                <BookOpen className="size-4" /> {t('modbus.client.read')}
+                <FontAwesomeIcon icon={faBookOpen} className="size-4" /> {t('modbus.client.read')}
               </Button>
               <Button disabled={!connected || busy} onClick={watch} title={t('modbus.client.watchHint')}>
-                <Eye className="size-4" /> {t('modbus.client.watch')}
+                <FontAwesomeIcon icon={faEye} className="size-4" /> {t('modbus.client.watch')}
               </Button>
             </div>
           </div>
@@ -445,7 +456,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                 />
               </Field>
               <Button variant="primary" disabled={!connected || busy || !writeValue} onClick={write}>
-                <Send className="size-4" /> {t('modbus.client.write')}
+                <FontAwesomeIcon icon={faPaperPlane} className="size-4" /> {t('modbus.client.write')}
               </Button>
             </div>
           )}
@@ -462,7 +473,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                 />
               </Field>
               <Button disabled={!connected || busy || !writeValue} onClick={readWrite}>
-                <ArrowLeftRight className="size-4" /> {t('modbus.client.readWrite')}
+                <FontAwesomeIcon icon={faArrowsLeftRight} className="size-4" /> {t('modbus.client.readWrite')}
               </Button>
               <p className="mb-2 text-xs text-slate-500">{t('modbus.client.readWriteHint')}</p>
             </div>
@@ -524,7 +535,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
               ))}
             </Select>
             <Button size="sm" disabled={!connected || busy} onClick={identify}>
-              <Fingerprint className="size-3.5" /> {t('modbus.client.identify')}
+              <FontAwesomeIcon icon={faFingerprint} className="size-3.5" /> {t('modbus.client.identify')}
             </Button>
           </>
         }
@@ -568,7 +579,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
               min={50}
               className="h-7! w-20!"
               value={status.pollInterval ?? DEFAULT_CLIENT_CONFIG.pollInterval}
-              onCommit={(raw) => run(() => modbusApi.client.setPollInterval(Number(raw)))}
+              onCommit={(raw) => run(() => api.setPollInterval(Number(raw)))}
             />
             ms
           </label>
@@ -609,9 +620,9 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
                         variant="ghost"
                         size="icon"
                         title={t('ui.remove2')}
-                        onClick={() => run(() => modbusApi.client.removeWatch(w.id))}
+                        onClick={() => run(() => api.removeWatch(w.id))}
                       >
-                        <X className="size-3.5" />
+                        <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                       </Button>
                     </td>
                   </tr>
@@ -626,7 +637,7 @@ export default function ClientPanel({ status, serverPort, serverMode, serverTran
 
       {connected && status.tls && (
         <p className="flex shrink-0 items-center gap-1.5 text-xs text-emerald-300/80">
-          <Lock className="size-3" />{' '}
+          <FontAwesomeIcon icon={faLock} className="size-3" />{' '}
           {t('modbus.client.encrypted', {
             protocol: status.tls.protocol,
             cipher: status.tls.cipher,

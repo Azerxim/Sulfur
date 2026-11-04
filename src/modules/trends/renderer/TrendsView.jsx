@@ -1,5 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChartLine, Circle, Download, Eraser, Eye, EyeOff, List, LocateFixed, Square, X } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faChartLine,
+  faCircle,
+  faDownload,
+  faEraser,
+  faEye,
+  faEyeSlash,
+  faList,
+  faLocationCrosshairs,
+  faStop,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -7,7 +19,7 @@ import {
   ErrorBanner,
   Field,
   Select,
-  Tabs,
+  TabbedPage,
   usePersistentState,
   useStoredState
 } from '@azerxim/sulfur-sdk/ui'
@@ -22,7 +34,10 @@ import { t } from '../shared/i18n'
 /** Fréquence de rafraîchissement de la liste des points (les surveillances des clients changent). */
 const POINTS_REFRESH = 3000
 
-const pointLabel = (p) => `${p.moduleName} · ${t(`trends.groups.${p.group}`)} · ${p.name}`
+/** Groupe d'un point : « Modbus · Serveur », ou le nom de l'instance qui le porte. */
+const groupLabel = (p) => `${p.moduleName} · ${p.groupName ?? t(`trends.groups.${p.group}`)}`
+
+const pointLabel = (p) => `${groupLabel(p)} · ${p.name}`
 
 export default function TrendsView() {
   const [config, setConfig] = usePersistentState('trends', 'config', DEFAULT_CONFIG)
@@ -108,25 +123,25 @@ export default function TrendsView() {
   }
 
   const available = points.filter((p) => !config.series.some((s) => s.key === p.key))
-  const groups = Object.entries(Object.groupBy(available, (p) => `${p.moduleName} · ${t(`trends.groups.${p.group}`)}`))
+  const groups = Object.entries(Object.groupBy(available, groupLabel))
   const visible = series.filter((s) => !s.hidden)
   const split = config.layout === 'split'
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto p-6">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          {
-            id: 'chart',
-            label: t('trends.chart.title'),
-            icon: ChartLine,
-            badge: recording && <span className="size-1.5 animate-pulse rounded-full bg-red-400" />
-          },
-          { id: 'series', label: t('trends.series.title', { count: config.series.length }), icon: List }
-        ]}
-      />
+    <TabbedPage
+      value={tab}
+      onChange={setTab}
+      tabs={[
+        {
+          id: 'chart',
+          label: t('trends.chart.title'),
+          icon: faChartLine,
+          badge: recording && <span className="size-1.5 animate-pulse rounded-full bg-red-400" />
+        },
+        { id: 'series', label: t('trends.series.title', { count: config.series.length }), icon: faList }
+      ]}
+      className="overflow-auto"
+    >
       {tab === 'chart' && (
         <Card
           id="trends.chart"
@@ -141,7 +156,7 @@ export default function TrendsView() {
               </span>
               {recording ? (
                 <Button variant="danger" size="sm" onClick={() => run(trendsApi.stop)}>
-                  <Square className="size-3.5" /> {t('trends.recording.stop')}
+                  <FontAwesomeIcon icon={faStop} className="size-3.5" /> {t('trends.recording.stop')}
                 </Button>
               ) : (
                 <Button
@@ -152,7 +167,7 @@ export default function TrendsView() {
                     run(() => trendsApi.start({ series: config.series.map((s) => s.key), interval: config.interval }))
                   }
                 >
-                  <Circle className="size-3.5" /> {t('trends.recording.start')}
+                  <FontAwesomeIcon icon={faCircle} className="size-3.5" /> {t('trends.recording.start')}
                 </Button>
               )}
               <Button
@@ -166,7 +181,7 @@ export default function TrendsView() {
                   })
                 }
               >
-                <Eraser className="size-3.5" /> {t('trends.recording.clear')}
+                <FontAwesomeIcon icon={faEraser} className="size-3.5" /> {t('trends.recording.clear')}
               </Button>
               <Button
                 size="sm"
@@ -178,7 +193,7 @@ export default function TrendsView() {
                   })
                 }
               >
-                <Download className="size-3.5" /> {t('trends.recording.export')}
+                <FontAwesomeIcon icon={faDownload} className="size-3.5" /> {t('trends.recording.export')}
               </Button>
             </>
           }
@@ -225,7 +240,7 @@ export default function TrendsView() {
                 <div className="ml-auto flex items-center gap-2 text-xs text-slate-500">
                   {t('trends.chart.paused')}
                   <Button size="sm" onClick={() => setPaused(false)}>
-                    <LocateFixed className="size-3.5" /> {t('trends.chart.follow')}
+                    <FontAwesomeIcon icon={faLocationCrosshairs} className="size-3.5" /> {t('trends.chart.follow')}
                   </Button>
                 </div>
               )}
@@ -361,7 +376,11 @@ export default function TrendsView() {
                             })
                           }
                         >
-                          {s.hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                          {s.hidden ? (
+                            <FontAwesomeIcon icon={faEyeSlash} className="size-3.5" />
+                          ) : (
+                            <FontAwesomeIcon icon={faEye} className="size-3.5" />
+                          )}
                         </Button>
                         <Button
                           variant="ghost"
@@ -369,7 +388,7 @@ export default function TrendsView() {
                           title={t('trends.series.remove')}
                           onClick={() => changeSeries(config.series.filter((x) => x.key !== s.key))}
                         >
-                          <X className="size-3.5" />
+                          <FontAwesomeIcon icon={faXmark} className="size-3.5" />
                         </Button>
                       </td>
                     </tr>
@@ -380,6 +399,6 @@ export default function TrendsView() {
           )}
         </Card>
       )}
-    </div>
+    </TabbedPage>
   )
 }

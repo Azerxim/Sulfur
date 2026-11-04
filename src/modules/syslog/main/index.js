@@ -1,57 +1,82 @@
+import { migrateToInstances } from '@azerxim/sulfur-sdk'
+import { defineInstances, ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { join } from 'path'
-import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { SYSLOG_MODULE } from '../shared/constants'
 import '../shared/locales'
+import { t } from '../shared/i18n'
 import { SyslogServer } from './server'
 import { SyslogClient } from './client'
 import { createPointsApi } from './points'
 
 const SERVER_COMMON_NAME = 'Syslog@Sulfur'
 
-let server = null
-let client = null
+/** Serveur et client uniques d'une version antérieure, convertis en instances (« Serveur 1 »…). */
+const migrateConfig = (config) =>
+  migrateToInstances(config, {
+    server: { sections: ['server'], name: `${t('ui.server')} 1` },
+    client: { sections: ['client'], name: `${t('ui.client')} 1` }
+  })
 
-/** Partie "main" du module Syslog. Canaux : `syslog:server:*`, `syslog:client:*`. */
+let instances = null
+
+/**
+ * Partie "main" du module Syslog : serveurs et clients en nombre libre (aucun par défaut, voir
+ * `defineInstances` du SDK). Canaux : `syslog:instances:*`, `syslog:server:*` et `syslog:client:*`
+ * (identifiant de l'instance en premier argument).
+ */
 export const syslogMainModule = {
   manifest: SYSLOG_MODULE,
 
+  migrateConfig,
+
   activate(ctx) {
-    server = new SyslogServer(() => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME), {
-      onStatus: (status) => ctx.emit('server:status', status),
-      onMessages: (batch) => ctx.emit('server:messages', batch)
+    const certificate = () => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME)
+    instances = defineInstances(ctx, {
+      server: {
+        label: () => t('ui.server'),
+        create: (_instance, { emit }) =>
+          new SyslogServer(certificate, {
+            onStatus: (status) => emit('status', status),
+            onMessages: (batch) => emit('messages', batch)
+          }),
+        busy: (server) => server.running,
+        dispose: (server) => server.stop()
+      },
+      client: {
+        label: () => t('ui.client'),
+        create: (_instance, { emit }) =>
+          new SyslogClient({
+            onStatus: (status) => emit('status', status),
+            onSent: (entry) => emit('sent', entry)
+          }),
+        busy: (client) => !!client.repeatTimer,
+        dispose: (client) => client.close()
+      }
     })
-    client = new SyslogClient({
-      onStatus: (status) => ctx.emit('client:status', status),
-      onSent: (entry) => ctx.emit('client:sent', entry)
-    })
 
-    ctx.expose(createPointsApi({ server, client, savedConfig: ctx.config }))
-
-    ctx.handle('server:status', () => server.status())
-    ctx.handle('server:start', (config) => server.start(config))
-    ctx.handle('server:stop', () => server.stop())
-    ctx.handle('server:messages', () => server.list())
-    ctx.handle('server:clear', () => server.clear())
-
-    ctx.handle('client:status', () => client.status())
-    ctx.handle('client:send', (config) => client.send(config))
-    ctx.handle('client:startRepeat', (config) => client.startRepeat(config))
-    ctx.handle('client:stopRepeat', () => client.stopRepeat())
-    ctx.handle('client:disconnect', () => {
+    ctx.expose(createPointsApi({ instances, savedConfig: ctx.config }))
+    instances.handle('server', 'start', (server, config) => server.start(config))
+    instances.handle('server', 'stop', (server) => server.stop())
+    instances.handle('server', 'messages', (server) => server.list())
+    instances.handle('server', 'clear', (server) => server.clear())
+    instances.handle('client', 'send', (client, config) => client.send(config))
+    instances.handle('client', 'startRepeat', (client, config) => client.startRepeat(config))
+    instances.handle('client', 'stopRepeat', (client) => client.stopRepeat())
+    instances.handle('client', 'disconnect', (client) => {
       client.disconnect()
       return client.status()
     })
-    ctx.handle('client:history', () => client.history)
-    ctx.handle('client:clearHistory', () => client.clearHistory())
+    instances.handle('client', 'history', (client) => client.history)
+    instances.handle('client', 'clearHistory', (client) => client.clearHistory())
   },
 
-  /** Serveur démarré ou envoi périodique en cours. */
+  /** Au moins un serveur démarré ou un envoi périodique en cours. */
   busy() {
-    return !!(server?.running || client?.repeatTimer)
+    return !!instances?.busy()
   },
 
   async deactivate() {
-    client?.close()
-    await server?.stop().catch(() => {})
+    await instances?.dispose()
+    instances = null
   }
 }

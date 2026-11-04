@@ -14,7 +14,7 @@ import { FlowRuntime } from '@modules/simulator/main/flows'
 import { createNode, migrateSimulatorConfig, stepsToFlow } from '@modules/simulator/shared/flows'
 import { TrendRecorder } from '@modules/trends/main/recorder'
 import { t } from '@modules/simulator/shared/i18n'
-import { errorOf, freePort, sleep, tempDir } from './helpers'
+import { errorOf, fakeInstances, freePort, sleep, tempDir } from './helpers'
 
 let tmp, opcua, modbus, engine, peers, statuses
 
@@ -46,11 +46,25 @@ beforeAll(async () => {
   const modbusPki = new ModbusPki(`${tmp.dir}/modbus`)
   const modbusServer = new ModbusServer(modbusPki, { onStatus() {}, onValues() {}, onLog() {} })
   const modbusClient = new ModbusClient(modbusPki, { onStatus() {}, onData() {} })
-  opcua = { server: opcuaServer, client: opcuaClient, api: opcuaPoints({ server: opcuaServer, client: opcuaClient }) }
+  opcua = {
+    server: opcuaServer,
+    client: opcuaClient,
+    api: opcuaPoints({ instances: fakeInstances({ server: opcuaServer, client: opcuaClient }) })
+  }
   modbus = {
     server: modbusServer,
     client: modbusClient,
-    api: modbusPoints({ server: modbusServer, client: modbusClient })
+    // Instances d'identifiants `server` et `client`, comme après la migration d'une configuration
+    // antérieure : les clés de points (`modbus/server:<id>`) sont celles d'avant les instances.
+    api: modbusPoints({
+      instances: {
+        all: (role) =>
+          [
+            { instance: { id: 'server', role: 'server', name: 'Serveur 1' }, object: modbusServer },
+            { instance: { id: 'client', role: 'client', name: 'Client 1' }, object: modbusClient }
+          ].filter((e) => !role || e.instance.role === role)
+      }
+    })
   }
   peers = [
     { id: 'opcua', api: opcua.api },

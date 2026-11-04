@@ -2,6 +2,10 @@
 
 [Documentation](../README.md) · [All modules](../README.md#modules) · **English** · [Français](../../fr/modules/snmp.md)
 
+- **Multiple instances**: as many agents and managers as needed, each in its own tab, with its name
+  and settings; none exists at first. A stopped instance can be renamed or removed. Those of an
+  earlier version become "Agent 1" and "Manager 1".
+
 - **Agent** (net-snmp, UDP, default port 1161; standard port 161 needs administrator rights on
   Linux): SNMPv1, v2c and v3. Read community and read / write community, SNMPv3 users (USM: MD5 or
   SHA-1 / SHA-2 authentication, DES or AES encryption), engine ID chosen or generated. System group

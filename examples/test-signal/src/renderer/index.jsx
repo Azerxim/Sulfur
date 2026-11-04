@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Activity, Play, Radio, Square } from 'lucide-react'
+import { faPlay, faStop, faTowerBroadcast, faWaveSquare } from '@fortawesome/free-solid-svg-icons'
 import { pointKey } from '@azerxim/sulfur-sdk'
 import {
   Button,
@@ -9,7 +9,8 @@ import {
   Field,
   Input,
   StatusDot,
-  usePersistentState
+  usePersistentState,
+  Icon
 } from '@azerxim/sulfur-sdk/ui'
 import { DEFAULTS, manifest } from '../manifest.js'
 import { t } from '../i18n.js'
@@ -94,7 +95,7 @@ function TestSignalView() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="flex flex-col gap-3 p-4">
       <ErrorBanner error={error} onClose={() => setError(null)} />
       <Card
         id={`${ID}.generator`}
@@ -109,11 +110,11 @@ function TestSignalView() {
         <div className="mt-3 flex gap-2">
           {running ? (
             <Button variant="danger" onClick={() => run(invoke('stop').then(setState))}>
-              <Square className="size-4" /> {t('ui.stop')}
+              <Icon icon={faStop} className="size-4" /> {t('ui.stop')}
             </Button>
           ) : (
             <Button variant="primary" onClick={() => run(invoke('start', settings).then(setState))}>
-              <Play className="size-4" /> {t('ui.start')}
+              <Icon icon={faPlay} className="size-4" /> {t('ui.start')}
             </Button>
           )}
         </div>
@@ -132,7 +133,7 @@ function TestSignalView() {
             <CommitInput value={state?.setpoint ?? ''} onCommit={(v) => run(invoke('setpoint', v))} />
           </Field>
           <p className="flex items-center gap-1.5 text-xs text-slate-500">
-            <Activity className="size-3.5" />
+            <Icon icon={faWaveSquare} className="size-3.5" />
             {t('test-signal.points', {
               points: ['sine', 'ramp', 'square', 'setpoint', 'running'].map((id) => pointKey(ID, id)).join(', ')
             })}
@@ -143,7 +144,7 @@ function TestSignalView() {
       <Card id={`${ID}.host`} title={t('test-signal.host')}>
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => run(ping())}>
-            <Radio className="size-4" /> {t('test-signal.ping')}
+            <Icon icon={faTowerBroadcast} className="size-4" /> {t('test-signal.ping')}
           </Button>
           {pong && <span className="test-signal-pong text-xs">{pong}</span>}
         </div>
@@ -152,4 +153,4 @@ function TestSignalView() {
   )
 }
 
-export default { manifest, icon: Activity, Component: TestSignalView }
+export default { manifest, icon: faWaveSquare, Component: TestSignalView }

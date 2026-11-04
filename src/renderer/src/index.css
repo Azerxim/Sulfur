@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+/* Icônes FontAwesome : leurs styles dans la couche base, pour que les utilitaires (size-4…) priment. */
+@import '@fortawesome/fontawesome-svg-core/styles.css' layer(base);
 /* Thème partagé avec les modules externes (SDK). */
 @import '../../../packages/sdk/src/ui/theme.css';
 
@@ -8,6 +10,9 @@
 @source '../../../packages/sdk/src/ui';
 
 /*
+ * Thème « graphite et soufre » : fonds neutres pour les données, soufre réservé à l'action, à la
+ * sélection et aux valeurs vivantes, couleurs d'état réservées à l'état.
+ *
  * Thème clair : les composants utilisent les mêmes classes, seules les valeurs changent.
  * ink (fonds) et slate (textes) sont inversés ; les couleurs d'accent utilisées en texte sont assombries.
  */
@@ -17,21 +22,22 @@
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --color-ink-950: #f1f3f6;
+  --color-ink-950: #eceef2;
   --color-ink-900: #ffffff;
-  --color-ink-850: #f3f5f8;
-  --color-ink-800: #e4e7ed;
-  --color-ink-700: #d0d5de;
-  --color-ink-600: #b6bdc9;
-  --color-slate-100: #0f172a;
-  --color-slate-200: #1e293b;
-  --color-slate-300: #334155;
-  --color-slate-400: #475569;
-  --color-slate-500: #64748b;
-  --color-slate-600: #94a3b8;
-  --color-sulfur-200: #713f12;
-  --color-sulfur-300: #a16207;
-  --color-sulfur-400: #ca9a06;
+  --color-ink-850: #f3f4f7;
+  --color-ink-800: #dadee5;
+  --color-ink-700: #c9ced8;
+  --color-ink-600: #aeb5c1;
+  --color-slate-100: #10141b;
+  --color-slate-200: #1c232e;
+  --color-slate-300: #323b49;
+  --color-slate-400: #465061;
+  --color-slate-500: #5b6475;
+  --color-slate-600: #8b93a1;
+  --color-sulfur-200: #5c4500;
+  --color-sulfur-300: #7a5c00;
+  /* Focus clavier : jaune assombri, lisible sur fond clair. */
+  --focus-ring: #9a7400;
   --color-emerald-300: #047857;
   --color-emerald-400: #059669;
   --color-red-200: #991b1b;
@@ -43,6 +49,14 @@
   --color-violet-300: #6d28d9;
   --color-orange-300: #c2410c;
   --color-pink-300: #be185d;
+}
+
+/*
+ * Thème clair : le soufre garde son éclat en aplat (boutons, logo, interrupteurs, soulignés) ; en
+ * texte et en icône, il est assombri pour rester lisible sur fond blanc.
+ */
+:root[data-theme='light'] .text-sulfur-400 {
+  color: #9a7400;
 }
 
 html,
@@ -59,6 +73,23 @@ input,
 select,
 textarea {
   @apply select-text;
+}
+
+/*
+ * Barre d'onglets d'une page (TabbedPage du SDK) : elle prolonge l'en-tête, qui perd sa bordure et
+ * une partie de sa marge basse ; la bordure passe sous les onglets.
+ */
+main:has(.page-tabs) > .page-header {
+  border-bottom-color: transparent;
+  padding-bottom: 0.25rem;
+}
+
+/* Focus clavier visible partout ; dans la couche de base pour que les utilitaires le remplacent. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--focus-ring, var(--color-sulfur-400));
+    outline-offset: 2px;
+  }
 }
 
 ::-webkit-scrollbar {
