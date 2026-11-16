@@ -16,7 +16,7 @@ src/
 │   ├── modules.js           # ← liste des modules intégrés « main »
 │   ├── config-store.js      # Configurations enregistrées des modules (config.json)
 │   ├── config-bundle.js     # Format du fichier d'import / export
-│   ├── config-transfer.js   # Import / export des configurations (canaux config:*)
+│   ├── config-transfer.js   # Import / export et suppression des configurations (canaux config:*)
 │   ├── module-switch.js     # Modules activés / désactivés, paquets (canaux modules:*)
 │   ├── external-modules.js  # Modules externes : chargement, actualisation, installation, suppression
 │   ├── module-packages.js   # Dossiers des paquets : vérifications, import, protocole sulfur-module://

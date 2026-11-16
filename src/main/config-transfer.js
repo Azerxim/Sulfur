@@ -29,8 +29,20 @@ export function keepConfigs(dir, configs) {
 }
 
 /**
+ * Supprime dans `dir` les configurations conservées des modules non chargés (absents de
+ * `loadedIds`) : seul leur `config.json` est retiré, les autres données du module restent.
+ * Retourne les identifiants concernés.
+ */
+export async function clearStoredConfigs(dir, loadedIds) {
+  const ids = Object.keys(await storedConfigs(dir, loadedIds))
+  await Promise.all(ids.map((id) => fs.rm(join(dir, id, 'config.json'), { force: true })))
+  return ids
+}
+
+/**
  * Import / export de la configuration de tous les modules dans un fichier JSON (banc de test).
- * Canaux : `config:export` et `config:import` (retournent null si l'utilisateur annule).
+ * Canaux : `config:export` et `config:import` (retournent null si l'utilisateur annule), et
+ * `config:clear` (supprime la configuration de tous les modules, conservées comprises).
  * `moduleIds()` : modules dont la configuration est exportée et importée.
  *
  * Les sections des modules absents (module externe non installé ou non chargé, module d'une autre
@@ -54,6 +66,15 @@ export function registerConfigTransfer(host, moduleIds, dir = join(app.getPath('
     const modules = Object.fromEntries(moduleIds().map((id) => [id, host.configs.get(id)?.get() ?? {}]))
     await fs.writeFile(filePath, JSON.stringify(createBundle({ ...modules, ...kept }, app.getVersion()), null, 2))
     return { filePath, kept: Object.keys(kept) }
+  })
+
+  ctx.handle('clear', async () => {
+    // Comme pour l'import : la configuration des serveurs et clients en marche n'est pas retirée.
+    if (host.activeModules().some((mod) => mod.busy?.())) throw new Error(t('errors.config.clearBusy'))
+    const ids = moduleIds()
+    for (const id of ids) host.configs.get(id)?.replace({})
+    const kept = await clearStoredConfigs(dir, [...host.configs.keys()])
+    return { modules: Object.fromEntries(ids.map((id) => [id, {}])), kept }
   })
 
   ctx.handle('import', async () => {

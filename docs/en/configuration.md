@@ -85,6 +85,14 @@ Importing a file:
 A file with another `format`, invalid JSON or a more recent `version` is refused with an explicit
 message.
 
+## Deleting the whole configuration
+
+*Settings → General → Configurations → Delete all…* deletes, after confirmation, the configuration of
+every module (`config:clear`): each module goes back to its default settings, and the kept
+configurations of modules that are not loaded are removed. Only the `config.json` files are deleted: the
+other module data (certificates for example) and the application preferences remain. Like the import,
+deleting is refused while a server is running or a client is connected.
+
 ## Application preferences
 
 Preferences that are not tied to a module are kept by the main process in `<userData>/preferences.json`:

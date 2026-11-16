@@ -92,6 +92,14 @@ L'import d'un fichier :
 Un fichier d'un autre `format`, un JSON invalide ou une `version` plus récente est refusé avec un message
 explicite.
 
+## Suppression de toute la configuration
+
+*Paramètres → Général → Configurations → Tout supprimer…* supprime, après confirmation, la configuration
+de tous les modules (`config:clear`) : chaque module revient à ses réglages par défaut, et les
+configurations conservées des modules non chargés sont retirées. Seuls les `config.json` sont supprimés :
+les autres données des modules (certificats par exemple) et les préférences de l'application restent.
+Comme l'import, la suppression est refusée tant qu'un serveur tourne ou qu'un client est connecté.
+
 ## Préférences de l'application
 
 Les préférences qui ne dépendent pas d'un module sont conservées par le process principal dans

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { withDefaults } from '@azerxim/sulfur-sdk'
 import { ConfigStore } from '../src/main/config-store'
 import { BUNDLE_FORMAT, createBundle, parseBundle } from '../src/main/config-bundle'
-import { keepConfigs, storedConfigs } from '../src/main/config-transfer'
+import { clearStoredConfigs, keepConfigs, storedConfigs } from '../src/main/config-transfer'
 import { DEFAULT_SERVER_CONFIG } from '@modules/modbus/shared/constants'
 import { tempDir } from './helpers'
 
@@ -131,5 +131,16 @@ describe('Configurations conservées des modules non chargés', () => {
       'test-signal': { generator: { period: 5 } }
     })
     expect(await storedConfigs(path.join(tmp.dir, 'missing'), [])).toEqual({})
+  })
+
+  it('supprime celles des modules non chargés sans toucher aux autres données', async () => {
+    keepConfigs(tmp.dir, { mqtt: { broker: { port: 1884 } } })
+    await fs.writeFile(path.join(tmp.dir, 'mqtt', 'ca.pem'), 'cert')
+    new ConfigStore(path.join(tmp.dir, 'opcua', 'config.json')).set('server', { port: 4841 })
+    expect(await clearStoredConfigs(tmp.dir, ['opcua'])).toEqual(['mqtt'])
+    expect(await storedConfigs(tmp.dir, ['opcua'])).toEqual({})
+    expect(await fs.readFile(path.join(tmp.dir, 'mqtt', 'ca.pem'), 'utf8')).toBe('cert')
+    expect(new ConfigStore(path.join(tmp.dir, 'opcua', 'config.json')).get()).toEqual({ server: { port: 4841 } })
+    expect(await clearStoredConfigs(path.join(tmp.dir, 'missing'), [])).toEqual([])
   })
 })
