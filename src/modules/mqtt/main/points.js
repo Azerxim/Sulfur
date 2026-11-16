@@ -21,13 +21,13 @@ export function serverPoints(server, instance, savedConfig = () => ({})) {
       { id: '$clients', name: 'clients', dataType: 'Int32', numeric: true, writable: false },
       { id: '$messages', name: 'messages', dataType: 'Int32', numeric: true, writable: false }
     ],
+    // Seuls les topics demandés sont lus : un flux scrute souvent quelques points parmi des milliers.
     read(ids) {
-      const values = server.values()
       return Object.fromEntries(
         ids.map((id) => {
           if (id === '$clients') return [id, server.running ? server.clients.size : undefined]
           if (id === '$messages') return [id, server.running ? server.messages : undefined]
-          return [id, values[id]]
+          return [id, server.read([id])[id]]
         })
       )
     },

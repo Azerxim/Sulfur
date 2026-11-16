@@ -101,6 +101,8 @@ export class MqttServer {
   timers = []
   simTimer = null
   t0 = Date.now()
+  /** Valeurs modifiées depuis leur dernier envoi à l'interface (voir emitValues). */
+  valuesDirty = false
 
   /** `getCertificate()` : certificat du serveur TLS ({ cert, key, info }). */
   constructor(getCertificate, { onStatus = () => {}, onLog = () => {}, onValues = () => {} } = {}) {
@@ -131,6 +133,18 @@ export class MqttServer {
 
   values() {
     return Object.fromEntries([...this.variables].map(([id, v]) => [id, v.value]))
+  }
+
+  /** Valeurs courantes des seuls `ids` (points lus par le simulateur, les courbes…). */
+  read(ids) {
+    return Object.fromEntries(ids.map((id) => [id, this.variables.get(id)?.value]))
+  }
+
+  /** Envoie les valeurs à l'interface si l'une d'elles a changé depuis le dernier envoi. */
+  emitValues() {
+    if (!this.valuesDirty) return
+    this.valuesDirty = false
+    this.onValues(this.values())
   }
 
   logs() {
@@ -217,7 +231,7 @@ export class MqttServer {
     this.timers = [
       setInterval(() => this.flush(), EMIT_INTERVAL),
       setInterval(() => this.onStatus(this.status()), STATUS_INTERVAL),
-      setInterval(() => this.onValues(this.values()), 250)
+      setInterval(() => this.emitValues(), 250)
     ]
     this.onStatus(this.status())
     return this.status()
@@ -371,6 +385,7 @@ export class MqttServer {
       value = def.dataType === 'String' ? '' : def.dataType === 'Boolean' ? false : 0
     }
     this.variables.set(def.id, { def, value, timestamp: Date.now(), lastPublished: 0 })
+    this.valuesDirty = true
     this.publishVariable(def.id)
   }
 
@@ -394,6 +409,7 @@ export class MqttServer {
     if (!variable) throw new Error(t('mqtt.errors.unknownTopic'))
     variable.value = convertValue(variable.def.dataType, raw)
     variable.timestamp = Date.now()
+    this.valuesDirty = true
     this.publishVariable(id)
     return variable.value
   }
@@ -417,6 +433,7 @@ export class MqttServer {
   removeTopic(id) {
     this.requireRunning()
     this.variables.delete(id)
+    this.valuesDirty = true
     this.config = { ...this.config, topics: this.config.topics.filter((d) => d.id !== id) }
     return this.status()
   }
@@ -454,6 +471,7 @@ export class MqttServer {
             variable.value = value
             variable.timestamp = now
             variable.dirty = true
+            this.valuesDirty = true
           }
         }
         const interval = Number(def.interval)

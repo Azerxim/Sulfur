@@ -31,10 +31,8 @@ export function serverPoints(server, instance, savedConfig = () => ({})) {
         numeric: !isArray(v) && (NUMERIC_TYPES.includes(v.dataType) || v.dataType === 'Boolean'),
         writable: true
       })),
-    read(ids) {
-      const values = server.values()
-      return Object.fromEntries(ids.map((id) => [id, values[id]]))
-    },
+    // Seules les variables demandées sont lues : un flux scrute souvent quelques points parmi des milliers.
+    read: (ids) => server.read(ids),
     write: (id, value) => server.setValue(id, value),
     setFaults: (faults) => server.setFaults(faults)
   }

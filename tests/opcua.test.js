@@ -272,6 +272,26 @@ describe('Tableaux et types structurés', () => {
   })
 })
 
+describe('Valeurs transmises (simulateur, interface)', () => {
+  it("lit les seules variables demandées et n'envoie les valeurs qu'après une modification", async () => {
+    const sent = []
+    server.onValues = (values) => sent.push(values)
+    try {
+      await start({}, { variables: [variable('A'), variable('B', { initialValue: 2 })], alarms: [] })
+      expect(server.read(['B', 'Inconnue'])).toEqual({ B: 2, Inconnue: undefined })
+      await sleep(600)
+      sent.length = 0
+      await sleep(600)
+      expect(sent).toEqual([]) // rien n'a changé : aucun envoi
+      for (let i = 1; i <= 50; i++) server.setValue('A', i)
+      await sleep(400)
+      expect(sent).toEqual([{ A: 50, B: 2 }]) // 50 écritures : un seul envoi groupé
+    } finally {
+      server.onValues = () => {}
+    }
+  })
+})
+
 describe('Méthodes', () => {
   it('appelle des méthodes (variables, écho, échec) et les modifie à chaud', async () => {
     const status = await start()

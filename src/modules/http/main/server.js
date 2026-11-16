@@ -89,6 +89,8 @@ export class HttpServer {
   requests = 0
   simTimer = null
   emitTimer = null
+  /** Valeurs modifiées depuis leur dernier envoi à l'interface (voir emitValues). */
+  valuesDirty = false
   /** id du webhook -> { timer, last (valeurs envoyées), sentAt } */
   hooks = new Map()
 
@@ -117,6 +119,18 @@ export class HttpServer {
 
   values() {
     return Object.fromEntries([...this.variables].map(([id, v]) => [id, v.value]))
+  }
+
+  /** Valeurs courantes des seuls `ids` (points lus par le simulateur, les courbes…). */
+  read(ids) {
+    return Object.fromEntries(ids.map((id) => [id, this.variables.get(id)?.value]))
+  }
+
+  /** Envoie les valeurs à l'interface si l'une d'elles a changé depuis le dernier envoi. */
+  emitValues() {
+    if (!this.valuesDirty) return
+    this.valuesDirty = false
+    this.onValues(this.values())
   }
 
   logs() {
@@ -189,7 +203,8 @@ export class HttpServer {
     this.t0 = Date.now()
     this.startSimulation()
     this.startWebhooks()
-    this.emitTimer = setInterval(() => this.onValues(this.values()), VALUES_EMIT_INTERVAL)
+    this.valuesDirty = true
+    this.emitTimer = setInterval(() => this.emitValues(), VALUES_EMIT_INTERVAL)
     this.onStatus(this.status())
     return this.status()
   }
@@ -460,6 +475,7 @@ export class HttpServer {
   assign(variable, raw) {
     variable.value = coerce(raw, variable.def.dataType)
     variable.timestamp = Date.now()
+    this.valuesDirty = true
   }
 
   // --- Variables (modifiables à chaud) ---------------------------------------------
@@ -487,6 +503,7 @@ export class HttpServer {
     const current = this.variables.get(next.id)
     if (current && current.def.dataType === next.dataType) current.def = next
     else this.variables.set(next.id, { def: next, value: initialValue(next), timestamp: Date.now() })
+    this.valuesDirty = true
     this.syncConfig()
     return this.changed()
   }
@@ -494,6 +511,7 @@ export class HttpServer {
   removeVariable(id) {
     this.requireRunning()
     this.variables.delete(id)
+    this.valuesDirty = true
     this.syncConfig()
     return this.changed()
   }
@@ -503,7 +521,6 @@ export class HttpServer {
     const variable = this.variables.get(id)
     if (!variable) throw new Error(t('http.errors.unknownVariable', { name: id }))
     this.assign(variable, raw)
-    this.onValues(this.values())
     return variable.value
   }
 
@@ -556,6 +573,7 @@ export class HttpServer {
         if (value !== variable.value) {
           variable.value = value
           variable.timestamp = Date.now()
+          this.valuesDirty = true
         }
       }
     }, dt)

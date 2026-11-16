@@ -60,16 +60,15 @@ export function createPointsApi({ instances, savedConfig = () => ({}) }) {
       })
     },
 
+    // Seuls les points demandés sont lus : un flux scrute souvent quelques points parmi des milliers.
     read(ids) {
-      const values = new Map()
       return Object.fromEntries(
         ids.map((pointId) => {
           const target = resolve(pointId)
           if (!target) return [pointId, undefined]
           const { instance, object, id } = target
           if (instance.role === 'client') return [pointId, object.last.get(id)?.value ?? undefined]
-          if (!values.has(instance.id)) values.set(instance.id, object.values())
-          return [pointId, values.get(instance.id)[id]]
+          return [pointId, object.read([id])[id]]
         })
       )
     },

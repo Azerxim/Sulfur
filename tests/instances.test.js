@@ -154,6 +154,7 @@ describe('Instances : points Modbus', () => {
     faults: null,
     status: () => ({ running: false }),
     values: () => values,
+    read: (ids) => Object.fromEntries(ids.map((id) => [id, values[id]])),
     setValue(id, value) {
       values[id] = value
     },
