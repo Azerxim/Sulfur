@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { Fragment, memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -56,9 +56,23 @@ const STATUS_DOTS = {
   grey: 'bg-slate-500'
 }
 
-/** Hauteur d'un nœud : une ligne, ou de quoi espacer ses sorties. */
+/** Hauteur minimale d'un nœud : une ligne, ou de quoi espacer ses sorties (le texte peut l'agrandir). */
 const ROW = 18
 export const nodeHeight = (outputs) => Math.max(36, outputs * ROW + 8)
+
+/**
+ * Texte d'un libellé, coupable en fin de ligne après les séparateurs des noms de points
+ * (`N1SIG_IHM_CTRL_AG01`, `opcua/server:var-1`…) ; un mot plus long que la tuile est coupé n'importe où.
+ */
+function WrappableText({ text }) {
+  const parts = String(text).split(/(?<=[_./:\-,])/)
+  return parts.map((part, i) => (
+    <Fragment key={i}>
+      {part}
+      {i < parts.length - 1 && <wbr />}
+    </Fragment>
+  ))
+}
 
 /** Libellé d'un nœud : son nom, sinon un résumé de sa configuration. */
 export function nodeLabel(node, { points = [], faults = [] } = {}) {
@@ -124,9 +138,14 @@ function FlowNode({ data, selected }) {
           }}
         />
       )}
+      {/*
+        Largeur fixe (les flux placent leurs nœuds tous les 200 à 220 px) ; le libellé passe à la
+        ligne et la hauteur suit, jusqu'à 3 lignes (rangées espacées d'environ 80 px).
+        Libellé complet au survol.
+      */}
       <div
-        style={{ height }}
-        title={t(`simulator.nodes.${node.type}`)}
+        style={{ minHeight: height }}
+        title={`${t(`simulator.nodes.${node.type}`)} — ${label}`}
         className={`flex w-44 items-stretch overflow-hidden rounded-md border bg-ink-850 text-xs shadow-sm ${
           selected ? 'border-sulfur-400 ring-1 ring-sulfur-400/60' : 'border-ink-600'
         } ${node.disabled ? 'opacity-50' : ''}`}
@@ -134,8 +153,10 @@ function FlowNode({ data, selected }) {
         <div className={`grid w-7 shrink-0 place-items-center ${CATEGORY_STYLES[def?.category] ?? ''}`}>
           <FontAwesomeIcon icon={icon} className="size-3.5" />
         </div>
-        <div className="flex min-w-0 flex-1 items-center px-2 text-slate-200">
-          <span className="truncate">{label}</span>
+        <div className="flex min-w-0 flex-1 items-center px-2 py-1 text-slate-200">
+          <span className="line-clamp-3 leading-snug [overflow-wrap:anywhere]">
+            <WrappableText text={label} />
+          </span>
         </div>
       </div>
 
@@ -148,14 +169,16 @@ function FlowNode({ data, selected }) {
           id={String(port)}
           type="source"
           position={Position.Right}
-          style={{ top: outputs > 1 ? 4 + ROW * port + ROW / 2 : '50%' }}
+          // Sorties réparties sur toute la hauteur, qui dépend du libellé.
+          style={{ top: `${((port + 0.5) / outputs) * 100}%` }}
           title={outputs > 1 ? t('simulator.editor.output', { n: port + 1 }) : undefined}
           className="size-2.5! border-ink-600! bg-ink-700!"
         />
       ))}
 
       {status && (
-        <div className="absolute top-full left-0 mt-1 flex max-w-56 items-center gap-1 text-[10px] whitespace-nowrap text-slate-400">
+        // Statut limité à la largeur de la tuile : il ne déborde pas sous la tuile voisine.
+        <div className="absolute top-full right-0 left-0 mt-1 flex items-center gap-1 text-[10px] whitespace-nowrap text-slate-400">
           <span className={`size-1.5 shrink-0 rounded-full ${STATUS_DOTS[status.fill] ?? STATUS_DOTS.grey}`} />
           <span className="truncate">{status.text}</span>
         </div>
