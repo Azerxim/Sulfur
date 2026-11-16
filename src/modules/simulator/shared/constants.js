@@ -14,8 +14,8 @@ export const RECORD_INTERVAL = 100
 /** Portée d'une exception Modbus forcée (libellés : simulator.faults.scopes.*). */
 export const FAULT_SCOPES = ['all', 'read', 'write']
 
-/** Défauts proposés au premier lancement (durée en s, 0 = jusqu'à l'arrêt). */
-export const DEFAULT_FAULTS = [
+/** Défauts d'exemple (fichier d'exemple des releases, tests ; durée en s, 0 = jusqu'à l'arrêt). */
+export const EXAMPLE_FAULTS = [
   {
     id: 'fault-1',
     name: 'OPC UA 500 ms',
@@ -32,10 +32,10 @@ const demoNode = (id, type, x, y, config) => ({ id, type, name: '', x, y, config
 const demoWire = (source, target) => ({ id: `${source}-${target}`, source, port: 0, target })
 
 /**
- * Flux d'exemple (points des configurations par défaut des modules OPC UA et Modbus) : une séquence
- * lancée à la main, et la température OPC UA mise à l'échelle et affichée dans le débogage.
+ * Flux d'exemple (points des serveurs d'exemple OPC UA et Modbus) : une séquence lancée à la main,
+ * et la température OPC UA mise à l'échelle et affichée dans le débogage.
  */
-export const DEFAULT_FLOWS = [
+export const EXAMPLE_FLOWS = [
   {
     id: 'flow-1',
     name: 'Demo',
@@ -64,3 +64,7 @@ export const DEFAULT_FLOWS = [
     ]
   }
 ]
+
+/** Premier lancement : aucun défaut ni flux. */
+export const DEFAULT_FAULTS = []
+export const DEFAULT_FLOWS = []

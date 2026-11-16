@@ -202,7 +202,8 @@ export const ACCT_ACTIONS = { start: 1, interim: 3, stop: 2 }
 /** Événements conservés dans le journal du serveur RADIUS. */
 export const MAX_RADIUS_LOG = 500
 
-export const DEFAULT_RADIUS_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : équipement autorisé et comptes locaux. */
+export const EXAMPLE_RADIUS_SERVER_CONFIG = {
   host: '0.0.0.0',
   /** Ports standards (au-dessus de 1024 : pas de droits administrateur). */
   authPort: 1812,
@@ -226,7 +227,11 @@ export const DEFAULT_RADIUS_SERVER_CONFIG = {
   directory: { enabled: true, attribute: 'uid', attributes: 'Service-Type = Login-User' }
 }
 
-export const DEFAULT_RADIUS_CLIENT_CONFIG = {
+/** Configuration d'un nouveau serveur RADIUS : vierge, sans équipement autorisé ni compte local. */
+export const DEFAULT_RADIUS_SERVER_CONFIG = { ...EXAMPLE_RADIUS_SERVER_CONFIG, clients: [], users: [] }
+
+/** Exemple (fichier d'exemple des releases, tests) : compte operator et secret testing123. */
+export const EXAMPLE_RADIUS_CLIENT_CONFIG = {
   host: '127.0.0.1',
   authPort: 1812,
   acctPort: 1813,
@@ -244,4 +249,12 @@ export const DEFAULT_RADIUS_CLIENT_CONFIG = {
   /** Attributs ajoutés aux requêtes (« Nom = valeur », une ligne par attribut). */
   attributes: 'NAS-Port-Type = Ethernet\nService-Type = Login-User',
   sessionId: ''
+}
+
+/** Configuration d'un nouveau client RADIUS : secret, compte et attributs à saisir. */
+export const DEFAULT_RADIUS_CLIENT_CONFIG = {
+  ...EXAMPLE_RADIUS_CLIENT_CONFIG,
+  secret: '',
+  username: '',
+  attributes: ''
 }

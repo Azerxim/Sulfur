@@ -3,7 +3,7 @@ import { SimulationServer } from '@modules/opcua/main/server'
 import { SimulationClient } from '@modules/opcua/main/client'
 import { PkiStore } from '@modules/opcua/main/pki'
 import { describeNodeset } from '@modules/opcua/main/nodesets'
-import { DEFAULT_SERVER_CONFIG, DEFAULT_SERVER_SECURITY } from '@modules/opcua/shared/constants'
+import { EXAMPLE_SERVER_CONFIG, EXAMPLE_SERVER_SECURITY } from '@modules/opcua/shared/constants'
 import { t } from '@modules/opcua/shared/i18n'
 import { errorOf, freePort, sleep, tempDir } from './helpers'
 
@@ -14,9 +14,9 @@ const nodeId = (name) => `ns=1;s=Simulation.${name}`
 
 async function start(security = {}, config = {}) {
   const status = await server.start({
-    ...DEFAULT_SERVER_CONFIG,
+    ...EXAMPLE_SERVER_CONFIG,
     port: await freePort(),
-    security: { ...DEFAULT_SERVER_SECURITY, ...security },
+    security: { ...EXAMPLE_SERVER_SECURITY, ...security },
     ...config
   })
   url = status.endpointUrl
@@ -185,7 +185,7 @@ describe('Modification à chaud des variables', () => {
 
     server.setUpdateRate(50)
     expect(server.status().config.updateRate).toBe(50)
-    expect(server.status().config.variables).toHaveLength(DEFAULT_SERVER_CONFIG.variables.length)
+    expect(server.status().config.variables).toHaveLength(EXAMPLE_SERVER_CONFIG.variables.length)
   })
 })
 

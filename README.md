@@ -32,6 +32,9 @@ Download the installer for your system from the
 `.deb` (Linux), `.dmg` (macOS). The installers are not signed yet: see
 [Getting started](docs/en/getting-started.md#install-a-release) for the first launch.
 
+A new installation is blank. To start from ready-made data, import the release's
+`sulfur-config-example.json` file (*Settings → General → Configurations → Import…*).
+
 ## Development
 
 Requirements: **Node.js 24** and npm.

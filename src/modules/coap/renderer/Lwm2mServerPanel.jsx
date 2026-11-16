@@ -63,7 +63,7 @@ function OperationResult({ result }) {
 /** Opérations sur un appareil enregistré : lecture, écriture, exécution, découverte, observation. */
 function DevicePanel({ api, instance, registration }) {
   const [form, setForm] = usePersistentState('coap', instanceSection('lwm2mOperation', instance.id), {
-    path: '/3303/0/5700',
+    path: '/3/0',
     format: 11542,
     value: ''
   })

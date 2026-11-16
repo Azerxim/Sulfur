@@ -81,7 +81,8 @@ export const DEFAULT_IDENTITY = {
   version: 'V3.1.0'
 }
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : blocs de données et points simulés. */
+export const EXAMPLE_SERVER_CONFIG = {
   host: '0.0.0.0',
   // 102 est le port standard (droits administrateur requis sous Linux, souvent pris sous Windows
   // par les services Siemens).
@@ -155,6 +156,9 @@ export const DEFAULT_SERVER_CONFIG = {
     }
   ]
 }
+
+/** Configuration d'un nouvel automate : vierge, sans bloc de données ni point. */
+export const DEFAULT_SERVER_CONFIG = { ...EXAMPLE_SERVER_CONFIG, dbs: [], points: [] }
 
 export const DEFAULT_CLIENT_CONFIG = {
   host: '127.0.0.1',

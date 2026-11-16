@@ -107,7 +107,8 @@ export const MAX_UNIT_ID = 255
  * passerelle) : chacun a son Unit ID, sa mémoire (quatre tables de `size` adresses), ses points et
  * son identification. Les identifiants de points sont uniques sur tout le serveur.
  */
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : un équipement et ses points simulés. */
+export const EXAMPLE_SERVER_CONFIG = {
   transport: 'tcp',
   host: '0.0.0.0',
   port: 5020,
@@ -206,6 +207,12 @@ export const DEFAULT_SERVER_CONFIG = {
       ]
     }
   ]
+}
+
+/** Configuration d'un nouveau serveur : un équipement (Unit ID 1) sans aucun point. */
+export const DEFAULT_SERVER_CONFIG = {
+  ...EXAMPLE_SERVER_CONFIG,
+  units: [{ ...EXAMPLE_SERVER_CONFIG.units[0], points: [] }]
 }
 
 export const DEFAULT_CLIENT_CONFIG = {

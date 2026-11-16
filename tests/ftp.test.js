@@ -6,7 +6,7 @@ import { ensureCertificate, hashPassword } from '@azerxim/sulfur-sdk/main'
 import { FtpServer, parsePortRange } from '@modules/ftp/main/ftp/server'
 import { FtpClient } from '@modules/ftp/main/ftp/client'
 import { createPointsApi } from '@modules/ftp/main/points'
-import { DEFAULT_SERVER_CONFIG } from '@modules/ftp/shared/constants'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/ftp/shared/constants'
 import { errorOf, fakeInstances, freePort, sleep, tempDir } from './helpers'
 
 let tmp, root, server, port
@@ -60,7 +60,7 @@ async function startServer(extra = {}) {
   const s = new FtpServer(getCertificate, root)
   const p = await freePort()
   await s.start({
-    ...DEFAULT_SERVER_CONFIG,
+    ...EXAMPLE_SERVER_CONFIG,
     host: '127.0.0.1',
     port: p,
     users: [

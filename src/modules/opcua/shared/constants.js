@@ -53,16 +53,20 @@ export const SECURITY_POLICIES = {
 /** Politiques conservées pour la compatibilité mais déconseillées. */
 export const DEPRECATED_POLICIES = ['Basic256', 'Basic128Rsa15']
 
-export const DEFAULT_SERVER_SECURITY = {
+/** Exemple (fichier d'exemple des releases, tests) : utilisateur admin / admin. */
+export const EXAMPLE_SERVER_SECURITY = {
   modes: ['None', 'Sign', 'SignAndEncrypt'],
   policies: ['Basic256Sha256', 'Aes128_Sha256_RsaOaep', 'Aes256_Sha256_RsaPss'],
   allowAnonymous: true,
-  // Utilisateur par défaut admin / admin (seule l'empreinte scrypt est conservée)
+  // Utilisateur admin / admin (seule l'empreinte scrypt est conservée)
   users: [
     { username: 'admin', passwordHash: 'scrypt$mbUEZRBI1M8Kevl1/G39dg==$lMVG0wqpSC7IQcuJl1Kw1Xi3bKVvt7wrE59pCNfA4ww=' }
   ],
   autoAcceptCertificates: true
 }
+
+/** Sécurité d'un nouveau serveur : aucun utilisateur (accès anonyme). */
+export const DEFAULT_SERVER_SECURITY = { ...EXAMPLE_SERVER_SECURITY, users: [] }
 
 /** Client : politique de sécurité la plus récente (OPC UA 1.04), signature et chiffrement. */
 export const DEFAULT_CLIENT_SECURITY = {
@@ -74,12 +78,13 @@ export const DEFAULT_CLIENT_SECURITY = {
   autoAcceptCertificates: true
 }
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : variables simulées, méthode et alarme. */
+export const EXAMPLE_SERVER_CONFIG = {
   port: 4840,
   resourcePath: '/UA/Sulfur',
   rootFolder: 'Simulation',
   updateRate: 100,
-  security: DEFAULT_SERVER_SECURITY,
+  security: EXAMPLE_SERVER_SECURITY,
   variables: [
     {
       id: 'var-1',
@@ -164,6 +169,15 @@ export const DEFAULT_SERVER_CONFIG = {
   alarms: [
     { id: 'alarm-1', name: 'TemperatureAlarm', variable: 'var-1', highHigh: 24.5, high: 23, low: '', lowLow: '' }
   ]
+}
+
+/** Configuration d'un nouveau serveur : vierge, sans variable, méthode ni alarme. */
+export const DEFAULT_SERVER_CONFIG = {
+  ...EXAMPLE_SERVER_CONFIG,
+  security: DEFAULT_SERVER_SECURITY,
+  variables: [],
+  methods: [],
+  alarms: []
 }
 
 export const ROOT_NODES = [

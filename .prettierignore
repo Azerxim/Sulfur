@@ -3,3 +3,5 @@ dist/
 node_modules/
 package-lock.json
 *.md
+# Fichier généré par tests/example-config.test.js (npx vitest run -u)
+examples/sulfur-config-example.json

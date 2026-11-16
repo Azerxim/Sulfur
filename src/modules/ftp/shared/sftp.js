@@ -1,7 +1,8 @@
 /** Constantes de la partie SFTP du module. */
 export { MAX_LOG } from './constants'
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : utilisateur sulfur (mot de passe à saisir). */
+export const EXAMPLE_SERVER_CONFIG = {
   host: '0.0.0.0',
   /** Port standard 22 : droits administrateur requis sous Linux, souvent déjà pris par sshd. */
   port: 2222,
@@ -14,7 +15,11 @@ export const DEFAULT_SERVER_CONFIG = {
   users: [{ id: 'user-1', username: 'sulfur', passwordHash: '', authorizedKeys: '', readOnly: false }]
 }
 
-export const DEFAULT_CLIENT_CONFIG = {
+/** Configuration d'un nouveau serveur : aucun utilisateur. */
+export const DEFAULT_SERVER_CONFIG = { ...EXAMPLE_SERVER_CONFIG, users: [] }
+
+/** Exemple (fichier d'exemple des releases, tests) : utilisateur sulfur. */
+export const EXAMPLE_CLIENT_CONFIG = {
   host: '127.0.0.1',
   port: 2222,
   username: 'sulfur',
@@ -27,3 +32,6 @@ export const DEFAULT_CLIENT_CONFIG = {
   hostFingerprint: '',
   timeout: 5000
 }
+
+/** Configuration d'un nouveau client : utilisateur à saisir. */
+export const DEFAULT_CLIENT_CONFIG = { ...EXAMPLE_CLIENT_CONFIG, username: '' }

@@ -15,9 +15,9 @@ Serveurs et clients LDAP, serveurs et clients RADIUS.
 - **Serveur** LDAP v3, **LDAPS par défaut** (port 1636 ; LDAP simple sur 1389 ; ports standards
   389 / 636 avec droits administrateur sous Linux) sur un annuaire de test en lecture seule, pour vérifier
   l'authentification centralisée de switchs, pare-feux, IHM ou applications :
-  - annuaire saisi en **LDIF** (annuaire d'exemple avec utilisateurs et groupes), modifiable serveur
-    démarré ; `userPassword` en clair ou haché ({SSHA}, {SHA}, {SSHA256}, {SSHA512}) ; `memberOf`
-    déduit des groupes (`member`, `uniqueMember`) ;
+  - annuaire saisi en **LDIF** (vide au départ ; bouton *Annuaire d'exemple* avec utilisateurs et
+    groupes), modifiable serveur démarré ; `userPassword` en clair ou haché ({SSHA}, {SHA}, {SSHA256},
+    {SSHA512}) ; `memberOf` déduit des groupes (`member`, `uniqueMember`) ;
   - liaison simple (DN et mot de passe) ou anonyme (désactivable), recherche avec portées base / un
     niveau / sous-arbre et filtres RFC 4515 (et, ou, non, égalité, sous-chaînes, ≥, ≤, présence),
     limite de taille, comparaison, rootDSE (contextes de nommage), opération étendue « Who am I » ;

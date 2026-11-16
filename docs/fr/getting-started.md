@@ -11,6 +11,7 @@ Les installeurs sont joints aux [releases GitHub](https://github.com/Azerxim/Sul
 | Windows | `Sulfur-Setup-<version>.exe` (installeur NSIS, choix du dossier, raccourci sur le bureau) |
 | Linux | `Sulfur-<version>-x86_64.AppImage` ou `Sulfur_<version>_amd64.deb` |
 | macOS | `Sulfur-<version>-x64.dmg` (Intel) ou `Sulfur-<version>-arm64.dmg` (Apple silicon) |
+| Tous | `sulfur-config-example.json` : configuration d'exemple (voir [Premiers pas](#premiers-pas)) |
 
 Les installeurs ne sont pas encore signés :
 
@@ -56,6 +57,11 @@ Une session type :
 
 Les réglages sont enregistrés au fil des modifications et restaurés au lancement suivant, mais **les
 serveurs ne sont jamais démarrés automatiquement**.
+
+Une nouvelle installation est **vierge** : aucun serveur ni client, et un serveur créé n'a ni variable,
+ni point, ni topic, ni utilisateur. Pour découvrir les modules avec des données toutes prêtes,
+importer le fichier `sulfur-config-example.json` joint à chaque release (*Paramètres → Général →
+Configurations → Importer…*, voir [Configuration d'exemple](configuration.md#configuration-dexemple)).
 
 ## Ports par défaut
 

@@ -15,7 +15,7 @@ import {
 } from '@modules/modbus/main/framing'
 import { identificationRequest, readRequest } from '@modules/modbus/main/protocol'
 import { normalizeSerial, serialLabel } from '@modules/modbus/main/serial'
-import { DEFAULT_SERVER_CONFIG } from '@modules/modbus/shared/constants'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/modbus/shared/constants'
 import { errorOf, freePort, sleep, tempDir } from './helpers'
 
 /**
@@ -156,13 +156,13 @@ describe('Serveur et client Modbus RTU / ASCII', () => {
 
   /** Deux équipements (Unit ID 1 et 2) ; le premier porte les points par défaut. */
   const twoUnits = () => [
-    DEFAULT_SERVER_CONFIG.units[0],
+    EXAMPLE_SERVER_CONFIG.units[0],
     { id: 'unit-2', unitId: 2, name: 'Second', identity: { vendorName: 'Second vendor' }, points: [] }
   ]
 
   it('échange en RTU over TCP et ignore les autres Unit ID', async () => {
     const port = await freePort()
-    await newServer().start({ ...DEFAULT_SERVER_CONFIG, transport: 'rtuOverTcp', port, units: twoUnits() })
+    await newServer().start({ ...EXAMPLE_SERVER_CONFIG, transport: 'rtuOverTcp', port, units: twoUnits() })
     expect(server.status().endpoint).toBe(`rtu+tcp://0.0.0.0:${port}`)
 
     const client = newClient()
@@ -181,11 +181,11 @@ describe('Serveur et client Modbus RTU / ASCII', () => {
   })
 
   it('refuse un Unit ID hors de la plage série', async () => {
-    const units = [{ ...DEFAULT_SERVER_CONFIG.units[0], unitId: 0 }]
+    const units = [{ ...EXAMPLE_SERVER_CONFIG.units[0], unitId: 0 }]
     const [end] = serialPair()
     expect(
       await errorOf(
-        newServer(async () => end).start({ ...DEFAULT_SERVER_CONFIG, transport: 'rtu', serial: SERIAL, units })
+        newServer(async () => end).start({ ...EXAMPLE_SERVER_CONFIG, transport: 'rtu', serial: SERIAL, units })
       )
     ).toMatch(/1 to 247/)
   })
@@ -194,7 +194,7 @@ describe('Serveur et client Modbus RTU / ASCII', () => {
     it(`sert un maître ${transport.toUpperCase()} sur une liaison série`, async () => {
       const [slaveEnd, masterEnd] = serialPair({ split: true })
       await newServer(async () => slaveEnd).start({
-        ...DEFAULT_SERVER_CONFIG,
+        ...EXAMPLE_SERVER_CONFIG,
         transport,
         serial: SERIAL,
         units: twoUnits()
@@ -221,7 +221,7 @@ describe('Serveur et client Modbus RTU / ASCII', () => {
   it('applique une écriture en diffusion à tous les équipements, sans réponse', async () => {
     const [slaveEnd, masterEnd] = serialPair()
     await newServer(async () => slaveEnd).start({
-      ...DEFAULT_SERVER_CONFIG,
+      ...EXAMPLE_SERVER_CONFIG,
       transport: 'rtu',
       serial: SERIAL,
       units: twoUnits()
@@ -238,7 +238,7 @@ describe('Serveur et client Modbus RTU / ASCII', () => {
 
   it("s'arrête quand le port série disparaît", async () => {
     const [slaveEnd] = serialPair()
-    await newServer(async () => slaveEnd).start({ ...DEFAULT_SERVER_CONFIG, transport: 'rtu', serial: SERIAL })
+    await newServer(async () => slaveEnd).start({ ...EXAMPLE_SERVER_CONFIG, transport: 'rtu', serial: SERIAL })
     slaveEnd.close()
     await sleep(20)
     expect(server.status().running).toBe(false)

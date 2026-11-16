@@ -32,7 +32,8 @@ export const RESOURCE_FORMATS = [FORMATS.TEXT, FORMATS.JSON]
 /** Codes de réponse forcés par le défaut « exception » du simulateur. */
 export const FORCED_CODES = [CODES.NOT_FOUND, CODES.INTERNAL_ERROR, CODES.SERVICE_UNAVAILABLE, CODES.GATEWAY_TIMEOUT]
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : ressources simulées. */
+export const EXAMPLE_SERVER_CONFIG = {
   host: '0.0.0.0',
   /** Port standard CoAP (5684 pour CoAP sur DTLS, non pris en charge). */
   port: 5683,
@@ -87,7 +88,11 @@ export const DEFAULT_SERVER_CONFIG = {
   ]
 }
 
-export const DEFAULT_CLIENT_CONFIG = {
+/** Configuration d'un nouveau serveur : vierge, sans ressource. */
+export const DEFAULT_SERVER_CONFIG = { ...EXAMPLE_SERVER_CONFIG, resources: [] }
+
+/** Exemple (fichier d'exemple des releases, tests) : ressource /sensors/temperature du serveur d'exemple. */
+export const EXAMPLE_CLIENT_CONFIG = {
   host: '127.0.0.1',
   port: 5683,
   method: 'GET',
@@ -102,6 +107,9 @@ export const DEFAULT_CLIENT_CONFIG = {
   timeout: 10
 }
 
+/** Configuration d'un nouveau client : découverte des ressources (/.well-known/core). */
+export const DEFAULT_CLIENT_CONFIG = { ...EXAMPLE_CLIENT_CONFIG, path: '/.well-known/core' }
+
 /**
  * Serveur LwM2M : port distinct du serveur CoAP (5683 en standard) pour pouvoir lancer les deux ;
  * le port 5683 convient s'il est libre.
@@ -114,8 +122,8 @@ export const DEFAULT_LWM2M_SERVER_CONFIG = {
 /** Formats demandés par le serveur LwM2M pour une lecture (libellés : coap.lwm2m.formats.*). */
 export const READ_FORMATS = [FORMATS.TLV, FORMATS.SENML_JSON, FORMATS.TEXT]
 
-/** Appareil LwM2M simulé (client LwM2M). */
-export const DEFAULT_DEVICE_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : capteur de température et lampe simulés. */
+export const EXAMPLE_DEVICE_CONFIG = {
   endpoint: 'sulfur-device-1',
   serverHost: '127.0.0.1',
   serverPort: 5690,
@@ -127,6 +135,9 @@ export const DEFAULT_DEVICE_CONFIG = {
   objects: { temperature: true, light: true },
   temperature: { min: 18, max: 26, period: 30000 }
 }
+
+/** Nouvel appareil : objet Device seulement (capteurs simulés à activer). */
+export const DEFAULT_DEVICE_CONFIG = { ...EXAMPLE_DEVICE_CONFIG, objects: { temperature: false, light: false } }
 
 /** Mises à jour de l'enregistrement : à cette fraction de sa durée. */
 export const UPDATE_RATIO = 0.8

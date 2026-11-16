@@ -4,7 +4,7 @@ import { HttpClient } from '@modules/http/main/client'
 import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { httpRequest } from '@modules/http/main/request'
 import { createPointsApi } from '@modules/http/main/points'
-import { DEFAULT_SERVER_CONFIG } from '@modules/http/shared/constants'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/http/shared/constants'
 import { coerce, matchPath, renderTemplate } from '@modules/http/shared/template'
 import { errorOf, fakeInstances, freePort, sleep, tempDir } from './helpers'
 
@@ -28,7 +28,7 @@ async function waitFor(check, timeout = 5000) {
 
 async function start(extra = {}) {
   port = await freePort()
-  return server.start({ ...DEFAULT_SERVER_CONFIG, port, ...extra })
+  return server.start({ ...EXAMPLE_SERVER_CONFIG, port, ...extra })
 }
 
 beforeAll(async () => {
@@ -173,7 +173,7 @@ describe('Serveur HTTP', () => {
     const receiver = new HttpServer(null, {})
     const receiverPort = await freePort()
     await receiver.start({
-      ...DEFAULT_SERVER_CONFIG,
+      ...EXAMPLE_SERVER_CONFIG,
       port: receiverPort,
       variables: [
         { id: 'r', name: 'received', dataType: 'JSON', initialValue: 'null', simulation: 'none', writable: true }

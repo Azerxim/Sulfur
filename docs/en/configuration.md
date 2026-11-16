@@ -85,6 +85,20 @@ Importing a file:
 A file with another `format`, invalid JSON or a more recent `version` is refused with an explicit
 message.
 
+## Example configuration
+
+A new installation has no data: a new server or client starts from a blank configuration (no variable,
+point, topic, SNMP object, route, DNS record, user…), and the simulator has no fault or flow.
+
+The `sulfur-config-example.json` file, attached to every GitHub release, gathers the example data: one
+server per protocol module (OPC UA, Modbus, S7, MQTT, SNMP, HTTP, CoAP, DNS, FTP, SFTP, LDAP, RADIUS)
+with its simulated variables, an MQTT client and an SNMP manager, the simulator's demo faults and flow,
+and a proxy redirection. It is imported like any configuration file (see [Import / export](#import--export)).
+
+In the sources, it is generated from the modules' `EXAMPLE_*` constants by
+`tests/example-config.test.js`: the test fails if `examples/sulfur-config-example.json` is out of date,
+and `npx vitest run -u` regenerates it.
+
 ## Deleting the whole configuration
 
 *Settings → General → Configurations → Delete all…* deletes, after confirmation, the configuration of

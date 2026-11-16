@@ -1,7 +1,7 @@
 import { instanceSection, migrateToInstances } from '@azerxim/sulfur-sdk'
 import { defineInstances, ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { join } from 'path'
-import { DEFAULT_LDIF, LDAP_MODULE } from '../shared/constants'
+import { DEFAULT_SERVER_CONFIG, LDAP_MODULE } from '../shared/constants'
 import '../shared/locales'
 import { t } from '../shared/i18n'
 import { LdapServer, buildDirectory } from './server'
@@ -38,14 +38,14 @@ export const ldapMainModule = {
     const certificate = () => ensureCertificate(join(ctx.dataDir, 'pki', 'own'), SERVER_COMMON_NAME)
 
     // Annuaire vu par RADIUS : celui du premier serveur LDAP en marche, sinon l'annuaire enregistré
-    // du premier serveur LDAP (l'annuaire par défaut s'il n'y en a aucun).
+    // du premier serveur LDAP (un annuaire vide s'il n'y en a aucun).
     let saved = { ldif: null, directory: null }
     const directory = () => {
       const servers = instances.all('server')
       const running = servers.find(({ object }) => object.running)
       if (running) return running.object.directory
       const first = servers[0]?.instance
-      const ldif = (first && ctx.config()[instanceSection('server', first.id)]?.ldif) ?? DEFAULT_LDIF
+      const ldif = (first && ctx.config()[instanceSection('server', first.id)]?.ldif) ?? DEFAULT_SERVER_CONFIG.ldif
       if (saved.ldif !== ldif) {
         try {
           saved = { ldif, directory: buildDirectory(ldif) }

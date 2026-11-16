@@ -3,12 +3,12 @@ import { SimulationServer } from '@modules/opcua/main/server'
 import { SimulationClient } from '@modules/opcua/main/client'
 import { PkiStore } from '@modules/opcua/main/pki'
 import { createPointsApi as opcuaPoints } from '@modules/opcua/main/points'
-import { DEFAULT_SERVER_CONFIG as OPCUA_CONFIG } from '@modules/opcua/shared/constants'
+import { EXAMPLE_SERVER_CONFIG as OPCUA_CONFIG } from '@modules/opcua/shared/constants'
 import { ModbusServer } from '@modules/modbus/main/server'
 import { ModbusClient } from '@modules/modbus/main/client'
 import { ModbusPki } from '@modules/modbus/main/pki'
 import { createPointsApi as modbusPoints } from '@modules/modbus/main/points'
-import { DEFAULT_SERVER_CONFIG as MODBUS_CONFIG } from '@modules/modbus/shared/constants'
+import { EXAMPLE_SERVER_CONFIG as MODBUS_CONFIG } from '@modules/modbus/shared/constants'
 import { SimulatorEngine } from '@modules/simulator/main/engine'
 import { FlowRuntime } from '@modules/simulator/main/flows'
 import { createNode, migrateSimulatorConfig, stepsToFlow } from '@modules/simulator/shared/flows'
@@ -49,7 +49,11 @@ beforeAll(async () => {
   opcua = {
     server: opcuaServer,
     client: opcuaClient,
-    api: opcuaPoints({ instances: fakeInstances({ server: opcuaServer, client: opcuaClient }) })
+    // Configuration enregistrée : celle de l'exemple (points listés serveur arrêté).
+    api: opcuaPoints({
+      instances: fakeInstances({ server: opcuaServer, client: opcuaClient }),
+      savedConfig: () => ({ 'server:server': OPCUA_CONFIG })
+    })
   }
   modbus = {
     server: modbusServer,
@@ -57,6 +61,7 @@ beforeAll(async () => {
     // Instances d'identifiants `server` et `client`, comme après la migration d'une configuration
     // antérieure : les clés de points (`modbus/server:<id>`) sont celles d'avant les instances.
     api: modbusPoints({
+      savedConfig: () => ({ 'server:server': MODBUS_CONFIG }),
       instances: {
         all: (role) =>
           [
