@@ -1,0 +1,1181 @@
+{
+  "format": "sulfur-config",
+  "version": 1,
+  "modules": {
+    "opcua": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "server",
+          "name": "Example server"
+        }
+      ],
+      "server:server": {
+        "port": 4840,
+        "resourcePath": "/UA/Sulfur",
+        "rootFolder": "Simulation",
+        "updateRate": 100,
+        "security": {
+          "modes": [
+            "None",
+            "Sign",
+            "SignAndEncrypt"
+          ],
+          "policies": [
+            "Basic256Sha256",
+            "Aes128_Sha256_RsaOaep",
+            "Aes256_Sha256_RsaPss"
+          ],
+          "allowAnonymous": true,
+          "users": [
+            {
+              "username": "admin",
+              "passwordHash": "scrypt$mbUEZRBI1M8Kevl1/G39dg==$lMVG0wqpSC7IQcuJl1Kw1Xi3bKVvt7wrE59pCNfA4ww="
+            }
+          ],
+          "autoAcceptCertificates": true
+        },
+        "variables": [
+          {
+            "id": "var-1",
+            "name": "Temperature",
+            "dataType": "Double",
+            "initialValue": 20,
+            "simulation": "sine",
+            "period": 10000,
+            "min": 15,
+            "max": 25,
+            "writable": true,
+            "historizing": true
+          },
+          {
+            "id": "var-2",
+            "name": "Pressure",
+            "dataType": "Double",
+            "initialValue": 1,
+            "simulation": "random",
+            "period": 1000,
+            "min": 0.9,
+            "max": 1.1,
+            "writable": true
+          },
+          {
+            "id": "var-3",
+            "name": "Counter",
+            "dataType": "Int32",
+            "initialValue": 0,
+            "simulation": "ramp",
+            "period": 10000,
+            "min": 0,
+            "max": 100,
+            "writable": true
+          },
+          {
+            "id": "var-4",
+            "name": "Running",
+            "dataType": "Boolean",
+            "initialValue": true,
+            "simulation": "toggle",
+            "period": 5000,
+            "min": 0,
+            "max": 1,
+            "writable": true
+          },
+          {
+            "id": "var-5",
+            "name": "Label",
+            "dataType": "String",
+            "initialValue": "Sulfur",
+            "simulation": "none",
+            "period": 1000,
+            "min": 0,
+            "max": 0,
+            "writable": true
+          },
+          {
+            "id": "var-6",
+            "name": "Levels",
+            "dataType": "Double",
+            "arrayLength": 4,
+            "initialValue": "0, 0, 0, 0",
+            "simulation": "sine",
+            "period": 8000,
+            "min": 0,
+            "max": 100,
+            "writable": true
+          }
+        ],
+        "structures": [],
+        "methods": [
+          {
+            "id": "method-1",
+            "name": "SetLabel",
+            "inputs": [
+              {
+                "name": "Label",
+                "dataType": "String",
+                "array": false
+              }
+            ],
+            "outputs": [
+              {
+                "name": "Counter",
+                "dataType": "Int32",
+                "array": false
+              }
+            ],
+            "behavior": "variables",
+            "statusCode": "BadInvalidArgument"
+          }
+        ],
+        "alarms": [
+          {
+            "id": "alarm-1",
+            "name": "TemperatureAlarm",
+            "variable": "var-1",
+            "highHigh": 24.5,
+            "high": 23,
+            "low": "",
+            "lowLow": ""
+          }
+        ]
+      }
+    },
+    "modbus": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "server",
+          "name": "Example server"
+        }
+      ],
+      "server:server": {
+        "transport": "tcp",
+        "host": "0.0.0.0",
+        "port": 5020,
+        "serial": {
+          "path": "",
+          "baudRate": 19200,
+          "dataBits": 8,
+          "parity": "even",
+          "stopBits": 1
+        },
+        "anyUnitId": false,
+        "updateRate": 100,
+        "wordOrder": "ABCD",
+        "size": 10000,
+        "security": {
+          "mode": "tcp",
+          "minTlsVersion": "TLSv1.2",
+          "requireClientCertificate": true,
+          "autoAcceptCertificates": true,
+          "roles": [
+            {
+              "name": "Operator",
+              "read": true,
+              "write": true
+            },
+            {
+              "name": "Viewer",
+              "read": true,
+              "write": false
+            }
+          ],
+          "defaultRole": "",
+          "allowedIps": [],
+          "maxConnections": 10,
+          "maxRequestsPerSecond": 0,
+          "readOnly": false
+        },
+        "units": [
+          {
+            "id": "unit-1",
+            "unitId": 1,
+            "name": "",
+            "identity": {
+              "vendorName": "Sulfur",
+              "productCode": "SULFUR-MB",
+              "revision": "1.0",
+              "vendorUrl": "https://github.com/Azerxim/Sulfur",
+              "productName": "Sulfur Modbus simulator",
+              "modelName": "Virtual device",
+              "userApplicationName": ""
+            },
+            "points": [
+              {
+                "id": "pt-1",
+                "name": "Temperature",
+                "table": "holdingRegisters",
+                "address": 0,
+                "dataType": "Float32",
+                "initialValue": 20,
+                "simulation": "sine",
+                "period": 10000,
+                "min": 15,
+                "max": 25,
+                "writable": true
+              },
+              {
+                "id": "pt-2",
+                "name": "Setpoint",
+                "table": "holdingRegisters",
+                "address": 10,
+                "dataType": "Int16",
+                "initialValue": 50,
+                "simulation": "none",
+                "period": 1000,
+                "min": 0,
+                "max": 100,
+                "writable": true
+              },
+              {
+                "id": "pt-3",
+                "name": "Counter",
+                "table": "inputRegisters",
+                "address": 0,
+                "dataType": "UInt16",
+                "initialValue": 0,
+                "simulation": "ramp",
+                "period": 10000,
+                "min": 0,
+                "max": 1000,
+                "writable": false
+              },
+              {
+                "id": "pt-4",
+                "name": "Pressure",
+                "table": "inputRegisters",
+                "address": 10,
+                "dataType": "Float32",
+                "initialValue": 1,
+                "simulation": "random",
+                "period": 1000,
+                "min": 0.9,
+                "max": 1.1,
+                "writable": false
+              },
+              {
+                "id": "pt-5",
+                "name": "Running",
+                "table": "coils",
+                "address": 0,
+                "dataType": "Boolean",
+                "initialValue": true,
+                "simulation": "toggle",
+                "period": 5000,
+                "min": 0,
+                "max": 1,
+                "writable": true
+              },
+              {
+                "id": "pt-6",
+                "name": "Alarm",
+                "table": "discreteInputs",
+                "address": 0,
+                "dataType": "Boolean",
+                "initialValue": false,
+                "simulation": "none",
+                "period": 1000,
+                "min": 0,
+                "max": 1,
+                "writable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "s7": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "server",
+          "name": "Example server"
+        }
+      ],
+      "server:server": {
+        "host": "0.0.0.0",
+        "port": 1102,
+        "pduSize": 960,
+        "updateRate": 100,
+        "readOnly": false,
+        "sizes": {
+          "I": 1024,
+          "Q": 1024,
+          "M": 4096
+        },
+        "dbs": [
+          {
+            "number": 1,
+            "size": 256,
+            "name": "Process"
+          },
+          {
+            "number": 2,
+            "size": 128,
+            "name": "Settings"
+          }
+        ],
+        "identity": {
+          "orderCode": "6ES7 516-3AN02-0AB0",
+          "moduleName": "CPU 1516-3 PN/DP",
+          "moduleType": "CPU 1516-3 PN/DP",
+          "plantId": "Sulfur",
+          "serialNumber": "S C-SULFUR0001",
+          "copyright": "Original Siemens Equipment",
+          "version": "V3.1.0"
+        },
+        "points": [
+          {
+            "id": "s7-pt-1",
+            "name": "Temperature",
+            "address": "DB1.DBD0",
+            "dataType": "Real",
+            "initialValue": 20,
+            "simulation": "sine",
+            "period": 10000,
+            "min": 15,
+            "max": 25
+          },
+          {
+            "id": "s7-pt-2",
+            "name": "Counter",
+            "address": "DB1.DBW4",
+            "dataType": "Int",
+            "initialValue": 0,
+            "simulation": "ramp",
+            "period": 10000,
+            "min": 0,
+            "max": 1000
+          },
+          {
+            "id": "s7-pt-3",
+            "name": "Setpoint",
+            "address": "DB2.DBD0",
+            "dataType": "Real",
+            "initialValue": 50,
+            "simulation": "none",
+            "period": 1000,
+            "min": 0,
+            "max": 100
+          },
+          {
+            "id": "s7-pt-4",
+            "name": "Running",
+            "address": "Q0.0",
+            "dataType": "Bool",
+            "initialValue": true,
+            "simulation": "toggle",
+            "period": 5000,
+            "min": 0,
+            "max": 1
+          },
+          {
+            "id": "s7-pt-5",
+            "name": "Pressure",
+            "address": "MD10",
+            "dataType": "Real",
+            "initialValue": 1,
+            "simulation": "random",
+            "period": 1000,
+            "min": 0.9,
+            "max": 1.1
+          }
+        ]
+      }
+    },
+    "mqtt": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "server",
+          "name": "Example server"
+        },
+        {
+          "id": "client",
+          "role": "client",
+          "name": "Example client"
+        }
+      ],
+      "server:server": {
+        "host": "0.0.0.0",
+        "port": 1883,
+        "tls": false,
+        "updateRate": 100,
+        "auth": {
+          "anonymous": true,
+          "users": []
+        },
+        "topics": [
+          {
+            "id": "temperature",
+            "topic": "sulfur/line1/temperature",
+            "dataType": "Number",
+            "initialValue": 20,
+            "simulation": "sine",
+            "period": 20000,
+            "min": 15,
+            "max": 25,
+            "interval": 1000,
+            "qos": 0,
+            "retain": true,
+            "format": "plain",
+            "writable": false
+          },
+          {
+            "id": "running",
+            "topic": "sulfur/line1/running",
+            "dataType": "Boolean",
+            "initialValue": true,
+            "simulation": "none",
+            "period": 1000,
+            "min": 0,
+            "max": 1,
+            "interval": 0,
+            "qos": 1,
+            "retain": true,
+            "format": "json",
+            "writable": true
+          }
+        ]
+      },
+      "client:client": {
+        "host": "127.0.0.1",
+        "port": 1883,
+        "tls": false,
+        "rejectUnauthorized": false,
+        "protocolVersion": 5,
+        "clientId": "",
+        "username": "",
+        "password": "",
+        "clean": true,
+        "keepalive": 60,
+        "autoReconnect": false,
+        "will": {
+          "enabled": false,
+          "topic": "sulfur/client/status",
+          "payload": "offline",
+          "qos": 1,
+          "retain": true
+        },
+        "subscriptions": [
+          {
+            "id": "all",
+            "topic": "sulfur/#",
+            "qos": 0,
+            "field": ""
+          }
+        ],
+        "publish": {
+          "topic": "sulfur/line1/running/set",
+          "payload": "false",
+          "qos": 0,
+          "retain": false
+        }
+      }
+    },
+    "snmp": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "agent",
+          "name": "Example agent"
+        },
+        {
+          "id": "client",
+          "role": "manager",
+          "name": "Example manager"
+        }
+      ],
+      "agent:server": {
+        "host": "0.0.0.0",
+        "port": 1161,
+        "readCommunity": "public",
+        "writeCommunity": "private",
+        "users": [
+          {
+            "name": "sulfur",
+            "level": "authPriv",
+            "authProtocol": "sha256",
+            "authKey": "sulfur-auth-key",
+            "privProtocol": "aes",
+            "privKey": "sulfur-priv-key"
+          }
+        ],
+        "engineId": "",
+        "updateRate": 100,
+        "system": {
+          "descr": "Sulfur simulated SNMP agent",
+          "objectId": "1.3.6.1.4.1.32473.1",
+          "contact": "admin@example.com",
+          "name": "sulfur-agent",
+          "location": "Test bench"
+        },
+        "objects": [
+          {
+            "id": "temperature",
+            "name": "temperature",
+            "oid": "1.3.6.1.4.1.32473.1.1",
+            "type": "Integer",
+            "initialValue": 20,
+            "simulation": "sine",
+            "period": 20000,
+            "min": 15,
+            "max": 25,
+            "writable": false
+          },
+          {
+            "id": "packets",
+            "name": "packets",
+            "oid": "1.3.6.1.4.1.32473.1.2",
+            "type": "Counter32",
+            "initialValue": 0,
+            "simulation": "ramp",
+            "period": 60000,
+            "min": 0,
+            "max": 6000,
+            "writable": false
+          },
+          {
+            "id": "label",
+            "name": "label",
+            "oid": "1.3.6.1.4.1.32473.1.3",
+            "type": "OctetString",
+            "initialValue": "Line 1",
+            "simulation": "none",
+            "period": 1000,
+            "min": 0,
+            "max": 1,
+            "writable": true
+          }
+        ],
+        "traps": {
+          "oid": "1.3.6.1.4.1.32473.0.1",
+          "objects": [
+            "temperature"
+          ],
+          "targets": [
+            {
+              "id": "local",
+              "host": "127.0.0.1",
+              "port": 1162,
+              "version": "v3",
+              "community": "public",
+              "user": "sulfur",
+              "inform": false
+            }
+          ]
+        }
+      },
+      "manager:client": {
+        "host": "127.0.0.1",
+        "port": 1161,
+        "version": "v3",
+        "community": "public",
+        "user": {
+          "name": "sulfur",
+          "level": "authPriv",
+          "authProtocol": "sha256",
+          "authKey": "sulfur-auth-key",
+          "privProtocol": "aes",
+          "privKey": "sulfur-priv-key"
+        },
+        "timeout": 2000,
+        "retries": 1,
+        "request": {
+          "operation": "get",
+          "oid": "1.3.6.1.2.1.1.1.0",
+          "type": "OctetString",
+          "value": "",
+          "maxRepetitions": 10
+        },
+        "monitors": [
+          {
+            "id": "uptime",
+            "oid": "1.3.6.1.2.1.1.3.0",
+            "label": "sysUpTime"
+          }
+        ],
+        "pollInterval": 5,
+        "receiver": {
+          "host": "0.0.0.0",
+          "port": 1162
+        }
+      }
+    },
+    "http": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "server",
+          "name": "Example server"
+        }
+      ],
+      "server:server": {
+        "host": "0.0.0.0",
+        "port": 8080,
+        "https": false,
+        "cors": true,
+        "api": true,
+        "basePath": "/api",
+        "updateRate": 100,
+        "auth": {
+          "type": "none",
+          "users": [],
+          "token": "",
+          "headerName": "X-API-Key",
+          "apiKey": ""
+        },
+        "variables": [
+          {
+            "id": "var-1",
+            "name": "temperature",
+            "dataType": "Number",
+            "initialValue": 20,
+            "simulation": "sine",
+            "period": 10000,
+            "min": 15,
+            "max": 25,
+            "writable": false
+          },
+          {
+            "id": "var-2",
+            "name": "setpoint",
+            "dataType": "Integer",
+            "initialValue": 50,
+            "simulation": "none",
+            "period": 1000,
+            "min": 0,
+            "max": 100,
+            "writable": true
+          },
+          {
+            "id": "var-3",
+            "name": "running",
+            "dataType": "Boolean",
+            "initialValue": true,
+            "simulation": "toggle",
+            "period": 5000,
+            "min": 0,
+            "max": 1,
+            "writable": true
+          },
+          {
+            "id": "var-4",
+            "name": "status",
+            "dataType": "String",
+            "initialValue": "OK",
+            "simulation": "none",
+            "period": 1000,
+            "min": 0,
+            "max": 1,
+            "writable": true
+          }
+        ],
+        "routes": [
+          {
+            "id": "route-1",
+            "method": "GET",
+            "path": "/health",
+            "status": 200,
+            "contentType": "application/json",
+            "headers": [],
+            "body": "{ \"status\": \"{{var.status}}\", \"time\": \"{{now}}\" }",
+            "delay": 0,
+            "setVariable": "",
+            "source": ""
+          },
+          {
+            "id": "route-2",
+            "method": "POST",
+            "path": "/api/setpoint",
+            "status": 200,
+            "contentType": "application/json",
+            "headers": [],
+            "body": "{ \"setpoint\": {{var.setpoint}} }",
+            "delay": 0,
+            "setVariable": "var-2",
+            "source": "body.value"
+          },
+          {
+            "id": "route-3",
+            "method": "GET",
+            "path": "/api/devices/:id",
+            "status": 200,
+            "contentType": "application/json",
+            "headers": [],
+            "body": "{ \"id\": \"{{params.id}}\", \"temperature\": {{var.temperature}}, \"running\": {{var.running}} }",
+            "delay": 0,
+            "setVariable": "",
+            "source": ""
+          }
+        ],
+        "webhooks": []
+      }
+    },
+    "coap": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "server",
+          "name": "Example server"
+        }
+      ],
+      "server:server": {
+        "host": "0.0.0.0",
+        "port": 5683,
+        "updateRate": 100,
+        "resources": [
+          {
+            "id": "temperature",
+            "path": "sensors/temperature",
+            "title": "Temperature",
+            "dataType": "Number",
+            "format": 0,
+            "initialValue": 20,
+            "simulation": "sine",
+            "period": 20000,
+            "min": 15,
+            "max": 25,
+            "observable": true,
+            "writable": false,
+            "interval": 1000
+          },
+          {
+            "id": "humidity",
+            "path": "sensors/humidity",
+            "title": "Humidity",
+            "dataType": "Number",
+            "format": 50,
+            "initialValue": 50,
+            "simulation": "random",
+            "period": 5000,
+            "min": 40,
+            "max": 60,
+            "observable": true,
+            "writable": false,
+            "interval": 1000
+          },
+          {
+            "id": "relay",
+            "path": "actuators/relay",
+            "title": "Relay",
+            "dataType": "Boolean",
+            "format": 0,
+            "initialValue": false,
+            "simulation": "none",
+            "period": 1000,
+            "min": 0,
+            "max": 1,
+            "observable": true,
+            "writable": true,
+            "interval": 0
+          }
+        ]
+      }
+    },
+    "dns": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "server",
+          "name": "Example server"
+        }
+      ],
+      "server:server": {
+        "host": "0.0.0.0",
+        "port": 1053,
+        "tcp": true,
+        "domain": "sulfur.local",
+        "ttl": 300,
+        "autoPtr": true,
+        "forward": {
+          "enabled": false,
+          "servers": "1.1.1.1, 8.8.8.8"
+        },
+        "records": [
+          {
+            "id": "r-1",
+            "name": "plc1",
+            "type": "A",
+            "value": "192.168.1.10",
+            "ttl": ""
+          },
+          {
+            "id": "r-2",
+            "name": "hmi",
+            "type": "A",
+            "value": "192.168.1.20",
+            "ttl": ""
+          },
+          {
+            "id": "r-3",
+            "name": "scada",
+            "type": "CNAME",
+            "value": "hmi",
+            "ttl": ""
+          },
+          {
+            "id": "r-4",
+            "name": "@",
+            "type": "MX",
+            "value": "10 mail",
+            "ttl": ""
+          },
+          {
+            "id": "r-5",
+            "name": "mail",
+            "type": "A",
+            "value": "192.168.1.25",
+            "ttl": ""
+          },
+          {
+            "id": "r-6",
+            "name": "_opcua-tcp._tcp",
+            "type": "SRV",
+            "value": "0 0 4840 plc1",
+            "ttl": ""
+          },
+          {
+            "id": "r-7",
+            "name": "@",
+            "type": "TXT",
+            "value": "Sulfur test zone",
+            "ttl": ""
+          }
+        ]
+      }
+    },
+    "ftp": {
+      "instances": [
+        {
+          "id": "ftp",
+          "role": "server",
+          "name": "Example FTP server"
+        },
+        {
+          "id": "sftp",
+          "role": "sftpServer",
+          "name": "Example SFTP server"
+        }
+      ],
+      "server:ftp": {
+        "host": "0.0.0.0",
+        "port": 2121,
+        "root": "",
+        "tls": "none",
+        "requireTls": false,
+        "passivePorts": "",
+        "passiveAddress": "",
+        "allowActive": true,
+        "anonymous": false,
+        "logCommands": false,
+        "banner": "Sulfur FTP server ready",
+        "users": [
+          {
+            "id": "user-1",
+            "username": "sulfur",
+            "passwordHash": "",
+            "readOnly": false
+          }
+        ]
+      },
+      "sftpServer:sftp": {
+        "host": "0.0.0.0",
+        "port": 2222,
+        "root": "",
+        "users": [
+          {
+            "id": "user-1",
+            "username": "sulfur",
+            "passwordHash": "",
+            "authorizedKeys": "",
+            "readOnly": false
+          }
+        ]
+      }
+    },
+    "ldap": {
+      "instances": [
+        {
+          "id": "server",
+          "role": "server",
+          "name": "Example server"
+        },
+        {
+          "id": "radius",
+          "role": "radiusServer",
+          "name": "Example RADIUS server"
+        }
+      ],
+      "server:server": {
+        "host": "0.0.0.0",
+        "port": 1636,
+        "security": "ldaps",
+        "startTls": true,
+        "allowAnonymous": true,
+        "sizeLimit": 500,
+        "ldif": "# Annuaire de test : mots de passe en clair ou {SSHA}, {SHA}\ndn: dc=sulfur,dc=local\nobjectClass: top\nobjectClass: domain\ndc: sulfur\n\ndn: ou=people,dc=sulfur,dc=local\nobjectClass: organizationalUnit\nou: people\n\ndn: ou=groups,dc=sulfur,dc=local\nobjectClass: organizationalUnit\nou: groups\n\ndn: uid=operator,ou=people,dc=sulfur,dc=local\nobjectClass: inetOrgPerson\nuid: operator\ncn: Operator\nsn: Operator\nmail: operator@sulfur.local\nuserPassword: operator\n\ndn: uid=engineer,ou=people,dc=sulfur,dc=local\nobjectClass: inetOrgPerson\nuid: engineer\ncn: Engineer\nsn: Engineer\nmail: engineer@sulfur.local\nuserPassword: engineer\n\ndn: cn=operators,ou=groups,dc=sulfur,dc=local\nobjectClass: groupOfNames\ncn: operators\nmember: uid=operator,ou=people,dc=sulfur,dc=local\nmember: uid=engineer,ou=people,dc=sulfur,dc=local\n\ndn: cn=engineers,ou=groups,dc=sulfur,dc=local\nobjectClass: groupOfNames\ncn: engineers\nmember: uid=engineer,ou=people,dc=sulfur,dc=local\n"
+      },
+      "radiusServer:radius": {
+        "host": "0.0.0.0",
+        "authPort": 1812,
+        "acctPort": 1813,
+        "accounting": true,
+        "requireMessageAuthenticator": false,
+        "clients": [
+          {
+            "id": "nas-1",
+            "name": "any",
+            "address": "0.0.0.0/0",
+            "secret": "testing123"
+          }
+        ],
+        "users": [
+          {
+            "id": "user-1",
+            "username": "operator",
+            "password": "operator",
+            "attributes": "Service-Type = NAS-Prompt-User"
+          },
+          {
+            "id": "user-2",
+            "username": "admin",
+            "password": "admin",
+            "attributes": "Service-Type = Administrative-User\nCisco-AVPair = shell:priv-lvl=15"
+          }
+        ],
+        "directory": {
+          "enabled": true,
+          "attribute": "uid",
+          "attributes": "Service-Type = Login-User"
+        }
+      }
+    },
+    "simulator": {
+      "faults": [
+        {
+          "id": "fault-1",
+          "name": "OPC UA 500 ms",
+          "module": "opcua",
+          "type": "delay",
+          "params": {
+            "ms": 500
+          },
+          "points": [],
+          "duration": 0
+        },
+        {
+          "id": "fault-2",
+          "name": "Modbus 10 s",
+          "module": "modbus",
+          "type": "cut",
+          "params": {},
+          "points": [],
+          "duration": 10
+        }
+      ],
+      "flows": [
+        {
+          "id": "flow-1",
+          "name": "Demo",
+          "disabled": false,
+          "nodes": [
+            {
+              "id": "n-1",
+              "type": "inject",
+              "name": "",
+              "x": 40,
+              "y": 60,
+              "config": {
+                "payloadType": "string",
+                "payload": "",
+                "topic": "",
+                "once": false,
+                "repeat": 0
+              }
+            },
+            {
+              "id": "n-2",
+              "type": "write",
+              "name": "",
+              "x": 240,
+              "y": 60,
+              "config": {
+                "point": "opcua/server:var-5",
+                "source": "fixed",
+                "value": "Demo"
+              }
+            },
+            {
+              "id": "n-3",
+              "type": "ramp",
+              "name": "",
+              "x": 440,
+              "y": 60,
+              "config": {
+                "point": "modbus/server:pt-2",
+                "from": 0,
+                "to": 100,
+                "duration": 10
+              }
+            },
+            {
+              "id": "n-4",
+              "type": "fault",
+              "name": "",
+              "x": 640,
+              "y": 60,
+              "config": {
+                "fault": "fault-1",
+                "action": "on"
+              }
+            },
+            {
+              "id": "n-5",
+              "type": "delay",
+              "name": "",
+              "x": 840,
+              "y": 60,
+              "config": {
+                "duration": 5
+              }
+            },
+            {
+              "id": "n-6",
+              "type": "fault",
+              "name": "",
+              "x": 1040,
+              "y": 60,
+              "config": {
+                "fault": "fault-1",
+                "action": "off"
+              }
+            },
+            {
+              "id": "n-7",
+              "type": "write",
+              "name": "",
+              "x": 1240,
+              "y": 60,
+              "config": {
+                "point": "opcua/server:var-5",
+                "source": "fixed",
+                "value": "Sulfur"
+              }
+            },
+            {
+              "id": "n-8",
+              "type": "watch",
+              "name": "",
+              "x": 40,
+              "y": 200,
+              "config": {
+                "point": "opcua/server:var-1",
+                "interval": 200,
+                "initial": true
+              }
+            },
+            {
+              "id": "n-9",
+              "type": "scale",
+              "name": "",
+              "x": 240,
+              "y": 200,
+              "config": {
+                "inMin": 0,
+                "inMax": 50,
+                "outMin": 0,
+                "outMax": 1000,
+                "clamp": true,
+                "round": true
+              }
+            },
+            {
+              "id": "n-10",
+              "type": "debug",
+              "name": "",
+              "x": 440,
+              "y": 200,
+              "config": {
+                "property": "payload",
+                "active": true
+              }
+            }
+          ],
+          "wires": [
+            {
+              "id": "n-1-n-2",
+              "source": "n-1",
+              "port": 0,
+              "target": "n-2"
+            },
+            {
+              "id": "n-2-n-3",
+              "source": "n-2",
+              "port": 0,
+              "target": "n-3"
+            },
+            {
+              "id": "n-3-n-4",
+              "source": "n-3",
+              "port": 0,
+              "target": "n-4"
+            },
+            {
+              "id": "n-4-n-5",
+              "source": "n-4",
+              "port": 0,
+              "target": "n-5"
+            },
+            {
+              "id": "n-5-n-6",
+              "source": "n-5",
+              "port": 0,
+              "target": "n-6"
+            },
+            {
+              "id": "n-6-n-7",
+              "source": "n-6",
+              "port": 0,
+              "target": "n-7"
+            },
+            {
+              "id": "n-8-n-9",
+              "source": "n-8",
+              "port": 0,
+              "target": "n-9"
+            },
+            {
+              "id": "n-9-n-10",
+              "source": "n-9",
+              "port": 0,
+              "target": "n-10"
+            }
+          ]
+        }
+      ]
+    },
+    "proxy": {
+      "rules": [
+        {
+          "id": "rule-1",
+          "name": "Modbus TCP",
+          "protocol": "tcp",
+          "listenHost": "0.0.0.0",
+          "listenPort": 5020,
+          "targetHost": "127.0.0.1",
+          "targetPort": 502,
+          "faults": {
+            "latency": 0,
+            "jitter": 0,
+            "loss": 0,
+            "corrupt": 0,
+            "direction": "both",
+            "block": false
+          }
+        }
+      ]
+    }
+  }
+}

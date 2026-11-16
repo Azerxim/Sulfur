@@ -37,7 +37,8 @@ export const DEFAULT_SERVER_CONFIG = {
   maxBlockSize: MAX_BLOCK_SIZE
 }
 
-export const DEFAULT_CLIENT_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : fichier firmware.bin. */
+export const EXAMPLE_CLIENT_CONFIG = {
   host: '127.0.0.1',
   port: 6969,
   remoteFile: 'firmware.bin',
@@ -49,3 +50,6 @@ export const DEFAULT_CLIENT_CONFIG = {
   timeout: 3,
   retries: 5
 }
+
+/** Configuration d'un nouveau client : fichier distant à saisir. */
+export const DEFAULT_CLIENT_CONFIG = { ...EXAMPLE_CLIENT_CONFIG, remoteFile: '' }

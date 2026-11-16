@@ -11,7 +11,8 @@ Agit sur les serveurs et clients des autres modules par les points qu'ils publie
   une durée donnée ; modifier un défaut actif l'applique aussitôt.
 - **Flux** (à la manière de Node-RED) : des nœuds reliés par des fils se transmettent des messages
   (`msg.payload`), édités sur un canevas (glisser depuis la palette, relier une sortie à une entrée,
-  Suppr efface la sélection). **Déployer** envoie tous les flux au process principal, où ils
+  Suppr efface la sélection ; molette : défilement vertical, Alt + molette : horizontal, Ctrl +
+  molette : zoom). Le libellé d'un nœud passe à la ligne (jusqu'à trois lignes, en entier au survol). **Déployer** envoie tous les flux au process principal, où ils
   tournent en continu ; les flux déployés sont relancés au démarrage, **Arrêter** / **Relancer** les
   suspendent. Un flux peut être désactivé. Nœuds :
   - déclencheurs : *Déclencheur* (à la main, au déploiement et/ou toutes les n secondes),

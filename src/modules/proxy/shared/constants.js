@@ -44,7 +44,11 @@ export const newRule = (n = 1) => ({
   faults: { ...DEFAULT_FAULTS }
 })
 
-export const DEFAULT_RULES = [{ ...newRule(1), id: 'rule-1', name: 'Modbus TCP' }]
+/** Redirection d'exemple (fichier d'exemple des releases, tests). */
+export const EXAMPLE_RULES = [{ ...newRule(1), id: 'rule-1', name: 'Modbus TCP' }]
+
+/** Premier lancement : aucune redirection. */
+export const DEFAULT_RULES = []
 
 /** Entrées conservées dans le journal du process principal. */
 export const MAX_LOG = 5000

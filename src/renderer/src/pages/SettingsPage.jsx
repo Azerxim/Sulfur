@@ -7,11 +7,13 @@ import {
   faPuzzlePiece,
   faSliders,
   faSun,
+  faTrashCan,
+  faTriangleExclamation,
   faUpload
 } from '@fortawesome/free-solid-svg-icons'
 import { LANGUAGES } from '@azerxim/sulfur-sdk'
 import { Button, Card, ErrorBanner, Select, TabbedPage, useStoredState } from '@azerxim/sulfur-sdk/ui'
-import { exportConfigurations, importConfigurations } from '../module-config'
+import { clearConfigurations, exportConfigurations, importConfigurations } from '../module-config'
 import { useEnabledModules } from '../enabled-modules'
 import { appPages } from '../pages'
 import { THEMES, useI18n, useManifestText, usePreferences } from '../preferences'
@@ -34,15 +36,20 @@ export function selectSettingsTab(tab) {
   }
 }
 
-/** Export / import de la configuration de tous les modules (banc de test). */
+/**
+ * Export / import de la configuration de tous les modules (banc de test), et suppression de toute
+ * la configuration après confirmation.
+ */
 function ConfigurationsCard() {
   const { t } = useI18n()
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(null)
   const [error, setError] = useState(null)
+  const [confirming, setConfirming] = useState(false)
 
   async function run(action, describe) {
     setBusy(true)
+    setConfirming(false)
     setMessage(null)
     setError(null)
     try {
@@ -66,6 +73,11 @@ function ConfigurationsCard() {
       kept.length > 0 && t('settings.configurations.kept', { modules: kept.join(', ') }),
       ignored.length > 0 && t('settings.configurations.ignored', { modules: ignored.join(', ') })
     ])
+  const clearAll = () =>
+    run(clearConfigurations, ({ kept }) => [
+      t('settings.configurations.cleared'),
+      kept.length > 0 && t('settings.configurations.clearedKept', { modules: kept.join(', ') })
+    ])
 
   return (
     <Card id="settings.configurations" title={t('settings.configurations.title')}>
@@ -79,8 +91,27 @@ function ConfigurationsCard() {
             <Button disabled={busy} onClick={importAll}>
               <FontAwesomeIcon icon={faUpload} className="size-4" /> {t('settings.configurations.import')}
             </Button>
+            <Button variant="danger" disabled={busy || confirming} onClick={() => setConfirming(true)}>
+              <FontAwesomeIcon icon={faTrashCan} className="size-4" /> {t('settings.configurations.clear')}
+            </Button>
           </div>
         </div>
+        {confirming && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-red-500/10 px-3 py-2.5">
+            <p className="flex min-w-0 flex-1 basis-64 gap-2.5 text-xs text-slate-200">
+              <FontAwesomeIcon icon={faTriangleExclamation} className="mt-px size-4 shrink-0 text-red-400" />
+              {t('settings.configurations.clearWarning')}
+            </p>
+            <div className="flex shrink-0 gap-2">
+              <Button size="sm" disabled={busy} onClick={() => setConfirming(false)}>
+                {t('settings.configurations.cancel')}
+              </Button>
+              <Button size="sm" variant="danger" disabled={busy} onClick={clearAll}>
+                <FontAwesomeIcon icon={faTrashCan} className="size-3.5" /> {t('settings.configurations.clearConfirm')}
+              </Button>
+            </div>
+          </div>
+        )}
         {message?.filter(Boolean).map((line) => (
           <p key={line} className="text-sm break-all text-emerald-300">
             {line}

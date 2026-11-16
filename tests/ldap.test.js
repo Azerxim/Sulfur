@@ -4,14 +4,14 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { ensureCertificate } from '@azerxim/sulfur-sdk/main'
 import { LdapServer, buildDirectory, checkPassword, matches } from '@modules/ldap/main/server'
 import { LdapClient } from '@modules/ldap/main/client'
-import { DEFAULT_CLIENT_CONFIG, DEFAULT_LDIF, DEFAULT_SERVER_CONFIG } from '@modules/ldap/shared/constants'
+import { DEFAULT_CLIENT_CONFIG, EXAMPLE_LDIF, EXAMPLE_SERVER_CONFIG } from '@modules/ldap/shared/constants'
 import { normalizeDn, parseLdif } from '@modules/ldap/shared/ldif'
 import { errorOf, freePort, tempDir } from './helpers'
 
 const BASE = 'dc=sulfur,dc=local'
 const OPERATOR = `uid=operator,ou=people,${BASE}`
 /** Serveur en LDAP simple (LDAPS par défaut). */
-const PLAIN = { ...DEFAULT_SERVER_CONFIG, security: 'plain' }
+const PLAIN = { ...EXAMPLE_SERVER_CONFIG, security: 'plain' }
 const ENGINEER = `uid=engineer,ou=people,${BASE}`
 
 describe('LDIF et annuaire', () => {
@@ -32,7 +32,7 @@ cn: doublon
   })
 
   it('déduit memberOf des groupes et vérifie les mots de passe hachés', () => {
-    const directory = buildDirectory(DEFAULT_LDIF)
+    const directory = buildDirectory(EXAMPLE_LDIF)
     expect(directory.get(normalizeDn(ENGINEER)).attributes.memberOf).toEqual([
       `cn=operators,ou=groups,${BASE}`,
       `cn=engineers,ou=groups,${BASE}`
@@ -140,11 +140,11 @@ describe('Serveur LDAP', () => {
   })
 
   it('sert en LDAPS (par défaut) et alimente le client du module', async () => {
-    expect(DEFAULT_SERVER_CONFIG).toMatchObject({ security: 'ldaps', port: 1636 })
+    expect(EXAMPLE_SERVER_CONFIG).toMatchObject({ security: 'ldaps', port: 1636 })
     expect(DEFAULT_CLIENT_CONFIG.url).toBe('ldaps://127.0.0.1:1636')
     const ldapsPort = await freePort()
     const secure = new LdapServer(() => ensureCertificate(`${tmp.dir}/pki`, 'LDAP@Sulfur'))
-    await secure.start({ ...DEFAULT_SERVER_CONFIG, port: ldapsPort })
+    await secure.start({ ...EXAMPLE_SERVER_CONFIG, port: ldapsPort })
     try {
       const module = new LdapClient()
       const url = `ldaps://127.0.0.1:${ldapsPort}`

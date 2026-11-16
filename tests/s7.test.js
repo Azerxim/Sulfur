@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { S7Server } from '@modules/s7/main/server'
 import { S7Client } from '@modules/s7/main/client'
 import { createPointsApi } from '@modules/s7/main/points'
-import { DEFAULT_SERVER_CONFIG } from '@modules/s7/shared/constants'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/s7/shared/constants'
 import { formatAddress, parseAddress, resolveAddress } from '@modules/s7/shared/address'
 import { decodeValue, encodeValue } from '@modules/s7/shared/codec'
 import { parseTsap, remoteTsap } from '@modules/s7/main/protocol'
@@ -63,7 +63,7 @@ describe('Serveur et client S7', () => {
     port = await freePort()
     server = new S7Server()
     client = new S7Client()
-    await server.start({ ...DEFAULT_SERVER_CONFIG, host: '127.0.0.1', port, pduSize: 240 })
+    await server.start({ ...EXAMPLE_SERVER_CONFIG, host: '127.0.0.1', port, pduSize: 240 })
   })
 
   afterEach(async () => {

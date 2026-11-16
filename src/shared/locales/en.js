@@ -44,7 +44,8 @@ export default {
       notSulfur: 'The file is not a Sulfur configuration',
       unsupportedVersion: 'Configuration format version {version} is not supported by this version of Sulfur',
       noModule: 'The file contains no configuration for the modules of this version of Sulfur',
-      busy: 'Stop the servers and disconnect the clients before importing a configuration'
+      busy: 'Stop the servers and disconnect the clients before importing a configuration',
+      clearBusy: 'Stop the servers and disconnect the clients before deleting the configuration'
     }
   },
   modules: {
@@ -247,6 +248,13 @@ export default {
       hint: 'Module settings are saved automatically. Export them to a JSON file to share a test setup, or import one (servers stopped and clients disconnected).',
       export: 'Export…',
       import: 'Import…',
+      clear: 'Delete all…',
+      clearConfirm: 'Delete permanently',
+      cancel: 'Cancel',
+      clearWarning:
+        'The settings of every module will be deleted and replaced by the default values, including the kept configurations of modules that are not installed. Export them first to keep them.',
+      cleared: 'Configuration of all modules deleted',
+      clearedKept: 'Kept configurations deleted: {modules}',
       exportTitle: 'Export the Sulfur configuration',
       importTitle: 'Import a Sulfur configuration',
       exported: 'Configuration exported to {path}',

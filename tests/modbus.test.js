@@ -3,13 +3,13 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { ModbusServer } from '@modules/modbus/main/server'
 import { ModbusClient } from '@modules/modbus/main/client'
 import { ModbusPki } from '@modules/modbus/main/pki'
-import { DEFAULT_SERVER_CONFIG, DEFAULT_SERVER_SECURITY } from '@modules/modbus/shared/constants'
+import { EXAMPLE_SERVER_CONFIG, DEFAULT_SERVER_SECURITY } from '@modules/modbus/shared/constants'
 import { t } from '@modules/modbus/shared/i18n'
 import { migrateModbusConfig } from '@modules/modbus/shared/units'
 import { errorOf, freePort, sleep, tempDir } from './helpers'
 
 let tmp, serverPki, clientPki, server, logs, port
-const DEFAULT_UNIT = DEFAULT_SERVER_CONFIG.units[0]
+const DEFAULT_UNIT = EXAMPLE_SERVER_CONFIG.units[0]
 const DEFAULT_POINTS = DEFAULT_UNIT.points
 const clients = []
 
@@ -23,7 +23,7 @@ function newClient() {
 async function start(security = {}, extra = {}) {
   port = await freePort()
   return server.start({
-    ...DEFAULT_SERVER_CONFIG,
+    ...EXAMPLE_SERVER_CONFIG,
     port,
     ...extra,
     security: { ...DEFAULT_SERVER_SECURITY, ...security }
@@ -229,7 +229,7 @@ describe('Passerelle : plusieurs Unit ID', () => {
   })
 
   it('accepte encore une configuration à un seul équipement (ancienne forme) et la convertit', async () => {
-    const { units: _units, port: _port, ...legacy } = DEFAULT_SERVER_CONFIG
+    const { units: _units, port: _port, ...legacy } = EXAMPLE_SERVER_CONFIG
     await start({}, { ...legacy, unitId: 4, points: DEFAULT_POINTS, units: undefined })
     expect(server.status().config.units).toMatchObject([
       { unitId: 4, points: DEFAULT_POINTS.map((p) => ({ id: p.id })) }

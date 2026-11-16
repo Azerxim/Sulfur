@@ -93,6 +93,8 @@ export class SnmpAgent {
   timers = []
   simTimer = null
   t0 = Date.now()
+  /** Valeurs modifiées depuis leur dernier envoi à l'interface (voir emitValues). */
+  valuesDirty = false
 
   constructor({ onStatus = () => {}, onLog = () => {}, onValues = () => {} } = {}) {
     this.onStatus = onStatus
@@ -117,6 +119,18 @@ export class SnmpAgent {
 
   values() {
     return Object.fromEntries([...this.variables].map(([id, v]) => [id, v.value]))
+  }
+
+  /** Valeurs courantes des seuls `ids` (points lus par le simulateur, les courbes…). */
+  read(ids) {
+    return Object.fromEntries(ids.map((id) => [id, this.variables.get(id)?.value]))
+  }
+
+  /** Envoie les valeurs à l'interface si l'une d'elles a changé depuis le dernier envoi. */
+  emitValues() {
+    if (!this.valuesDirty) return
+    this.valuesDirty = false
+    this.onValues(this.values())
   }
 
   logs() {
@@ -205,7 +219,7 @@ export class SnmpAgent {
     this.timers = [
       setInterval(() => this.flush(), EMIT_INTERVAL),
       setInterval(() => this.onStatus(this.status()), STATUS_INTERVAL),
-      setInterval(() => this.onValues(this.values()), 250)
+      setInterval(() => this.emitValues(), 250)
     ]
     this.onStatus(this.status())
     return this.status()
@@ -333,6 +347,7 @@ export class SnmpAgent {
     }
     const variable = { def: { ...def, oid: cleanOid(def.oid) }, value }
     this.variables.set(def.id, variable)
+    this.valuesDirty = true
     const mib = this.agent.getMib()
     const name = providerName(def.id)
     mib.registerProvider({
@@ -349,6 +364,7 @@ export class SnmpAgent {
   removeObject(id) {
     if (!this.variables.has(id)) return
     this.variables.delete(id)
+    this.valuesDirty = true
     this.agent.getMib().unregisterProvider(providerName(id))
   }
 
@@ -360,6 +376,7 @@ export class SnmpAgent {
       if (forced) return request.done({ errorStatus: forced })
       try {
         variable.value = convertValue(variable.def.type, request.setValue)
+        this.valuesDirty = true
       } catch {
         return request.done({ errorStatus: snmp.ErrorStatus.WrongValue })
       }
@@ -375,6 +392,7 @@ export class SnmpAgent {
     const variable = this.variables.get(id)
     if (!variable) throw new Error(t('snmp.errors.unknownObject'))
     variable.value = convertValue(variable.def.type, raw)
+    this.valuesDirty = true
     return variable.value
   }
 
@@ -432,10 +450,14 @@ export class SnmpAgent {
         }
         const value = simulate(spec, variable.value, elapsed, dt)
         const min = def.type === 'Integer' ? -2147483648 : 0
-        variable.value = Math.min(
+        const next = Math.min(
           Math.max(Math.round(Number(value)), min),
           def.type === 'Integer' ? 2147483647 : 4294967295
         )
+        if (next !== variable.value) {
+          variable.value = next
+          this.valuesDirty = true
+        }
       }
     }, dt)
   }

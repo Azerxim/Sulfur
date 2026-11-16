@@ -3,7 +3,7 @@ import { instancePointId, instancesOf, migrateToInstances, nextInstanceName, t }
 import { defineInstances } from '@azerxim/sulfur-sdk/main'
 import { createPointsApi } from '@modules/modbus/main/points'
 import { migrateModbusConfig } from '@modules/modbus/shared/units'
-import { DEFAULT_SERVER_CONFIG } from '@modules/modbus/shared/constants'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/modbus/shared/constants'
 import { summarizeActivity } from '../src/renderer/src/activity'
 
 /** Contexte de module minimal : configuration en mémoire, canaux et événements relevés. */
@@ -60,7 +60,7 @@ describe('Instances : migration', () => {
   })
 
   it('convertit le serveur et le client uniques en instances, sans changer les identifiants des points', () => {
-    const legacy = { server: { ...DEFAULT_SERVER_CONFIG, port: 5021 }, clientRequest: { table: 'coils' }, other: 1 }
+    const legacy = { server: { ...EXAMPLE_SERVER_CONFIG, port: 5021 }, clientRequest: { table: 'coils' }, other: 1 }
     const migrated = migrateModbusConfig(legacy)
     expect(migrated.instances).toEqual([
       { id: 'server', role: 'server', name: `${t('ui.server')} 1` },
@@ -154,6 +154,7 @@ describe('Instances : points Modbus', () => {
     faults: null,
     status: () => ({ running: false }),
     values: () => values,
+    read: (ids) => Object.fromEntries(ids.map((id) => [id, values[id]])),
     setValue(id, value) {
       values[id] = value
     },
@@ -171,7 +172,8 @@ describe('Instances : points Modbus', () => {
     ]
     const api = createPointsApi({
       instances: { all: (role) => entries.filter((e) => !role || e.instance.role === role) },
-      savedConfig: () => ({})
+      // Serveurs arrêtés : points de leur configuration enregistrée.
+      savedConfig: () => ({ 'server:srv-a': EXAMPLE_SERVER_CONFIG, 'server:srv-b': EXAMPLE_SERVER_CONFIG })
     })
     const points = api.points()
     expect(points.filter((p) => p.id.endsWith(':pt-1')).map((p) => [p.id, p.groupName])).toEqual([

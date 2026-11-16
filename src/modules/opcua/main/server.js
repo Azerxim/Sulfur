@@ -132,6 +132,8 @@ export class SimulationServer {
   faults = []
   /** Connexions coupées (défaut « cut » appliqué aux endpoints). */
   cutApplied = false
+  /** Valeurs modifiées depuis leur dernier envoi à l'interface (voir emitValues). */
+  valuesDirty = false
 
   certificateManager = null
 
@@ -226,7 +228,8 @@ export class SimulationServer {
     server.on('session_closed', () => this.onStatus(this.status()))
     this.t0 = Date.now()
     this.startSimulation()
-    this.emitTimer = setInterval(() => this.onValues(this.values()), VALUES_EMIT_INTERVAL)
+    this.valuesDirty = false
+    this.emitTimer = setInterval(() => this.emitValues(), VALUES_EMIT_INTERVAL)
     await this.applyCut()
     this.onStatus(this.status())
     return this.status()
@@ -267,6 +270,21 @@ export class SimulationServer {
   /** Valeurs courantes de toutes les variables : { [id]: valeur } */
   values() {
     return Object.fromEntries([...this.vars].map(([id, v]) => [id, toPlain(v.value)]))
+  }
+
+  /** Valeurs courantes des variables `ids` seulement (points lus par le simulateur, les courbes…). */
+  read(ids) {
+    return Object.fromEntries(ids.map((id) => [id, this.vars.has(id) ? toPlain(this.vars.get(id).value) : undefined]))
+  }
+
+  /**
+   * Envoie les valeurs à l'interface si l'une d'elles a changé depuis le dernier envoi : au plus une
+   * fois par VALUES_EMIT_INTERVAL, quel que soit le nombre d'écritures (flux du simulateur, clients).
+   */
+  emitValues() {
+    if (!this.valuesDirty) return
+    this.valuesDirty = false
+    this.onValues(this.values())
   }
 
   // --- Modifications à chaud ------------------------------------------------
@@ -318,7 +336,6 @@ export class SimulationServer {
     const entry = this.vars.get(id)
     if (!entry) throw new Error(t('opcua.errors.unknownVariable'))
     this.assign(entry, raw)
-    this.onValues(this.values())
     return toPlain(entry.value)
   }
 
@@ -474,6 +491,7 @@ export class SimulationServer {
   assign(entry, raw) {
     entry.value = this.coerceFor(entry.def, raw)
     entry.node.setValueFromSource(this.variantOf(entry.def, entry.value), this.statusOf(entry))
+    this.valuesDirty = true
   }
 
   createVariable(def) {
@@ -501,8 +519,10 @@ export class SimulationServer {
     // Écritures des clients (les droits d'accès sont vérifiés par node-opcua).
     entry.node.on('value_changed', (dataValue) => {
       entry.value = dataValue.value.value
+      this.valuesDirty = true
     })
     this.vars.set(def.id, entry)
+    this.valuesDirty = true
   }
 
   deleteVariable(id) {
@@ -510,6 +530,7 @@ export class SimulationServer {
     if (!entry) return
     this.server.engine.addressSpace.deleteNode(entry.node)
     this.vars.delete(id)
+    this.valuesDirty = true
   }
 
   createMethod(def) {

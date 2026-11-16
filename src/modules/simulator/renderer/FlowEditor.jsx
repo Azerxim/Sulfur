@@ -21,6 +21,51 @@ const nodeTypes = { sulfur: FlowNode }
 const DRAG_TYPE = 'application/sulfur-node'
 /** Décalage pour centrer un nœud déposé sous le curseur (moitié de sa taille). */
 const DROP_OFFSET = { x: 88, y: 18 }
+const MIN_ZOOM = 0.2
+const MAX_ZOOM = 2
+
+/** Déplacement de la molette en pixels, quelle que soit son unité (pixels, lignes ou pages). */
+function wheelDelta(e, size) {
+  const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? size : 1
+  return { dx: e.deltaX * unit, dy: e.deltaY * unit }
+}
+
+/**
+ * Molette sur le canevas : défilement vertical (et horizontal pour un pavé tactile), Alt + molette :
+ * défilement horizontal, Ctrl + molette (ou pincement du pavé tactile) : zoom autour du curseur.
+ * Les éléments marqués `nowheel` gardent leur propre défilement.
+ */
+function useWheelNavigation(wrapper) {
+  const { getViewport, setViewport } = useReactFlow()
+  useEffect(() => {
+    const element = wrapper.current
+    if (!element) return
+    const onWheel = (e) => {
+      if (e.target instanceof Element && e.target.closest('.nowheel')) return
+      e.preventDefault()
+      e.stopPropagation()
+      const rect = element.getBoundingClientRect()
+      const { dx, dy } = wheelDelta(e, rect.height)
+      const { x, y, zoom } = getViewport()
+      if (e.ctrlKey || e.metaKey) {
+        // Même progression que React Flow : un cran de molette (100 px) zoome d'environ 15 %.
+        const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * 2 ** (-Math.max(-200, Math.min(200, dy)) * 0.002)))
+        const px = e.clientX - rect.left
+        const py = e.clientY - rect.top
+        setViewport({ x: px - ((px - x) / zoom) * next, y: py - ((py - y) / zoom) * next, zoom: next })
+      } else if (e.altKey) {
+        // Certains systèmes reportent la molette sur l'axe horizontal quand une touche est enfoncée.
+        setViewport({ x: x - (dy || dx), y, zoom })
+      } else {
+        setViewport({ x: x - dx, y: y - dy, zoom })
+      }
+    }
+    // Phase de capture : React Flow ne reçoit pas l'événement ; `passive: false` pour annuler le
+    // défilement et le zoom de la page (Ctrl + molette).
+    element.addEventListener('wheel', onWheel, { capture: true, passive: false })
+    return () => element.removeEventListener('wheel', onWheel, { capture: true })
+  }, [wrapper, getViewport, setViewport])
+}
 
 /** Bouton de la palette : un type de nœud, à glisser sur le canevas ou à ajouter d'un clic. */
 function PaletteItem({ type, category, compact, onAdd }) {
@@ -127,6 +172,7 @@ function Canvas({ flow, onChange, statuses, injectable, onInject, selectedId, on
   const paletteCollapsed = palette === 'collapsed'
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  useWheelNavigation(wrapper)
 
   useEffect(() => {
     setNodes((prev) => {
@@ -254,8 +300,13 @@ function Canvas({ flow, onChange, statuses, injectable, onInject, selectedId, on
           snapGrid={[10, 10]}
           fitView
           fitViewOptions={{ minZoom: 0.7, maxZoom: 1.2, padding: 0.2 }}
-          minZoom={0.2}
-          maxZoom={2}
+          minZoom={MIN_ZOOM}
+          maxZoom={MAX_ZOOM}
+          // Molette gérée par useWheelNavigation (défilement, Alt : horizontal, Ctrl : zoom).
+          zoomOnScroll={false}
+          panOnScroll={false}
+          zoomOnPinch={false}
+          zoomActivationKeyCode={null}
         >
           <Background gap={20} />
           <Controls showInteractive={false} />

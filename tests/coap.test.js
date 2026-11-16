@@ -24,7 +24,7 @@ import {
   parsePath,
   pathLabel
 } from '@modules/coap/shared/lwm2m'
-import { DEFAULT_SERVER_CONFIG } from '@modules/coap/shared/constants'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/coap/shared/constants'
 import { CoapServer } from '@modules/coap/main/server'
 import { CoapClient } from '@modules/coap/main/client'
 import { Lwm2mServer } from '@modules/coap/main/lwm2m-server'
@@ -154,7 +154,7 @@ describe('Serveur et client CoAP', () => {
     server = client = null
   })
 
-  async function start(resources = DEFAULT_SERVER_CONFIG.resources) {
+  async function start(resources = EXAMPLE_SERVER_CONFIG.resources) {
     port = await freePort()
     server = new CoapServer()
     await server.start({ host: '127.0.0.1', port, resources })
@@ -230,7 +230,7 @@ describe('Serveur et client CoAP', () => {
   it('vérifie les ressources et publie leurs valeurs comme points', async () => {
     port = await freePort()
     server = new CoapServer()
-    const bad = { ...DEFAULT_SERVER_CONFIG.resources[0], path: '.well-known/x' }
+    const bad = { ...EXAMPLE_SERVER_CONFIG.resources[0], path: '.well-known/x' }
     expect(await errorOf(() => server.start({ port, resources: [bad] }))).toBe(
       'The /.well-known path is reserved for discovery'
     )

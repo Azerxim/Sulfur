@@ -1,6 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCopy, faPlay, faPlus, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons'
+import {
+  faChevronLeft,
+  faChevronRight,
+  faCopy,
+  faPlay,
+  faPlus,
+  faStop,
+  faTrashCan
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Button,
   Card,
@@ -24,6 +32,9 @@ import { t } from '../shared/i18n'
 
 /** Délai avant d'envoyer au serveur les paramètres modifiés pendant qu'il tourne. */
 const LIVE_DEBOUNCE = 300
+
+/** Variables affichées par page : un serveur peut en compter des milliers. */
+const PAGE_SIZE = 100
 
 /** Variables, méthodes et alarmes partagent le dossier racine : un nom libre parmi tous. */
 function uniqueName(config, prefix) {
@@ -113,6 +124,129 @@ function LiveValue({ variable, value, onSet }) {
   return <CommitInput className="font-mono text-sulfur-300" value={formatValue(value)} onCommit={onSet} />
 }
 
+/**
+ * Ligne d'une variable. Mémoïsée : une valeur reçue du serveur ne redessine que les lignes dont la
+ * valeur a changé (`actions` est stable, voir ServerPanel).
+ */
+const VariableRow = memo(function VariableRow({
+  v,
+  structure,
+  structureNames,
+  duplicate,
+  value,
+  running,
+  busy,
+  actions
+}) {
+  const isArray = !structure && Number(v.arrayLength) > 0
+  const valueHint = structure
+    ? t('opcua.server.structValueHint', { example: structExample(structure) })
+    : isArray
+      ? t('opcua.server.arrayValueHint')
+      : undefined
+  return (
+    <tr key={v.id} className="align-middle">
+      <td className="p-1.5">
+        <CommitInput
+          value={v.name}
+          disabled={busy}
+          title={running ? t('ui.renameRecreates') : undefined}
+          className={duplicate || !v.name.trim() ? 'border-red-500/60' : ''}
+          onCommit={(name) => actions.update(v.id, { name: name.trim() }, { immediate: true })}
+        />
+      </td>
+      <td className="p-1.5">
+        <Select
+          value={v.dataType}
+          disabled={busy}
+          title={running ? t('ui.typeRecreates') : undefined}
+          className={
+            !DATA_TYPES.includes(v.dataType) && !structureNames.includes(v.dataType) ? 'border-red-500/60' : ''
+          }
+          onChange={(e) => actions.update(v.id, { dataType: e.target.value }, { immediate: true })}
+        >
+          {DATA_TYPES.map((type) => (
+            <option key={type}>{type}</option>
+          ))}
+          {structureNames.length > 0 && (
+            <optgroup label={t('opcua.structures.title', { count: structureNames.length })}>
+              {structureNames.map((name) => (
+                <option key={name}>{name}</option>
+              ))}
+            </optgroup>
+          )}
+          {!DATA_TYPES.includes(v.dataType) && !structureNames.includes(v.dataType) && <option>{v.dataType}</option>}
+        </Select>
+      </td>
+      <td className="w-20 p-1.5">
+        <CommitInput
+          type="number"
+          min={0}
+          value={structure ? 0 : (v.arrayLength ?? 0)}
+          disabled={busy || !!structure}
+          title={t('opcua.server.arrayLengthHint')}
+          onCommit={(raw) =>
+            actions.update(v.id, { arrayLength: Math.max(0, Math.floor(Number(raw) || 0)) }, { immediate: true })
+          }
+        />
+      </td>
+      <td className="w-44 p-1.5">
+        {running ? (
+          <LiveValue variable={v} value={value} onSet={(raw) => actions.setValue(v.id, raw)} />
+        ) : (
+          <Input
+            className={structure || isArray ? 'font-mono' : ''}
+            value={typeof v.initialValue === 'object' ? JSON.stringify(v.initialValue) : String(v.initialValue)}
+            disabled={busy}
+            title={valueHint}
+            placeholder={structure ? structExample(structure) : undefined}
+            onChange={(e) => actions.update(v.id, { initialValue: e.target.value })}
+          />
+        )}
+      </td>
+      <td className="p-1.5">
+        <Select
+          value={structure ? 'none' : v.simulation}
+          disabled={busy || !!structure}
+          onChange={(e) => actions.update(v.id, { simulation: e.target.value }, { immediate: true })}
+        >
+          {SIMULATIONS.map((k) => (
+            <option key={k} value={k}>
+              {t(`simulations.${k}`)}
+            </option>
+          ))}
+        </Select>
+      </td>
+      {['period', 'min', 'max'].map((key) => (
+        <td key={key} className="w-24 p-1.5">
+          <Input
+            type="number"
+            value={v[key]}
+            disabled={busy || v.simulation === 'none' || !!structure}
+            onChange={(e) => actions.update(v.id, { [key]: Number(e.target.value) })}
+          />
+        </td>
+      ))}
+      {['writable', 'historizing'].map((key) => (
+        <td key={key} className="p-1.5 text-center">
+          <input
+            type="checkbox"
+            className="size-4 accent-sulfur-400"
+            checked={!!v[key]}
+            disabled={busy}
+            onChange={(e) => actions.update(v.id, { [key]: e.target.checked }, { immediate: true })}
+          />
+        </td>
+      ))}
+      <td className="p-1.5">
+        <Button variant="ghost" size="icon" disabled={busy} onClick={() => actions.remove(v.id)} title={t('ui.remove')}>
+          <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
+        </Button>
+      </td>
+    </tr>
+  )
+})
+
 export default function ServerPanel({ instance, status }) {
   const api = useMemo(() => opcuaApi.server(instance.id), [instance.id])
   const [config, setConfig] = usePersistentState(
@@ -122,6 +256,8 @@ export default function ServerPanel({ instance, status }) {
   )
   const [nodesets, setNodesets] = usePersistentState('opcua', instanceSection('nodesets', instance.id), [])
   const [values, setValues] = useState({})
+  const [filter, setFilter] = useState('')
+  const [page, setPage] = useState(0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const timers = useRef({})
@@ -204,15 +340,53 @@ export default function ServerPanel({ instance, status }) {
   }
   const setValue = (id, raw) => live(() => api.setValue(id, raw))
 
-  const structureNames = config.structures.map((s) => s.name)
+  // Actions des lignes : identité stable (lignes mémoïsées), appel des versions à jour.
+  const latest = useRef(null)
+  latest.current = { updateVar, setValue, removeItem }
+  const rowActions = useMemo(
+    () => ({
+      update: (id, patch, options) => latest.current.updateVar(id, patch, options),
+      setValue: (id, raw) => latest.current.setValue(id, raw),
+      remove: (id) => latest.current.removeItem('variables', id)
+    }),
+    []
+  )
+
+  const structureNames = useMemo(() => config.structures.map((s) => s.name), [config.structures])
+  const structureByName = useMemo(() => new Map(config.structures.map((s) => [s.name, s])), [config.structures])
   const named = [...config.variables, ...config.methods, ...config.alarms]
-  const duplicates = named.map((v) => v.name).filter((n, i, all) => all.indexOf(n) !== i)
+  // Noms en double : un seul passage (des milliers de variables).
+  const duplicates = useMemo(() => {
+    const seen = new Set()
+    const twice = new Set()
+    for (const { name } of [...config.variables, ...config.methods, ...config.alarms]) {
+      if (seen.has(name)) twice.add(name)
+      seen.add(name)
+    }
+    return twice
+  }, [config.variables, config.methods, config.alarms])
   const invalid =
-    duplicates.length > 0 ||
+    duplicates.size > 0 ||
     named.some((v) => !v.name.trim()) ||
     config.structures.some((s) => structureProblem(s, config.structures)) ||
     config.variables.some((v) => !DATA_TYPES.includes(v.dataType) && !structureNames.includes(v.dataType)) ||
     !isSecurityValid(config.security)
+
+  const query = filter.trim().toLowerCase()
+  const filtered = useMemo(
+    () => (query ? config.variables.filter((v) => v.name.toLowerCase().includes(query)) : config.variables),
+    [config.variables, query]
+  )
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount - 1)
+  const pageVariables = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
+
+  /** Nouvelle variable : filtre retiré et dernière page affichée, pour la voir aussitôt. */
+  function addVariable() {
+    setFilter('')
+    setPage(Math.floor(config.variables.length / PAGE_SIZE))
+    addItem('variables', newVariable(config))
+  }
 
   const headers = [
     [t('ui.name')],
@@ -330,12 +504,58 @@ export default function ServerPanel({ instance, status }) {
         actions={
           <>
             {running && <span className="text-xs text-slate-500">{t('ui.liveApplied')}</span>}
-            <Button size="sm" disabled={busy} onClick={() => addItem('variables', newVariable(config))}>
+            <Button size="sm" disabled={busy} onClick={addVariable}>
               <FontAwesomeIcon icon={faPlus} className="size-3.5" /> {t('ui.add')}
             </Button>
           </>
         }
       >
+        {config.variables.length > PAGE_SIZE && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <Input
+              className="w-64"
+              value={filter}
+              placeholder={t('opcua.server.filter')}
+              aria-label={t('opcua.server.filter')}
+              onChange={(e) => {
+                setFilter(e.target.value)
+                setPage(0)
+              }}
+            />
+            {duplicates.size > 0 && (
+              <span className="text-xs text-red-300">
+                {t('opcua.server.duplicates', { names: [...duplicates].slice(0, 5).join(', ') })}
+              </span>
+            )}
+            <span className="ml-auto text-xs text-slate-500">
+              {filtered.length
+                ? t('opcua.server.page', {
+                    from: currentPage * PAGE_SIZE + 1,
+                    to: currentPage * PAGE_SIZE + pageVariables.length,
+                    count: filtered.length
+                  })
+                : t('opcua.server.noMatch')}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={currentPage === 0}
+              title={t('opcua.server.previousPage')}
+              onClick={() => setPage(currentPage - 1)}
+            >
+              <FontAwesomeIcon icon={faChevronLeft} className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={currentPage >= pageCount - 1}
+              title={t('opcua.server.nextPage')}
+              onClick={() => setPage(currentPage + 1)}
+            >
+              <FontAwesomeIcon icon={faChevronRight} className="size-3.5" />
+            </Button>
+          </div>
+        )}
         <div className="overflow-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-slate-500">
@@ -348,132 +568,19 @@ export default function ServerPanel({ instance, status }) {
               </tr>
             </thead>
             <tbody>
-              {config.variables.map((v) => {
-                const structure = config.structures.find((s) => s.name === v.dataType)
-                const isArray = !structure && Number(v.arrayLength) > 0
-                const valueHint = structure
-                  ? t('opcua.server.structValueHint', { example: structExample(structure) })
-                  : isArray
-                    ? t('opcua.server.arrayValueHint')
-                    : undefined
-                return (
-                  <tr key={v.id} className="align-middle">
-                    <td className="p-1.5">
-                      <CommitInput
-                        value={v.name}
-                        disabled={busy}
-                        title={running ? t('ui.renameRecreates') : undefined}
-                        className={duplicates.includes(v.name) || !v.name.trim() ? 'border-red-500/60' : ''}
-                        onCommit={(name) => updateVar(v.id, { name: name.trim() }, { immediate: true })}
-                      />
-                    </td>
-                    <td className="p-1.5">
-                      <Select
-                        value={v.dataType}
-                        disabled={busy}
-                        title={running ? t('ui.typeRecreates') : undefined}
-                        className={
-                          !DATA_TYPES.includes(v.dataType) && !structureNames.includes(v.dataType)
-                            ? 'border-red-500/60'
-                            : ''
-                        }
-                        onChange={(e) => updateVar(v.id, { dataType: e.target.value }, { immediate: true })}
-                      >
-                        {DATA_TYPES.map((type) => (
-                          <option key={type}>{type}</option>
-                        ))}
-                        {structureNames.length > 0 && (
-                          <optgroup label={t('opcua.structures.title', { count: structureNames.length })}>
-                            {structureNames.map((name) => (
-                              <option key={name}>{name}</option>
-                            ))}
-                          </optgroup>
-                        )}
-                        {!DATA_TYPES.includes(v.dataType) && !structureNames.includes(v.dataType) && (
-                          <option>{v.dataType}</option>
-                        )}
-                      </Select>
-                    </td>
-                    <td className="w-20 p-1.5">
-                      <CommitInput
-                        type="number"
-                        min={0}
-                        value={structure ? 0 : (v.arrayLength ?? 0)}
-                        disabled={busy || !!structure}
-                        title={t('opcua.server.arrayLengthHint')}
-                        onCommit={(raw) =>
-                          updateVar(
-                            v.id,
-                            { arrayLength: Math.max(0, Math.floor(Number(raw) || 0)) },
-                            { immediate: true }
-                          )
-                        }
-                      />
-                    </td>
-                    <td className="w-44 p-1.5">
-                      {running ? (
-                        <LiveValue variable={v} value={values[v.id]} onSet={(raw) => setValue(v.id, raw)} />
-                      ) : (
-                        <Input
-                          className={structure || isArray ? 'font-mono' : ''}
-                          value={
-                            typeof v.initialValue === 'object' ? JSON.stringify(v.initialValue) : String(v.initialValue)
-                          }
-                          disabled={busy}
-                          title={valueHint}
-                          placeholder={structure ? structExample(structure) : undefined}
-                          onChange={(e) => updateVar(v.id, { initialValue: e.target.value })}
-                        />
-                      )}
-                    </td>
-                    <td className="p-1.5">
-                      <Select
-                        value={structure ? 'none' : v.simulation}
-                        disabled={busy || !!structure}
-                        onChange={(e) => updateVar(v.id, { simulation: e.target.value }, { immediate: true })}
-                      >
-                        {SIMULATIONS.map((k) => (
-                          <option key={k} value={k}>
-                            {t(`simulations.${k}`)}
-                          </option>
-                        ))}
-                      </Select>
-                    </td>
-                    {['period', 'min', 'max'].map((key) => (
-                      <td key={key} className="w-24 p-1.5">
-                        <Input
-                          type="number"
-                          value={v[key]}
-                          disabled={busy || v.simulation === 'none' || !!structure}
-                          onChange={(e) => updateVar(v.id, { [key]: Number(e.target.value) })}
-                        />
-                      </td>
-                    ))}
-                    {['writable', 'historizing'].map((key) => (
-                      <td key={key} className="p-1.5 text-center">
-                        <input
-                          type="checkbox"
-                          className="size-4 accent-sulfur-400"
-                          checked={!!v[key]}
-                          disabled={busy}
-                          onChange={(e) => updateVar(v.id, { [key]: e.target.checked }, { immediate: true })}
-                        />
-                      </td>
-                    ))}
-                    <td className="p-1.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={busy}
-                        onClick={() => removeItem('variables', v.id)}
-                        title={t('ui.remove')}
-                      >
-                        <FontAwesomeIcon icon={faTrashCan} className="size-3.5" />
-                      </Button>
-                    </td>
-                  </tr>
-                )
-              })}
+              {pageVariables.map((v) => (
+                <VariableRow
+                  key={v.id}
+                  v={v}
+                  structure={structureByName.get(v.dataType)}
+                  structureNames={structureNames}
+                  duplicate={duplicates.has(v.name)}
+                  value={values[v.id]}
+                  running={running}
+                  busy={busy}
+                  actions={rowActions}
+                />
+              ))}
             </tbody>
           </table>
         </div>

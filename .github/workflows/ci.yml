@@ -87,7 +87,9 @@ jobs:
           path: ${{ matrix.files }}
           if-no-files-found: error
 
-  # Les installeurs sont joints à une release GitHub (brouillon, à relire avant publication).
+  # Les installeurs sont joints à une release GitHub (brouillon, à relire avant publication), avec le
+  # fichier de configuration d'exemple (une installation neuve n'a aucune donnée : il s'importe depuis
+  # Paramètres → Général → Configurations).
   release:
     name: Release GitHub
     needs: package
@@ -95,6 +97,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
           path: installers
@@ -102,4 +105,6 @@ jobs:
       - uses: softprops/action-gh-release@v3
         with:
           draft: true
-          files: installers/*
+          files: |
+            installers/*
+            examples/sulfur-config-example.json

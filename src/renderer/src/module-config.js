@@ -14,6 +14,14 @@ export async function importConfigurations() {
   return result
 }
 
+/** Supprime la configuration de tous les modules : chacun revient à ses réglages par défaut. */
+export async function clearConfigurations() {
+  flushModuleConfigs()
+  const result = await window.sulfur.invoke('config:clear')
+  replaceModuleConfigs(result.modules)
+  return result
+}
+
 /** Rétablit la configuration par défaut d'un module. */
 export async function resetModuleConfig(moduleId) {
   await window.sulfur.invoke(`${moduleId}:config:reset`)

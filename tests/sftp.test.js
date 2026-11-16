@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from '@azerxim/sulfur-sdk/main'
 import { SftpServer, ensureHostKey, fingerprint } from '@modules/ftp/main/sftp/server'
 import { SftpClient } from '@modules/ftp/main/sftp/client'
-import { DEFAULT_SERVER_CONFIG } from '@modules/ftp/shared/sftp'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/ftp/shared/sftp'
 import { errorOf, freePort, tempDir } from './helpers'
 
 let tmp, root, server, port, userKey, hostKey
@@ -36,7 +36,7 @@ beforeAll(async () => {
   port = await freePort()
   server = new SftpServer(() => ensureHostKey(path.join(tmp.dir, 'hostkey')), root)
   await server.start({
-    ...DEFAULT_SERVER_CONFIG,
+    ...EXAMPLE_SERVER_CONFIG,
     port,
     users: [
       {
@@ -142,7 +142,7 @@ describe('Serveur et client SFTP', () => {
   it('refuse un utilisateur sans mot de passe ni clé', async () => {
     const other = new SftpServer(() => hostKey, root)
     expect(
-      await errorOf(other.start({ ...DEFAULT_SERVER_CONFIG, port: await freePort(), users: [{ username: 'x' }] }))
+      await errorOf(other.start({ ...EXAMPLE_SERVER_CONFIG, port: await freePort(), users: [{ username: 'x' }] }))
     ).toMatch(/neither password nor public key/)
   })
 })

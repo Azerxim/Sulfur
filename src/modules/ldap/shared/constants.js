@@ -22,7 +22,8 @@ export const FORCED_RESULTS = [
 /** Événements conservés dans le journal du serveur. */
 export const MAX_LOG = 500
 
-export const DEFAULT_LDIF = `# Annuaire de test : mots de passe en clair ou {SSHA}, {SHA}
+/** Annuaire d'exemple (bouton « Annuaire d'exemple », fichier d'exemple des releases, tests). */
+export const EXAMPLE_LDIF = `# Annuaire de test : mots de passe en clair ou {SSHA}, {SHA}
 dn: dc=sulfur,dc=local
 objectClass: top
 objectClass: domain
@@ -64,7 +65,8 @@ cn: engineers
 member: uid=engineer,ou=people,dc=sulfur,dc=local
 `
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : annuaire de test. */
+export const EXAMPLE_SERVER_CONFIG = {
   host: '0.0.0.0',
   /** Ports standards 389 (LDAP) et 636 (LDAPS) : droits administrateur requis sous Linux. */
   /** LDAPS par défaut (TLS dès la connexion) ; en LDAP simple, port 1389. */
@@ -76,10 +78,14 @@ export const DEFAULT_SERVER_CONFIG = {
   allowAnonymous: true,
   /** Nombre maximal d'entrées renvoyées par une recherche. */
   sizeLimit: 500,
-  ldif: DEFAULT_LDIF
+  ldif: EXAMPLE_LDIF
 }
 
-export const DEFAULT_CLIENT_CONFIG = {
+/** Configuration d'un nouveau serveur : annuaire vide. */
+export const DEFAULT_SERVER_CONFIG = { ...EXAMPLE_SERVER_CONFIG, ldif: '' }
+
+/** Exemple (fichier d'exemple des releases, tests) : compte operator de l'annuaire d'exemple. */
+export const EXAMPLE_CLIENT_CONFIG = {
   url: 'ldaps://127.0.0.1:1636',
   startTls: false,
   /** TLS : refuser un certificat serveur non reconnu (auto-signé). */
@@ -93,3 +99,6 @@ export const DEFAULT_CLIENT_CONFIG = {
   sizeLimit: 100,
   timeout: 5000
 }
+
+/** Configuration d'un nouveau client : liaison anonyme, base à saisir, toutes les entrées. */
+export const DEFAULT_CLIENT_CONFIG = { ...EXAMPLE_CLIENT_CONFIG, bindDn: '', base: '', filter: '(objectClass=*)' }

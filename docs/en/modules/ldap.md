@@ -15,9 +15,9 @@ LDAP servers and clients, RADIUS servers and clients.
 - **Server** LDAP v3, **LDAPS by default** (port 1636; plain LDAP on 1389; standard ports 389 /
   636 with administrator rights on Linux) on a read-only test directory, to check the centralized login of switches,
   firewalls, HMIs or applications:
-  - directory written in **LDIF** (example directory with users and groups), edited while the
-    server is running; `userPassword` in clear text or hashed ({SSHA}, {SHA}, {SSHA256}, {SSHA512});
-    `memberOf` deduced from the groups (`member`, `uniqueMember`);
+  - directory written in **LDIF** (empty at first; *Example directory* button with users and groups),
+    edited while the server is running; `userPassword` in clear text or hashed ({SSHA}, {SHA},
+    {SSHA256}, {SSHA512}); `memberOf` deduced from the groups (`member`, `uniqueMember`);
   - simple bind (DN and password) or anonymous (can be disabled), search with base / one level /
     subtree scopes and RFC 4515 filters (and, or, not, equality, substrings, ≥, ≤, presence), size
     limit, compare, rootDSE (naming contexts), “Who am I” extended operation; passwords are never

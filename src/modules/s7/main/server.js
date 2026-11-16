@@ -491,6 +491,11 @@ export class S7Server {
     return Object.fromEntries([...this.points].map(([id, entry]) => [id, entry.value]))
   }
 
+  /** Valeurs courantes des seuls `ids` (points lus par le simulateur, les courbes…). */
+  read(ids) {
+    return Object.fromEntries(ids.map((id) => [id, this.points.get(id)?.value]))
+  }
+
   /** Ajoute ou remplace un point pendant que le serveur tourne. */
   upsertPoint(def) {
     this.requireRunning()
@@ -504,7 +509,6 @@ export class S7Server {
       points: previous ? this.config.points.map((p) => (p.id === def.id ? def : p)) : [...this.config.points, def]
     }
     this.writePoint(entry)
-    this.onValues(this.values())
     return this.status()
   }
 
@@ -512,7 +516,7 @@ export class S7Server {
     this.requireRunning()
     this.points.delete(id)
     this.config = { ...this.config, points: this.config.points.filter((p) => p.id !== id) }
-    this.onValues(this.values())
+    this.valuesDirty = true
     return this.status()
   }
 
@@ -521,8 +525,8 @@ export class S7Server {
     const entry = this.points.get(id)
     if (!entry) throw new Error(t('s7.errors.unknownPoint'))
     entry.value = parseInput(raw, entry.def.dataType)
+    // Envoi groupé à l'interface (voir emitTimer) : un flux peut écrire des centaines de fois par seconde.
     this.writePoint(entry)
-    this.onValues(this.values())
     return entry.value
   }
 

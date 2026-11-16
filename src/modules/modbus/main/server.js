@@ -114,6 +114,8 @@ export class ModbusServer {
   simTimer = null
   emitTimer = null
   sessionSeq = 0
+  /** Valeurs modifiées depuis leur dernier envoi à l'interface (voir emitTimer). */
+  valuesDirty = false
   /** Défauts injectés par le simulateur : [{ id, type, params, points }] (points : ids de points). */
   faults = []
 
@@ -177,6 +179,11 @@ export class ModbusServer {
     return Object.fromEntries([...this.points].map(([id, p]) => [id, p.value]))
   }
 
+  /** Valeurs courantes des seuls `ids` (points lus par le simulateur, les courbes…). */
+  read(ids) {
+    return Object.fromEntries(ids.map((id) => [id, this.points.get(id)?.value]))
+  }
+
   // --- Démarrage / arrêt --------------------------------------------------------
 
   async start(config) {
@@ -231,8 +238,13 @@ export class ModbusServer {
     this.server = server
     this.t0 = Date.now()
     this.startSimulation()
+    this.valuesDirty = true
     this.emitTimer = setInterval(() => {
-      this.onValues(this.values())
+      // Valeurs envoyées seulement si l'une a changé, au plus une fois par VALUES_EMIT_INTERVAL.
+      if (this.valuesDirty) {
+        this.valuesDirty = false
+        this.onValues(this.values())
+      }
       // Rafraîchit les compteurs de requêtes / refus des clients connectés lorsqu'ils évoluent.
       const counters = [...this.sessions.values()].map((s) => `${s.id}:${s.requests}:${s.denied}`).join()
       if (counters !== this.lastCounters) {
@@ -638,6 +650,7 @@ export class ModbusServer {
     }
     store.write(req.table, writeAddress, req.values)
     for (const p of touched) p.value = this.readPoint(p)
+    if (touched.length) this.valuesDirty = true
     return buildResponse(req, req.read ? store.read(req.table, req.address, req.quantity) : undefined)
   }
 
@@ -675,6 +688,7 @@ export class ModbusServer {
     if (TABLES[def.table].bit) unit.store.write(def.table, def.address, [toBoolean(entry.value)])
     else unit.store.write(def.table, def.address, encodeValue(entry.value, def.dataType, this.config.wordOrder))
     entry.value = this.readPoint(entry)
+    this.valuesDirty = true
   }
 
   readPoint({ def, unit }) {
@@ -760,6 +774,7 @@ export class ModbusServer {
     this.units.delete(id)
     this.byUnitId.delete(unit.def.unitId)
     for (const [pointId, p] of this.points) if (p.unit === unit) this.points.delete(pointId)
+    this.valuesDirty = true
     return this.changed(t('modbus.log.unitRemoved', { unit: unitLabel(unit.def) }))
   }
 
@@ -804,7 +819,7 @@ export class ModbusServer {
     }
     unit.store.write(table, address, [value])
     for (const p of this.touchedPoints(unit, table, address, 1)) p.value = this.readPoint(p)
-    this.onValues(this.values())
+    this.valuesDirty = true
     return unit.store.read(table, address, 1)[0]
   }
 
@@ -840,6 +855,7 @@ export class ModbusServer {
   removePoint(id) {
     this.requireRunning()
     this.points.delete(id)
+    this.valuesDirty = true
     return this.changed()
   }
 
@@ -851,7 +867,6 @@ export class ModbusServer {
     if (!TABLES[entry.def.table].bit && !Number.isFinite(entry.value))
       throw new Error(t('errors.invalidNumber', { value: raw }))
     this.writePoint(entry)
-    this.onValues(this.values())
     return entry.value
   }
 

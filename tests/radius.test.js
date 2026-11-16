@@ -16,10 +16,10 @@ import { RadiusServer, addressMatches } from '@modules/ldap/main/radius/server'
 import { RadiusClient } from '@modules/ldap/main/radius/client'
 import { buildDirectory } from '@modules/ldap/main/server'
 import { createPointsApi } from '@modules/ldap/main/points'
-import { DEFAULT_LDIF } from '@modules/ldap/shared/constants'
+import { EXAMPLE_LDIF } from '@modules/ldap/shared/constants'
 import {
-  DEFAULT_RADIUS_CLIENT_CONFIG,
-  DEFAULT_RADIUS_SERVER_CONFIG,
+  EXAMPLE_RADIUS_CLIENT_CONFIG,
+  EXAMPLE_RADIUS_SERVER_CONFIG,
   formatAttribute,
   parseAttributes
 } from '@modules/ldap/shared/radius'
@@ -129,14 +129,14 @@ describe('Serveur et client RADIUS', () => {
   let server, client, authPort, acctPort, logs
 
   const serverConfig = (extra = {}) => ({
-    ...DEFAULT_RADIUS_SERVER_CONFIG,
+    ...EXAMPLE_RADIUS_SERVER_CONFIG,
     host: '127.0.0.1',
     authPort,
     acctPort,
     ...extra
   })
   const clientConfig = (extra = {}) => ({
-    ...DEFAULT_RADIUS_CLIENT_CONFIG,
+    ...EXAMPLE_RADIUS_CLIENT_CONFIG,
     authPort,
     acctPort,
     timeout: 300,
@@ -149,7 +149,7 @@ describe('Serveur et client RADIUS', () => {
     authPort = await freeUdpPort()
     acctPort = await freeUdpPort()
     logs = []
-    server = new RadiusServer(() => buildDirectory(DEFAULT_LDIF), { onLog: (e) => logs.push(e) })
+    server = new RadiusServer(() => buildDirectory(EXAMPLE_LDIF), { onLog: (e) => logs.push(e) })
     client = new RadiusClient()
   })
 

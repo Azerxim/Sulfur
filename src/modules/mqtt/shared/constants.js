@@ -41,7 +41,8 @@ export const DEFAULT_SERVER_AUTH = {
   users: []
 }
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : topics simulés. */
+export const EXAMPLE_SERVER_CONFIG = {
   host: '0.0.0.0',
   port: 1883,
   /** MQTT sur TLS (port standard 8883), certificat auto-signé généré au premier démarrage. */
@@ -83,7 +84,11 @@ export const DEFAULT_SERVER_CONFIG = {
   ]
 }
 
-export const DEFAULT_CLIENT_CONFIG = {
+/** Configuration d'un nouveau broker : vierge, sans topic simulé. */
+export const DEFAULT_SERVER_CONFIG = { ...EXAMPLE_SERVER_CONFIG, topics: [] }
+
+/** Exemple (fichier d'exemple des releases, tests) : abonnement à sulfur/#. */
+export const EXAMPLE_CLIENT_CONFIG = {
   host: '127.0.0.1',
   port: 1883,
   tls: false,
@@ -100,4 +105,12 @@ export const DEFAULT_CLIENT_CONFIG = {
   will: { enabled: false, topic: 'sulfur/client/status', payload: 'offline', qos: 1, retain: true },
   subscriptions: [{ id: 'all', topic: 'sulfur/#', qos: 0, field: '' }],
   publish: { topic: 'sulfur/line1/running/set', payload: 'false', qos: 0, retain: false }
+}
+
+/** Configuration d'un nouveau client : aucun abonnement, topics de testament et de publication vides. */
+export const DEFAULT_CLIENT_CONFIG = {
+  ...EXAMPLE_CLIENT_CONFIG,
+  will: { ...EXAMPLE_CLIENT_CONFIG.will, topic: '', payload: '' },
+  subscriptions: [],
+  publish: { ...EXAMPLE_CLIENT_CONFIG.publish, topic: '', payload: '' }
 }

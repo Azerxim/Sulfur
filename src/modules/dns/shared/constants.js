@@ -17,7 +17,8 @@ export const FORCED_RCODES = ['SERVFAIL', 'NXDOMAIN', 'REFUSED']
 /** Requêtes conservées dans le journal du serveur. */
 export const MAX_QUERIES = 500
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : zone sulfur.local et ses enregistrements. */
+export const EXAMPLE_SERVER_CONFIG = {
   host: '0.0.0.0',
   /** Port standard 53 : droits administrateur requis sous Linux. */
   port: 1053,
@@ -41,7 +42,11 @@ export const DEFAULT_SERVER_CONFIG = {
   ]
 }
 
-export const DEFAULT_CLIENT_CONFIG = {
+/** Configuration d'un nouveau serveur : zone vide, sans enregistrement. */
+export const DEFAULT_SERVER_CONFIG = { ...EXAMPLE_SERVER_CONFIG, records: [] }
+
+/** Exemple (fichier d'exemple des releases, tests) : interroge plc1.sulfur.local. */
+export const EXAMPLE_CLIENT_CONFIG = {
   server: '127.0.0.1',
   port: 1053,
   name: 'plc1.sulfur.local',
@@ -51,3 +56,6 @@ export const DEFAULT_CLIENT_CONFIG = {
   recursion: true,
   timeout: 2000
 }
+
+/** Configuration d'un nouveau client : nom à interroger à saisir. */
+export const DEFAULT_CLIENT_CONFIG = { ...EXAMPLE_CLIENT_CONFIG, name: '' }

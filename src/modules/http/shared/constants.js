@@ -48,7 +48,8 @@ export const DEFAULT_SERVER_AUTH = {
   apiKey: ''
 }
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : variables simulées et routes. */
+export const EXAMPLE_SERVER_CONFIG = {
   host: '0.0.0.0',
   port: 8080,
   https: false,
@@ -146,6 +147,9 @@ export const DEFAULT_SERVER_CONFIG = {
   webhooks: []
 }
 
+/** Configuration d'un nouveau serveur : vierge, sans variable ni route. */
+export const DEFAULT_SERVER_CONFIG = { ...EXAMPLE_SERVER_CONFIG, variables: [], routes: [] }
+
 export const DEFAULT_CLIENT_CONFIG = {
   baseUrl: 'http://127.0.0.1:8080',
   timeout: 5000,
@@ -156,10 +160,13 @@ export const DEFAULT_CLIENT_CONFIG = {
   pollInterval: 1000
 }
 
-/** Requête préparée du client. */
-export const DEFAULT_CLIENT_REQUEST = {
+/** Exemple (fichier d'exemple des releases, tests) : API intégrée de Sulfur (GET /api/variables). */
+export const EXAMPLE_CLIENT_REQUEST = {
   method: 'GET',
   path: '/api/variables',
   headers: [],
   body: ''
 }
+
+/** Requête préparée d'un nouveau client : racine du serveur. */
+export const DEFAULT_CLIENT_REQUEST = { ...EXAMPLE_CLIENT_REQUEST, path: '/' }

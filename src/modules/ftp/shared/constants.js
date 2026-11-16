@@ -14,7 +14,8 @@ export const TLS_MODES = ['none', 'explicit', 'implicit']
 /** Codes de réponse proposés pour le défaut « réponse forcée » (commandes de transfert). */
 export const FORCED_REPLIES = [421, 450, 451, 550, 552]
 
-export const DEFAULT_SERVER_CONFIG = {
+/** Exemple (fichier d'exemple des releases, tests) : utilisateur sulfur (mot de passe à saisir). */
+export const EXAMPLE_SERVER_CONFIG = {
   host: '0.0.0.0',
   /** Port standard 21 (990 en FTPS implicite) : droits administrateur requis sous Linux. */
   port: 2121,
@@ -38,7 +39,11 @@ export const DEFAULT_SERVER_CONFIG = {
   users: [{ id: 'user-1', username: 'sulfur', passwordHash: '', readOnly: false }]
 }
 
-export const DEFAULT_CLIENT_CONFIG = {
+/** Configuration d'un nouveau serveur : aucun utilisateur. */
+export const DEFAULT_SERVER_CONFIG = { ...EXAMPLE_SERVER_CONFIG, users: [] }
+
+/** Exemple (fichier d'exemple des releases, tests) : utilisateur sulfur. */
+export const EXAMPLE_CLIENT_CONFIG = {
   host: '127.0.0.1',
   port: 2121,
   username: 'sulfur',
@@ -48,3 +53,6 @@ export const DEFAULT_CLIENT_CONFIG = {
   verifyCertificate: false,
   timeout: 10000
 }
+
+/** Configuration d'un nouveau client : utilisateur à saisir. */
+export const DEFAULT_CLIENT_CONFIG = { ...EXAMPLE_CLIENT_CONFIG, username: '' }

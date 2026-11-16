@@ -11,7 +11,8 @@ Acts on the servers and clients of the other modules through the points they pub
   fault applies it immediately.
 - **Flows** (as in Node-RED): nodes linked by wires pass messages (`msg.payload`) to each other,
   edited on a canvas (drag from the palette, link an output to an input, Delete removes the
-  selection). **Deploy** sends all flows to the main process, where they run continuously; deployed
+  selection; mouse wheel: vertical scroll, Alt + wheel: horizontal, Ctrl + wheel: zoom). A node's
+  label wraps (up to three lines, shown in full on hover). **Deploy** sends all flows to the main process, where they run continuously; deployed
   flows are restarted at launch, and **Stop** / **Restart** pause them. A flow can be disabled.
   Nodes:
   - triggers: *Trigger* (by hand, at deployment and/or every n seconds), *Point change*;

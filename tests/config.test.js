@@ -4,25 +4,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { withDefaults } from '@azerxim/sulfur-sdk'
 import { ConfigStore } from '../src/main/config-store'
 import { BUNDLE_FORMAT, createBundle, parseBundle } from '../src/main/config-bundle'
-import { keepConfigs, storedConfigs } from '../src/main/config-transfer'
-import { DEFAULT_SERVER_CONFIG } from '@modules/modbus/shared/constants'
+import { clearStoredConfigs, keepConfigs, storedConfigs } from '../src/main/config-transfer'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/modbus/shared/constants'
 import { tempDir } from './helpers'
 
 vi.mock('electron', () => ({ app: {}, BrowserWindow: {}, dialog: {} }))
 
 describe('withDefaults', () => {
   it('retourne les valeurs par défaut sans configuration enregistrée', () => {
-    expect(withDefaults(DEFAULT_SERVER_CONFIG, undefined)).toBe(DEFAULT_SERVER_CONFIG)
+    expect(withDefaults(EXAMPLE_SERVER_CONFIG, undefined)).toBe(EXAMPLE_SERVER_CONFIG)
     expect(withDefaults('opc.tcp://x', null)).toBe('opc.tcp://x')
   })
 
   it('complète une configuration ancienne avec les nouveaux réglages', () => {
     const saved = { port: 1502, security: { mode: 'tls' }, points: [] }
-    const config = withDefaults(DEFAULT_SERVER_CONFIG, saved)
+    const config = withDefaults(EXAMPLE_SERVER_CONFIG, saved)
     expect(config.port).toBe(1502)
-    expect(config.unitId).toBe(DEFAULT_SERVER_CONFIG.unitId)
+    expect(config.unitId).toBe(EXAMPLE_SERVER_CONFIG.unitId)
     expect(config.security.mode).toBe('tls')
-    expect(config.security.roles).toEqual(DEFAULT_SERVER_CONFIG.security.roles)
+    expect(config.security.roles).toEqual(EXAMPLE_SERVER_CONFIG.security.roles)
     expect(config.points).toEqual([])
   })
 
@@ -131,5 +131,16 @@ describe('Configurations conservées des modules non chargés', () => {
       'test-signal': { generator: { period: 5 } }
     })
     expect(await storedConfigs(path.join(tmp.dir, 'missing'), [])).toEqual({})
+  })
+
+  it('supprime celles des modules non chargés sans toucher aux autres données', async () => {
+    keepConfigs(tmp.dir, { mqtt: { broker: { port: 1884 } } })
+    await fs.writeFile(path.join(tmp.dir, 'mqtt', 'ca.pem'), 'cert')
+    new ConfigStore(path.join(tmp.dir, 'opcua', 'config.json')).set('server', { port: 4841 })
+    expect(await clearStoredConfigs(tmp.dir, ['opcua'])).toEqual(['mqtt'])
+    expect(await storedConfigs(tmp.dir, ['opcua'])).toEqual({})
+    expect(await fs.readFile(path.join(tmp.dir, 'mqtt', 'ca.pem'), 'utf8')).toBe('cert')
+    expect(new ConfigStore(path.join(tmp.dir, 'opcua', 'config.json')).get()).toEqual({ server: { port: 4841 } })
+    expect(await clearStoredConfigs(path.join(tmp.dir, 'missing'), [])).toEqual([])
   })
 })

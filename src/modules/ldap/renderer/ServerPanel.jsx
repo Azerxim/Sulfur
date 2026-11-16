@@ -13,7 +13,7 @@ import {
   usePersistentState
 } from '@azerxim/sulfur-sdk/ui'
 import { formatTime, instanceSection } from '@azerxim/sulfur-sdk'
-import { DEFAULT_LDIF, DEFAULT_SERVER_CONFIG, SECURITY_MODES } from '../shared/constants'
+import { DEFAULT_SERVER_CONFIG, EXAMPLE_LDIF, SECURITY_MODES } from '../shared/constants'
 import { parseLdif } from '../shared/ldif'
 import { ldapApi } from './api'
 import { t } from '../shared/i18n'
@@ -226,7 +226,7 @@ export default function ServerPanel({ instance, status }) {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => confirm(t('ldap.server.confirmReset')) && update({ ldif: DEFAULT_LDIF }, true)}
+              onClick={() => confirm(t('ldap.server.confirmReset')) && update({ ldif: EXAMPLE_LDIF }, true)}
             >
               <FontAwesomeIcon icon={faRotateLeft} className="size-3.5" /> {t('ldap.server.resetLdif')}
             </Button>

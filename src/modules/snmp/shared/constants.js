@@ -52,7 +52,8 @@ export const MAX_TRAPS = 500
 export const MAX_WALK = 5000
 
 /** Utilisateur SNMPv3 par défaut de l'agent et du manager (banc de test : clés connues). */
-export const DEFAULT_USER = {
+/** Utilisateur SNMPv3 d'exemple (fichier d'exemple des releases, tests). */
+export const EXAMPLE_USER = {
   name: 'sulfur',
   level: 'authPriv',
   authProtocol: 'sha256',
@@ -61,14 +62,18 @@ export const DEFAULT_USER = {
   privKey: 'sulfur-priv-key'
 }
 
-export const DEFAULT_AGENT_CONFIG = {
+/** Nouvel utilisateur SNMPv3 : niveau authPriv, nom et clés à saisir. */
+export const DEFAULT_USER = { ...EXAMPLE_USER, name: '', authKey: '', privKey: '' }
+
+/** Exemple (fichier d'exemple des releases, tests) : utilisateur SNMPv3, objets simulés et notification. */
+export const EXAMPLE_AGENT_CONFIG = {
   host: '0.0.0.0',
   // 161 est le port standard (droits administrateur requis sous Linux).
   port: 1161,
   readCommunity: 'public',
   writeCommunity: 'private',
   /** Utilisateurs SNMPv3 (accès en lecture et écriture). Les clés sont enregistrées en clair. */
-  users: [DEFAULT_USER],
+  users: [EXAMPLE_USER],
   /** Vide : identifiant de moteur SNMPv3 généré au démarrage. */
   engineId: '',
   updateRate: 100,
@@ -129,12 +134,22 @@ export const DEFAULT_AGENT_CONFIG = {
   }
 }
 
-export const DEFAULT_MANAGER_CONFIG = {
+/** Configuration d'un nouvel agent : vierge, sans utilisateur, objet ni destinataire de notification. */
+export const DEFAULT_AGENT_CONFIG = {
+  ...EXAMPLE_AGENT_CONFIG,
+  users: [],
+  system: { ...EXAMPLE_AGENT_CONFIG.system, contact: '', location: '' },
+  objects: [],
+  traps: { ...EXAMPLE_AGENT_CONFIG.traps, objects: [], targets: [] }
+}
+
+/** Exemple (fichier d'exemple des releases, tests) : surveillance de sysUpTime. */
+export const EXAMPLE_MANAGER_CONFIG = {
   host: '127.0.0.1',
   port: 1161,
   version: 'v3',
   community: 'public',
-  user: DEFAULT_USER,
+  user: EXAMPLE_USER,
   timeout: 2000,
   retries: 1,
   request: { operation: 'get', oid: '1.3.6.1.2.1.1.1.0', type: 'OctetString', value: '', maxRepetitions: 10 },
@@ -143,3 +158,6 @@ export const DEFAULT_MANAGER_CONFIG = {
   pollInterval: 5,
   receiver: { host: '0.0.0.0', port: 1162 }
 }
+
+/** Configuration d'un nouveau manager : aucun OID surveillé, utilisateur SNMPv3 à saisir. */
+export const DEFAULT_MANAGER_CONFIG = { ...EXAMPLE_MANAGER_CONFIG, user: DEFAULT_USER, monitors: [] }

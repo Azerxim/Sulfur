@@ -45,7 +45,8 @@ export default {
       unsupportedVersion:
         "La version {version} du format de configuration n'est pas prise en charge par cette version de Sulfur",
       noModule: 'Le fichier ne contient aucune configuration pour les modules de cette version de Sulfur',
-      busy: "Arrêtez les serveurs et déconnectez les clients avant d'importer une configuration"
+      busy: "Arrêtez les serveurs et déconnectez les clients avant d'importer une configuration",
+      clearBusy: 'Arrêtez les serveurs et déconnectez les clients avant de supprimer la configuration'
     }
   },
   modules: {
@@ -250,6 +251,13 @@ export default {
       hint: 'Les réglages des modules sont enregistrés automatiquement. Exportez-les dans un fichier JSON pour partager un banc de test, ou importez-en un (serveurs arrêtés et clients déconnectés).',
       export: 'Exporter…',
       import: 'Importer…',
+      clear: 'Tout supprimer…',
+      clearConfirm: 'Supprimer définitivement',
+      cancel: 'Annuler',
+      clearWarning:
+        'Les réglages de tous les modules seront supprimés et remplacés par les valeurs par défaut, y compris les configurations conservées des modules non installés. Exportez-les d’abord pour les garder.',
+      cleared: 'Configuration de tous les modules supprimée',
+      clearedKept: 'Configurations conservées supprimées : {modules}',
       exportTitle: 'Exporter la configuration de Sulfur',
       importTitle: 'Importer une configuration Sulfur',
       exported: 'Configuration exportée dans {path}',

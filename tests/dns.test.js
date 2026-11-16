@@ -2,7 +2,7 @@ import { Resolver } from 'dns/promises'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { DnsServer, buildZone, parseUpstreams } from '@modules/dns/main/server'
 import { DnsClient } from '@modules/dns/main/client'
-import { DEFAULT_SERVER_CONFIG } from '@modules/dns/shared/constants'
+import { EXAMPLE_SERVER_CONFIG } from '@modules/dns/shared/constants'
 import { absoluteName, isIPv6, recordProblem, reverseName } from '@modules/dns/shared/records'
 import { errorOf, freePort } from './helpers'
 
@@ -26,7 +26,7 @@ describe('Enregistrements et zone', () => {
   })
 
   it('construit la zone avec SOA et PTR automatiques', () => {
-    const zone = buildZone(DEFAULT_SERVER_CONFIG)
+    const zone = buildZone(EXAMPLE_SERVER_CONFIG)
     expect(zone.get('plc1.sulfur.local')).toEqual([
       { name: 'plc1.sulfur.local', type: 'A', ttl: 300, data: '192.168.1.10' }
     ])
@@ -53,7 +53,7 @@ describe('Serveur et client DNS', () => {
   beforeAll(async () => {
     port = await freePort()
     server = new DnsServer()
-    await server.start({ ...DEFAULT_SERVER_CONFIG, port })
+    await server.start({ ...EXAMPLE_SERVER_CONFIG, port })
   })
   afterEach(() => server.setFaults([]))
   afterAll(() => server.stop())
@@ -91,12 +91,12 @@ describe('Serveur et client DNS', () => {
 
   it('applique les modifications de la zone serveur démarré', async () => {
     server.update({
-      ...DEFAULT_SERVER_CONFIG,
-      records: [...DEFAULT_SERVER_CONFIG.records, { id: 'x', name: '*.lab', type: 'A', value: '10.0.0.99', ttl: 60 }]
+      ...EXAMPLE_SERVER_CONFIG,
+      records: [...EXAMPLE_SERVER_CONFIG.records, { id: 'x', name: '*.lab', type: 'A', value: '10.0.0.99', ttl: 60 }]
     })
     expect((await ask('anything.lab.sulfur.local')).answers[0]).toMatchObject({ value: '10.0.0.99', ttl: 60 })
     expect(() =>
-      server.update({ ...DEFAULT_SERVER_CONFIG, records: [{ name: 'x', type: 'A', value: 'nope' }] })
+      server.update({ ...EXAMPLE_SERVER_CONFIG, records: [{ name: 'x', type: 'A', value: 'nope' }] })
     ).toThrow(/Invalid IPv4/)
   })
 
@@ -104,20 +104,20 @@ describe('Serveur et client DNS', () => {
     const upstreamPort = await freePort()
     const upstream = new DnsServer()
     await upstream.start({
-      ...DEFAULT_SERVER_CONFIG,
+      ...EXAMPLE_SERVER_CONFIG,
       port: upstreamPort,
       tcp: false,
       domain: 'example.org',
       records: [{ name: 'www', type: 'A', value: '203.0.113.5' }]
     })
     try {
-      server.update({ ...DEFAULT_SERVER_CONFIG, forward: { enabled: true, servers: `127.0.0.1:${upstreamPort}` } })
+      server.update({ ...EXAMPLE_SERVER_CONFIG, forward: { enabled: true, servers: `127.0.0.1:${upstreamPort}` } })
       const res = await ask('www.example.org')
       expect(res.answers[0].value).toBe('203.0.113.5')
       expect(server.list().at(-1)).toMatchObject({ forwarded: true, rcode: 'NOERROR' })
     } finally {
       await upstream.stop()
-      server.update(DEFAULT_SERVER_CONFIG)
+      server.update(EXAMPLE_SERVER_CONFIG)
     }
   })
 
@@ -130,6 +130,6 @@ describe('Serveur et client DNS', () => {
 
   it('refuse un port déjà utilisé', async () => {
     const other = new DnsServer()
-    expect(await errorOf(other.start({ ...DEFAULT_SERVER_CONFIG, port }))).toMatch(/already in use/)
+    expect(await errorOf(other.start({ ...EXAMPLE_SERVER_CONFIG, port }))).toMatch(/already in use/)
   })
 })

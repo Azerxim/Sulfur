@@ -27,10 +27,8 @@ export function serverPoints(server, instance, savedConfig = () => ({})) {
         numeric: isNumericType(p.dataType),
         writable: true
       })),
-    read(ids) {
-      const values = server.server ? server.values() : {}
-      return Object.fromEntries(ids.map((id) => [id, values[id]]))
-    },
+    // Seuls les points demandés sont lus : un flux scrute souvent quelques points parmi des milliers.
+    read: (ids) => (server.server ? server.read(ids) : Object.fromEntries(ids.map((id) => [id, undefined]))),
     write: (id, value) => server.setValue(id, value),
     setFaults: (faults) => server.setFaults(faults)
   }
